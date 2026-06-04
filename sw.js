@@ -1,8 +1,8 @@
 /* Service worker: offline support + auto-update.
    Network-first so a Chromebook that's online always gets the latest questions;
    falls back to cache when offline. Bump CACHE on each deploy to purge old files. */
-var CACHE = 'revise-v2';
-var ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
+var CACHE = 'revise-v3';
+var ASSETS = ['./', './index.html', './content-extra.js', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', function (e) {
   e.waitUntil(

@@ -205,6 +205,7 @@ button{font-family:inherit;color:inherit}
 <div id="toasts"></div>
 <input type="file" id="fileInput" accept="application/json,.json" style="display:none">
 
+<script src="content-extra.js"></script>
 <script>
 "use strict";
 
@@ -316,7 +317,7 @@ function normalize(){
     s.topics.forEach(function(tp){if(tp.learn==null)tp.learn="";if(tp.tricky==null)tp.tricky=false;if(tp.assessed==null)tp.assessed=false;if(tp.level==null)tp.level=null;
       tp.questions=tp.questions||[];tp.questions.forEach(function(q){if(q.box==null)q.box=0;if(!q.due)q.due=todayStr();if(q.reps==null)q.reps=0;if(q.attempts==null)q.attempts=0;if(q.correct==null)q.correct=0;if(q.lapses==null)q.lapses=0;});});});
 }
-var CONTENT_VERSION=2;
+var CONTENT_VERSION=3;
 function hashId(prefix,str){var h=0x811c9dc5>>>0;for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,0x01000193)>>>0;}return prefix+h.toString(36);}
 function assignStableIds(data){data.subjects.forEach(function(s){s.id=hashId("s_",s.name);s.topics.forEach(function(t){t.id=hashId("t_",s.name+"/"+t.name);t.questions.forEach(function(q){q.id=hashId("q_",s.name+"/"+t.name+"/"+q.q);});});});}
 function mergeContent(saved,fresh){var added=0;var sBy={};saved.subjects.forEach(function(s){sBy[s.id]=s;});
@@ -931,6 +932,18 @@ function seedData(){
     {id:uid(),name:"Geography",color:"#34d399",pastPapers:PP("https://www.aqa.org.uk/subjects/geography/gcse/geography-8035","GCSE Geography 8035"),topics:geography},
     {id:uid(),name:"English",color:"#f472b6",pastPapers:PP("https://www.aqa.org.uk/subjects/english/gcse/english-language-8700","GCSE English 8700/8702"),topics:english}
   ];
+  // distribute the extra question bank (loaded from content-extra.js) into subjects/topics
+  var EX = (typeof window!=="undefined" && window.__EXTRA__) ? window.__EXTRA__ : [];
+  EX.forEach(function(it){
+    var s=subjects.find(function(x){return x.name===it.s;}); if(!s) return;
+    var tp=s.topics.find(function(x){return x.name===it.t;});
+    if(!tp){ tp={id:uid(),name:it.t,learn:"",tricky:false,assessed:false,level:null,questions:[]}; s.topics.push(tp); }
+    var q;
+    if(it.type==="mcq") q=MCQ(it.q,it.options,it.answer,it.explain);
+    else if(it.type==="numeric") q=NUM(it.q,it.answer,it.tolerance||0,it.explain);
+    else q=SA(it.q,it.accept,it.explain);
+    tp.questions.push(q);
+  });
   return {version:2,createdAt:todayStr(),settings:{studentName:"",dailyGoal:20,streak:0,lastStudied:null},
     game:{xp:0,ach:{},totalAns:0,totalCorrect:0},log:{days:{}},subjects:subjects};
 }
