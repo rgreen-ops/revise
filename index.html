@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Revise — GCSE</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a0e1a">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{
+  --bg:#0a0e1a; --bg2:#0f1525; --surface:#161d31; --surface2:#1c2440;
+  --line:#283251; --line2:#384469;
+  --ink:#eef2fb; --muted:#aeb9d6; --faint:#8b97ba;
+  --accent:#7c83ff; --accent2:#22d3ee; --violet:#a855f7;
+  --gold:#f7c948; --green:#34d399; --red:#fb7185;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:
+  radial-gradient(1200px 600px at 80% -10%, rgba(124,131,255,.12), transparent 60%),
+  radial-gradient(1000px 500px at -10% 10%, rgba(34,211,238,.08), transparent 55%),
+  var(--bg);
+  color:var(--ink);line-height:1.5;min-height:100vh;-webkit-text-size-adjust:100%}
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;
+  background:rgba(10,14,26,.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:10px 16px}
+.brand{font-weight:800;font-size:16px;letter-spacing:.3px;cursor:pointer;display:flex;align-items:center;gap:8px}
+.brand .dot{width:10px;height:10px;border-radius:3px;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.tb-right{display:flex;align-items:center;gap:10px}
+.chip{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:13px;font-weight:700}
+.chip.gold{color:var(--gold)}
+.chip .lvlnum{background:linear-gradient(135deg,var(--accent),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+main{max-width:820px;margin:0 auto;padding:18px 16px 90px}
+h1{font-size:26px;margin:2px 0 2px;letter-spacing:-.2px}
+h2{font-size:19px;margin:0}
+.sub{color:var(--muted);margin:0 0 16px}
+.muted{color:var(--muted)} .faint{color:var(--faint)}
+button{font-family:inherit;color:inherit}
+/* hero */
+.hero{display:flex;gap:16px;align-items:center;background:linear-gradient(180deg,var(--surface),var(--bg2));
+  border:1px solid var(--line);border-radius:20px;padding:18px;margin-bottom:16px}
+.hero .rings{display:flex;gap:14px}
+.ringwrap{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px}
+.ringwrap small{font-size:11px;color:var(--muted);font-weight:600}
+.ring-text{fill:var(--ink);font-size:15px;font-weight:800}
+.ring-sub{fill:var(--muted);font-size:8px;font-weight:600}
+.hero-main{flex:1;min-width:0}
+.hero-main .lvline{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.badge-lvl{font-weight:800;font-size:14px;background:linear-gradient(135deg,var(--accent),var(--violet));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.xpbar{height:9px;background:#0c1222;border:1px solid var(--line);border-radius:999px;overflow:hidden;margin:8px 0 4px}
+.xpbar span{display:block;height:100%;background:linear-gradient(90deg,var(--gold),#ffd97a)}
+.cta{display:block;width:100%;border:0;border-radius:16px;padding:17px;margin:6px 0 4px;cursor:pointer;
+  font-size:17px;font-weight:800;color:#fff;background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  box-shadow:0 8px 24px -8px rgba(124,131,255,.6)}
+.cta:active{transform:translateY(1px)}
+.cta.lg{font-size:18px;padding:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:12px;margin:14px 0}
+.subject-card{position:relative;text-align:left;border:1px solid var(--line);background:var(--surface);
+  border-radius:16px;padding:14px;cursor:pointer;overflow:hidden;transition:border-color .15s,transform .05s}
+.subject-card:hover{border-color:var(--line2)} .subject-card:active{transform:translateY(1px)}
+.subject-card::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--c,var(--accent))}
+.sc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.subject-name{font-weight:700;font-size:15px}
+.sc-lvl{font-size:11px;font-weight:800;color:var(--c);background:color-mix(in srgb,var(--c) 18%,transparent);
+  border-radius:6px;padding:2px 7px;white-space:nowrap}
+.subject-meta{color:var(--muted);font-size:12px;margin:8px 0 8px}
+.bar{height:7px;background:#0c1222;border-radius:99px;overflow:hidden}
+.bar span{display:block;height:100%;background:var(--c,var(--accent))}
+.bar.small{height:5px}
+.duepill{display:inline-block;margin-top:9px;font-size:11px;font-weight:800;border-radius:99px;padding:2px 9px;
+  color:var(--accent2);background:rgba(34,211,238,.12)}
+.duepill.done{color:var(--green);background:rgba(52,211,153,.12)}
+.row{display:flex;gap:10px;align-items:center}
+.row.two>*{flex:1}.row.wrap{flex-wrap:wrap}
+.tile-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:8px}
+.ghost{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:13px;
+  padding:13px 14px;font-size:14px;font-weight:700;cursor:pointer}
+.ghost:hover{border-color:var(--line2)}
+.ghost.danger{color:var(--red);border-color:rgba(251,113,133,.35)}
+.back{background:none;border:0;color:var(--accent);font-weight:700;font-size:14px;padding:6px 0;cursor:pointer;margin-bottom:6px}
+.page-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:6px 0 14px}
+.page-head .ph-l{display:flex;align-items:center;gap:11px;min-width:0}
+.ph-swatch{width:6px;height:34px;border-radius:6px;background:var(--c,var(--accent));flex-shrink:0}
+.head-actions{display:flex;gap:6px;flex-shrink:0}
+.mini{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:9px;
+  padding:7px 11px;font-size:12px;font-weight:700;cursor:pointer}
+.mini:hover{color:var(--ink);border-color:var(--line2)}
+.mini.danger{color:var(--red);border-color:rgba(251,113,133,.3)}
+.mini.on{color:var(--gold);border-color:rgba(247,201,72,.5);background:rgba(247,201,72,.1)}
+.list,.cards{display:flex;flex-direction:column;gap:10px;margin:14px 0}
+.topic-row{display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;border:1px solid var(--line);
+  background:var(--surface);border-radius:14px;padding:14px;cursor:pointer}
+.topic-row:hover{border-color:var(--line2)}
+.topic-main{flex:1;min-width:0}
+.topic-name{font-weight:700;margin-bottom:7px;display:flex;align-items:center;gap:7px}
+.lvl-tag{font-size:10px;font-weight:800;border-radius:6px;padding:2px 7px;text-transform:uppercase;letter-spacing:.04em}
+.lvl-tag.needs{color:#fda4af;background:rgba(251,113,133,.14)}
+.lvl-tag.developing{color:#fcd34d;background:rgba(247,201,72,.14)}
+.lvl-tag.secure{color:#6ee7b7;background:rgba(52,211,153,.14)}
+.lvl-tag.tricky{color:#fbbf24;background:rgba(251,191,36,.16)}
+.topic-side{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.count{font-size:12px;color:var(--faint)}
+.section-label{font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--faint);margin:20px 0 9px;font-weight:700}
+.card-row{border:1px solid var(--line);background:var(--surface);border-radius:13px;padding:12px}
+.card-q{font-weight:600;font-size:14px}
+.card-meta{color:var(--faint);font-size:12px;margin-top:5px;display:flex;gap:10px;flex-wrap:wrap}
+.card-tools{display:flex;gap:6px;margin-top:9px}
+.notes{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px}
+.notes p{margin:0 0 10px}.notes ul{margin:0 0 10px;padding-left:20px}.notes li{margin:4px 0}
+.notes strong{color:#fff}
+.notes-edit{width:100%;min-height:320px;background:var(--bg2);color:var(--ink);border:1px solid var(--line);
+  border-radius:12px;padding:12px;font-family:inherit;font-size:15px;line-height:1.6}
+.tip{color:var(--faint);font-size:13px;margin-top:16px}
+.empty{color:var(--faint);font-style:italic;padding:8px 0}
+.linklist{display:flex;flex-direction:column;gap:8px}
+.linklist a{display:flex;align-items:center;justify-content:space-between;gap:8px;text-decoration:none;color:var(--ink);
+  background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 14px;font-weight:600;font-size:14px}
+.linklist a:hover{border-color:var(--line2)} .linklist a .arr{color:var(--accent);font-weight:800}
+/* question / session */
+.q-top{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.q-progress{flex:1;height:8px;background:#0c1222;border:1px solid var(--line);border-radius:99px;overflow:hidden}
+.q-progress span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .25s}
+.q-count{font-size:12px;color:var(--muted);font-weight:700;white-space:nowrap}
+.combo{text-align:center;height:20px;font-weight:800;font-size:13px;color:var(--gold);margin-bottom:6px;
+  transition:opacity .2s}
+.q-tag{font-size:12px;font-weight:700;color:var(--c,var(--accent));margin-bottom:9px;text-transform:uppercase;letter-spacing:.04em}
+.q-card{background:linear-gradient(180deg,var(--surface),var(--bg2));border:1px solid var(--line);border-radius:18px;
+  padding:24px 20px;margin-bottom:14px;box-shadow:0 10px 30px -16px rgba(0,0,0,.7)}
+.q-text{font-size:21px;font-weight:600;line-height:1.4}
+.q-assess-flag{display:inline-block;font-size:11px;font-weight:800;color:var(--accent2);
+  background:rgba(34,211,238,.12);border-radius:99px;padding:3px 10px;margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;align-items:center;gap:12px;text-align:left;width:100%;border:1px solid var(--line);
+  background:var(--surface);color:var(--ink);border-radius:13px;padding:15px;font-size:16px;font-weight:600;cursor:pointer;transition:border-color .12s,background .12s}
+.opt:hover{border-color:var(--line2)}
+.opt .key{width:26px;height:26px;flex-shrink:0;border-radius:7px;background:var(--surface2);border:1px solid var(--line2);
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--muted)}
+.opt.correct{border-color:var(--green);background:rgba(52,211,153,.13)}
+.opt.correct .key{background:var(--green);color:#06281d;border-color:var(--green)}
+.opt.wrong{border-color:var(--red);background:rgba(251,113,133,.12)}
+.opt.wrong .key{background:var(--red);color:#3a0c14;border-color:var(--red)}
+.opt.dim{opacity:.5}
+.opt:disabled{cursor:default}
+.ansrow{display:flex;gap:10px}
+.ansrow input{flex:1;background:var(--bg2);color:var(--ink);border:1px solid var(--line2);border-radius:13px;
+  padding:15px;font-size:17px;font-family:inherit}
+.ansrow input:focus{outline:none;border-color:var(--accent)}
+.btn{border:0;border-radius:13px;padding:15px 20px;font-size:16px;font-weight:800;cursor:pointer;
+  color:#fff;background:linear-gradient(135deg,#6366f1,#8b5cf6)}
+.feedback{margin-top:14px;border-radius:14px;padding:14px 16px;border:1px solid var(--line)}
+.feedback.ok{background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.4)}
+.feedback.no{background:rgba(251,113,133,.1);border-color:rgba(251,113,133,.4)}
+.fb-head{font-weight:800;display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.feedback.ok .fb-head{color:var(--green)} .feedback.no .fb-head{color:var(--red)}
+.fb-xp{margin-left:auto;color:var(--gold);font-size:13px}
+.fb-correct{font-size:14px;margin:4px 0} .fb-ex{font-size:13px;color:var(--muted);margin-top:6px}
+.nextbtn{display:block;width:100%;margin-top:12px;border:0;border-radius:13px;padding:15px;font-size:16px;font-weight:800;
+  cursor:pointer;color:#fff;background:linear-gradient(135deg,#6366f1,#8b5cf6)}
+/* summary */
+.summary{text-align:center;padding-top:14px}
+.scorering{margin:8px auto 4px}
+.score-line{display:flex;justify-content:center;gap:22px;margin:14px 0}
+.score-line>div{display:flex;flex-direction:column}.score-line b{font-size:26px}.score-line span{font-size:12px;color:var(--muted)}
+.levelup{background:linear-gradient(135deg,rgba(124,131,255,.18),rgba(168,85,247,.14));border:1px solid var(--line2);
+  border-radius:14px;padding:14px;margin:12px 0;font-weight:800}
+/* achievements */
+.ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:6px}
+.ach{border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:14px;text-align:center}
+.ach.locked{opacity:.45;filter:grayscale(.6)}
+.ach .ic{font-size:28px}.ach .an{font-weight:800;font-size:13px;margin-top:6px}.ach .ad{font-size:11px;color:var(--muted);margin-top:3px}
+/* stats / progress */
+.stat-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:14px 0}
+.stat-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;text-align:center}
+.stat-card b{display:block;font-size:26px}.stat-card span{font-size:12px;color:var(--muted)}
+.stat-row{display:flex;align-items:center;gap:10px;margin:9px 0}
+.stat-name{width:130px;font-size:13px;font-weight:700;flex-shrink:0}
+.stat-row .bar{flex:1}.stat-num{width:52px;text-align:right;font-size:12px;color:var(--muted)}
+.weeks{display:flex;align-items:flex-end;gap:6px;height:90px;margin:10px 0;padding:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+.weeks .wk{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+.weeks .wk i{display:block;width:100%;max-width:30px;background:linear-gradient(180deg,var(--accent),var(--accent2));border-radius:5px 5px 0 0;min-height:3px}
+.weeks .wk small{font-size:10px;color:var(--faint)}
+.lockmsg{font-size:12px;color:var(--faint);background:var(--surface);border:1px dashed var(--line2);border-radius:12px;padding:11px 13px;margin:8px 0}
+.setting{margin:14px 0}.setting label{display:block;font-size:13px;font-weight:700;margin-bottom:6px;color:var(--muted)}
+.setting input{flex:1;background:var(--bg2);color:var(--ink);border:1px solid var(--line2);border-radius:11px;padding:12px;font-size:15px;font-family:inherit}
+/* toasts */
+#toasts{position:fixed;left:0;right:0;bottom:18px;z-index:60;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+.toast{background:var(--surface2);border:1px solid var(--line2);border-radius:13px;padding:11px 16px;font-weight:800;font-size:14px;
+  box-shadow:0 12px 30px -10px rgba(0,0,0,.7);display:flex;align-items:center;gap:9px;animation:pop .3s ease}
+.toast.xp{color:var(--gold)} .toast.ach{color:var(--accent2)} .toast.lvl{color:var(--violet)}
+@keyframes pop{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
+@media(max-width:520px){ .hero{flex-direction:column;align-items:stretch} .hero .rings{justify-content:center} h1{font-size:23px} }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand" data-act="home"><span class="dot"></span> Revise</div>
+  <div class="tb-right">
+    <span class="chip"><span class="lvlnum">Lv <b id="tbLevel">1</b></span></span>
+    <span class="chip gold">⚡ <b id="tbXp">0</b></span>
+    <span class="chip">🔥 <b id="tbStreak">0</b></span>
+  </div>
+</header>
+<main id="app"></main>
+<div id="toasts"></div>
+<input type="file" id="fileInput" accept="application/json,.json" style="display:none">
+
+<script>
+"use strict";
+
+/* ===== date helpers ===== */
+function todayStr(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function fmtD(dt){return dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0");}
+function addDays(s,n){var p=s.split("-").map(Number);var dt=new Date(p[0],p[1]-1,p[2]);dt.setDate(dt.getDate()+n);return fmtD(dt);}
+function mondayOf(s){var p=s.split("-").map(Number);var dt=new Date(p[0],p[1]-1,p[2]);var k=(dt.getDay()+6)%7;dt.setDate(dt.getDate()-k);return fmtD(dt);}
+
+/* ===== misc ===== */
+var _u=0; function uid(){_u++;return "id"+Date.now().toString(36)+_u.toString(36);}
+function esc(s){return (s==null?"":String(s)).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function pct(p,t){return t?Math.round(p/t*100):0;}
+function fmtMins(ms){var m=Math.round(ms/60000);if(m<60)return m+"m";return Math.floor(m/60)+"h "+(m%60)+"m";}
+function fmt(text){
+  var e=esc(text).replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>");
+  var lines=e.split("\n"),out="",ul=false;
+  for(var i=0;i<lines.length;i++){var ln=lines[i];
+    if(/^\s*-\s+/.test(ln)){if(!ul){out+="<ul>";ul=true;}out+="<li>"+ln.replace(/^\s*-\s+/,"")+"</li>";}
+    else{if(ul){out+="</ul>";ul=false;}if(ln.trim()!=="")out+="<p>"+ln+"</p>";}}
+  if(ul)out+="</ul>";return out;
+}
+function ringSVG(p,size,sw,color,big,small){
+  var r=(size-sw)/2,c=2*Math.PI*r,off=c*(1-Math.max(0,Math.min(100,p))/100);
+  var h='<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'">';
+  h+='<circle cx="'+size/2+'" cy="'+size/2+'" r="'+r+'" stroke="rgba(255,255,255,.07)" stroke-width="'+sw+'" fill="none"/>';
+  h+='<circle cx="'+size/2+'" cy="'+size/2+'" r="'+r+'" stroke="'+color+'" stroke-width="'+sw+'" fill="none" stroke-linecap="round" stroke-dasharray="'+c.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'" transform="rotate(-90 '+size/2+' '+size/2+')"/>';
+  if(big)h+='<text x="50%" y="'+(small?"44%":"50%")+'" text-anchor="middle" dy="0.35em" class="ring-text">'+big+'</text>';
+  if(small)h+='<text x="50%" y="66%" text-anchor="middle" class="ring-sub">'+small+'</text>';
+  h+='</svg>';return h;
+}
+
+/* ===== short-answer marking ===== */
+function normAns(s){return String(s==null?"":s).toLowerCase().replace(/[’']/g,"").replace(/[^a-z0-9À-ÿ ]+/g," ").replace(/\s+/g," ").trim().replace(/^(the|a|an) /,"");}
+function lev(a,b){var m=a.length,n=b.length;if(!m)return n;if(!n)return m;var d=[];for(var i=0;i<=m;i++)d[i]=[i];for(var j=0;j<=n;j++)d[0][j]=j;
+  for(i=1;i<=m;i++)for(j=1;j<=n;j++){var c=a[i-1]===b[j-1]?0:1;d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+c);}return d[m][n];}
+function shortOK(q,input){var u=normAns(input);if(!u)return false;var acc=q.accept||[];
+  for(var i=0;i<acc.length;i++){var n=normAns(acc[i]);if(!n)continue;if(u===n)return true;var tol=n.length>=8?2:(n.length>=5?1:0);if(tol&&lev(u,n)<=tol)return true;}return false;}
+function markAnswer(q,input){
+  if(q.type==="mcq")return input===q.answer;
+  if(q.type==="numeric"){var v=parseFloat(String(input).replace(/[, ]/g,""));if(isNaN(v))return false;return Math.abs(v-q.answer)<=(q.tolerance||0)+1e-9;}
+  return shortOK(q,input);
+}
+function correctText(q){
+  if(q.type==="mcq")return q.options[q.answer];
+  if(q.type==="numeric")return q.answer+(q.tolerance?" (±"+q.tolerance+")":"");
+  return (q.accept&&q.accept[0])||"";
+}
+
+/* ===== spaced repetition ===== */
+var INTERVALS=[0,1,2,4,9,18,40];
+function scheduleQ(q,correct,tricky){
+  var t=todayStr();q.reps=(q.reps||0)+1;q.attempts=(q.attempts||0)+1;q.last=t;
+  if(correct){q.correct=(q.correct||0)+1;q.box=Math.min(6,(q.box||0)+1);var d=INTERVALS[q.box];if(tricky)d=Math.min(d,5);q.due=addDays(t,Math.max(1,d));}
+  else{q.box=1;q.lapses=(q.lapses||0)+1;q.due=addDays(t,1);}
+}
+function isDue(q){return (q.due||"0000-00-00")<=todayStr();}
+function isMastered(q){return (q.box||0)>=5;}
+
+/* ===== XP / levels ===== */
+function cumXp(L){return 100*(L-1)*L/2;}
+function levelInfo(){var xp=DB.game.xp||0,L=1;while(cumXp(L+1)<=xp)L++;var base=cumXp(L),next=cumXp(L+1);return {level:L,into:xp-base,span:next-base,pct:pct(xp-base,next-base),next:next-xp};}
+function addXp(n){DB.game.xp=(DB.game.xp||0)+n;ensureDay(todayStr()).xp=(ensureDay(todayStr()).xp||0)+n;}
+
+/* ===== achievements ===== */
+var ACH=[
+  {id:"first",ic:"🎯",name:"First Steps",desc:"Answer your first question",test:function(c){return DB.game.totalAns>=1;}},
+  {id:"q100",ic:"💯",name:"Centurion",desc:"Answer 100 questions",test:function(c){return DB.game.totalAns>=100;}},
+  {id:"q500",ic:"📚",name:"Bookworm",desc:"Answer 500 questions",test:function(c){return DB.game.totalAns>=500;}},
+  {id:"streak3",ic:"🔥",name:"On a Roll",desc:"3-day revision streak",test:function(c){return (DB.settings.streak||0)>=3;}},
+  {id:"streak7",ic:"⚡",name:"Week Warrior",desc:"7-day revision streak",test:function(c){return (DB.settings.streak||0)>=7;}},
+  {id:"streak30",ic:"👑",name:"Unstoppable",desc:"30-day revision streak",test:function(c){return (DB.settings.streak||0)>=30;}},
+  {id:"combo10",ic:"🎲",name:"Hot Streak",desc:"10 correct in a row",test:function(c){return (c.combo||0)>=10;}},
+  {id:"combo25",ic:"🌟",name:"Flawless",desc:"25 correct in a row",test:function(c){return (c.combo||0)>=25;}},
+  {id:"ace",ic:"🧠",name:"Ace",desc:"100% on a topic assessment",test:function(c){return c.assessPct===100;}},
+  {id:"lvl5",ic:"🥈",name:"Level 5",desc:"Reach level 5",test:function(c){return levelInfo().level>=5;}},
+  {id:"lvl10",ic:"🥇",name:"Level 10",desc:"Reach level 10",test:function(c){return levelInfo().level>=10;}},
+  {id:"master",ic:"🏆",name:"Subject Master",desc:"Master a whole subject",test:function(c){return DB.subjects.some(function(s){var qs=subjQs(s);return qs.length>0&&qs.every(isMastered);});}}
+];
+function checkAch(ctx){ctx=ctx||{};var got=[];
+  for(var i=0;i<ACH.length;i++){var a=ACH[i];if(!DB.game.ach[a.id]&&a.test(ctx)){DB.game.ach[a.id]=todayStr();got.push(a);}}
+  got.forEach(function(a){toast("ach","🏅 Achievement: "+a.name);});
+  return got;
+}
+
+/* ===== state ===== */
+var KEY="gcse-revision-v2";
+var PALETTE=["#7c83ff","#22d3ee","#f59e0b","#a855f7","#fb7185","#34d399","#f472b6","#38bdf8","#fb923c","#c084fc"];
+var DB=null,view={name:"home"},session=null,ui={editingNotes:false};
+var app=document.getElementById("app");
+
+function ensureDay(t){if(!DB.log.days[t])DB.log.days[t]={ms:0,answered:0,correct:0,xp:0,subjects:{}};return DB.log.days[t];}
+function logStudy(sid,ms,correct){var d=ensureDay(todayStr());d.ms+=ms;d.answered++;if(correct)d.correct++;
+  var s=d.subjects[sid]||(d.subjects[sid]={ms:0,answered:0,correct:0});s.ms+=ms;s.answered++;if(correct)s.correct++;
+  DB.game.totalAns=(DB.game.totalAns||0)+1;if(correct)DB.game.totalCorrect=(DB.game.totalCorrect||0)+1;}
+
+function normalize(){
+  if(!DB.settings)DB.settings={};
+  if(DB.settings.dailyGoal==null)DB.settings.dailyGoal=20;
+  if(DB.settings.streak==null)DB.settings.streak=0;
+  if(DB.settings.studentName==null)DB.settings.studentName="";
+  if(!DB.game)DB.game={};
+  if(DB.game.xp==null)DB.game.xp=0;if(!DB.game.ach)DB.game.ach={};
+  if(DB.game.totalAns==null)DB.game.totalAns=0;if(DB.game.totalCorrect==null)DB.game.totalCorrect=0;
+  if(!DB.log)DB.log={days:{}};if(!DB.log.days)DB.log.days={};
+  if(!Array.isArray(DB.subjects))DB.subjects=[];
+  DB.subjects.forEach(function(s){if(!s.color)s.color=PALETTE[0];if(!s.pastPapers)s.pastPapers=[];s.topics=s.topics||[];
+    s.topics.forEach(function(tp){if(tp.learn==null)tp.learn="";if(tp.tricky==null)tp.tricky=false;if(tp.assessed==null)tp.assessed=false;if(tp.level==null)tp.level=null;
+      tp.questions=tp.questions||[];tp.questions.forEach(function(q){if(q.box==null)q.box=0;if(!q.due)q.due=todayStr();if(q.reps==null)q.reps=0;if(q.attempts==null)q.attempts=0;if(q.correct==null)q.correct=0;if(q.lapses==null)q.lapses=0;});});});
+}
+var CONTENT_VERSION=1;
+function hashId(prefix,str){var h=0x811c9dc5>>>0;for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,0x01000193)>>>0;}return prefix+h.toString(36);}
+function assignStableIds(data){data.subjects.forEach(function(s){s.id=hashId("s_",s.name);s.topics.forEach(function(t){t.id=hashId("t_",s.name+"/"+t.name);t.questions.forEach(function(q){q.id=hashId("q_",s.name+"/"+t.name+"/"+q.q);});});});}
+function mergeContent(saved,fresh){var added=0;var sBy={};saved.subjects.forEach(function(s){sBy[s.id]=s;});
+  fresh.subjects.forEach(function(fs){var ss=sBy[fs.id];
+    if(!ss){saved.subjects.push(fs);fs.topics.forEach(function(t){added+=t.questions.length;});return;}
+    ss.name=fs.name;ss.color=fs.color;ss.pastPapers=fs.pastPapers;
+    var tBy={};ss.topics.forEach(function(t){tBy[t.id]=t;});
+    fs.topics.forEach(function(ft){var st=tBy[ft.id];
+      if(!st){ss.topics.push(ft);added+=ft.questions.length;return;}
+      st.name=ft.name;st.learn=ft.learn;
+      var qBy={};st.questions.forEach(function(q){qBy[q.id]=q;});
+      ft.questions.forEach(function(fq){var sq=qBy[fq.id];
+        if(!sq){st.questions.push(fq);added++;return;}
+        sq.type=fq.type;sq.q=fq.q;sq.options=fq.options;sq.answer=fq.answer;sq.accept=fq.accept;sq.tolerance=fq.tolerance;sq.explain=fq.explain;});});});
+  return added;}
+function load(){var fresh=seedData();assignStableIds(fresh);
+  try{var raw=localStorage.getItem(KEY);if(raw){DB=JSON.parse(raw);normalize();var added=mergeContent(DB,fresh);normalize();DB.contentVersion=CONTENT_VERSION;save();if(added>0)setTimeout(function(){toast("ach","📚 "+added+" new questions added");},800);return;}}catch(e){}
+  DB=fresh;DB.contentVersion=CONTENT_VERSION;save();}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){console.warn(e);}}
+
+/* ===== counting ===== */
+function subjQs(s){var a=[];s.topics.forEach(function(t){a=a.concat(t.questions);});return a;}
+function subjDue(s){return subjQs(s).filter(isDue).length;}
+function subjMastered(s){return subjQs(s).filter(isMastered).length;}
+function subjAccuracy(s){var qs=subjQs(s),at=0,co=0;qs.forEach(function(q){at+=q.attempts||0;co+=q.correct||0;});return at?Math.round(co/at*100):null;}
+function topicDue(t){return t.questions.filter(isDue).length;}
+function topicMastered(t){return t.questions.filter(isMastered).length;}
+function allRefs(f){var o=[];DB.subjects.forEach(function(s){s.topics.forEach(function(t){t.questions.forEach(function(q){if(!f||f(q,s,t))o.push({sid:s.id,tid:t.id,qid:q.id});});});});return o;}
+function getRef(r){var s=DB.subjects.find(function(x){return x.id===r.sid;});if(!s)return null;var t=s.topics.find(function(x){return x.id===r.tid;});if(!t)return null;var q=t.questions.find(function(x){return x.id===r.qid;});if(!q)return null;return {subject:s,topic:t,q:q};}
+
+/* ===== navigation ===== */
+function go(name,sid,tid){view={name:name,sid:sid,tid:tid};ui.editingNotes=false;render();window.scrollTo(0,0);}
+function render(){
+  var li=levelInfo();
+  document.getElementById("tbLevel").textContent=li.level;
+  document.getElementById("tbXp").textContent=DB.game.xp||0;
+  document.getElementById("tbStreak").textContent=DB.settings.streak||0;
+  var v=view.name;
+  if(v==="subject")renderSubject();else if(v==="topic")renderTopic();else if(v==="learn")renderLearn();
+  else if(v==="papers")renderPapers();else if(v==="session")renderSession();else if(v==="achievements")renderAch();
+  else if(v==="progress")renderProgress();else if(v==="backup")renderBackup();else renderHome();
+}
+
+/* ===== HOME ===== */
+function renderHome(){
+  var due=allRefs(isDue).length,li=levelInfo();
+  var name=DB.settings.studentName,greet=name?("Welcome back, "+esc(name)):"Ready to revise";
+  var goal=DB.settings.dailyGoal||20,doneToday=(DB.log.days[todayStr()]||{}).answered||0;
+  var cards=DB.subjects.map(function(s){
+    var qs=subjQs(s),m=subjMastered(s),d=subjDue(s),acc=subjAccuracy(s),slv=1+Math.floor(m/5);
+    return '<button class="subject-card" style="--c:'+s.color+'" data-act="subject" data-sid="'+s.id+'">'
+      +'<div class="sc-top"><div class="subject-name">'+esc(s.name)+'</div><div class="sc-lvl">Lv '+slv+'</div></div>'
+      +'<div class="subject-meta">'+qs.length+' Qs'+(acc!=null?' · '+acc+'% acc':'')+'</div>'
+      +'<div class="bar"><span style="width:'+pct(m,qs.length)+'%"></span></div>'
+      +(d?'<div class="duepill">'+d+' due</div>':'<div class="duepill done">✓ done</div>')+'</button>';
+  }).join("");
+  app.innerHTML=
+    '<div class="hero">'
+    +'<div class="rings">'
+    +'<div class="ringwrap">'+ringSVG(li.pct,78,8,"url(#g1)",li.level,"LEVEL")
+      +'<svg width="0" height="0"><defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c83ff"/><stop offset="1" stop-color="#a855f7"/></linearGradient></defs></svg>'
+      +'<small>'+li.next+' XP to next</small></div>'
+    +'<div class="ringwrap">'+ringSVG(pct(doneToday,goal),78,8,"#22d3ee",doneToday+"/"+goal,"TODAY")+'<small>daily goal</small></div>'
+    +'</div>'
+    +'<div class="hero-main">'
+    +'<div class="lvline"><h1>'+greet+'</h1></div>'
+    +'<div class="muted" style="font-size:14px">'+(due?('<b style="color:var(--ink)">'+due+'</b> questions due across your subjects.'):'Nothing due right now — get ahead with some practice.')+'</div>'
+    +'<div class="xpbar"><span style="width:'+li.pct+'%"></span></div>'
+    +'<div class="faint" style="font-size:12px">⚡ '+(DB.game.xp||0)+' XP · 🔥 '+(DB.settings.streak||0)+'-day streak</div>'
+    +'</div></div>'
+    +'<button class="cta lg" data-act="review-today">'+(due?('Start revising — '+Math.min(due,goal)+' questions'):'Practise anyway')+'</button>'
+    +'<div class="grid">'+(cards||'<p class="empty">No subjects yet.</p>')+'</div>'
+    +'<div class="tile-row">'
+    +'<button class="ghost" data-act="achievements">🏅 Achievements</button>'
+    +'<button class="ghost" data-act="progress">📈 Progress</button>'
+    +'<button class="ghost" data-act="backup">⚙️ Settings</button>'
+    +'</div>';
+}
+
+/* ===== SUBJECT ===== */
+function renderSubject(){
+  var s=DB.subjects.find(function(x){return x.id===view.sid;});if(!s){go("home");return;}
+  var d=subjDue(s),acc=subjAccuracy(s);
+  var topics=s.topics.map(function(t){
+    var m=topicMastered(t),du=topicDue(t),tag="";
+    if(t.tricky)tag+='<span class="lvl-tag tricky">★ tricky</span>';
+    if(t.assessed&&t.level)tag+='<span class="lvl-tag '+t.level+'">'+(t.level==="needs"?"needs work":t.level)+'</span>';
+    return '<button class="topic-row" data-act="topic" data-sid="'+s.id+'" data-tid="'+t.id+'">'
+      +'<div class="topic-main"><div class="topic-name">'+esc(t.name)+tag+'</div>'
+      +'<div class="bar small"><span style="width:'+pct(m,t.questions.length)+'%;background:'+s.color+'"></span></div></div>'
+      +'<div class="topic-side">'+(du?'<span class="duepill">'+du+'</span>':'<span class="duepill done">✓</span>')+'<span class="count">'+t.questions.length+'</span></div></button>';
+  }).join("");
+  app.innerHTML=
+    '<button class="back" data-act="home">← Home</button>'
+    +'<div class="page-head"><div class="ph-l"><div class="ph-swatch" style="--c:'+s.color+'"></div><div><h1>'+esc(s.name)+'</h1>'
+    +'<div class="faint" style="font-size:13px">'+subjQs(s).length+' questions'+(acc!=null?' · '+acc+'% accuracy':'')+'</div></div></div>'
+    +'<div class="head-actions"><button class="mini" data-act="edit-subject" data-sid="'+s.id+'">Rename</button><button class="mini danger" data-act="del-subject" data-sid="'+s.id+'">Delete</button></div></div>'
+    +'<button class="cta" data-act="review-subject" data-sid="'+s.id+'">Revise this subject'+(d?' ('+d+' due)':'')+'</button>'
+    +(s.pastPapers&&s.pastPapers.length?'<button class="ghost" style="width:100%;margin-top:10px" data-act="papers" data-sid="'+s.id+'">📄 Past papers &amp; exam practice →</button>':'')
+    +'<div class="list">'+(topics||'<p class="empty">No topics yet.</p>')+'</div>'
+    +'<button class="ghost" data-act="add-topic" data-sid="'+s.id+'">＋ Add topic</button>';
+}
+
+/* ===== TOPIC ===== */
+function renderTopic(){
+  var s=DB.subjects.find(function(x){return x.id===view.sid;});if(!s){go("home");return;}
+  var t=s.topics.find(function(x){return x.id===view.tid;});if(!t){go("subject",s.id);return;}
+  var n=t.questions.length,du=topicDue(t);
+  var levelLine=t.assessed&&t.level?'<div class="lvl-tag '+t.level+'" style="display:inline-block;margin-bottom:10px">'+(t.level==="needs"?"Needs work":t.level==="developing"?"Developing":"Secure")+'</div>':'';
+  var qlist=t.questions.map(function(q){
+    var typ=q.type==="mcq"?(q.options&&q.options.length===2&&q.options[0]==="True"?"True/False":"Multiple choice"):(q.type==="numeric"?"Number":"Short answer");
+    var a=q.attempts||0,acc=a?Math.round((q.correct||0)/a*100)+"%":"new";
+    return '<div class="card-row"><div class="card-q">'+esc(q.q)+'</div>'
+      +'<div class="card-meta"><span>'+typ+'</span><span>'+(isMastered(q)?"mastered":"box "+(q.box||0))+'</span><span>'+acc+'</span></div>'
+      +'<div class="card-tools"><button class="mini danger" data-act="del-q" data-sid="'+s.id+'" data-tid="'+t.id+'" data-qid="'+q.id+'">✕ remove</button></div></div>';
+  }).join("");
+  app.innerHTML=
+    '<button class="back" data-act="subject" data-sid="'+s.id+'">← '+esc(s.name)+'</button>'
+    +'<div class="page-head"><div class="ph-l"><div class="ph-swatch" style="--c:'+s.color+'"></div><h1>'+esc(t.name)+'</h1></div>'
+    +'<div class="head-actions"><button class="mini '+(t.tricky?"on":"")+'" data-act="toggle-tricky" data-sid="'+s.id+'" data-tid="'+t.id+'">'+(t.tricky?"★ tricky":"☆ tricky")+'</button>'
+    +'<button class="mini danger" data-act="del-topic" data-sid="'+s.id+'" data-tid="'+t.id+'">Delete</button></div></div>'
+    +levelLine
+    +'<div class="row two">'
+    +'<button class="ghost" data-act="learn" data-sid="'+s.id+'" data-tid="'+t.id+'">📖 Learn it</button>'
+    +'<button class="cta" data-act="test-topic" data-sid="'+s.id+'" data-tid="'+t.id+'">'+(t.assessed?('Practise'+(du?' ('+du+')':'')):'Assess my level')+'</button>'
+    +'</div>'
+    +(t.assessed?'<button class="ghost" style="width:100%;margin-top:10px" data-act="assess-topic" data-sid="'+s.id+'" data-tid="'+t.id+'">↻ Re-assess this topic</button>':'')
+    +'<div class="section-label">Question bank ('+n+')</div>'
+    +'<div class="cards">'+(qlist||'<p class="empty">No questions yet.</p>')+'</div>'
+    +'<button class="ghost" data-act="add-q" data-sid="'+s.id+'" data-tid="'+t.id+'">＋ Add a question</button>';
+}
+
+/* ===== LEARN ===== */
+function renderLearn(){
+  var s=DB.subjects.find(function(x){return x.id===view.sid;});if(!s){go("home");return;}
+  var t=s.topics.find(function(x){return x.id===view.tid;});if(!t){go("subject",s.id);return;}
+  var body;
+  if(ui.editingNotes){
+    body='<textarea id="notesArea" class="notes-edit">'+esc(t.learn||"")+'</textarea>'
+      +'<div class="row two"><button class="ghost" data-act="cancel-notes">Cancel</button><button class="cta" data-act="save-notes" data-sid="'+s.id+'" data-tid="'+t.id+'">Save</button></div>';
+  } else {
+    body='<article class="notes">'+(t.learn?fmt(t.learn):'<p class="empty">No notes yet.</p>')+'</article>'
+      +'<div class="row two"><button class="ghost" data-act="edit-notes">✏️ Edit notes</button><button class="cta" data-act="test-topic" data-sid="'+s.id+'" data-tid="'+t.id+'">Test me →</button></div>';
+  }
+  app.innerHTML='<button class="back" data-act="topic" data-sid="'+s.id+'" data-tid="'+t.id+'">← '+esc(t.name)+'</button>'
+    +'<div class="page-head"><div class="ph-l"><div class="ph-swatch" style="--c:'+s.color+'"></div><h1>📖 '+esc(t.name)+'</h1></div></div>'+body;
+}
+
+/* ===== PAST PAPERS ===== */
+function renderPapers(){
+  var s=DB.subjects.find(function(x){return x.id===view.sid;});if(!s){go("home");return;}
+  var links=(s.pastPapers||[]).map(function(l){return '<a href="'+esc(l.url)+'" target="_blank" rel="noopener">'+esc(l.label)+'<span class="arr">↗</span></a>';}).join("");
+  app.innerHTML='<button class="back" data-act="subject" data-sid="'+s.id+'">← '+esc(s.name)+'</button>'
+    +'<div class="page-head"><div class="ph-l"><div class="ph-swatch" style="--c:'+s.color+'"></div><h1>📄 Past papers</h1></div></div>'
+    +'<p class="muted" style="font-size:14px">Official AQA papers for full, timed exam practice — best for the long written answers the app doesn\'t auto-mark. Opens in a new tab (needs internet).</p>'
+    +'<div class="linklist">'+(links||'<p class="empty">No links yet.</p>')+'</div>';
+}
+
+/* ===== SESSION (assessment + practice) ===== */
+function beginSession(refs,opts){
+  opts=opts||{};
+  if(!refs||!refs.length){toast("xp","No questions here yet — add some first");return;}
+  session={queue:refs,i:0,mode:opts.mode||"practice",title:opts.title||"Revision",sid:opts.sid,tid:opts.tid,
+    combo:0,bestCombo:0,stats:{answered:0,correct:0},cur:null,shownTs:Date.now(),leveledTo:null};
+  go("session");
+}
+function reviewToday(){var refs=allRefs(isDue);var goal=DB.settings.dailyGoal||20;shuffle(refs);if(refs.length>goal)refs=refs.slice(0,goal);if(!refs.length){refs=allRefs();shuffle(refs);refs=refs.slice(0,goal);}beginSession(refs,{title:"Daily revision"});}
+function reviewSubject(sid){var s=DB.subjects.find(function(x){return x.id===sid;});if(!s)return;var refs=allRefs(function(q,ss){return ss.id===sid&&isDue(q);});if(!refs.length)refs=allRefs(function(q,ss){return ss.id===sid;});shuffle(refs);beginSession(refs,{title:s.name,sid:sid});}
+function testTopic(sid,tid){var s=DB.subjects.find(function(x){return x.id===sid;});if(!s)return;var t=s.topics.find(function(x){return x.id===tid;});if(!t)return;
+  if(!t.assessed){return assessTopic(sid,tid);}
+  var refs=t.questions.filter(isDue).map(function(q){return {sid:sid,tid:tid,qid:q.id};});
+  if(!refs.length)refs=t.questions.map(function(q){return {sid:sid,tid:tid,qid:q.id};});
+  shuffle(refs);beginSession(refs,{title:t.name,sid:sid,tid:tid});}
+function assessTopic(sid,tid){var s=DB.subjects.find(function(x){return x.id===sid;});var t=s.topics.find(function(x){return x.id===tid;});
+  var refs=t.questions.map(function(q){return {sid:sid,tid:tid,qid:q.id};});shuffle(refs);refs=refs.slice(0,Math.min(8,refs.length));
+  if(!refs.length){toast("xp","Add some questions first");return;}
+  beginSession(refs,{title:t.name,sid:sid,tid:tid,mode:"assessment"});}
+
+function curQ(){if(!session)return null;var r=session.queue[session.i];return r?getRef(r):null;}
+
+function submitAnswer(input){
+  if(!session||session.cur)return;
+  var f=curQ();if(!f){session.i++;render();return;}
+  var ok=markAnswer(f.q,input);
+  var tricky=f.topic.tricky;
+  if(session.mode==="practice")scheduleQ(f.q,ok,tricky);
+  else{f.q.attempts=(f.q.attempts||0)+1;if(ok)f.q.correct=(f.q.correct||0)+1;}
+  var ms=Math.min(Date.now()-session.shownTs,90000);
+  logStudy(f.subject.id,ms,ok);
+  session.stats.answered++;
+  var xp=0;
+  if(ok){session.stats.correct++;session.combo++;if(session.combo>session.bestCombo)session.bestCombo=session.combo;
+    xp=10+Math.min(10,Math.max(0,session.combo-1)*2);addXp(xp);}
+  else{session.combo=0;}
+  session.cur={picked:input,ok:ok,xp:xp};
+  markStudied();
+  var before=levelInfo().level;
+  // (xp already added) detect level change
+  var after=levelInfo().level;if(after>before)session.leveledTo=after;
+  var newly=checkAch({combo:session.combo});
+  save();render();
+}
+function nextQuestion(){
+  if(!session)return;session.i++;session.cur=null;session.shownTs=Date.now();
+  if(session.i>=session.queue.length)finishSession();
+  render();
+}
+function finishSession(){
+  if(session.finished)return;session.finished=true;
+  if(session.mode==="assessment"&&session.tid){
+    var s=DB.subjects.find(function(x){return x.id===session.sid;});var t=s&&s.topics.find(function(x){return x.id===session.tid;});
+    if(t){var p=pct(session.stats.correct,session.stats.answered);t.assessed=true;t.level=p<45?"needs":(p<75?"developing":"secure");
+      // set initial due dates across the whole topic based on level
+      var push=t.level==="secure"?12:(t.level==="developing"?2:0);var k=0;
+      t.questions.forEach(function(q){if(!q.attempts){q.due=addDays(todayStr(),push+(k%3));k++;}});
+      session.assessPct=p;checkAch({assessPct:p});}
+  }
+  checkAch({});save();
+}
+function renderSession(){
+  if(!session){go("home");return;}
+  if(session.i>=session.queue.length){return renderSummary();}
+  var f=curQ();if(!f){session.i++;render();return;}
+  var q=f.q,n=session.queue.length,pos=session.i+1,answered=!!session.cur;
+  var comboTxt=(!answered&&session.combo>=3)?("🔥 "+session.combo+" in a row!"):"";
+  var h='<div class="q-top"><button class="back" data-act="end-session">✕ End</button>'
+    +'<div class="q-progress"><span style="width:'+pct(answered?pos:pos-1,n)+'%"></span></div>'
+    +'<div class="q-count">'+pos+'/'+n+'</div></div>'
+    +'<div class="combo">'+comboTxt+'</div>'
+    +'<div class="q-tag" style="--c:'+f.subject.color+'">'+esc(f.subject.name)+' · '+esc(f.topic.name)+'</div>'
+    +'<div class="q-card">'+(session.mode==="assessment"?'<span class="q-assess-flag">Assessment</span><br>':'')
+    +'<div class="q-text">'+esc(q.q).replace(/\n/g,"<br>")+'</div></div>';
+  // input area
+  if(q.type==="mcq"){
+    h+='<div class="opts">';
+    q.options.forEach(function(opt,idx){
+      var cls="opt";
+      if(answered){var picked=session.cur.picked===idx;if(idx===q.answer)cls+=" correct";else if(picked)cls+=" wrong";else cls+=" dim";}
+      h+='<button class="'+cls+'" '+(answered?"disabled":'data-act="ans-mcq" data-idx="'+idx+'"')+'>'
+        +'<span class="key">'+(idx+1)+'</span><span>'+esc(opt)+'</span></button>';
+    });
+    h+='</div>';
+  } else {
+    h+='<div class="ansrow"><input id="ansInput" type="'+(q.type==="numeric"?"number":"text")+'" inputmode="'+(q.type==="numeric"?"decimal":"text")+'" placeholder="Type your answer" '+(answered?"disabled":"")+' autocomplete="off">'
+      +(answered?'':'<button class="btn" data-act="ans-text">Check</button>')+'</div>';
+  }
+  // feedback
+  if(answered){
+    var ok=session.cur.ok;
+    h+='<div class="feedback '+(ok?"ok":"no")+'"><div class="fb-head">'+(ok?"✓ Correct":"✗ Not quite")+(session.cur.xp?'<span class="fb-xp">+'+session.cur.xp+' XP</span>':'')+'</div>';
+    if(!ok)h+='<div class="fb-correct">Answer: <b>'+esc(correctText(q))+'</b></div>';
+    if(q.explain)h+='<div class="fb-ex">'+esc(q.explain)+'</div>';
+    h+='</div><button class="nextbtn" data-act="next-q">'+(pos>=n?"Finish":"Next →")+'</button>';
+  }
+  app.innerHTML=h;
+  if(!answered&&q.type!=="mcq"){var inp=document.getElementById("ansInput");if(inp)inp.focus();}
+}
+function renderSummary(){
+  var st=session.stats,acc=pct(st.correct,st.answered),lvl=session.leveledTo;
+  var dayXp=(DB.log.days[todayStr()]||{}).xp||0;
+  var h='<section class="summary"><div class="scorering">'+ringSVG(acc,120,11,acc>=75?"#34d399":acc>=45?"#f7c948":"#fb7185",acc+"%","SCORE")+'</div>'
+    +'<h1>'+(session.mode==="assessment"?"Assessment done":"Session complete")+'</h1><p class="sub">'+esc(session.title)+'</p>';
+  if(session.mode==="assessment"&&session.tid){var s=DB.subjects.find(function(x){return x.id===session.sid;});var t=s&&s.topics.find(function(x){return x.id===session.tid;});
+    if(t)h+='<div class="levelup">Level set: <b style="text-transform:capitalize">'+(t.level==="needs"?"Needs work":t.level)+'</b> — '+(t.level==="needs"?"we\'ll teach this thoroughly and test it often.":t.level==="developing"?"some gaps to firm up.":"solid — we\'ll keep it ticking over lightly.")+'</div>';}
+  if(lvl)h+='<div class="levelup">⬆ Level up! You reached <b>Level '+lvl+'</b></div>';
+  h+='<div class="score-line"><div><b>'+st.correct+'/'+st.answered+'</b><span>correct</span></div>'
+    +'<div><b>'+session.bestCombo+'</b><span>best streak</span></div>'
+    +'<div><b>+'+dayXp+'</b><span>XP today</span></div></div>'
+    +'<div class="row two"><button class="ghost" data-act="home">Home</button><button class="cta" data-act="review-today">Keep going</button></div></section>';
+  app.innerHTML=h;session=null;
+}
+
+/* ===== ACHIEVEMENTS ===== */
+function renderAch(){
+  var got=Object.keys(DB.game.ach).length;
+  var grid=ACH.map(function(a){var un=!!DB.game.ach[a.id];
+    return '<div class="ach'+(un?"":" locked")+'"><div class="ic">'+a.ic+'</div><div class="an">'+a.name+'</div><div class="ad">'+a.desc+'</div></div>';
+  }).join("");
+  app.innerHTML='<button class="back" data-act="home">← Home</button>'
+    +'<div class="page-head"><div class="ph-l"><h1>🏅 Achievements</h1></div></div>'
+    +'<p class="muted" style="font-size:14px">'+got+' of '+ACH.length+' unlocked.</p>'
+    +'<div class="ach-grid">'+grid+'</div>';
+}
+
+/* ===== PROGRESS (read-only) ===== */
+function renderProgress(){
+  var thisMon=mondayOf(todayStr());
+  function weekStats(monStr){var ms=0,an=0,co=0;for(var i=0;i<7;i++){var d=DB.log.days[addDays(monStr,i)];if(d){ms+=d.ms;an+=d.answered;co+=d.correct;}}return {ms:ms,an:an,co:co};}
+  var wk=weekStats(thisMon);
+  var weeks=[];for(var i=7;i>=0;i--)weeks.push(addDays(thisMon,-7*i));
+  var maxMs=1;weeks.forEach(function(m){var w=weekStats(m);if(w.ms>maxMs)maxMs=w.ms;});
+  var bars=weeks.map(function(m){var w=weekStats(m);var lbl=m.slice(5).replace("-","/");return '<div class="wk"><i style="height:'+Math.round(w.ms/maxMs*100)+'%"></i><small>'+lbl+'</small></div>';}).join("");
+  var subjRows=DB.subjects.map(function(s){var acc=subjAccuracy(s);var weak=s.topics.filter(function(t){return t.tricky||t.level==="needs";}).length;
+    return '<div class="stat-row"><div class="stat-name">'+esc(s.name)+'</div><div class="bar"><span style="width:'+(acc||0)+'%;background:'+s.color+'"></span></div><div class="stat-num">'+(acc!=null?acc+"%":"—")+'</div></div>'
+      +(weak?'<div class="faint" style="font-size:11px;margin:-4px 0 6px 0">'+weak+' topic'+(weak>1?'s':'')+' need work</div>':'');
+  }).join("");
+  app.innerHTML='<button class="back" data-act="home">← Home</button>'
+    +'<div class="page-head"><div class="ph-l"><h1>📈 Progress</h1></div></div>'
+    +'<div class="lockmsg">🔒 This is the parent view — read-only. These figures are recorded automatically and can\'t be edited in the app.</div>'
+    +'<div class="section-label">This week</div>'
+    +'<div class="stat-cards"><div class="stat-card"><b>'+fmtMins(wk.ms)+'</b><span>time revised</span></div>'
+    +'<div class="stat-card"><b>'+wk.an+'</b><span>questions</span></div>'
+    +'<div class="stat-card"><b>'+(wk.an?Math.round(wk.co/wk.an*100):0)+'%</b><span>accuracy</span></div>'
+    +'<div class="stat-card"><b>'+(DB.settings.streak||0)+'</b><span>day streak</span></div></div>'
+    +'<div class="section-label">Time per week (last 8)</div><div class="weeks">'+bars+'</div>'
+    +'<div class="section-label">Accuracy by subject (lifetime)</div>'+(subjRows||'<p class="empty">No data yet.</p>');
+}
+
+/* ===== BACKUP / SETTINGS ===== */
+function renderBackup(){
+  app.innerHTML='<button class="back" data-act="home">← Home</button>'
+    +'<div class="page-head"><div class="ph-l"><h1>⚙️ Settings &amp; backup</h1></div></div>'
+    +'<div class="setting"><label>Name (shown on the home screen)</label><div class="row"><input id="nameInput" type="text" value="'+esc(DB.settings.studentName||"")+'" placeholder="e.g. Jack"><button class="ghost" data-act="set-name">Save</button></div></div>'
+    +'<div class="setting"><label>Daily goal (questions per day)</label><div class="row"><input id="goalInput" type="number" min="5" max="100" value="'+(DB.settings.dailyGoal||20)+'"><button class="ghost" data-act="set-goal">Save</button></div></div>'
+    +'<div class="lockmsg">Progress is saved on this device automatically. Download a backup now and then so two years of work is safe (and to move it to another device).</div>'
+    +'<button class="cta" data-act="export">⬇ Download backup file</button><div style="height:10px"></div>'
+    +'<button class="ghost" data-act="import">⬆ Restore from a backup</button>'
+    +'<div class="section-label">Danger zone</div>'
+    +'<button class="ghost danger" data-act="add-subject" style="margin-bottom:10px">＋ Add a new subject</button>'
+    +'<button class="ghost danger" data-act="reset">Reset everything to the starter content</button>';
+}
+
+/* ===== streak ===== */
+function markStudied(){var t=todayStr(),l=DB.settings.lastStudied;if(l===t)return;if(l===addDays(t,-1))DB.settings.streak=(DB.settings.streak||0)+1;else DB.settings.streak=1;DB.settings.lastStudied=t;}
+
+/* ===== toasts ===== */
+function toast(kind,msg){var c=document.getElementById("toasts");var el=document.createElement("div");el.className="toast "+kind;el.textContent=msg;c.appendChild(el);
+  setTimeout(function(){el.style.transition="opacity .4s";el.style.opacity="0";setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},400);},2200);}
+
+/* ===== edit actions ===== */
+function addSubject(){var n=prompt("New subject name:");if(!n||!n.trim())return;DB.subjects.push({id:uid(),name:n.trim(),color:PALETTE[DB.subjects.length%PALETTE.length],pastPapers:[{label:"AQA past papers (find your subject)",url:"https://www.aqa.org.uk/find-past-papers-and-mark-schemes"}],topics:[]});save();render();}
+function renameSubject(sid){var s=DB.subjects.find(function(x){return x.id===sid;});if(!s)return;var n=prompt("Rename subject:",s.name);if(n&&n.trim()){s.name=n.trim();save();render();}}
+function delSubject(sid){var s=DB.subjects.find(function(x){return x.id===sid;});if(!s)return;if(confirm('Delete "'+s.name+'" and everything in it?')){DB.subjects=DB.subjects.filter(function(x){return x.id!==sid;});save();go("home");}}
+function addTopic(sid){var s=DB.subjects.find(function(x){return x.id===sid;});if(!s)return;var n=prompt("New topic name:");if(!n||!n.trim())return;s.topics.push({id:uid(),name:n.trim(),learn:"",tricky:false,assessed:false,level:null,questions:[]});save();render();}
+function delTopic(sid,tid){var s=DB.subjects.find(function(x){return x.id===sid;});var t=s&&s.topics.find(function(x){return x.id===tid;});if(!t)return;if(confirm('Delete topic "'+t.name+'"?')){s.topics=s.topics.filter(function(x){return x.id!==tid;});save();go("subject",sid);}}
+function toggleTricky(sid,tid){var s=DB.subjects.find(function(x){return x.id===sid;});var t=s&&s.topics.find(function(x){return x.id===tid;});if(!t)return;t.tricky=!t.tricky;if(t.tricky)toast("ach","★ Flagged tricky — you'll see this more often");save();render();}
+function addQuestion(sid,tid){var s=DB.subjects.find(function(x){return x.id===sid;});var t=s&&s.topics.find(function(x){return x.id===tid;});if(!t)return;
+  var q=prompt("Question:");if(!q||!q.trim())return;var a=prompt("Answer (the correct one):");if(a==null||!a.trim())return;
+  var w=prompt("Wrong options for multiple choice, separated by commas (leave blank for a typed-answer question):");
+  var nq;
+  if(w&&w.trim()){var opts=[a.trim()].concat(w.split(",").map(function(x){return x.trim();}).filter(Boolean));var ans=0;
+    // shuffle but track answer
+    var pairs=opts.map(function(o,i){return {o:o,c:i===0};});shuffle(pairs);ans=pairs.findIndex(function(p){return p.c;});
+    nq=mkQ("mcq",{q:q.trim(),options:pairs.map(function(p){return p.o;}),answer:ans,explain:""});}
+  else nq=mkQ("short",{q:q.trim(),accept:[a.trim()],explain:""});
+  t.questions.push(nq);t.assessed=false;save();render();}
+function delQuestion(sid,tid,qid){var s=DB.subjects.find(function(x){return x.id===sid;});var t=s&&s.topics.find(function(x){return x.id===tid;});if(!t)return;if(confirm("Remove this question?")){t.questions=t.questions.filter(function(x){return x.id!==qid;});save();render();}}
+function saveNotes(sid,tid){var s=DB.subjects.find(function(x){return x.id===sid;});var t=s&&s.topics.find(function(x){return x.id===tid;});if(!t)return;var ta=document.getElementById("notesArea");if(ta)t.learn=ta.value;ui.editingNotes=false;save();render();}
+function setName(){var i=document.getElementById("nameInput");if(i){DB.settings.studentName=i.value.trim();save();toast("xp","Saved");}}
+function setGoal(){var i=document.getElementById("goalInput");if(i){var v=parseInt(i.value,10);if(isNaN(v)||v<5)v=5;if(v>100)v=100;DB.settings.dailyGoal=v;save();toast("xp","Saved");}}
+function exportData(){var blob=new Blob([JSON.stringify(DB,null,2)],{type:"application/json"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download="revise-backup-"+todayStr()+".json";document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(url);},1000);}
+function importData(){var inp=document.getElementById("fileInput");inp.value="";inp.onchange=function(){var f=inp.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var d=JSON.parse(r.result);if(!d||!Array.isArray(d.subjects))throw 0;if(confirm("Restore this backup? It replaces what is on this device.")){DB=d;normalize();save();go("home");toast("xp","Backup restored");}}catch(e){alert("That file did not look like a valid backup.");}};r.readAsText(f);};inp.click();}
+function resetData(){if(confirm("Wipe all progress and restore the original starter content? Back up first if unsure.")){DB=seedData();assignStableIds(DB);DB.contentVersion=CONTENT_VERSION;save();go("home");}}
+
+/* ===== click + key handlers (on document so header works) ===== */
+document.addEventListener("click",function(e){
+  var el=e.target.closest("[data-act]");if(!el)return;var a=el.dataset.act,sid=el.dataset.sid,tid=el.dataset.tid,qid=el.dataset.qid;
+  switch(a){
+    case "home":go("home");break; case "subject":go("subject",sid);break; case "topic":go("topic",sid,tid);break;
+    case "learn":go("learn",sid,tid);break; case "papers":go("papers",sid);break;
+    case "achievements":go("achievements");break; case "progress":go("progress");break; case "backup":go("backup");break;
+    case "review-today":reviewToday();break; case "review-subject":reviewSubject(sid);break;
+    case "test-topic":testTopic(sid,tid);break; case "assess-topic":assessTopic(sid,tid);break;
+    case "ans-mcq":submitAnswer(parseInt(el.dataset.idx,10));break;
+    case "ans-text":var inp=document.getElementById("ansInput");submitAnswer(inp?inp.value:"");break;
+    case "next-q":nextQuestion();break; case "end-session":session=null;go("home");break;
+    case "toggle-tricky":toggleTricky(sid,tid);break;
+    case "add-subject":addSubject();break; case "edit-subject":renameSubject(sid);break; case "del-subject":delSubject(sid);break;
+    case "add-topic":addTopic(sid);break; case "del-topic":delTopic(sid,tid);break;
+    case "add-q":addQuestion(sid,tid);break; case "del-q":delQuestion(sid,tid,qid);break;
+    case "edit-notes":ui.editingNotes=true;render();break; case "cancel-notes":ui.editingNotes=false;render();break; case "save-notes":saveNotes(sid,tid);break;
+    case "export":exportData();break; case "import":importData();break; case "reset":resetData();break;
+    case "set-name":setName();break; case "set-goal":setGoal();break;
+  }
+});
+document.addEventListener("keydown",function(e){
+  if(view.name!=="session"||!session)return;
+  if(session.i>=session.queue.length)return;
+  var f=curQ();if(!f)return;
+  if(session.cur){if(e.key==="Enter"){e.preventDefault();nextQuestion();}return;}
+  if(f.q.type==="mcq"){var k=parseInt(e.key,10);if(k>=1&&k<=f.q.options.length){e.preventDefault();submitAnswer(k-1);}}
+  else if(e.key==="Enter"){e.preventDefault();var inp=document.getElementById("ansInput");submitAnswer(inp?inp.value:"");}
+});
+
+/* ===== question constructors ===== */
+function mkQ(type,o){return {id:uid(),type:type,q:o.q,options:o.options,answer:o.answer,accept:o.accept,tolerance:o.tolerance,explain:o.explain||"",box:0,due:todayStr(),reps:0,attempts:0,correct:0,lapses:0};}
+function MCQ(q,opts,ans,ex){return mkQ("mcq",{q:q,options:opts,answer:ans,explain:ex});}
+function TF(q,ans,ex){return mkQ("mcq",{q:q,options:["True","False"],answer:ans?0:1,explain:ex});}
+function SA(q,accept,ex){return mkQ("short",{q:q,accept:accept,explain:ex});}
+function NUM(q,ans,tol,ex){return mkQ("numeric",{q:q,answer:ans,tolerance:tol||0,explain:ex});}
+
+/* ===== seed content (AQA-aligned) ===== */
+function seedData(){
+  function T(name,learn,qs){return {id:uid(),name:name,learn:learn,tricky:false,assessed:false,level:null,questions:qs};}
+  function PP(specUrl,name){return [{label:"AQA past papers (find "+name+")",url:"https://www.aqa.org.uk/find-past-papers-and-mark-schemes"},{label:"AQA "+name+" specification",url:specUrl}];}
+
+  var maths=[
+    T("Number: surds & indices",
+"**Index laws:** a^m x a^n = a^(m+n); a^m / a^n = a^(m-n); (a^m)^n = a^(mn); a^0 = 1; a^(-n) = 1/a^n; a^(1/2) = root a.\n\n**Surds:** root a x root b = root(ab). Simplify by pulling out square factors (root 50 = 5 root 2). Rationalise by multiplying top and bottom by the surd.",
+[ MCQ("Simplify root 50.",["5 root 2","2 root 5","25 root 2","root 100"],0,"50 = 25 x 2, and root 25 = 5."),
+  MCQ("a^(-n) is equal to:",["1 / a^n","-a^n","n^a","a^n - 1"],0,"A negative index means 'one over'."),
+  MCQ("(a^3)^4 simplifies to:",["a^12","a^7","a^81","12a"],0,"Power of a power: multiply the indices."),
+  SA("a^(1/2) is another way of writing the ____ of a. (one word)",["square root","squareroot","root"],"A power of one half means the square root."),
+  MCQ("Rationalise 1/root 3:",["root 3 / 3","3 / root 3","root 3","1/3"],0,"Multiply top and bottom by root 3.") ]),
+    T("Algebra: quadratics",
+"Solve ax^2 + bx + c = 0 by **factorising**, the **quadratic formula** x = (-b +/- root(b^2-4ac)) / 2a, or **completing the square**.\n\nThe **discriminant** b^2 - 4ac gives the number of real roots: positive = 2, zero = 1, negative = 0.",
+[ MCQ("Solve x^2 - 5x + 6 = 0.",["x = 2 or x = 3","x = -2 or -3","x = 1 or 6","x = 5 or 6"],0,"(x-2)(x-3)=0."),
+  MCQ("Factorise x^2 - 9.",["(x-3)(x+3)","(x-3)^2","(x-9)(x+1)","(x+3)^2"],0,"Difference of two squares."),
+  MCQ("If the discriminant b^2-4ac is negative, the equation has:",["no real roots","two real roots","one real root","infinite roots"],0,"Negative discriminant = no real solutions."),
+  SA("Complete the square: x^2 + 6x = (x + 3)^2 - ?  (give the number)",["9"],"Half of 6 is 3; 3^2 = 9 is subtracted."),
+  MCQ("The quadratic formula is x =",["(-b +/- root(b^2-4ac)) / 2a","-b +/- root(b^2-4ac)","(b +/- root(b^2+4ac)) / 2","-b / 2a"],0,"Learn it by heart for the non-calculator skills.") ]),
+    T("Geometry: Pythagoras & trig",
+"**Pythagoras:** a^2 + b^2 = c^2 (c = hypotenuse). **SOHCAHTOA:** sin = opp/hyp, cos = adj/hyp, tan = opp/adj.\n\nExact values: sin 30 = 1/2, cos 60 = 1/2, sin 60 = root3/2, tan 45 = 1.",
+[ MCQ("Pythagoras' theorem is:",["a^2 + b^2 = c^2","a + b = c","a^2 - b^2 = c^2","2a + 2b = c"],0,"c is the hypotenuse."),
+  MCQ("sin(angle) =",["opposite / hypotenuse","adjacent / hypotenuse","opposite / adjacent","hypotenuse / opposite"],0,"SOH."),
+  MCQ("tan(angle) =",["opposite / adjacent","adjacent / opposite","opposite / hypotenuse","adjacent / hypotenuse"],0,"TOA."),
+  SA("The exact value of sin 30 is 1/__  (give the number)",["2"],"sin 30 = 1/2."),
+  NUM("A right-angled triangle has legs 3 and 4. The hypotenuse is:",5,0,"3^2 + 4^2 = 25, root 25 = 5.") ]),
+    T("Ratio & proportion: compound measures",
+"**Speed = distance / time. Density = mass / volume. Pressure = force / area.**\n\nDirect proportion: y = kx. Inverse proportion: y = k/x.",
+[ MCQ("Speed =",["distance / time","time / distance","distance x time","mass / volume"],0,""),
+  MCQ("Density =",["mass / volume","volume / mass","mass x volume","force / area"],0,""),
+  NUM("A car travels 150 km in 2 hours. Its average speed (km/h) is:",75,0,"150 / 2 = 75."),
+  MCQ("If y is directly proportional to x, then:",["y = kx","y = k/x","y = x + k","y = k - x"],0,"k is the constant of proportionality."),
+  MCQ("If y is inversely proportional to x, then:",["y = k/x","y = kx","y = x/k","y = kx^2"],0,"As x rises, y falls.") ]),
+    T("Probability",
+"Probabilities are 0 to 1 and a full set sums to 1. P(not A) = 1 - P(A). Mutually exclusive: P(A or B) = P(A)+P(B). Independent: P(A and B) = P(A)xP(B).",
+[ MCQ("For independent events, P(A and B) =",["P(A) x P(B)","P(A) + P(B)","P(A) - P(B)","P(A) / P(B)"],0,"Multiply along tree branches."),
+  MCQ("P(not A) =",["1 - P(A)","P(A) - 1","1 / P(A)","P(A)"],0,""),
+  NUM("All probabilities in a sample space add up to:",1,0,"Total probability is always 1."),
+  MCQ("For mutually exclusive events, P(A or B) =",["P(A) + P(B)","P(A) x P(B)","P(A) - P(B)","1 - P(A)"],0,"They can't happen together, so add.") ])
+  ];
+
+  var science=[
+    T("Biology: cell biology",
+"**Eukaryotic** cells (animals, plants) have a nucleus; **prokaryotic** (bacteria) do not. Plant cells also have a cell wall, chloroplasts and a permanent vacuole.\n\nTransport: diffusion (high to low), osmosis (water across a membrane), active transport (against the gradient, needs energy).",
+[ MCQ("Which cell has NO nucleus?",["A bacterial (prokaryotic) cell","An animal cell","A plant cell","A muscle cell"],0,"Prokaryotes keep their DNA as a loop in the cytoplasm."),
+  MCQ("Which is found in a plant cell but NOT an animal cell?",["Chloroplast","Nucleus","Cell membrane","Mitochondria"],0,"Also cell wall and permanent vacuole."),
+  SA("The diffusion of water across a partially permeable membrane is called ____.",["osmosis"],"Water moves from a dilute to a more concentrated solution."),
+  MCQ("Active transport is different because it:",["moves substances against the gradient using energy","always moves high to low","needs no energy","only moves water"],0,"Energy comes from respiration."),
+  TF("Diffusion moves particles from a high to a low concentration.",true,"It's down the concentration gradient.") ]),
+    T("Biology: enzymes",
+"**Enzymes** are biological catalysts (proteins). The **active site** fits one substrate ('lock and key'). They have an optimum temperature and pH; too hot or wrong pH makes them **denature**.",
+[ MCQ("An enzyme is best described as a:",["biological catalyst","type of sugar","fat store","waste product"],0,"It speeds up reactions without being used up."),
+  MCQ("When an enzyme denatures:",["its active site changes shape","it speeds up","it becomes a substrate","it gains energy"],0,"It can no longer bind the substrate."),
+  SA("The 'lock and key' model describes how the active site fits a specific ____.",["substrate"],""),
+  TF("Enzymes are used up in the reactions they speed up.",false,"Catalysts are not used up.") ]),
+    T("Chemistry: atomic structure",
+"Protons (+1, mass 1), neutrons (0, mass 1) in the nucleus; electrons (-1, tiny mass) in shells. Atomic number = protons. Mass number = protons + neutrons. Isotopes = same protons, different neutrons. Periodic table is ordered by atomic number.",
+[ MCQ("The atomic number tells you the number of:",["protons","neutrons","electrons + neutrons","atoms"],0,"It defines the element."),
+  MCQ("A proton has:",["charge +1, mass 1","charge -1, mass 1","charge 0, mass 1","charge +1, mass 0"],0,""),
+  SA("Atoms of the same element with different numbers of neutrons are called ____.",["isotopes","isotope"],""),
+  MCQ("Elements in the periodic table are arranged by increasing:",["atomic (proton) number","mass number","number of neutrons","alphabetical name"],0,""),
+  NUM("An atom has 11 protons and 12 neutrons. Its mass number is:",23,0,"Protons + neutrons.") ]),
+    T("Chemistry: bonding",
+"**Ionic** (metal + non-metal): electrons transferred, ions attract; high melting points. **Covalent** (non-metals): shared electron pairs. **Metallic:** ions in a sea of delocalised electrons, so metals conduct and bend.",
+[ MCQ("Ionic bonding involves:",["transfer of electrons","sharing of electrons","no electrons","sharing protons"],0,"From metal to non-metal."),
+  MCQ("Covalent bonding involves:",["shared pairs of electrons","transferred electrons","delocalised electrons","shared protons"],0,"Between non-metals."),
+  MCQ("Metals conduct electricity because they have:",["delocalised (free) electrons","shared protons","ionic bonds only","no electrons"],0,""),
+  TF("Ionic compounds usually have high melting points.",true,"Strong electrostatic forces between ions.") ]),
+    T("Physics: energy & forces",
+"KE = 1/2 m v^2. GPE = m g h. Power = energy / time (watts). Efficiency = useful out / total in. Force = mass x acceleration (F = ma). Weight = m g. Scalars have size only; vectors have size and direction.",
+[ MCQ("Kinetic energy is calculated by:",["1/2 x m x v^2","m x g x h","m x a","m x v"],0,""),
+  MCQ("Newton's second law is:",["F = m x a","F = m / a","F = m + a","F = a / m"],0,"Force = mass x acceleration."),
+  MCQ("Power is:",["energy transferred per second","force x distance","mass x speed","energy x time"],0,"Measured in watts (J/s)."),
+  MCQ("Which is a vector (size AND direction)?",["Velocity","Speed","Distance","Mass"],0,"Speed/distance/mass are scalars."),
+  NUM("A 2 kg mass accelerates at 3 m/s^2. The force (N) is:",6,0,"F = ma = 2 x 3.") ])
+  ];
+
+  var business=[
+    T("Business in the real world",
+"Business meets customer needs, usually for profit. Sectors: primary, secondary, tertiary. Ownership: sole trader & partnership (unlimited liability); Ltd & plc (limited liability). Stakeholders = anyone affected.",
+[ MCQ("'Limited liability' means owners:",["only lose what they invested","lose their personal possessions too","pay no tax","cannot be sued"],0,"Personal assets are protected."),
+  MCQ("Which has unlimited liability?",["A sole trader","A plc","A private limited company","A franchise of a plc"],0,"Sole traders and partnerships."),
+  MCQ("A business in the tertiary sector:",["provides a service","extracts raw materials","manufactures goods","grows crops"],0,"Tertiary = services."),
+  SA("Anyone affected by a business (owners, staff, customers...) is a ____.",["stakeholder","stakeholders"],"") ]),
+    T("Influences on business",
+"Outside factors: the economy (interest rates, inflation, unemployment, exchange rates), technology, law and ethics, and globalisation.",
+[ MCQ("A rise in interest rates usually means a business:",["pays more on loans and sees demand fall","pays less on loans","sells more","has lower costs"],0,"Borrowing costs more and customers spend less."),
+  MCQ("Globalisation gives a business:",["more customers but more competition","fewer customers","no change","guaranteed profit"],0,""),
+  TF("Inflation means the general level of prices is rising.",true,"") ]),
+    T("Business operations",
+"Production: job, batch, flow. 'Just in time' (JIT) keeps stock low. Quality control reduces waste and builds reputation. Suppliers chosen on price, quality and reliability.",
+[ MCQ("'Just in time' stock control means:",["stock arrives as it is needed","huge stock is held","no suppliers are used","stock is never reordered"],0,"Low storage cost, but risky if suppliers are late."),
+  MCQ("A benefit of good quality control is:",["fewer faulty products and less waste","higher wastage","slower production always","more complaints"],0,""),
+  SA("Making products one at a time to order is called ____ production.",["job"],"") ]),
+    T("Marketing",
+"Market research (primary/secondary). Segmentation by age, income, location. The marketing mix is the 4 Ps: Product, Price, Place, Promotion. Pricing: penetration, skimming, competitive, cost-plus.",
+[ MCQ("The 4 Ps of the marketing mix are:",["Product, Price, Place, Promotion","People, Price, Place, Profit","Product, Profit, Place, Promotion","Price, Place, People, Promotion"],0,""),
+  MCQ("Penetration pricing means setting a:",["low price to enter a market","high price for a luxury item","price equal to costs","random price"],0,"Then raise it once you have share."),
+  MCQ("Price skimming means setting a:",["high price for a new/unique product","low launch price","loss-making price","fixed legal price"],0,"Lower it over time."),
+  SA("Splitting customers into groups by age or income is market ____.",["segmentation"],"") ]),
+    T("Finance",
+"Revenue = price x quantity. Costs = fixed + variable. Profit = revenue - total costs. Break-even = fixed costs / (price - variable cost per unit). Sources of finance: savings, loans, overdraft, retained profit, share issue, crowdfunding.",
+[ MCQ("Profit =",["total revenue - total costs","price x quantity","revenue + costs","fixed - variable costs"],0,""),
+  NUM("Selling price is 10 and 200 units are sold. Revenue is:",2000,0,"10 x 200."),
+  MCQ("Break-even output =",["fixed costs / (price - variable cost per unit)","fixed costs x price","revenue - costs","price / fixed costs"],0,""),
+  MCQ("Which is a FIXED cost?",["Rent","Raw materials","Hourly wages","Packaging per item"],0,"Fixed costs don't change with output.") ])
+  ];
+
+  var stats=[
+    T("Data collection",
+"Primary data you collect; secondary already exists. Quantitative = numbers; qualitative = categories. Sampling: random, systematic, stratified (in proportion to groups), quota. A representative sample avoids bias.",
+[ MCQ("Primary data is data that is:",["collected by you for the task","already published by others","always qualitative","never reliable"],0,""),
+  MCQ("Stratified sampling means:",["sampling each group in proportion to its size","picking only volunteers","choosing every 10th person","using all the data"],0,""),
+  MCQ("Qualitative data is:",["words or categories","numbers only","always primary","measured with instruments"],0,""),
+  SA("A sample that fairly reflects the whole population is said to be ____.",["representative"],"") ]),
+    T("Averages & spread",
+"Mean = total / count. Median = middle value (in order). Mode = most common. From a table, mean = sum(fx) / sum(f). Range = max - min. IQR = Q3 - Q1 (middle 50%, ignores outliers).",
+[ MCQ("The best average to use when there are extreme outliers is the:",["median","mean","mode","range"],0,"The mean gets distorted by outliers."),
+  MCQ("The interquartile range is:",["Q3 - Q1","max - min","mean - median","Q1 + Q3"],0,"Spread of the middle 50%."),
+  NUM("Find the median of 3, 7, 9, 12, 14.",9,0,"Middle value when ordered."),
+  SA("To find the median you first put the data in ____.",["order","ascending order","size order"],"") ]),
+    T("Representing data",
+"Bar chart = categories; pie chart = proportions; histogram = continuous grouped data using frequency density = frequency / class width. Cumulative frequency and box plots show median, quartiles and IQR.",
+[ MCQ("A histogram is used for:",["continuous grouped data","simple categories","showing proportions only","tally charts"],0,"It can have unequal class widths."),
+  MCQ("Frequency density =",["frequency / class width","frequency x class width","class width / frequency","frequency + width"],0,""),
+  MCQ("A cumulative frequency graph helps you find the:",["median and quartiles","mode only","mean only","range only"],0,"") ]),
+    T("Probability & the enquiry cycle",
+"Probabilities 0 to 1. Independent: P(A and B) = P(A)xP(B). Mutually exclusive: P(A or B) = P(A)+P(B). Expected frequency = probability x trials. The Statistical Enquiry Cycle: plan, collect, process/represent, interpret, evaluate.",
+[ MCQ("Expected frequency =",["probability x number of trials","probability + trials","trials / probability","probability only"],0,""),
+  NUM("If P(six) = 1/6 and you roll 60 times, the expected number of sixes is:",10,0,"1/6 x 60 = 10."),
+  MCQ("The Statistical Enquiry Cycle starts by:",["planning a question or hypothesis","drawing a graph","collecting data randomly","evaluating results"],0,"Plan, collect, process, interpret, evaluate.") ])
+  ];
+
+  var spanish=[
+    T("Theme 1: People & lifestyle",
+"Family, routine, food, health. **ser** (permanent) vs **estar** (temporary/location). **tener** = to have (tengo). Reflexive verbs for routine: me levanto (I get up).",
+[ MCQ("Which verb is used for permanent things (like nationality)?",["ser","estar","tener","ir"],0,"soy espanol = I am Spanish."),
+  SA("'I have' in Spanish (from tener) is ____.",["tengo"],""),
+  MCQ("'Me levanto' means:",["I get up","I wash","I eat","I sleep"],0,"Reflexive verb levantarse."),
+  MCQ("To say where something IS located, you use:",["estar","ser","tener","hacer"],0,"Madrid esta en Espana."),
+  SA("Say 'I am 15 years old': Tengo quince ____.",["anos","años"],"Literally 'I have 15 years'.") ]),
+    T("Theme 2: Popular culture",
+"Free time, sport, music, TV, festivals. Opinions: me gusta / no me gusta (+ noun), me encanta. jugar (juego al futbol), hacer (hago deporte), ver (veo la tele).",
+[ SA("'I like' + a noun in Spanish is 'me ____'.",["gusta"],"No me gusta = I don't like."),
+  MCQ("'Juego al futbol' means:",["I play football","I watch football","I like football","I played football"],0,"jugar a = to play."),
+  MCQ("'En mi tiempo libre' means:",["In my free time","In my bedroom","With my friends","At the weekend"],0,""),
+  MCQ("Which means 'I love it'?",["me encanta","me gusta un poco","no me gusta","odio"],0,"Stronger than me gusta.") ]),
+    T("Theme 3: Communication & the world",
+"Travel, local area, environment, school, future plans. hay = there is/are. el medio ambiente = the environment. ir (voy, fui = I went). me gustaria = I would like.",
+[ SA("'There is' / 'there are' in Spanish is ____.",["hay"],""),
+  MCQ("'El medio ambiente' means:",["the environment","the city centre","the weather","the middle"],0,""),
+  MCQ("'Fui' means:",["I went","I go","I will go","I am going"],0,"Preterite (past) of ir."),
+  MCQ("'Me gustaria' means:",["I would like","I like","I liked","I don't like"],0,"Conditional - polite.") ]),
+    T("Grammar: tenses & opinions",
+"Higher marks need several tenses with reasons. Present -ar endings: -o, -as, -a, -amos, -ais, -an. Near future: ir a + infinitive (voy a estudiar). Past: preterite/imperfect. Conditional: me gustaria. Connectives: porque, pero, sin embargo, ademas.",
+[ MCQ("The near future ('going to') is formed with:",["ir a + infinitive","tener + noun","ser + adjective","hacer + noun"],0,"voy a estudiar = I'm going to study."),
+  SA("'Porque' means ____ in English.",["because"],"Extends your answer for more marks."),
+  MCQ("Regular -ar present endings are:",["-o, -as, -a, -amos, -ais, -an","-o, -es, -e, -emos, -eis, -en","-a, -a, -a, -a, -a, -a","-ar, -er, -ir"],0,""),
+  MCQ("'Sin embargo' means:",["however","always","because","with"],0,"A connective that lifts your level.") ])
+  ];
+
+  var geography=[
+    T("Natural hazards: tectonics",
+"Plate boundaries: destructive (collide, oceanic subducts -> quakes & volcanoes), constructive (move apart, new crust), conservative (slide past, quakes). Effects: primary (immediate) vs secondary (knock-on). Responses: immediate vs long-term.",
+[ MCQ("At a destructive plate boundary:",["the denser oceanic plate subducts","new crust is created","plates only slide past","nothing happens"],0,"Causes volcanoes and earthquakes."),
+  MCQ("A constructive plate boundary is where plates:",["move apart and new crust forms","collide","slide past each other","disappear"],0,""),
+  MCQ("A 'secondary effect' of an earthquake is:",["fires and disease afterwards","buildings collapsing instantly","the ground shaking","the initial tremor"],0,"Secondary = knock-on effects."),
+  SA("Immediate help like rescue and shelter is an example of a ____ response. (immediate / long-term)",["immediate"],"") ]),
+    T("The living world: ecosystems",
+"Ecosystem = biotic (living) + abiotic (non-living) interacting. Tropical rainforests are hot, wet, biodiverse; plants adapt with drip tips, buttress roots, lianas. Deforestation causes: logging, farming, mining, roads.",
+[ MCQ("'Abiotic' parts of an ecosystem are:",["non-living (climate, soil, water)","living plants only","living animals only","decomposers"],0,"Biotic = living."),
+  MCQ("A rainforest plant adaptation is:",["drip tips to shed water","thick fur","losing leaves in winter","storing water in a trunk"],0,"Also buttress roots and lianas."),
+  MCQ("A cause of deforestation is:",["cattle ranching / farming","reforestation","national parks","drip tips"],0,"Also logging, mining, roads.") ]),
+    T("UK physical landscapes",
+"Coastal erosion: hydraulic action, abrasion, attrition, solution. Landforms: caves-arches-stacks; waterfalls and gorges. Longshore drift moves sediment along the coast. Management: hard (sea walls) vs soft (beach nourishment).",
+[ MCQ("Longshore drift is the:",["zig-zag movement of sediment along a coast","sudden collapse of a cliff","erosion of a riverbed","melting of a glacier"],0,""),
+  MCQ("Which is a coastal EROSION process?",["Hydraulic action","Longshore drift","Deposition","Evaporation"],0,"Also abrasion, attrition, solution."),
+  MCQ("A sea wall is an example of:",["hard engineering","soft engineering","managed retreat","do nothing"],0,"") ]),
+    T("Urban issues & the economic world",
+"Urbanisation = more people living in cities (fastest in poorer countries). Migration: push (rural poverty) and pull (city jobs) factors. Development measured by GNI per head, HDI, birth/death rates. The Demographic Transition Model shows change as countries develop.",
+[ MCQ("Urbanisation means:",["a rising share of people living in cities","people leaving cities","falling population","more farming"],0,""),
+  MCQ("A 'pull' factor for migration to a city is:",["better jobs and services","drought in the countryside","lack of rural healthcare","war at home"],0,"Pulls = attractions; pushes = drive people away."),
+  SA("HDI stands for the Human ____ Index.",["development"],"A measure of development."),
+  MCQ("The Demographic Transition Model shows how ____ change as a country develops.",["birth and death rates","mountains","ocean currents","rock types"],0,"") ])
+  ];
+
+  var english=[
+    T("Language techniques",
+"Name techniques to analyse writers' choices. Simile (like/as), metaphor (is), personification (human qualities), pathetic fallacy (weather = mood), sibilance, alliteration, onomatopoeia. Always explain the EFFECT on the reader.",
+[ MCQ("A simile compares using:",["'like' or 'as'","saying one thing IS another","human qualities","sound effects"],0,"A metaphor says it IS."),
+  MCQ("Personification means:",["giving human qualities to non-human things","comparing with 'like'","repeating 's' sounds","exaggeration"],0,""),
+  SA("Using weather or nature to reflect mood is called pathetic ____.",["fallacy"],""),
+  MCQ("After naming a technique you should always:",["explain its effect on the reader","name another technique","count the words","ignore the quote"],0,"Zoom in on a key word."),
+  SA("Repeating 's' or 'sh' sounds for effect is called ____.",["sibilance"],"") ]),
+    T("Writing skills",
+"For Q5 writing, aim for the top band: plan, link paragraphs (PEEL: Point, Evidence, Explain, Link), vary sentence lengths, use ambitious vocabulary and accurate punctuation, match tone to purpose and audience.",
+[ MCQ("PEEL stands for:",["Point, Evidence, Explain, Link","Plan, Edit, Explain, List","Point, Example, Echo, Link","Plot, Evidence, Effect, Language"],0,""),
+  MCQ("Which pushes writing into the top band?",["Varied sentences and ambitious vocabulary","Repeating the same words","Very short answers","No punctuation"],0,""),
+  TF("You should match your tone to the purpose, form and audience.",true,"") ]),
+    T("Literature: analysis skills",
+"Literature rewards exploring HOW and WHY writers make choices. Identify themes (power, love, ambition). Discuss the writer's intentions ('Dickens presents... to criticise...'). Use terms like dramatic irony, symbolism, extended metaphor.",
+[ MCQ("Dramatic irony is when:",["the audience knows something a character doesn't","two characters argue","a poem rhymes","the setting changes"],0,""),
+  MCQ("A strong literature point discusses the writer's:",["intentions and methods","handwriting","page count","publication date"],0,"'The writer presents... in order to...'"),
+  SA("A central idea explored in a text (e.g. power, love) is called a ____.",["theme"],""),
+  MCQ("An extended metaphor is one that is:",["developed over several lines or the whole text","used once","spoken aloud","always about weather"],0,"") ]),
+    T("Literature: exam approach",
+"Papers cover Shakespeare, a 19th-century novel, modern texts and poetry, plus unseen poetry. Embed short quotations and analyse specific words. Compare poems by theme, language and structure. Plan a thesis before writing.",
+[ MCQ("The best way to use quotations is to:",["embed short quotes and analyse key words","copy whole paragraphs","never quote","quote without explaining"],0,""),
+  MCQ("The 'unseen poetry' question asks you to:",["analyse a new poem you haven't studied","recite a poem","write your own poem","compare two studied poems"],0,"Read for meaning, mood and methods."),
+  TF("You should plan a thesis (overall argument) before writing a literature essay.",true,"") ])
+  ];
+
+  var subjects=[
+    {id:uid(),name:"Maths (Higher)",color:"#7c83ff",pastPapers:PP("https://www.aqa.org.uk/subjects/mathematics/gcse/mathematics-8300","GCSE Maths 8300"),topics:maths},
+    {id:uid(),name:"Science (Higher)",color:"#22d3ee",pastPapers:PP("https://www.aqa.org.uk/subjects/science/gcse/combined-science-trilogy-8464","Combined Science 8464"),topics:science},
+    {id:uid(),name:"Business Studies",color:"#f59e0b",pastPapers:PP("https://www.aqa.org.uk/subjects/business/gcse/business-8132","GCSE Business 8132"),topics:business},
+    {id:uid(),name:"Statistics",color:"#a855f7",pastPapers:PP("https://www.aqa.org.uk/subjects/mathematics/gcse/statistics-8382","GCSE Statistics 8382"),topics:stats},
+    {id:uid(),name:"Spanish",color:"#fb7185",pastPapers:PP("https://www.aqa.org.uk/subjects/spanish/gcse/spanish-8692","GCSE Spanish 8692"),topics:spanish},
+    {id:uid(),name:"Geography",color:"#34d399",pastPapers:PP("https://www.aqa.org.uk/subjects/geography/gcse/geography-8035","GCSE Geography 8035"),topics:geography},
+    {id:uid(),name:"English",color:"#f472b6",pastPapers:PP("https://www.aqa.org.uk/subjects/english/gcse/english-language-8700","GCSE English 8700/8702"),topics:english}
+  ];
+  return {version:2,createdAt:todayStr(),settings:{studentName:"",dailyGoal:20,streak:0,lastStudied:null},
+    game:{xp:0,ach:{},totalAns:0,totalCorrect:0},log:{days:{}},subjects:subjects};
+}
+
+/* ===== go ===== */
+load();render();
+if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}
+</script>
+</body>
+</html>
