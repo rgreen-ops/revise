@@ -316,7 +316,7 @@ function normalize(){
     s.topics.forEach(function(tp){if(tp.learn==null)tp.learn="";if(tp.tricky==null)tp.tricky=false;if(tp.assessed==null)tp.assessed=false;if(tp.level==null)tp.level=null;
       tp.questions=tp.questions||[];tp.questions.forEach(function(q){if(q.box==null)q.box=0;if(!q.due)q.due=todayStr();if(q.reps==null)q.reps=0;if(q.attempts==null)q.attempts=0;if(q.correct==null)q.correct=0;if(q.lapses==null)q.lapses=0;});});});
 }
-var CONTENT_VERSION=1;
+var CONTENT_VERSION=2;
 function hashId(prefix,str){var h=0x811c9dc5>>>0;for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,0x01000193)>>>0;}return prefix+h.toString(36);}
 function assignStableIds(data){data.subjects.forEach(function(s){s.id=hashId("s_",s.name);s.topics.forEach(function(t){t.id=hashId("t_",s.name+"/"+t.name);t.questions.forEach(function(q){q.id=hashId("q_",s.name+"/"+t.name+"/"+q.q);});});});}
 function mergeContent(saved,fresh){var added=0;var sBy={};saved.subjects.forEach(function(s){sBy[s.id]=s;});
@@ -747,7 +747,8 @@ function seedData(){
 [ MCQ("For independent events, P(A and B) =",["P(A) x P(B)","P(A) + P(B)","P(A) - P(B)","P(A) / P(B)"],0,"Multiply along tree branches."),
   MCQ("P(not A) =",["1 - P(A)","P(A) - 1","1 / P(A)","P(A)"],0,""),
   NUM("All probabilities in a sample space add up to:",1,0,"Total probability is always 1."),
-  MCQ("For mutually exclusive events, P(A or B) =",["P(A) + P(B)","P(A) x P(B)","P(A) - P(B)","1 - P(A)"],0,"They can't happen together, so add.") ])
+  MCQ("For mutually exclusive events, P(A or B) =",["P(A) + P(B)","P(A) x P(B)","P(A) - P(B)","1 - P(A)"],0,"They can't happen together, so add."),
+  MCQ("A fair six-sided dice is rolled. P(getting a 4) =",["1/6","1/4","4/6","1/2"],0,"One favourable outcome out of six equally likely outcomes.") ])
   ];
 
   var science=[
