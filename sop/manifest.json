@@ -1,7 +1,7 @@
 {
-  "name": "Ricoman R&D — SOPs",
-  "short_name": "R&D SOPs",
-  "description": "Follow standard operating procedures step-by-step, with accountability and a sign-off log.",
+  "name": "Ricoman R&D — Product Pipeline",
+  "short_name": "R&D Pipeline",
+  "description": "Stage-gate project management for new product & component development, from idea to launch with multi-party sign-off.",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",

@@ -1,7 +1,7 @@
 /* Service worker: offline support + auto-update.
    Network-first so an online device always gets the latest app shell;
    falls back to cache when offline. Bump CACHE on each deploy to purge old files. */
-var CACHE = 'rd-sop-v1';
+var CACHE = 'rd-npd-v2';
 var ASSETS = ['./', './index.html', './manifest.json', '../icon-192.png', '../icon-512.png'];
 
 self.addEventListener('install', function (e) {
