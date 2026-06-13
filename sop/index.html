@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ricoman R&D — Product Pipeline</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0c1330">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<style>
+:root{
+  --bg:#eef1f6; --surface:#ffffff; --surface2:#f4f6fb;
+  --line:#e3e7f0; --line2:#cdd4e3;
+  --nav:#0c1330; --nav2:#27325a;
+  --ink:#101a33; --muted:#5b6b8c; --faint:#8a95ad;
+  --blue:#1d4ed8; --blue2:#2563eb; --blueSoft:#e8efff;
+  --green:#16a34a; --greenSoft:#dcfce7;
+  --amber:#b45309; --amberSoft:#fef3c7;
+  --red:#e11d48; --violet:#7c3aed; --gold:#b7791f;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);
+  color:var(--ink);line-height:1.5;min-height:100vh;-webkit-text-size-adjust:100%}
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;
+  background:var(--nav);padding:11px 16px}
+.brand{display:flex;align-items:center;cursor:pointer;min-width:0}
+.logo{color:#fff;font-weight:800;font-size:18px;letter-spacing:2.5px}
+.logosub{color:#93a0bf;font-weight:500;font-size:12px;letter-spacing:1px;text-transform:uppercase;
+  margin-left:9px;border-left:1px solid #2a3658;padding-left:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-right{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--red);color:#fff;font-weight:800;font-size:13px;
+  border:0;cursor:pointer;display:flex;align-items:center;justify-content:center}
+main{max-width:880px;margin:0 auto;padding:18px 16px 96px}
+h1{font-size:24px;margin:2px 0 2px;letter-spacing:-.2px;color:var(--ink)}
+h2{font-size:19px;margin:0}
+.sub{color:var(--muted);margin:0 0 16px}
+.muted{color:var(--muted)} .faint{color:var(--faint)}
+button{font-family:inherit;color:inherit}
+a{color:var(--blue);font-weight:600;text-decoration:none}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:4px 0 16px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 14px;box-shadow:0 1px 2px rgba(16,24,40,.05)}
+.stat .n{font-size:23px;font-weight:800;letter-spacing:-.5px;color:var(--ink)}
+.stat .l{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
+.stat.a .n{color:var(--blue)} .stat.g .n{color:var(--green)} .stat.gold .n{color:var(--gold)}
+
+.search{width:100%;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;
+  padding:13px 14px;font-size:15px;margin-bottom:10px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.search::placeholder{color:var(--faint)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;margin:12px 0}
+.card{position:relative;text-align:left;border:1px solid var(--line);background:var(--surface);
+  border-radius:14px;padding:15px;overflow:hidden;box-shadow:0 1px 2px rgba(16,24,40,.05);transition:box-shadow .15s,transform .05s}
+.card.click{cursor:pointer}
+.card.click:hover{box-shadow:0 4px 14px -4px rgba(16,24,40,.18)} .card.click:active{transform:translateY(1px)}
+.card::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--c,var(--blue))}
+.c-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.code{font-size:12px;font-weight:800;color:var(--blue);letter-spacing:.4px}
+.pill{font-size:10px;font-weight:800;color:var(--muted);background:var(--surface2);border:1px solid var(--line);border-radius:6px;padding:2px 7px;white-space:nowrap}
+.title{font-weight:700;font-size:16px;margin:6px 0 4px;color:var(--ink)}
+.stagebadge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--blue);background:var(--blueSoft);
+  border-radius:999px;padding:4px 10px;margin-top:4px}
+.stagebadge b{color:var(--blue)}
+.meta{color:var(--faint);font-size:12px;margin-top:10px;display:flex;gap:12px;flex-wrap:wrap}
+.meta b{color:var(--muted);font-weight:700}
+.prog{height:8px;background:#e7ebf3;border-radius:999px;overflow:hidden;margin-top:11px}
+.prog span{display:block;height:100%;background:var(--blue);transition:width .25s}
+.prog.done span{background:var(--green)}
+
+.cta{display:block;width:100%;border:0;border-radius:12px;padding:15px;margin:6px 0 4px;cursor:pointer;
+  font-size:16px;font-weight:700;color:#fff;background:var(--blue);box-shadow:0 2px 6px -1px rgba(29,78,216,.4)}
+.cta:active{transform:translateY(1px)}
+.cta.green{background:var(--green);box-shadow:0 2px 6px -1px rgba(22,163,74,.4)}
+.cta:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+.row{display:flex;gap:10px;align-items:center}
+.row.two>*{flex:1}.row.wrap{flex-wrap:wrap}
+.ghost{border:1px solid var(--line2);background:var(--surface);color:var(--ink);border-radius:11px;
+  padding:11px 14px;font-size:14px;font-weight:700;cursor:pointer}
+.ghost:hover{border-color:var(--blue);color:var(--blue)}
+.ghost.sm{padding:7px 12px;font-size:13px;border-radius:9px}
+.ghost.solid{background:var(--blue);color:#fff;border-color:var(--blue)}
+.ghost.solid:hover{background:var(--blue2);color:#fff}
+.ghost.danger{color:var(--red);border-color:rgba(225,29,72,.35)}.ghost.danger:hover{border-color:var(--red);color:var(--red)}
+.ghost.accent{color:var(--blue);border-color:rgba(29,78,216,.35)}
+.back{display:inline-flex;align-items:center;gap:6px;background:none;border:0;color:var(--muted);font-size:14px;font-weight:700;cursor:pointer;padding:4px 0;margin-bottom:6px}
+.back:hover{color:var(--blue)}
+
+label.fld{display:block;margin:12px 0 0}
+label.fld .lbl{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px;display:block}
+input.in,textarea.in,select.in{width:100%;border:1px solid var(--line2);background:var(--surface);color:var(--ink);
+  border-radius:10px;padding:11px 12px;font-size:15px;font-family:inherit}
+textarea.in{resize:vertical;min-height:64px}
+input.in:focus,textarea.in:focus,select.in:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blueSoft)}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0;box-shadow:0 1px 2px rgba(16,24,40,.05)}
+.panel h3{margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--faint)}
+.divider{height:1px;background:var(--line);margin:14px 0}
+.tiny{font-size:12px;color:var(--faint)}
+
+.stage{border:1px solid var(--line);background:var(--surface);border-radius:14px;margin:10px 0;overflow:hidden;box-shadow:0 1px 2px rgba(16,24,40,.05)}
+.stage.passed{border-color:rgba(22,163,74,.45)}
+.stage.current{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue) inset,0 2px 10px -4px rgba(29,78,216,.3)}
+.stage.locked{opacity:.7}
+.st-head{display:flex;align-items:center;gap:12px;padding:14px;cursor:pointer}
+.st-dot{flex:0 0 auto;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:800;border:2px solid var(--line2);color:var(--muted);background:var(--surface2)}
+.stage.passed .st-dot{background:var(--green);border-color:var(--green);color:#fff}
+.stage.current .st-dot{background:var(--blue);border-color:var(--blue);color:#fff}
+.st-h-body{flex:1;min-width:0}
+.st-h-title{font-weight:700;font-size:15px;color:var(--ink)}
+.st-h-sub{font-size:12px;color:var(--faint);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.party{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;border-radius:999px;padding:2px 9px;
+  color:var(--p,var(--blue));background:color-mix(in srgb,var(--p,var(--blue)) 14%,white)}
+.st-state{flex:0 0 auto;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.4px}
+.st-state.passed{color:var(--green)} .st-state.current{color:var(--blue)} .st-state.locked{color:var(--faint)}
+.st-body{padding:0 14px 14px}
+
+.task{display:flex;gap:11px;align-items:flex-start;border-top:1px solid var(--line);padding:11px 2px}
+.task:first-child{border-top:0}
+.task.click{cursor:pointer}
+.box{flex:0 0 auto;width:24px;height:24px;border-radius:6px;border:2px solid var(--line2);display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:800;color:transparent;margin-top:1px;transition:all .12s}
+.task.done .box{background:var(--green);border-color:var(--green);color:#fff}
+.tk-body{flex:1;min-width:0}
+.tk-text{font-size:14px;color:var(--ink)}
+.task.done .tk-text{color:var(--muted)}
+.tk-stamp{font-size:11px;color:var(--green);font-weight:700;margin-top:3px}
+
+.signs{margin-top:12px;border-top:1px dashed var(--line2);padding-top:12px}
+.signrow{display:flex;align-items:center;gap:10px;padding:8px 0}
+.sr-role{flex:1;min-width:0;font-size:14px;font-weight:700;color:var(--ink)}
+.sr-meta{font-size:12px;color:var(--green);font-weight:700}
+.awaiting{font-size:11px;font-weight:800;color:var(--amber);background:var(--amberSoft);border-radius:999px;padding:3px 10px}
+
+.gatebar{margin-top:12px;border-radius:10px;padding:11px 13px;font-weight:600;font-size:13px}
+.gatebar.open{background:var(--blueSoft);border:1px solid rgba(29,78,216,.3);color:var(--blue)}
+.gatebar.passed{background:var(--greenSoft);border:1px solid rgba(22,163,74,.3);color:var(--green)}
+.gatebar.locked{background:var(--surface2);border:1px solid var(--line);color:var(--faint)}
+
+.empty{text-align:center;color:var(--faint);padding:40px 16px}
+.empty .big{font-size:40px;margin-bottom:8px}
+
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;background:var(--surface);
+  border-top:1px solid var(--line);padding:8px 8px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -2px 10px -6px rgba(16,24,40,.2)}
+.tab{flex:1;background:none;border:0;color:var(--faint);font-size:11px;font-weight:700;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 0}
+.tab .ti{font-size:19px;line-height:1}
+.tab.on{color:var(--blue)}
+
+.scrim{position:fixed;inset:0;z-index:40;background:rgba(12,19,48,.45);backdrop-filter:blur(2px);display:flex;align-items:flex-end;justify-content:center}
+.sheet{width:100%;max-width:540px;background:var(--surface);border:1px solid var(--line);border-radius:18px 18px 0 0;padding:18px;max-height:90vh;overflow:auto}
+@media(min-width:560px){.scrim{align-items:center}.sheet{border-radius:18px}}
+.sheet h2{margin-bottom:4px}
+.tmpl{border:1px solid var(--line2);background:var(--surface);border-radius:11px;padding:12px;margin-top:8px;cursor:pointer;text-align:left;width:100%}
+.tmpl:hover{border-color:var(--blue)} .tmpl.on{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue) inset;background:var(--blueSoft)}
+
+.toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);z-index:60;background:var(--nav);
+  border:1px solid var(--nav2);color:#fff;font-weight:700;font-size:14px;padding:11px 16px;border-radius:10px;
+  box-shadow:0 10px 30px -8px rgba(0,0,0,.4);opacity:0;transition:opacity .2s,transform .2s;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
+
+.actrow{display:flex;gap:11px;border-left:2px solid var(--line2);padding:0 0 14px 14px;position:relative}
+.actrow::before{content:"";position:absolute;left:-5px;top:3px;width:8px;height:8px;border-radius:50%;background:var(--c,var(--blue))}
+.act-t{font-size:14px;font-weight:600;color:var(--ink)}
+.act-m{font-size:12px;color:var(--faint);margin-top:1px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand" onclick="go('projects')">
+    <span class="logo">RICOMAN</span><span class="logosub">Product Pipeline</span>
+  </div>
+  <div class="tb-right">
+    <button class="avatar" id="whoChip" onclick="openOperator()" title="Set your name">–</button>
+  </div>
+</div>
+
+<main id="app"></main>
+
+<nav class="tabbar">
+  <button class="tab" data-tab="projects" onclick="go('projects')"><span class="ti">🚀</span>Projects</button>
+  <button class="tab" data-tab="activity" onclick="go('activity')"><span class="ti">📜</span>Activity</button>
+  <button class="tab" data-tab="new" onclick="newProject()"><span class="ti">➕</span>New</button>
+  <button class="tab" data-tab="more" onclick="go('more')"><span class="ti">⚙️</span>More</button>
+</nav>
+
+<div id="modal"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   Ricoman R&D — Product Pipeline
+   Stage-gate project management for new product / component
+   development: idea → launch, with checked steps, multi-party
+   sign-off gates, and an activity log. Single-file PWA, data
+   stored locally per device (use More → Backup to export).
+   ============================================================ */
+
+var LS = {
+  projects:'rdnpd.projects.v1', templates:'rdnpd.templates.v1',
+  settings:'rdnpd.settings.v1', activity:'rdnpd.activity.v1'
+};
+function load(k,f){ try{ var v=localStorage.getItem(k); return v?JSON.parse(v):f; }catch(e){ return f; } }
+function save(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+
+/* ============================================================
+   Shared Ricoman login (single sign-on across *.ricoman.com).
+   Reuses Ricobot's login as the identity provider. Leave AUTH.base
+   empty to run standalone (local name only — current behaviour).
+   When the shared session endpoints are live on Ricobot, set:
+     AUTH.base = 'https://ricobot.ricoman.com';
+   and confirm the three paths below. The session cookie must be
+   issued on Domain=.ricoman.com so every subdomain shares it.
+   (Endpoints are finalised in the Ricobot repo — see HANDOVER.md.)
+   ============================================================ */
+var AUTH = { base:'', mePath:'/api/auth/me', loginPath:'/login', logoutPath:'/logout' };
+var authUser = null;
+function authCheck(cb){
+  if(!AUTH.base){ cb(false); return; }
+  fetch(AUTH.base+AUTH.mePath, {credentials:'include'})
+    .then(function(r){ if(r.ok) return r.json(); throw 0; })
+    .then(function(u){ authUser=u;
+      var nm = u && (u.name||u.fullName||u.username);
+      if(nm){ state.settings.operator=nm; save(LS.settings,state.settings); }
+      cb(true); })
+    .catch(function(){ location.href = AUTH.base+AUTH.loginPath+'?redirect='+encodeURIComponent(location.href); });
+}
+function authLogout(){ if(AUTH.base) location.href = AUTH.base+AUTH.logoutPath+'?redirect='+encodeURIComponent(location.href); }
+
+/* parties (responsible groups) and their colours */
+var PARTIES = ['R&D','Testing','China Factory','UK Production','Marketing','Commercial','MD'];
+var PARTY_COLOR = {
+  'R&D':'#7c83ff','Testing':'#a855f7','China Factory':'#fb7185','UK Production':'#22d3ee',
+  'Marketing':'#f7c948','Commercial':'#34d399','MD':'#fbbf24'
+};
+function partyColor(p){ return PARTY_COLOR[p] || '#8b97ba'; }
+
+/* ---- default stage-gate templates (fully editable) ---- */
+function seedTemplates(){
+  return [
+    { id:uid(), name:'New Product', type:'Product', stages:[
+      { name:'Idea & Concept', party:'R&D', signRoles:['R&D Lead'], tasks:[
+        'Capture the product idea and intended use','Identify the market need and target customer',
+        'Outline rough feasibility and ballpark cost','Check for similar existing products / IP'] },
+      { name:'Specification', party:'R&D', signRoles:['R&D Lead','Commercial'], tasks:[
+        'Define functional requirements and specification','Set target cost, price and margin',
+        'Draft outline bill of materials (BOM)','Define key standards / compliance needs'] },
+      { name:'Design', party:'R&D', signRoles:['R&D Lead','Engineering'], tasks:[
+        'Produce CAD models and drawings','Hold internal design review','Release drawings & BOM at revision A'] },
+      { name:'Prototype', party:'R&D', signRoles:['R&D Engineer'], tasks:[
+        'Build first prototype','Internal functional check','Record build notes and photos'] },
+      { name:'Testing', party:'Testing', signRoles:['QA Lead'], tasks:[
+        'Internal R&D test against specification','Independent / second-party test',
+        'Third-party or field test','Compile test report and resolve issues'] },
+      { name:'China Factory Clarification', party:'China Factory', signRoles:['R&D Lead','Factory Contact'], tasks:[
+        'Send drawings, BOM and samples to factory','Clarify tooling, materials and process',
+        'Factory confirms feasibility and pricing','Approve factory pre-production sample'] },
+      { name:'UK Production Setup', party:'UK Production', signRoles:['Production Manager','QA Lead'], tasks:[
+        'Define UK production / assembly process','Approve first article inspection',
+        'Agree QC plan and acceptance criteria'] },
+      { name:'Marketing Handover', party:'Marketing', signRoles:['Marketing','Commercial'], tasks:[
+        'Prepare product information pack','Supply images, copy and specifications',
+        'Confirm pricing and launch date','Marketing sign-off to proceed'] },
+      { name:'Launch', party:'Commercial', signRoles:['R&D Lead','Commercial','MD'], tasks:[
+        'Final go / no-go review','Release to sales channels','Product launched'] }
+    ]},
+    { id:uid(), name:'New Component', type:'Component', stages:[
+      { name:'Idea & Need', party:'R&D', signRoles:['R&D Lead'], tasks:[
+        'Capture the component need','Define where it will be used','Outline target cost'] },
+      { name:'Specification', party:'R&D', signRoles:['R&D Lead'], tasks:[
+        'Define component spec and tolerances','Identify standards / compliance','Draft datasheet requirements'] },
+      { name:'Sourcing & China Clarification', party:'China Factory', signRoles:['R&D Lead','Factory Contact'], tasks:[
+        'Send spec / drawings to factory or supplier','Clarify materials and process',
+        'Obtain quotation and lead time','Request samples'] },
+      { name:'Sample & Test', party:'Testing', signRoles:['QA Lead'], tasks:[
+        'Inspect samples to specification','Functional / fit test','Test by an independent party','Compile result'] },
+      { name:'UK Production Approval', party:'UK Production', signRoles:['Production Manager','QA Lead'], tasks:[
+        'Confirm fit within production','First article approval','Agree incoming QC check'] },
+      { name:'Approval & Release', party:'Commercial', signRoles:['R&D Lead','Commercial'], tasks:[
+        'Final approval','Add to approved component list','Notify production & purchasing'] }
+    ]}
+  ];
+}
+
+/* ---- state ---- */
+var state = {
+  projects: load(LS.projects, []),
+  templates: load(LS.templates, null),
+  settings: load(LS.settings, { operator:'' }),
+  activity: load(LS.activity, []),
+  view:'projects', query:'', current:null, openStage:null,
+  editing:null, newSel:null
+};
+if(!state.templates){ state.templates = seedTemplates(); save(LS.templates, state.templates); }
+
+function persist(){ save(LS.projects,state.projects); save(LS.templates,state.templates);
+  save(LS.settings,state.settings); save(LS.activity,state.activity); }
+function findProject(id){ return state.projects.filter(function(p){return p.id===id;})[0]; }
+
+/* ---- pipeline logic ---- */
+function stagePassed(st){
+  var tasksOk = st.tasks.length ? st.tasks.every(function(t){return t.done;}) : true;
+  var signsOk = (st.signRoles||[]).every(function(r){
+    return (st.signoffs||[]).some(function(s){ return s.role===r; }); });
+  return tasksOk && signsOk;
+}
+function currentIndex(p){
+  for(var i=0;i<p.stages.length;i++){ if(!stagePassed(p.stages[i])) return i; }
+  return p.stages.length; // all passed = complete
+}
+function projectPct(p){
+  var n=p.stages.length; if(!n) return 0;
+  var passed=0, partial=0, ci=currentIndex(p);
+  for(var i=0;i<n;i++){ if(stagePassed(p.stages[i])) passed++; }
+  if(ci<n){ var st=p.stages[ci]; var done=st.tasks.filter(function(t){return t.done;}).length;
+    var tot=st.tasks.length + (st.signRoles?st.signRoles.length:0);
+    var sg=(st.signoffs||[]).length; partial = tot? (done+sg)/tot : 0; }
+  return Math.round((passed+partial)/n*100);
+}
+function isComplete(p){ return currentIndex(p)>=p.stages.length; }
+
+/* ---- activity ---- */
+function logAct(p, type, detail){
+  state.activity.unshift({ id:uid(), ts:Date.now(), code:p.code, name:p.name,
+    type:type, detail:detail, by:state.settings.operator||'' });
+  if(state.activity.length>500) state.activity.length=500;
+}
+/* run a mutation then log any gate(s) crossed */
+function withGateLog(p, fn){
+  var before=currentIndex(p);
+  fn();
+  var after=currentIndex(p);
+  for(var i=before;i<after && i<p.stages.length;i++){
+    logAct(p,'gate','Gate passed: '+p.stages[i].name);
+  }
+  if(before<p.stages.length && after>=p.stages.length){ logAct(p,'launch','🎉 '+p.name+' completed — launched'); }
+  persist();
+}
+
+/* ---- toast / nav ---- */
+var toastTimer;
+function toast(m){ var t=document.getElementById('toast'); t.textContent=m; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(function(){t.classList.remove('show');},2200); }
+function go(v){ state.view=v; closeModal(); render(); window.scrollTo(0,0); }
+function setTabs(){
+  var map={projects:'projects',activity:'activity',more:'more',project:'projects',editor:'more',tmplEdit:'more'};
+  var a=map[state.view]||'projects';
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.toggle('on', t.getAttribute('data-tab')===a); });
+}
+
+/* ============================================================ RENDER */
+function render(){
+  var el=document.getElementById('app');
+  if(state.view==='projects')      el.innerHTML=viewProjects();
+  else if(state.view==='project')  el.innerHTML=viewProject();
+  else if(state.view==='activity') el.innerHTML=viewActivity();
+  else if(state.view==='more')     el.innerHTML=viewMore();
+  else if(state.view==='tmplEdit') el.innerHTML=viewTmplEdit();
+  setTabs(); updateWhoChip();
+}
+function updateWhoChip(){ var el=document.getElementById('whoChip'); if(!el)return; el.textContent=initials(state.settings.operator); el.title=state.settings.operator||'Set your name'; }
+function initials(n){ if(!n||!n.trim())return '–'; var p=n.trim().split(/\s+/); return (p[0].charAt(0)+(p[1]?p[1].charAt(0):'')).toUpperCase(); }
+
+/* ---- Projects home ---- */
+function viewProjects(){
+  var active=state.projects.filter(function(p){return !p.archived;});
+  var live=active.filter(function(p){return !isComplete(p);}).length;
+  var done=state.projects.filter(function(p){return isComplete(p);}).length;
+  var q=state.query.toLowerCase();
+  var list=active.filter(function(p){
+    return !q || (p.name+' '+p.code+' '+p.type).toLowerCase().indexOf(q)>=0;
+  }).sort(function(a,b){ return b.created-a.created; });
+
+  if(!state.projects.length){
+    return '<h1>Product Pipeline</h1><p class="sub">Manage new products & components from idea to launch.</p>'+
+      '<div class="empty"><div class="big">🚀</div>No projects yet.<br><span class="tiny">Tap <b>New</b> to start your first product or component.</span></div>'+
+      '<button class="cta" onclick="newProject()">+ Start a project</button>';
+  }
+  var cards=list.map(function(p){
+    var ci=currentIndex(p), comp=isComplete(p);
+    var st=comp?null:p.stages[ci];
+    var col=comp?'#34d399':partyColor(st?st.party:'R&D');
+    var pct=projectPct(p);
+    return '<div class="card click" style="--c:'+col+'" onclick="openProject(\''+p.id+'\')">'+
+      '<div class="c-top"><span class="code">'+esc(p.code)+'</span><span class="pill">'+esc(p.type)+'</span></div>'+
+      '<div class="title">'+esc(p.name)+'</div>'+
+      (comp ? '<span class="stagebadge" style="--c:#34d399">✓ Launched</span>'
+            : '<span class="stagebadge"><b>Stage '+(ci+1)+'/'+p.stages.length+'</b> · '+esc(st.name)+'</span>')+
+      '<div class="prog'+(comp?' done':'')+'"><span style="width:'+pct+'%"></span></div>'+
+      '<div class="meta"><span><b>'+pct+'%</b> complete</span>'+
+        (p.owner?'<span>Owner: <b>'+esc(p.owner)+'</b></span>':'')+
+        (p.targetLaunch?'<span>Target: <b>'+esc(p.targetLaunch)+'</b></span>':'')+'</div>'+
+    '</div>';
+  }).join('');
+
+  return '<h1>Product Pipeline</h1><p class="sub">From idea to launch — follow every gated step.</p>'+
+    '<div class="stats">'+
+      '<div class="stat a"><div class="n">'+live+'</div><div class="l">In progress</div></div>'+
+      '<div class="stat g"><div class="n">'+done+'</div><div class="l">Launched</div></div>'+
+      '<div class="stat gold"><div class="n">'+state.projects.length+'</div><div class="l">Total</div></div>'+
+    '</div>'+
+    (state.projects.length>4?'<input class="search" placeholder="Search projects…" value="'+esc(state.query)+'" oninput="onSearch(this.value)">':'')+
+    (list.length?'<div class="grid">'+cards+'</div>':'<div class="empty"><div class="big">🔍</div>No projects match.</div>')+
+    (state.projects.some(function(p){return p.archived;})?'<button class="ghost sm" style="margin-top:8px" onclick="go(\'more\')">View archived in More →</button>':'');
+}
+function onSearch(v){ state.query=v; render(); var i=document.querySelector('.search'); if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length);} }
+
+/* ---- Project detail (the pipeline) ---- */
+function openProject(id){ state.current=id; var p=findProject(id);
+  state.openStage = p ? (p.stages[currentIndex(p)]||p.stages[p.stages.length-1]||{}).name : null; go('project'); }
+
+function viewProject(){
+  var p=findProject(state.current);
+  if(!p) return '<div class="empty">Project not found.</div>';
+  var ci=currentIndex(p), comp=isComplete(p), pct=projectPct(p);
+
+  var stages=p.stages.map(function(st,i){
+    var passed=i<ci, current=i===ci, locked=i>ci;
+    var cls=passed?'passed':current?'current':'locked';
+    var open = (st.name===state.openStage) || current;
+    var tasksDone=st.tasks.filter(function(t){return t.done;}).length;
+    var signsDone=(st.signoffs||[]).length, signsReq=(st.signRoles||[]).length;
+    var col=partyColor(st.party);
+
+    var head='<div class="st-head" onclick="toggleStage('+i+')">'+
+      '<div class="st-dot">'+(passed?'✓':locked?'🔒':(i+1))+'</div>'+
+      '<div class="st-h-body"><div class="st-h-title">'+esc(st.name)+'</div>'+
+        '<div class="st-h-sub"><span class="party" style="--p:'+col+'">'+esc(st.party)+'</span>'+
+          '<span>'+tasksDone+'/'+st.tasks.length+' steps</span>'+
+          (signsReq?'<span>'+signsDone+'/'+signsReq+' sign-off</span>':'')+'</div></div>'+
+      '<div class="st-state '+cls+'">'+(passed?'Passed':current?'Active':'Locked')+'</div>'+
+    '</div>';
+
+    if(!open) return '<div class="stage '+cls+'">'+head+'</div>';
+
+    var editable=current; // only the active stage can be changed
+    var tasks=st.tasks.map(function(t,ti){
+      return '<div class="task'+(t.done?' done':'')+(editable?' click':'')+'" '+(editable?'onclick="toggleTask('+i+','+ti+')"':'')+'>'+
+        '<div class="box">✓</div><div class="tk-body"><div class="tk-text">'+esc(t.text)+'</div>'+
+        (t.done?'<div class="tk-stamp">✓ '+esc(t.by||'done')+' · '+fmtDateTime(t.at)+'</div>':'')+'</div></div>';
+    }).join('');
+
+    var signs = signsReq ? '<div class="signs"><h3 style="margin:0 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--faint)">Gate sign-off</h3>'+
+      st.signRoles.map(function(role){
+        var so=(st.signoffs||[]).filter(function(s){return s.role===role;})[0];
+        return '<div class="signrow"><div class="sr-role">'+esc(role)+'</div>'+
+          (so?'<span class="sr-meta">✓ '+esc(so.name)+' · '+fmtDate(so.at)+'</span>'+
+              (editable?' <button class="ghost sm" onclick="unsign('+i+',\''+esc(role).replace(/'/g,"\\'")+'\')">undo</button>':'')
+            :(editable?'<button class="ghost sm solid" onclick="sign('+i+',\''+esc(role).replace(/'/g,"\\'")+'\')">Sign off</button>':'<span class="awaiting">Awaiting</span>'))+
+        '</div>';
+      }).join('')+'</div>' : '';
+
+    var gate = passed ? '<div class="gatebar passed">✓ Gate passed</div>'
+      : current ? (stagePassed(st)?'<div class="gatebar passed">✓ Gate passed — next stage unlocked</div>'
+                                  :'<div class="gatebar open">Complete all steps & sign-offs to pass this gate.</div>')
+      : '<div class="gatebar locked">🔒 Unlocks when the previous gate passes.</div>';
+
+    var addTask = editable ? '<button class="ghost sm" style="margin-top:10px" onclick="addTask('+i+')">+ Add step</button>' : '';
+
+    return '<div class="stage '+cls+'">'+head+'<div class="st-body">'+tasks+addTask+signs+gate+'</div></div>';
+  }).join('');
+
+  return '<button class="back" onclick="go(\'projects\')">‹ Projects</button>'+
+    '<div class="c-top"><span class="code">'+esc(p.code)+'</span><span class="pill">'+esc(p.type)+'</span></div>'+
+    '<h1>'+esc(p.name)+'</h1>'+
+    '<p class="sub">'+(p.owner?'Owner: <b>'+esc(p.owner)+'</b> · ':'')+
+      (comp?'<b style="color:var(--green)">Launched 🎉</b>':'Stage '+(ci+1)+' of '+p.stages.length)+
+      (p.targetLaunch?' · Target launch: <b>'+esc(p.targetLaunch)+'</b>':'')+'</p>'+
+    '<div class="prog'+(comp?' done':'')+'" style="margin:0 0 4px"><span style="width:'+pct+'%"></span></div>'+
+    '<p class="tiny" style="margin:0 0 12px">'+pct+'% complete</p>'+
+    stages+
+    '<div class="divider"></div>'+
+    '<div class="row two"><button class="ghost" onclick="editProject(\''+p.id+'\')">Edit details</button>'+
+      '<button class="ghost '+(p.archived?'accent':'danger')+'" onclick="toggleArchive(\''+p.id+'\')">'+(p.archived?'Unarchive':'Archive')+'</button></div>';
+}
+function toggleStage(i){ var p=findProject(state.current); var n=p.stages[i].name;
+  state.openStage = (state.openStage===n)?null:n; render(); }
+
+function toggleTask(si,ti){
+  var p=findProject(state.current); var st=p.stages[si];
+  if(si!==currentIndex(p)) return;
+  withGateLog(p, function(){
+    var t=st.tasks[ti];
+    if(t.done){ t.done=false; t.at=null; t.by=null; }
+    else { t.done=true; t.at=Date.now(); t.by=state.settings.operator||'—'; }
+  });
+  render();
+}
+function addTask(si){
+  var p=findProject(state.current); if(si!==currentIndex(p)) return;
+  var v=prompt('New step for this stage:'); if(!v||!v.trim()) return;
+  p.stages[si].tasks.push({text:v.trim(),done:false,at:null,by:null});
+  persist(); render();
+}
+function sign(si,role){
+  var p=findProject(state.current); if(si!==currentIndex(p)) return;
+  if(!state.settings.operator){ openOperator(true); return; }
+  withGateLog(p, function(){
+    p.stages[si].signoffs=p.stages[si].signoffs||[];
+    p.stages[si].signoffs.push({role:role,name:state.settings.operator,at:Date.now()});
+    logAct(p,'signoff',role+' signed off "'+p.stages[si].name+'"');
+  });
+  toast(role+' signed by '+state.settings.operator);
+  render();
+}
+function unsign(si,role){
+  var p=findProject(state.current); if(si!==currentIndex(p)) return;
+  p.stages[si].signoffs=(p.stages[si].signoffs||[]).filter(function(s){return s.role!==role;});
+  persist(); render();
+}
+function toggleArchive(id){ var p=findProject(id); p.archived=!p.archived; persist();
+  toast(p.archived?'Archived':'Unarchived'); go('projects'); }
+
+/* ---- new project ---- */
+function newProject(){
+  state.newSel=state.templates[0]?state.templates[0].id:null;
+  openNewSheet();
+}
+function openNewSheet(){
+  var tmpls=state.templates.map(function(t){
+    return '<button class="tmpl'+(state.newSel===t.id?' on':'')+'" onclick="state.newSel=\''+t.id+'\';openNewSheet()">'+
+      '<b>'+esc(t.name)+'</b> <span class="pill">'+esc(t.type)+'</span>'+
+      '<div class="tiny" style="margin-top:4px">'+t.stages.length+' stages · '+
+        t.stages.reduce(function(a,s){return a+s.tasks.length;},0)+' steps</div></button>';
+  }).join('');
+  var n=state.projects.length+1;
+  var code=(state.templates.filter(function(t){return t.id===state.newSel;})[0]||{}).type==='Component'?'C':'P';
+  code='RM-'+code+'-'+String(100+n).slice(1);
+  document.getElementById('modal').innerHTML=
+    '<div class="scrim" onclick="if(event.target===this)closeModal()"><div class="sheet">'+
+    '<h2>New project</h2><p class="sub">Pick a pipeline template to start from.</p>'+
+    tmpls+
+    '<label class="fld"><span class="lbl">Project name</span><input class="in" id="np-name" placeholder="e.g. Slimline LED Driver"></label>'+
+    '<div class="row two"><label class="fld"><span class="lbl">Code</span><input class="in" id="np-code" value="'+code+'"></label>'+
+      '<label class="fld"><span class="lbl">Target launch</span><input class="in" id="np-target" placeholder="e.g. Q4 2026"></label></div>'+
+    '<label class="fld"><span class="lbl">Owner</span><input class="in" id="np-owner" value="'+esc(state.settings.operator)+'"></label>'+
+    '<button class="cta" style="margin-top:14px" onclick="createProject()">Create project</button>'+
+    '</div></div>';
+  setTimeout(function(){var i=document.getElementById('np-name');if(i)i.focus();},50);
+}
+function createProject(){
+  var t=state.templates.filter(function(x){return x.id===state.newSel;})[0];
+  if(!t){ toast('Pick a template'); return; }
+  var name=(document.getElementById('np-name').value||'').trim();
+  if(!name){ toast('Enter a project name'); return; }
+  var p={ id:uid(), code:(document.getElementById('np-code').value||'RM').trim(), name:name, type:t.type,
+    owner:(document.getElementById('np-owner').value||'').trim(),
+    targetLaunch:(document.getElementById('np-target').value||'').trim(),
+    templateName:t.name, created:Date.now(), archived:false,
+    stages: t.stages.map(function(s){ return { name:s.name, party:s.party, signRoles:clone(s.signRoles||[]),
+      tasks:(s.tasks||[]).map(function(tx){ return {text:tx,done:false,at:null,by:null}; }), signoffs:[] }; })
+  };
+  state.projects.unshift(p);
+  logAct(p,'created','Project created from "'+t.name+'" template');
+  persist(); closeModal(); openProject(p.id);
+  toast('Project created');
+}
+
+/* ---- edit project details ---- */
+function editProject(id){
+  var p=findProject(id);
+  document.getElementById('modal').innerHTML=
+    '<div class="scrim" onclick="if(event.target===this)closeModal()"><div class="sheet">'+
+    '<h2>Edit details</h2>'+
+    '<label class="fld"><span class="lbl">Name</span><input class="in" id="ep-name" value="'+esc(p.name)+'"></label>'+
+    '<div class="row two"><label class="fld"><span class="lbl">Code</span><input class="in" id="ep-code" value="'+esc(p.code)+'"></label>'+
+      '<label class="fld"><span class="lbl">Target launch</span><input class="in" id="ep-target" value="'+esc(p.targetLaunch||'')+'"></label></div>'+
+    '<label class="fld"><span class="lbl">Owner</span><input class="in" id="ep-owner" value="'+esc(p.owner||'')+'"></label>'+
+    '<button class="cta" style="margin-top:14px" onclick="saveProjectDetails(\''+id+'\')">Save</button>'+
+    '<button class="ghost danger" style="width:100%;margin-top:8px" onclick="deleteProject(\''+id+'\')">Delete project</button>'+
+    '</div></div>';
+}
+function saveProjectDetails(id){
+  var p=findProject(id);
+  p.name=(document.getElementById('ep-name').value||p.name).trim();
+  p.code=(document.getElementById('ep-code').value||p.code).trim();
+  p.owner=(document.getElementById('ep-owner').value||'').trim();
+  p.targetLaunch=(document.getElementById('ep-target').value||'').trim();
+  persist(); closeModal(); render(); toast('Saved');
+}
+function deleteProject(id){
+  if(!confirm('Delete this project permanently? Activity entries are kept.')) return;
+  state.projects=state.projects.filter(function(p){return p.id!==id;});
+  persist(); closeModal(); go('projects');
+}
+
+/* ---- Activity ---- */
+var ACT_ICON={created:'🆕',signoff:'✍️',gate:'🚪',launch:'🎉',task:'✓'};
+var ACT_COLOR={created:'#7c83ff',signoff:'#22d3ee',gate:'#a855f7',launch:'#34d399',task:'#8b97ba'};
+function viewActivity(){
+  if(!state.activity.length){
+    return '<h1>Activity</h1><div class="empty"><div class="big">📜</div>No activity yet.<br><span class="tiny">Sign-offs and gate passes appear here.</span></div>';
+  }
+  var rows=state.activity.map(function(a){
+    return '<div class="actrow" style="--c:'+(ACT_COLOR[a.type]||'#8b97ba')+'">'+
+      '<div><div class="act-t">'+(ACT_ICON[a.type]||'•')+' '+esc(a.detail)+'</div>'+
+      '<div class="act-m">'+esc(a.code)+' · '+esc(a.name)+(a.by?' · by '+esc(a.by):'')+' · '+fmtDateTime(a.ts)+'</div></div></div>';
+  }).join('');
+  return '<h1>Activity</h1><p class="sub">'+state.activity.length+' event'+(state.activity.length===1?'':'s')+' — the accountability trail.</p>'+
+    '<div class="row" style="margin-bottom:14px"><button class="ghost sm accent" onclick="exportCSV()">⬇ Export CSV</button>'+
+      '<button class="ghost sm" onclick="clearActivity()">Clear</button></div>'+rows;
+}
+function clearActivity(){ if(!confirm('Clear the activity log?'))return; state.activity=[]; persist(); render(); }
+
+/* ---- More ---- */
+function viewMore(){
+  var arch=state.projects.filter(function(p){return p.archived;});
+  var tmpls=state.templates.map(function(t){
+    return '<div class="row" style="justify-content:space-between;padding:8px 0;border-top:1px solid var(--line)">'+
+      '<div><b>'+esc(t.name)+'</b> <span class="pill">'+esc(t.type)+'</span><div class="tiny">'+t.stages.length+' stages</div></div>'+
+      '<button class="ghost sm" onclick="editTemplate(\''+t.id+'\')">Edit</button></div>';
+  }).join('');
+  return '<h1>More</h1>'+
+    '<div class="panel"><h3>Signed in as</h3>'+
+      '<div class="row" style="justify-content:space-between"><b style="font-size:17px">'+esc(state.settings.operator||'— not set —')+'</b>'+
+        '<button class="ghost sm" onclick="openOperator()">Change</button></div>'+
+      '<p class="tiny" style="margin:8px 0 0">Recorded against every step and sign-off.</p></div>'+
+    '<div class="panel"><h3>Pipeline templates</h3>'+tmpls+
+      '<button class="ghost sm" style="width:100%;margin-top:10px" onclick="newTemplate()">+ New template</button></div>'+
+    '<div class="panel"><h3>Backup &amp; restore</h3>'+
+      '<p class="tiny" style="margin:0 0 10px">Data is stored on this device only. Export to back up or move device.</p>'+
+      '<div class="row two"><button class="ghost accent" onclick="exportJSON()">⬇ Export all</button>'+
+        '<button class="ghost" onclick="importJSON()">⬆ Import</button></div></div>'+
+    (arch.length?'<div class="panel"><h3>Archived projects</h3>'+arch.map(function(p){
+      return '<div class="row" style="justify-content:space-between;padding:6px 0"><span>'+esc(p.code)+' — '+esc(p.name)+'</span>'+
+        '<button class="ghost sm accent" onclick="toggleArchive(\''+p.id+'\')">Restore</button></div>';
+    }).join('')+'</div>':'')+
+    '<p class="tiny" style="text-align:center;margin-top:18px"><a href="../index.html">← Revise app</a></p>';
+}
+
+/* ---- template editor (compact) ---- */
+function newTemplate(){ state.editing={ id:null, name:'', type:'Product', stages:[{name:'',party:'R&D',signRoles:[],tasks:[]}] }; go('tmplEdit'); }
+function editTemplate(id){ state.editing=clone(state.templates.filter(function(t){return t.id===id;})[0]); go('tmplEdit'); }
+function viewTmplEdit(){
+  var e=state.editing, isNew=!e.id;
+  var partyOpts=function(sel){ return PARTIES.map(function(p){return '<option '+(sel===p?'selected':'')+'>'+p+'</option>';}).join(''); };
+  var stages=e.stages.map(function(s,i){
+    return '<div class="panel" style="margin:10px 0">'+
+      '<div class="row" style="justify-content:space-between;margin-bottom:6px"><b class="tiny">STAGE '+(i+1)+'</b>'+
+        '<button class="ghost sm danger" onclick="teDelStage('+i+')" '+(e.stages.length<=1?'disabled':'')+'>✕</button></div>'+
+      '<label class="fld"><span class="lbl">Stage name</span><input class="in" value="'+esc(s.name)+'" oninput="teStage('+i+',\'name\',this.value)"></label>'+
+      '<label class="fld"><span class="lbl">Responsible party</span><select class="in" onchange="teStage('+i+',\'party\',this.value)">'+partyOpts(s.party)+'</select></label>'+
+      '<label class="fld"><span class="lbl">Sign-off roles (comma separated)</span><input class="in" value="'+esc((s.signRoles||[]).join(', '))+'" oninput="teRoles('+i+',this.value)"></label>'+
+      '<label class="fld"><span class="lbl">Steps (one per line)</span><textarea class="in" style="min-height:90px" oninput="teTasks('+i+',this.value)">'+esc((s.tasks||[]).join('\n'))+'</textarea></label>'+
+    '</div>';
+  }).join('');
+  return '<button class="back" onclick="go(\'more\')">‹ Cancel</button>'+
+    '<h1>'+(isNew?'New template':'Edit template')+'</h1>'+
+    '<div class="row two"><label class="fld"><span class="lbl">Template name</span><input class="in" id="te-name" value="'+esc(e.name)+'" oninput="state.editing.name=this.value"></label>'+
+      '<label class="fld"><span class="lbl">Type</span><select class="in" onchange="state.editing.type=this.value"><option '+(e.type==='Product'?'selected':'')+'>Product</option><option '+(e.type==='Component'?'selected':'')+'>Component</option></select></label></div>'+
+    '<div class="divider"></div><h2>Stages</h2>'+stages+
+    '<button class="ghost" style="width:100%;margin-top:4px" onclick="teAddStage()">+ Add stage</button>'+
+    '<button class="cta" style="margin-top:14px" onclick="saveTemplate()">'+(isNew?'Create template':'Save changes')+'</button>'+
+    (isNew?'':'<button class="ghost danger" style="width:100%;margin-top:8px" onclick="deleteTemplate(\''+e.id+'\')">Delete template</button>');
+}
+function teStage(i,k,v){ state.editing.stages[i][k]=v; }
+function teRoles(i,v){ state.editing.stages[i].signRoles=v.split(',').map(function(x){return x.trim();}).filter(Boolean); }
+function teTasks(i,v){ state.editing.stages[i].tasks=v.split('\n').map(function(x){return x.trim();}).filter(Boolean); }
+function teAddStage(){ state.editing.stages.push({name:'',party:'R&D',signRoles:[],tasks:[]}); render(); }
+function teDelStage(i){ state.editing.stages.splice(i,1); render(); }
+function saveTemplate(){
+  var e=state.editing;
+  if(!e.name.trim()){ toast('Name the template'); return; }
+  e.stages=e.stages.filter(function(s){return s.name.trim();});
+  if(!e.stages.length){ toast('Add at least one stage'); return; }
+  if(e.id){ state.templates=state.templates.map(function(t){return t.id===e.id?e:t;}); toast('Template saved'); }
+  else { e.id=uid(); state.templates.push(e); toast('Template created'); }
+  persist(); state.editing=null; go('more');
+}
+function deleteTemplate(id){
+  if(state.templates.length<=1){ toast('Keep at least one template'); return; }
+  if(!confirm('Delete this template? Existing projects are unaffected.')) return;
+  state.templates=state.templates.filter(function(t){return t.id!==id;});
+  persist(); state.editing=null; go('more');
+}
+
+/* ---- operator ---- */
+function openOperator(forced){
+  if(authUser){
+    document.getElementById('modal').innerHTML=
+      '<div class="scrim" onclick="if(event.target===this)closeModal()"><div class="sheet">'+
+      '<h2>Signed in</h2><p class="sub">You\'re signed in through the shared Ricoman login.</p>'+
+      '<div class="row" style="justify-content:space-between"><b style="font-size:17px">'+esc(state.settings.operator)+'</b>'+
+      '<button class="ghost danger" onclick="authLogout()">Log out</button></div></div></div>';
+    return;
+  }
+  document.getElementById('modal').innerHTML=
+    '<div class="scrim" onclick="if(event.target===this)closeModal()"><div class="sheet">'+
+    '<h2>Who are you?</h2><p class="sub">Your name is recorded on every step you complete and gate you sign off.</p>'+
+    '<input class="in" id="op-name" placeholder="Full name" value="'+esc(state.settings.operator)+'">'+
+    '<button class="cta" style="margin-top:14px" onclick="saveOperator()">Save</button>'+
+    (forced?'<p class="tiny" style="margin-top:8px;color:var(--amber)">Set your name to sign off this gate.</p>':'')+
+    '</div></div>';
+  setTimeout(function(){var i=document.getElementById('op-name');if(i)i.focus();},50);
+}
+function saveOperator(){
+  var v=(document.getElementById('op-name').value||'').trim();
+  if(!v){ toast('Enter a name'); return; }
+  state.settings.operator=v; persist(); closeModal(); updateWhoChip();
+  if(state.view==='project') render();
+  toast('Hi '+v+' 👋');
+}
+function closeModal(){ document.getElementById('modal').innerHTML=''; }
+
+/* ---- export / import ---- */
+function download(name,text,type){
+  var blob=new Blob([text],{type:type||'application/json'});
+  var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},100);
+}
+function exportJSON(){
+  download('ricoman-pipeline-'+dateStamp()+'.json',
+    JSON.stringify({exported:Date.now(),projects:state.projects,templates:state.templates,activity:state.activity,settings:state.settings},null,2));
+  toast('Exported');
+}
+function importJSON(){
+  var inp=document.createElement('input'); inp.type='file'; inp.accept='.json,application/json';
+  inp.onchange=function(){ var f=inp.files[0]; if(!f)return; var rd=new FileReader();
+    rd.onload=function(){ try{ var d=JSON.parse(rd.result);
+      if(!confirm('Replace current data with the imported file?'))return;
+      if(d.projects)state.projects=d.projects; if(d.templates)state.templates=d.templates;
+      if(d.activity)state.activity=d.activity; if(d.settings)state.settings=d.settings;
+      persist(); toast('Imported'); go('projects');
+    }catch(e){ toast('Could not read that file'); } };
+    rd.readAsText(f); };
+  inp.click();
+}
+function exportCSV(){
+  if(!state.activity.length){ toast('Nothing to export'); return; }
+  var rows=[['When','Type','Detail','Project code','Project','By']];
+  state.activity.forEach(function(a){ rows.push([fmtDateTime(a.ts),a.type,a.detail,a.code,a.name,a.by||'']); });
+  var csv=rows.map(function(r){return r.map(function(c){ c=String(c==null?'':c);
+    return /[",\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c; }).join(',');}).join('\n');
+  download('ricoman-activity-'+dateStamp()+'.csv',csv,'text/csv'); toast('CSV exported');
+}
+
+/* ---- time helpers ---- */
+function pad(n){ return n<10?'0'+n:''+n; }
+function fmtDate(ts){ var d=new Date(ts); return d.getDate()+' '+mon(d)+' '+d.getFullYear(); }
+function fmtDateTime(ts){ var d=new Date(ts); return d.getDate()+' '+mon(d)+' '+d.getFullYear()+', '+pad(d.getHours())+':'+pad(d.getMinutes()); }
+function mon(d){ return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]; }
+function dateStamp(){ var d=new Date(); return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate()); }
+
+/* ---- boot ---- */
+if(AUTH.base){ authCheck(function(){ render(); }); } else { render(); }
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+}
+</script>
+</body>
+</html>

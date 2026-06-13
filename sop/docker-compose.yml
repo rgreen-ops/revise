@@ -1,0 +1,10 @@
+# Run on the Synology (Container Manager → Project → import this file).
+# Then point the reverse proxy:  productsolutions.ricoman.com  ->  http://<synology-ip>:8093
+services:
+  productsolutions:
+    build: .
+    image: ricoman/productsolutions:latest
+    container_name: ricoman-productsolutions
+    restart: unless-stopped
+    ports:
+      - "8093:80"   # host:container — change 8093 if that port is taken
