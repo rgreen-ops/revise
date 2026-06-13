@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ricoman R&D — SOPs</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a0e1a">
+<link rel="apple-touch-icon" href="../icon-192.png">
+<style>
+:root{
+  --bg:#0a0e1a; --bg2:#0f1525; --surface:#161d31; --surface2:#1c2440;
+  --line:#283251; --line2:#384469;
+  --ink:#eef2fb; --muted:#aeb9d6; --faint:#8b97ba;
+  --accent:#7c83ff; --accent2:#22d3ee; --violet:#a855f7;
+  --gold:#f7c948; --green:#34d399; --red:#fb7185; --amber:#fbbf24;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:
+  radial-gradient(1200px 600px at 80% -10%, rgba(124,131,255,.12), transparent 60%),
+  radial-gradient(1000px 500px at -10% 10%, rgba(34,211,238,.08), transparent 55%),
+  var(--bg);
+  color:var(--ink);line-height:1.5;min-height:100vh;-webkit-text-size-adjust:100%}
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;
+  background:rgba(10,14,26,.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:10px 16px}
+.brand{font-weight:800;font-size:16px;letter-spacing:.3px;cursor:pointer;display:flex;align-items:center;gap:9px}
+.brand .dot{width:11px;height:11px;border-radius:3px;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.brand small{display:block;font-size:10px;font-weight:600;color:var(--faint);letter-spacing:.4px;text-transform:uppercase}
+.tb-right{display:flex;align-items:center;gap:8px}
+.chip{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:13px;font-weight:700;cursor:pointer}
+.chip:hover{border-color:var(--line2)}
+.chip .who{max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+main{max-width:860px;margin:0 auto;padding:18px 16px 96px}
+h1{font-size:25px;margin:2px 0 2px;letter-spacing:-.2px}
+h2{font-size:19px;margin:0}
+.sub{color:var(--muted);margin:0 0 16px}
+.muted{color:var(--muted)} .faint{color:var(--faint)}
+button{font-family:inherit;color:inherit}
+a{color:var(--accent2)}
+
+/* stats row */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:4px 0 16px}
+.stat{background:linear-gradient(180deg,var(--surface),var(--bg2));border:1px solid var(--line);border-radius:16px;padding:13px 14px}
+.stat .n{font-size:23px;font-weight:800;letter-spacing:-.5px}
+.stat .l{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
+.stat.a .n{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.stat.g .n{color:var(--green)} .stat.gold .n{color:var(--gold)}
+
+/* search + filters */
+.search{width:100%;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:13px;
+  padding:13px 14px;font-size:15px;margin-bottom:10px}
+.search::placeholder{color:var(--faint)}
+.filters{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:6px;-webkit-overflow-scrolling:touch}
+.filters::-webkit-scrollbar{display:none}
+.fpill{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;
+  padding:7px 13px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+.fpill.on{color:#fff;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-color:transparent}
+
+/* sop cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin:12px 0}
+.card{position:relative;text-align:left;border:1px solid var(--line);background:var(--surface);
+  border-radius:16px;padding:15px;overflow:hidden;transition:border-color .15s,transform .05s}
+.card.click{cursor:pointer}
+.card.click:hover{border-color:var(--line2)} .card.click:active{transform:translateY(1px)}
+.card::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--c,var(--accent))}
+.c-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.code{font-size:11px;font-weight:800;color:var(--c,var(--accent));letter-spacing:.5px}
+.ver{font-size:10px;font-weight:800;color:var(--faint);background:var(--surface2);border-radius:6px;padding:2px 7px;white-space:nowrap}
+.title{font-weight:700;font-size:16px;margin:6px 0 4px}
+.cat{display:inline-block;font-size:11px;font-weight:700;color:var(--muted);background:color-mix(in srgb,var(--c,var(--accent)) 16%,transparent);
+  border-radius:6px;padding:2px 8px}
+.meta{color:var(--faint);font-size:12px;margin-top:10px;display:flex;gap:12px;flex-wrap:wrap}
+.meta b{color:var(--muted);font-weight:700}
+
+/* buttons */
+.cta{display:block;width:100%;border:0;border-radius:15px;padding:16px;margin:6px 0 4px;cursor:pointer;
+  font-size:16px;font-weight:800;color:#fff;background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  box-shadow:0 8px 24px -8px rgba(124,131,255,.6)}
+.cta:active{transform:translateY(1px)}
+.cta.green{background:linear-gradient(135deg,#10b981,#34d399);box-shadow:0 8px 24px -8px rgba(52,211,153,.55)}
+.cta:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
+.row{display:flex;gap:10px;align-items:center}
+.row.two>*{flex:1}.row.wrap{flex-wrap:wrap}
+.ghost{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:13px;
+  padding:12px 14px;font-size:14px;font-weight:700;cursor:pointer}
+.ghost:hover{border-color:var(--line2)}
+.ghost.sm{padding:8px 12px;font-size:13px;border-radius:11px}
+.ghost.danger{color:var(--red);border-color:rgba(251,113,133,.35)}
+.ghost.accent{color:var(--accent2);border-color:rgba(34,211,238,.35)}
+.back{display:inline-flex;align-items:center;gap:6px;background:none;border:0;color:var(--muted);font-size:14px;font-weight:700;cursor:pointer;padding:4px 0;margin-bottom:6px}
+.back:hover{color:var(--ink)}
+
+/* forms */
+label.fld{display:block;margin:12px 0 0}
+label.fld .lbl{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px;display:block}
+input.in,textarea.in,select.in{width:100%;border:1px solid var(--line);background:var(--surface);color:var(--ink);
+  border-radius:11px;padding:11px 12px;font-size:15px;font-family:inherit}
+textarea.in{resize:vertical;min-height:64px}
+input.in:focus,textarea.in:focus,select.in:focus{outline:none;border-color:var(--accent)}
+
+/* sop detail / run */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;margin:12px 0}
+.panel h3{margin:0 0 6px;font-size:14px;text-transform:uppercase;letter-spacing:.5px;color:var(--faint)}
+.safety{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.35);border-radius:14px;padding:12px 14px;margin:12px 0;color:var(--ink)}
+.safety b{color:var(--amber)}
+.progwrap{position:sticky;top:53px;z-index:10;background:rgba(10,14,26,.9);backdrop-filter:blur(8px);padding:10px 0 12px;margin:0 0 4px}
+.prog{height:9px;background:#0c1222;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.prog span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .25s}
+.prog-l{display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px}
+
+.step{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);background:var(--surface);
+  border-radius:14px;padding:13px;margin-bottom:10px;cursor:pointer;transition:border-color .12s,background .12s}
+.step:hover{border-color:var(--line2)}
+.step.done{background:color-mix(in srgb,var(--green) 9%,var(--surface));border-color:rgba(52,211,153,.4)}
+.step.crit{border-left:4px solid var(--amber)}
+.step.crit.done{border-left:4px solid var(--green)}
+.box{flex:0 0 auto;width:26px;height:26px;border-radius:8px;border:2px solid var(--line2);display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:800;color:transparent;margin-top:1px;transition:all .12s}
+.step.done .box{background:var(--green);border-color:var(--green);color:#04240f}
+.st-body{flex:1;min-width:0}
+.st-num{font-size:11px;font-weight:800;color:var(--faint);letter-spacing:.5px}
+.st-num .crittag{color:var(--amber);margin-left:6px}
+.st-text{font-size:15px;margin:2px 0 0}
+.step.done .st-text{color:var(--muted)}
+.st-note{font-size:13px;color:var(--faint);margin-top:5px;border-left:2px solid var(--line2);padding-left:9px}
+.st-stamp{font-size:11px;color:var(--green);font-weight:700;margin-top:6px}
+
+/* sign-off */
+.signoff{border:1px dashed var(--line2);border-radius:16px;padding:16px;margin:14px 0}
+
+/* history rows */
+.logrow{display:flex;align-items:center;gap:12px;border:1px solid var(--line);background:var(--surface);
+  border-radius:14px;padding:13px;margin-bottom:10px;cursor:pointer;text-align:left;width:100%}
+.logrow:hover{border-color:var(--line2)}
+.logrow .ic{flex:0 0 auto;width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.logrow .ic.ok{background:rgba(52,211,153,.14);color:var(--green)}
+.logrow .ic.part{background:rgba(251,191,36,.14);color:var(--amber)}
+.logrow .lr-body{flex:1;min-width:0}
+.logrow .lr-t{font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.logrow .lr-m{font-size:12px;color:var(--faint);margin-top:2px}
+.pct{flex:0 0 auto;font-size:13px;font-weight:800}
+.pct.ok{color:var(--green)} .pct.part{color:var(--amber)}
+
+.empty{text-align:center;color:var(--faint);padding:40px 16px}
+.empty .big{font-size:40px;margin-bottom:8px}
+
+/* tabbar */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;background:rgba(10,14,26,.92);
+  backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:8px 8px calc(8px + env(safe-area-inset-bottom))}
+.tab{flex:1;background:none;border:0;color:var(--faint);font-size:11px;font-weight:700;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 0}
+.tab .ti{font-size:19px;line-height:1}
+.tab.on{color:var(--accent)}
+
+/* modal */
+.scrim{position:fixed;inset:0;z-index:40;background:rgba(4,7,15,.6);backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center}
+.sheet{width:100%;max-width:520px;background:var(--bg2);border:1px solid var(--line);border-radius:20px 20px 0 0;padding:18px;
+  max-height:88vh;overflow:auto}
+@media(min-width:560px){.scrim{align-items:center}.sheet{border-radius:20px}}
+.sheet h2{margin-bottom:4px}
+
+.toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);z-index:60;background:var(--surface2);
+  border:1px solid var(--line2);color:var(--ink);font-weight:700;font-size:14px;padding:11px 16px;border-radius:12px;
+  box-shadow:0 10px 30px -8px rgba(0,0,0,.6);opacity:0;transition:opacity .2s,transform .2s;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
+
+.divider{height:1px;background:var(--line);margin:16px 0}
+.tiny{font-size:12px;color:var(--faint)}
+.tag-crit{display:inline-block;font-size:10px;font-weight:800;color:var(--amber);background:rgba(251,191,36,.14);border-radius:5px;padding:2px 6px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand" onclick="go('library')">
+    <span class="dot"></span>
+    <span>Ricoman R&amp;D<small>Standard Operating Procedures</small></span>
+  </div>
+  <div class="tb-right">
+    <button class="chip" onclick="openOperator()" title="Set who is signed in">
+      <span>👤</span><span class="who" id="whoChip">Set name</span>
+    </button>
+  </div>
+</div>
+
+<main id="app"></main>
+
+<nav class="tabbar">
+  <button class="tab" data-tab="library" onclick="go('library')"><span class="ti">📋</span>Library</button>
+  <button class="tab" data-tab="history" onclick="go('history')"><span class="ti">🗂️</span>Log</button>
+  <button class="tab" data-tab="editor" onclick="newSop()"><span class="ti">➕</span>New SOP</button>
+  <button class="tab" data-tab="settings" onclick="go('settings')"><span class="ti">⚙️</span>More</button>
+</nav>
+
+<div id="modal"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   Ricoman R&D SOP app — single-file PWA, vanilla JS, localStorage.
+   Data is stored locally per device. Use More → Backup to export.
+   ============================================================ */
+
+var LS = {
+  sops: 'rdsop.sops.v1',
+  runs: 'rdsop.runs.v1',
+  settings: 'rdsop.settings.v1',
+  draft: 'rdsop.draft.'   // + sopId  → in-progress run check state
+};
+
+function load(key, fallback){
+  try{ var v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+  catch(e){ return fallback; }
+}
+function save(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+var CATEGORIES = ['Design','Prototyping','Testing','Quality','Safety','Documentation','General'];
+var CAT_COLOR = {
+  'Design':'#7c83ff','Prototyping':'#22d3ee','Testing':'#a855f7','Quality':'#34d399',
+  'Safety':'#fbbf24','Documentation':'#f7c948','General':'#8b97ba'
+};
+function catColor(c){ return CAT_COLOR[c] || '#7c83ff'; }
+
+/* ---- seed SOPs (examples — edit or delete freely) ---- */
+function seedSops(){
+  return [
+    {
+      id: uid(), code:'RD-001', version:'1.0', category:'Documentation',
+      title:'New Product Sample Request & Logging',
+      owner:'R&D Lead',
+      purpose:'Ensure every incoming or requested product sample is recorded, labelled and traceable.',
+      scope:'Applies to all physical samples received or created within Ricoman R&D.',
+      safety:'Handle samples per supplier SDS. Wear gloves if material is unknown.',
+      steps:[
+        {text:'Assign the sample a unique reference number from the sample log.', crit:true},
+        {text:'Record supplier, date received, quantity and intended project.'},
+        {text:'Photograph the sample and any packaging / labelling.'},
+        {text:'Attach a printed label with the reference number to the sample.', crit:true},
+        {text:'Store the sample in the designated R&D sample cabinet.'},
+        {text:'Update the shared sample register and notify the project lead.'}
+      ],
+      updated: Date.now()
+    },
+    {
+      id: uid(), code:'RD-002', version:'1.0', category:'Prototyping',
+      title:'Prototype Build & Test Record',
+      owner:'R&D Engineer',
+      purpose:'Standardise how prototypes are built and how build/test data is captured for review.',
+      scope:'All hand-built and machine-built prototypes prior to design sign-off.',
+      safety:'Check the workspace risk assessment. Use correct PPE for tools and adhesives in use.',
+      steps:[
+        {text:'Confirm you are working from the latest released drawing / BOM revision.', crit:true},
+        {text:'Lay out all components and verify against the BOM before starting.'},
+        {text:'Build the prototype following the assembly sequence.'},
+        {text:'Record any deviations from the drawing with reasons.', crit:true, note:'Deviations must be approved by the design owner before continuing.'},
+        {text:'Perform the defined functional test and record measured results.'},
+        {text:'Photograph the finished prototype from at least two angles.'},
+        {text:'Log the build in the prototype register and tag the unit.'}
+      ],
+      updated: Date.now()
+    },
+    {
+      id: uid(), code:'RD-003', version:'1.0', category:'Quality',
+      title:'Incoming Component / Material Verification',
+      owner:'Quality / R&D',
+      purpose:'Verify that components and materials meet specification before use in R&D builds.',
+      scope:'All components and raw materials entering R&D for development work.',
+      safety:'Review the SDS for any chemical or hazardous material before opening.',
+      steps:[
+        {text:'Check delivery against the purchase order (part number & quantity).', crit:true},
+        {text:'Inspect for visible damage, contamination or incorrect labelling.'},
+        {text:'Verify key dimensions / values against the specification.', crit:true},
+        {text:'Confirm any required certificates (e.g. CoC, RoHS) are present.'},
+        {text:'Mark the item as Accepted, Quarantined or Rejected.', crit:true},
+        {text:'Record the result and store the item in the correct area.'}
+      ],
+      updated: Date.now()
+    },
+    {
+      id: uid(), code:'RD-004', version:'1.0', category:'Design',
+      title:'Engineering Design Change Control',
+      owner:'R&D Lead',
+      purpose:'Control changes to released designs so impacts are assessed and recorded.',
+      scope:'Any change to a drawing, BOM or specification after initial release.',
+      safety:'',
+      steps:[
+        {text:'Raise a change request with a clear description and reason.', crit:true},
+        {text:'Assess impact on cost, tooling, suppliers and existing stock.'},
+        {text:'Obtain approval from the design owner and affected stakeholders.', crit:true},
+        {text:'Update the drawing / BOM and increment the revision number.', crit:true},
+        {text:'Archive the superseded revision.'},
+        {text:'Communicate the change to production, purchasing and quality.'}
+      ],
+      updated: Date.now()
+    }
+  ];
+}
+
+/* ---- state ---- */
+var state = {
+  sops: load(LS.sops, null),
+  runs: load(LS.runs, []),
+  settings: load(LS.settings, { operator:'' }),
+  view: 'library',
+  filter: 'All',
+  query: '',
+  current: null,   // sopId being viewed/run
+  run: null,       // { checks:{idx:ts}, notes:{idx:str} }
+  editing: null    // sop object being edited
+};
+if(!state.sops){ state.sops = seedSops(); save(LS.sops, state.sops); }
+
+function persist(){ save(LS.sops, state.sops); save(LS.runs, state.runs); save(LS.settings, state.settings); }
+function findSop(id){ return state.sops.filter(function(s){ return s.id===id; })[0]; }
+
+/* ---- toast ---- */
+var toastTimer;
+function toast(msg){
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2200);
+}
+
+/* ---- navigation ---- */
+function go(view){ state.view = view; closeModal(); render(); window.scrollTo(0,0); }
+
+function setTabs(){
+  var map = { library:'library', history:'history', settings:'settings', editor:'editor', sop:'library', runDetail:'history' };
+  var active = map[state.view] || 'library';
+  document.querySelectorAll('.tab').forEach(function(t){
+    t.classList.toggle('on', t.getAttribute('data-tab')===active);
+  });
+}
+
+/* ============================================================ RENDER */
+function render(){
+  var el = document.getElementById('app');
+  if(state.view==='library')      el.innerHTML = viewLibrary();
+  else if(state.view==='history') el.innerHTML = viewHistory();
+  else if(state.view==='settings')el.innerHTML = viewSettings();
+  else if(state.view==='sop')     el.innerHTML = viewSop();
+  else if(state.view==='runDetail')el.innerHTML = viewRunDetail();
+  else if(state.view==='editor')  el.innerHTML = viewEditor();
+  setTabs();
+  updateWhoChip();
+}
+function updateWhoChip(){
+  document.getElementById('whoChip').textContent = state.settings.operator || 'Set name';
+}
+
+/* ---- Library ---- */
+function viewLibrary(){
+  var runsToday = state.runs.filter(function(r){ return sameDay(r.completedAt, Date.now()); }).length;
+  var q = state.query.toLowerCase();
+  var list = state.sops.filter(function(s){
+    var okCat = state.filter==='All' || s.category===state.filter;
+    var okQ = !q || (s.title+' '+s.code+' '+s.category).toLowerCase().indexOf(q)>=0;
+    return okCat && okQ;
+  }).sort(function(a,b){ return a.code.localeCompare(b.code); });
+
+  var cats = ['All'].concat(CATEGORIES.filter(function(c){
+    return state.sops.some(function(s){ return s.category===c; });
+  }));
+
+  var cards = list.map(function(s){
+    var col = catColor(s.category);
+    return '<div class="card click" style="--c:'+col+'" onclick="openSop(\''+s.id+'\')">'+
+      '<div class="c-top"><span class="code">'+esc(s.code)+'</span><span class="ver">v'+esc(s.version)+'</span></div>'+
+      '<div class="title">'+esc(s.title)+'</div>'+
+      '<span class="cat">'+esc(s.category)+'</span>'+
+      '<div class="meta"><span><b>'+s.steps.length+'</b> steps</span>'+
+        '<span>Owner: <b>'+esc(s.owner||'—')+'</b></span>'+
+        (lastRunFor(s.id) ? '<span>Last run '+timeAgo(lastRunFor(s.id).completedAt)+'</span>' : '')+
+      '</div></div>';
+  }).join('');
+
+  return ''+
+  '<h1>Procedures</h1>'+
+  '<p class="sub">Pick a procedure, follow each step, and sign off when complete.</p>'+
+  '<div class="stats">'+
+    '<div class="stat a"><div class="n">'+state.sops.length+'</div><div class="l">SOPs</div></div>'+
+    '<div class="stat g"><div class="n">'+state.runs.length+'</div><div class="l">Total runs</div></div>'+
+    '<div class="stat gold"><div class="n">'+runsToday+'</div><div class="l">Today</div></div>'+
+  '</div>'+
+  '<input class="search" placeholder="Search procedures…" value="'+esc(state.query)+'" oninput="onSearch(this.value)">'+
+  '<div class="filters">'+ cats.map(function(c){
+      return '<button class="fpill'+(state.filter===c?' on':'')+'" onclick="setFilter(\''+c+'\')">'+esc(c)+'</button>';
+    }).join('') +'</div>'+
+  (list.length ? '<div class="grid">'+cards+'</div>'
+               : '<div class="empty"><div class="big">🔍</div>No procedures match.</div>');
+}
+function onSearch(v){ state.query=v; var el=document.getElementById('app'); /* re-render only grid area cheaply */ render(); restoreSearchFocus(); }
+function restoreSearchFocus(){ var i=document.querySelector('.search'); if(i){ i.focus(); i.setSelectionRange(i.value.length,i.value.length);} }
+function setFilter(c){ state.filter=c; render(); }
+
+function lastRunFor(sopId){
+  var rs = state.runs.filter(function(r){ return r.sopId===sopId; });
+  return rs.sort(function(a,b){ return b.completedAt-a.completedAt; })[0] || null;
+}
+
+/* ---- SOP view / run ---- */
+function openSop(id){
+  state.current = id;
+  state.run = load(LS.draft+id, { checks:{}, notes:{} });
+  go('sop');
+}
+function viewSop(){
+  var s = findSop(state.current);
+  if(!s) return '<div class="empty">SOP not found.</div>';
+  var col = catColor(s.category);
+  var total = s.steps.length;
+  var done = Object.keys(state.run.checks).length;
+  var pct = total ? Math.round(done/total*100) : 0;
+
+  var steps = s.steps.map(function(st, i){
+    var on = !!state.run.checks[i];
+    var note = state.run.notes[i] || '';
+    return '<div class="step'+(on?' done':'')+(st.crit?' crit':'')+'" onclick="toggleStep('+i+')">'+
+      '<div class="box">✓</div>'+
+      '<div class="st-body">'+
+        '<div class="st-num">STEP '+(i+1)+(st.crit?'<span class="crittag">⚠ CRITICAL</span>':'')+'</div>'+
+        '<div class="st-text">'+esc(st.text)+'</div>'+
+        (st.note ? '<div class="st-note">'+esc(st.note)+'</div>' : '')+
+        (note ? '<div class="st-note">📝 '+esc(note)+'</div>' : '')+
+        (on ? '<div class="st-stamp">✓ '+fmtTime(state.run.checks[i])+'</div>' : '')+
+      '</div>'+
+      '<button class="ghost sm" onclick="event.stopPropagation();addStepNote('+i+')" title="Add note">📝</button>'+
+    '</div>';
+  }).join('');
+
+  var critDone = s.steps.every(function(st,i){ return !st.crit || state.run.checks[i]; });
+  var canFinish = done===total && total>0;
+
+  return ''+
+  '<button class="back" onclick="leaveRun()">‹ Library</button>'+
+  '<div class="c-top"><span class="code" style="color:'+col+'">'+esc(s.code)+'</span><span class="ver">v'+esc(s.version)+'</span></div>'+
+  '<h1>'+esc(s.title)+'</h1>'+
+  '<p class="sub"><span class="cat" style="--c:'+col+'">'+esc(s.category)+'</span> &nbsp; Owner: <b>'+esc(s.owner||'—')+'</b></p>'+
+  (s.purpose ? '<div class="panel"><h3>Purpose</h3>'+esc(s.purpose)+(s.scope?'<div class="divider"></div><h3>Scope</h3>'+esc(s.scope):'')+'</div>' : '')+
+  (s.safety ? '<div class="safety"><b>⚠ Safety:</b> '+esc(s.safety)+'</div>' : '')+
+  '<div class="progwrap"><div class="prog-l"><span>Progress</span><span>'+done+' / '+total+' • '+pct+'%</span></div>'+
+    '<div class="prog"><span style="width:'+pct+'%"></span></div></div>'+
+  steps+
+  '<div class="signoff">'+
+    '<h3 style="margin:0 0 8px;font-size:14px;text-transform:uppercase;letter-spacing:.5px;color:var(--faint)">Accountability</h3>'+
+    '<div class="row two wrap" style="gap:10px">'+
+      '<div><div class="tiny" style="margin-bottom:4px">Performed by</div><b>'+esc(state.settings.operator||'— set your name —')+'</b></div>'+
+    '</div>'+
+    (!canFinish ? '<p class="tiny" style="margin:10px 0 0">Complete all '+total+' steps to sign off.'+(critDone?'':' Critical steps still outstanding.')+'</p>' : '')+
+    '<button class="cta green" '+(canFinish?'':'disabled')+' style="margin-top:12px" onclick="completeRun()">✓ Complete &amp; sign off</button>'+
+    '<div class="row two" style="margin-top:8px">'+
+      '<button class="ghost" onclick="resetRun()">Reset checks</button>'+
+      '<button class="ghost accent" onclick="editSop(\''+s.id+'\')">Edit SOP</button>'+
+    '</div>'+
+  '</div>';
+}
+
+function toggleStep(i){
+  if(state.run.checks[i]){ delete state.run.checks[i]; }
+  else { state.run.checks[i] = Date.now(); }
+  save(LS.draft+state.current, state.run);
+  render();
+}
+function addStepNote(i){
+  var cur = state.run.notes[i] || '';
+  var v = prompt('Note for step '+(i+1)+':', cur);
+  if(v===null) return;
+  if(v.trim()==='') delete state.run.notes[i]; else state.run.notes[i]=v.trim();
+  save(LS.draft+state.current, state.run);
+  render();
+}
+function resetRun(){
+  if(!confirm('Clear all ticks and notes for this run?')) return;
+  state.run = { checks:{}, notes:{} };
+  save(LS.draft+state.current, state.run);
+  render();
+}
+function leaveRun(){ state.current=null; state.run=null; go('library'); }
+
+function completeRun(){
+  var s = findSop(state.current);
+  if(!s) return;
+  if(!state.settings.operator){ openOperator(true); return; }
+  var notes = {};
+  Object.keys(state.run.notes).forEach(function(k){ notes[k]=state.run.notes[k]; });
+  var run = {
+    id: uid(), sopId:s.id, sopCode:s.code, sopTitle:s.title, sopVersion:s.version,
+    operator: state.settings.operator,
+    completedAt: Date.now(),
+    total: s.steps.length, done: Object.keys(state.run.checks).length,
+    notes: notes,
+    steps: s.steps.map(function(st,i){ return { text:st.text, crit:!!st.crit, at:state.run.checks[i]||null, note:state.run.notes[i]||'' }; })
+  };
+  state.runs.unshift(run);
+  persist();
+  localStorage.removeItem(LS.draft+s.id);
+  state.run = { checks:{}, notes:{} };
+  toast('Signed off by '+state.settings.operator);
+  state.current = run.id;
+  go('runDetail');
+}
+
+/* ---- run detail (from log) ---- */
+function viewRunDetail(){
+  var r = state.runs.filter(function(x){ return x.id===state.current; })[0];
+  if(!r) return '<div class="empty">Record not found.</div>';
+  var full = r.done===r.total;
+  var pct = r.total ? Math.round(r.done/r.total*100) : 0;
+  var steps = r.steps.map(function(st,i){
+    return '<div class="step'+(st.at?' done':'')+(st.crit?' crit':'')+'">'+
+      '<div class="box">'+(st.at?'✓':'')+'</div>'+
+      '<div class="st-body"><div class="st-num">STEP '+(i+1)+(st.crit?'<span class="crittag">⚠ CRITICAL</span>':'')+'</div>'+
+      '<div class="st-text">'+esc(st.text)+'</div>'+
+      (st.note?'<div class="st-note">📝 '+esc(st.note)+'</div>':'')+
+      (st.at?'<div class="st-stamp">✓ '+fmtTime(st.at)+'</div>':'<div class="tiny" style="margin-top:5px;color:var(--red)">Not completed</div>')+
+      '</div></div>';
+  }).join('');
+  return ''+
+  '<button class="back" onclick="go(\'history\')">‹ Log</button>'+
+  '<span class="code">'+esc(r.sopCode)+' • v'+esc(r.sopVersion)+'</span>'+
+  '<h1>'+esc(r.sopTitle)+'</h1>'+
+  '<div class="panel"><div class="row two wrap">'+
+    '<div><div class="tiny">Performed by</div><b style="font-size:16px">'+esc(r.operator)+'</b></div>'+
+    '<div><div class="tiny">Completed</div><b style="font-size:16px">'+fmtDateTime(r.completedAt)+'</b></div>'+
+    '<div><div class="tiny">Steps</div><b style="font-size:16px;color:'+(full?'var(--green)':'var(--amber)')+'">'+r.done+'/'+r.total+' ('+pct+'%)</b></div>'+
+  '</div></div>'+
+  steps+
+  '<div class="row two" style="margin-top:6px">'+
+    '<button class="ghost" onclick="openSop(\''+r.sopId+'\')">Run again</button>'+
+    '<button class="ghost danger" onclick="deleteRun(\''+r.id+'\')">Delete record</button>'+
+  '</div>';
+}
+function deleteRun(id){
+  if(!confirm('Delete this sign-off record? This cannot be undone.')) return;
+  state.runs = state.runs.filter(function(r){ return r.id!==id; });
+  persist(); go('history');
+}
+
+/* ---- History / Log ---- */
+function viewHistory(){
+  if(!state.runs.length){
+    return '<h1>Sign-off log</h1><div class="empty"><div class="big">🗂️</div>No completed procedures yet.<br><span class="tiny">Run a procedure and sign off to build the record.</span></div>';
+  }
+  var rows = state.runs.slice().sort(function(a,b){ return b.completedAt-a.completedAt; }).map(function(r){
+    var full = r.done===r.total;
+    var pct = r.total ? Math.round(r.done/r.total*100) : 0;
+    return '<button class="logrow" onclick="openRun(\''+r.id+'\')">'+
+      '<div class="ic '+(full?'ok':'part')+'">'+(full?'✓':'!')+'</div>'+
+      '<div class="lr-body"><div class="lr-t">'+esc(r.sopCode)+' — '+esc(r.sopTitle)+'</div>'+
+        '<div class="lr-m">'+esc(r.operator)+' • '+fmtDateTime(r.completedAt)+'</div></div>'+
+      '<div class="pct '+(full?'ok':'part')+'">'+pct+'%</div></button>';
+  }).join('');
+  return '<h1>Sign-off log</h1><p class="sub">'+state.runs.length+' record'+(state.runs.length===1?'':'s')+' — who ran what, and when.</p>'+
+    '<div class="row" style="margin-bottom:12px"><button class="ghost sm accent" onclick="exportCSV()">⬇ Export CSV</button></div>'+
+    rows;
+}
+function openRun(id){ state.current=id; go('runDetail'); }
+
+/* ---- Editor ---- */
+function newSop(){
+  var n = state.sops.length+1;
+  var code = 'RD-' + String(100+n).slice(1).padStart(3,'0');
+  state.editing = { id:null, code:code, version:'1.0', category:'General', title:'', owner:state.settings.operator||'',
+    purpose:'', scope:'', safety:'', steps:[{text:'',crit:false}] };
+  go('editor');
+}
+function editSop(id){
+  var s = findSop(id);
+  state.editing = JSON.parse(JSON.stringify(s));
+  if(!state.editing.steps.length) state.editing.steps=[{text:'',crit:false}];
+  go('editor');
+}
+function viewEditor(){
+  var e = state.editing;
+  var isNew = !e.id;
+  var stepRows = e.steps.map(function(st,i){
+    return '<div class="panel" style="padding:12px;margin:10px 0">'+
+      '<div class="row" style="justify-content:space-between;margin-bottom:6px">'+
+        '<b class="tiny">STEP '+(i+1)+'</b>'+
+        '<div class="row" style="gap:6px">'+
+          '<label class="tiny" style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" '+(st.crit?'checked':'')+' onchange="edStepCrit('+i+',this.checked)"> critical</label>'+
+          '<button class="ghost sm danger" onclick="edDelStep('+i+')" '+(e.steps.length<=1?'disabled':'')+'>✕</button>'+
+        '</div>'+
+      '</div>'+
+      '<textarea class="in" placeholder="What to do in this step…" oninput="edStepText('+i+',this.value)">'+esc(st.text)+'</textarea>'+
+      '<input class="in" style="margin-top:8px" placeholder="Optional guidance / note (shown under the step)" value="'+esc(st.note||'')+'" oninput="edStepNote('+i+',this.value)">'+
+    '</div>';
+  }).join('');
+
+  var catOpts = CATEGORIES.map(function(c){ return '<option '+(e.category===c?'selected':'')+'>'+c+'</option>'; }).join('');
+
+  return ''+
+  '<button class="back" onclick="cancelEdit()">‹ Cancel</button>'+
+  '<h1>'+(isNew?'New procedure':'Edit procedure')+'</h1>'+
+  '<div class="row two">'+
+    '<label class="fld"><span class="lbl">Code</span><input class="in" id="ed-code" value="'+esc(e.code)+'"></label>'+
+    '<label class="fld"><span class="lbl">Version</span><input class="in" id="ed-version" value="'+esc(e.version)+'"></label>'+
+  '</div>'+
+  '<label class="fld"><span class="lbl">Title</span><input class="in" id="ed-title" value="'+esc(e.title)+'" placeholder="Procedure title"></label>'+
+  '<div class="row two">'+
+    '<label class="fld"><span class="lbl">Category</span><select class="in" id="ed-cat">'+catOpts+'</select></label>'+
+    '<label class="fld"><span class="lbl">Owner</span><input class="in" id="ed-owner" value="'+esc(e.owner)+'" placeholder="Role or name"></label>'+
+  '</div>'+
+  '<label class="fld"><span class="lbl">Purpose</span><textarea class="in" id="ed-purpose" placeholder="Why this procedure exists">'+esc(e.purpose)+'</textarea></label>'+
+  '<label class="fld"><span class="lbl">Scope</span><textarea class="in" id="ed-scope" placeholder="What / who it applies to">'+esc(e.scope)+'</textarea></label>'+
+  '<label class="fld"><span class="lbl">Safety note (optional)</span><textarea class="in" id="ed-safety" placeholder="Hazards, PPE, precautions">'+esc(e.safety)+'</textarea></label>'+
+  '<div class="divider"></div>'+
+  '<h2>Steps</h2>'+
+  stepRows+
+  '<button class="ghost" style="width:100%;margin-top:4px" onclick="edAddStep()">+ Add step</button>'+
+  '<button class="cta" style="margin-top:14px" onclick="saveSop()">'+(isNew?'Create procedure':'Save changes')+'</button>'+
+  (isNew?'':'<button class="ghost danger" style="width:100%;margin-top:8px" onclick="deleteSop(\''+e.id+'\')">Delete this SOP</button>');
+}
+function edSync(){
+  var e=state.editing;
+  e.code=val('ed-code'); e.version=val('ed-version'); e.title=val('ed-title');
+  e.category=val('ed-cat'); e.owner=val('ed-owner');
+  e.purpose=val('ed-purpose'); e.scope=val('ed-scope'); e.safety=val('ed-safety');
+}
+function val(id){ var el=document.getElementById(id); return el?el.value:''; }
+function edStepText(i,v){ state.editing.steps[i].text=v; }
+function edStepNote(i,v){ state.editing.steps[i].note=v; }
+function edStepCrit(i,v){ state.editing.steps[i].crit=v; }
+function edAddStep(){ edSync(); state.editing.steps.push({text:'',crit:false}); render(); }
+function edDelStep(i){ edSync(); state.editing.steps.splice(i,1); render(); }
+function cancelEdit(){ state.editing=null; go(state.current?'library':'library'); }
+
+function saveSop(){
+  edSync();
+  var e = state.editing;
+  if(!e.title.trim()){ toast('Add a title first'); return; }
+  e.steps = e.steps.filter(function(st){ return (st.text||'').trim()!==''; });
+  if(!e.steps.length){ toast('Add at least one step'); return; }
+  e.updated = Date.now();
+  if(e.id){
+    state.sops = state.sops.map(function(s){ return s.id===e.id ? e : s; });
+    toast('SOP updated');
+  } else {
+    e.id = uid();
+    state.sops.push(e);
+    toast('SOP created');
+  }
+  persist();
+  state.editing=null;
+  state.current = e.id;
+  go('sop');
+  openSop(e.id);
+}
+function deleteSop(id){
+  if(!confirm('Delete this SOP? Existing sign-off records are kept.')) return;
+  state.sops = state.sops.filter(function(s){ return s.id!==id; });
+  persist(); state.editing=null; go('library');
+}
+
+/* ---- Settings / More ---- */
+function viewSettings(){
+  return ''+
+  '<h1>More</h1>'+
+  '<div class="panel">'+
+    '<h3>Signed in as</h3>'+
+    '<div class="row" style="justify-content:space-between"><b style="font-size:17px">'+esc(state.settings.operator||'— not set —')+'</b>'+
+      '<button class="ghost sm" onclick="openOperator()">Change</button></div>'+
+    '<p class="tiny" style="margin:8px 0 0">This name is recorded against every sign-off.</p>'+
+  '</div>'+
+  '<div class="panel">'+
+    '<h3>Backup &amp; restore</h3>'+
+    '<p class="tiny" style="margin:0 0 10px">Data is stored on this device only. Export regularly, or to move to another device.</p>'+
+    '<div class="row two"><button class="ghost accent" onclick="exportJSON()">⬇ Export all (JSON)</button>'+
+      '<button class="ghost" onclick="importJSON()">⬆ Import</button></div>'+
+    '<button class="ghost sm accent" style="width:100%;margin-top:8px" onclick="exportCSV()">⬇ Export sign-off log (CSV)</button>'+
+  '</div>'+
+  '<div class="panel">'+
+    '<h3>Manage content</h3>'+
+    '<button class="ghost" style="width:100%" onclick="newSop()">+ New procedure</button>'+
+    '<button class="ghost danger" style="width:100%;margin-top:8px" onclick="resetSeed()">Restore example SOPs</button>'+
+  '</div>'+
+  '<p class="tiny" style="text-align:center;margin-top:18px">Ricoman R&amp;D SOPs • '+state.sops.length+' procedures • '+state.runs.length+' sign-offs</p>'+
+  '<p class="tiny" style="text-align:center"><a href="../index.html">← Revise app</a></p>';
+}
+function resetSeed(){
+  if(!confirm('Add the example SOPs back? Your existing SOPs are kept.')) return;
+  var have = {}; state.sops.forEach(function(s){ have[s.code]=true; });
+  seedSops().forEach(function(s){ if(!have[s.code]) state.sops.push(s); });
+  persist(); toast('Example SOPs restored'); go('library');
+}
+
+/* ---- operator modal ---- */
+function openOperator(forced){
+  document.getElementById('modal').innerHTML =
+    '<div class="scrim" onclick="if(event.target===this)closeModal()"><div class="sheet">'+
+      '<h2>Who are you?</h2>'+
+      '<p class="sub">Your name is recorded on every procedure sign-off for accountability.</p>'+
+      '<input class="in" id="op-name" placeholder="Full name" value="'+esc(state.settings.operator)+'">'+
+      '<button class="cta" style="margin-top:14px" onclick="saveOperator()">Save</button>'+
+      (forced?'<p class="tiny" style="margin-top:8px;color:var(--amber)">Set your name to sign off this procedure.</p>':'')+
+    '</div></div>';
+  setTimeout(function(){ var i=document.getElementById('op-name'); if(i) i.focus(); },50);
+}
+function saveOperator(){
+  var v = val('op-name').trim();
+  if(!v){ toast('Enter a name'); return; }
+  state.settings.operator = v; persist(); closeModal(); updateWhoChip();
+  if(state.view==='sop') render();
+  toast('Hi '+v+' 👋');
+}
+function closeModal(){ document.getElementById('modal').innerHTML=''; }
+
+/* ---- export / import ---- */
+function download(name, text, type){
+  var blob = new Blob([text], {type:type||'application/json'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 100);
+}
+function exportJSON(){
+  download('ricoman-sops-'+dateStamp()+'.json',
+    JSON.stringify({ exported:Date.now(), sops:state.sops, runs:state.runs, settings:state.settings }, null, 2));
+  toast('Exported');
+}
+function importJSON(){
+  var inp = document.createElement('input'); inp.type='file'; inp.accept='.json,application/json';
+  inp.onchange = function(){
+    var f = inp.files[0]; if(!f) return;
+    var rd = new FileReader();
+    rd.onload = function(){
+      try{
+        var d = JSON.parse(rd.result);
+        if(!confirm('Replace current SOPs and log with the imported file?')) return;
+        if(d.sops) state.sops=d.sops;
+        if(d.runs) state.runs=d.runs;
+        if(d.settings) state.settings=d.settings;
+        persist(); toast('Imported'); go('library');
+      }catch(e){ toast('Could not read that file'); }
+    };
+    rd.readAsText(f);
+  };
+  inp.click();
+}
+function exportCSV(){
+  if(!state.runs.length){ toast('No records to export'); return; }
+  var rows = [['SOP Code','Title','Version','Performed by','Completed','Steps done','Steps total','Percent']];
+  state.runs.slice().sort(function(a,b){return b.completedAt-a.completedAt;}).forEach(function(r){
+    rows.push([r.sopCode, r.sopTitle, r.sopVersion, r.operator, fmtDateTime(r.completedAt),
+      r.done, r.total, (r.total?Math.round(r.done/r.total*100):0)+'%']);
+  });
+  var csv = rows.map(function(row){ return row.map(function(c){
+    c=String(c==null?'':c); return /[",\n]/.test(c) ? '"'+c.replace(/"/g,'""')+'"' : c; }).join(','); }).join('\n');
+  download('ricoman-signoff-log-'+dateStamp()+'.csv', csv, 'text/csv');
+  toast('CSV exported');
+}
+
+/* ---- time helpers ---- */
+function pad(n){ return n<10?'0'+n:''+n; }
+function fmtTime(ts){ var d=new Date(ts); return pad(d.getHours())+':'+pad(d.getMinutes()); }
+function fmtDateTime(ts){ var d=new Date(ts); return d.getDate()+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]+' '+d.getFullYear()+', '+pad(d.getHours())+':'+pad(d.getMinutes()); }
+function dateStamp(){ var d=new Date(); return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate()); }
+function sameDay(a,b){ var x=new Date(a),y=new Date(b); return x.toDateString()===y.toDateString(); }
+function timeAgo(ts){ var s=(Date.now()-ts)/1000;
+  if(s<60) return 'just now'; if(s<3600) return Math.floor(s/60)+'m ago';
+  if(s<86400) return Math.floor(s/3600)+'h ago'; var d=Math.floor(s/86400);
+  return d===1?'yesterday':d+'d ago'; }
+
+/* ---- boot ---- */
+render();
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+}
+</script>
+</body>
+</html>
