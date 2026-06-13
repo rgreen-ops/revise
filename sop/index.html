@@ -6,7 +6,8 @@
 <title>Ricoman R&D — Product Pipeline</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0c1330">
-<link rel="apple-touch-icon" href="../icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
 <style>
 :root{
   --bg:#eef1f6; --surface:#ffffff; --surface2:#f4f6fb;
@@ -207,6 +208,30 @@ function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(
 function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g,function(c){
   return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 function clone(o){ return JSON.parse(JSON.stringify(o)); }
+
+/* ============================================================
+   Shared Ricoman login (single sign-on across *.ricoman.com).
+   Reuses Ricobot's login as the identity provider. Leave AUTH.base
+   empty to run standalone (local name only — current behaviour).
+   When the shared session endpoints are live on Ricobot, set:
+     AUTH.base = 'https://ricobot.ricoman.com';
+   and confirm the three paths below. The session cookie must be
+   issued on Domain=.ricoman.com so every subdomain shares it.
+   (Endpoints are finalised in the Ricobot repo — see HANDOVER.md.)
+   ============================================================ */
+var AUTH = { base:'', mePath:'/api/auth/me', loginPath:'/login', logoutPath:'/logout' };
+var authUser = null;
+function authCheck(cb){
+  if(!AUTH.base){ cb(false); return; }
+  fetch(AUTH.base+AUTH.mePath, {credentials:'include'})
+    .then(function(r){ if(r.ok) return r.json(); throw 0; })
+    .then(function(u){ authUser=u;
+      var nm = u && (u.name||u.fullName||u.username);
+      if(nm){ state.settings.operator=nm; save(LS.settings,state.settings); }
+      cb(true); })
+    .catch(function(){ location.href = AUTH.base+AUTH.loginPath+'?redirect='+encodeURIComponent(location.href); });
+}
+function authLogout(){ if(AUTH.base) location.href = AUTH.base+AUTH.logoutPath+'?redirect='+encodeURIComponent(location.href); }
 
 /* parties (responsible groups) and their colours */
 var PARTIES = ['R&D','Testing','China Factory','UK Production','Marketing','Commercial','MD'];
@@ -657,6 +682,14 @@ function deleteTemplate(id){
 
 /* ---- operator ---- */
 function openOperator(forced){
+  if(authUser){
+    document.getElementById('modal').innerHTML=
+      '<div class="scrim" onclick="if(event.target===this)closeModal()"><div class="sheet">'+
+      '<h2>Signed in</h2><p class="sub">You\'re signed in through the shared Ricoman login.</p>'+
+      '<div class="row" style="justify-content:space-between"><b style="font-size:17px">'+esc(state.settings.operator)+'</b>'+
+      '<button class="ghost danger" onclick="authLogout()">Log out</button></div></div></div>';
+    return;
+  }
   document.getElementById('modal').innerHTML=
     '<div class="scrim" onclick="if(event.target===this)closeModal()"><div class="sheet">'+
     '<h2>Who are you?</h2><p class="sub">Your name is recorded on every step you complete and gate you sign off.</p>'+
@@ -716,7 +749,7 @@ function mon(d){ return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','
 function dateStamp(){ var d=new Date(); return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate()); }
 
 /* ---- boot ---- */
-render();
+if(AUTH.base){ authCheck(function(){ render(); }); } else { render(); }
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
 }
