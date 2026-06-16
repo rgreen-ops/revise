@@ -1,0 +1,222 @@
+/*
+ * Ricoman — shared styles.
+ * Loaded on the front end and inside the block editor so custom block styles
+ * preview accurately. Keep this lean; prefer theme.json for global styling.
+ */
+
+/* ---- Card group style ------------------------------------------------ */
+.wp-block-group.is-style-card {
+	background: var(--wp--preset--color--base);
+	border: 1px solid var(--wp--preset--color--line);
+	border-radius: 16px;
+	padding: var(--wp--preset--spacing--40);
+	box-shadow: 0 1px 2px rgba(14, 23, 38, 0.04);
+}
+
+.wp-block-group.is-style-card:hover {
+	box-shadow: 0 18px 40px -22px rgba(14, 23, 38, 0.35);
+	border-color: var(--wp--preset--color--line);
+}
+
+/* A little brand tab on the left edge of cards used for product categories. */
+.wp-block-group.is-style-card.has-primary-border-color {
+	border-left-width: 4px;
+}
+
+/* ---- Pill button style ---------------------------------------------- */
+.wp-block-button.is-style-pill .wp-block-button__link {
+	border-radius: 999px;
+}
+
+/* ---- Outline (light) button: for use on dark sections --------------- */
+.wp-block-button.is-style-outline-light .wp-block-button__link {
+	background: transparent;
+	color: var(--wp--preset--color--base);
+	border: 2px solid rgba(255, 255, 255, 0.35);
+}
+
+.wp-block-button.is-style-outline-light .wp-block-button__link:hover {
+	background: rgba(255, 255, 255, 0.08);
+	border-color: var(--wp--preset--color--base);
+}
+
+/* ---- Eyebrow / kicker text ------------------------------------------ */
+.ricoman-eyebrow {
+	display: inline-block;
+	text-transform: uppercase;
+	letter-spacing: 0.12em;
+	font-size: 0.8rem;
+	font-weight: 700;
+	color: var(--wp--preset--color--primary);
+}
+
+/* ---- Navigation polish ---------------------------------------------- */
+.wp-block-navigation a:where(:not(.wp-element-button)):hover {
+	color: var(--wp--preset--color--primary);
+}
+
+/* Sticky header surface. */
+.ricoman-header {
+	position: sticky;
+	top: 0;
+	z-index: 30;
+	backdrop-filter: saturate(140%) blur(8px);
+}
+
+/* ---- Breadcrumbs ----------------------------------------------------- */
+.ricoman-breadcrumbs {
+	font-size: 0.85rem;
+	color: var(--wp--preset--color--muted);
+	margin-bottom: 1.25rem;
+}
+
+.ricoman-breadcrumbs a {
+	color: var(--wp--preset--color--muted);
+	text-decoration: none;
+}
+
+.ricoman-breadcrumbs a:hover {
+	color: var(--wp--preset--color--primary);
+}
+
+.ricoman-breadcrumbs .sep {
+	color: var(--wp--preset--color--line);
+	margin: 0 0.4rem;
+}
+
+.ricoman-breadcrumbs [aria-current="page"] {
+	color: var(--wp--preset--color--contrast);
+	font-weight: 600;
+}
+
+/* ---- Lead capture form ---------------------------------------------- */
+.ricoman-lead-form {
+	display: flex;
+	flex-direction: column;
+	gap: 0.9rem;
+	background: var(--wp--preset--color--base);
+	border: 1px solid var(--wp--preset--color--line);
+	border-radius: 16px;
+	padding: 1.75rem;
+}
+
+.ricoman-lead-title {
+	font-family: var(--wp--preset--font-family--heading);
+	font-weight: 800;
+	font-size: 1.25rem;
+	margin: 0 0 0.25rem;
+	color: var(--wp--preset--color--ink);
+}
+
+.ricoman-lead-form .ricoman-field-row {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0.9rem;
+}
+
+@media (max-width: 600px) {
+	.ricoman-lead-form .ricoman-field-row {
+		grid-template-columns: 1fr;
+	}
+}
+
+.ricoman-lead-form label {
+	display: flex;
+	flex-direction: column;
+	gap: 0.3rem;
+	font-size: 0.85rem;
+	font-weight: 600;
+	color: var(--wp--preset--color--ink);
+}
+
+.ricoman-lead-form input,
+.ricoman-lead-form select,
+.ricoman-lead-form textarea {
+	font: inherit;
+	font-weight: 400;
+	padding: 0.7rem 0.8rem;
+	border: 1px solid var(--wp--preset--color--line);
+	border-radius: 10px;
+	background: var(--wp--preset--color--surface);
+	color: var(--wp--preset--color--contrast);
+}
+
+.ricoman-lead-form input:focus,
+.ricoman-lead-form select:focus,
+.ricoman-lead-form textarea:focus {
+	outline: 2px solid var(--wp--preset--color--primary);
+	outline-offset: 1px;
+	border-color: transparent;
+}
+
+.ricoman-lead-submit {
+	align-self: flex-start;
+	background: var(--wp--preset--color--primary);
+	color: #fff;
+	border: 0;
+	border-radius: 999px;
+	padding: 0.85rem 1.75rem;
+	font-family: var(--wp--preset--font-family--heading);
+	font-weight: 700;
+	font-size: 1rem;
+	cursor: pointer;
+}
+
+.ricoman-lead-submit:hover {
+	background: var(--wp--preset--color--primary-dark);
+}
+
+.ricoman-lead-success {
+	background: rgba(52, 211, 153, 0.12);
+	border: 1px solid rgba(52, 211, 153, 0.4);
+	color: #047857;
+	border-radius: 14px;
+	padding: 1.25rem 1.5rem;
+}
+
+.ricoman-lead-error {
+	background: rgba(216, 31, 38, 0.08);
+	border: 1px solid rgba(216, 31, 38, 0.35);
+	color: var(--wp--preset--color--primary-dark);
+	border-radius: 12px;
+	padding: 0.9rem 1.2rem;
+	margin-bottom: 1rem;
+}
+
+/* ---- Product spec table & datasheet button -------------------------- */
+.ricoman-spec-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin: 0 0 1.5rem;
+}
+
+.ricoman-spec-table th,
+.ricoman-spec-table td {
+	text-align: left;
+	padding: 0.65rem 0.9rem;
+	border-bottom: 1px solid var(--wp--preset--color--line);
+	font-size: 0.95rem;
+}
+
+.ricoman-spec-table th {
+	width: 45%;
+	background: var(--wp--preset--color--surface);
+	color: var(--wp--preset--color--ink);
+	font-weight: 700;
+}
+
+/* ---- Lighting "glow" accent under hero headings --------------------- */
+.ricoman-glow {
+	position: relative;
+}
+
+.ricoman-glow::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	bottom: -0.35em;
+	width: 3.5rem;
+	height: 4px;
+	border-radius: 4px;
+	background: var(--wp--preset--color--accent);
+}
