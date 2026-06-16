@@ -26,6 +26,7 @@ require_once get_theme_file_path( 'inc/seo.php' );           // JSON-LD schema &
 require_once get_theme_file_path( 'inc/datasheet.php' );     // Printable / PDF datasheets.
 require_once get_theme_file_path( 'inc/lead-capture.php' );  // Lead form + Sheets webhook.
 require_once get_theme_file_path( 'inc/shortcodes.php' );    // Product spec/variant/datasheet output.
+require_once get_theme_file_path( 'inc/my-project.php' );    // "My Project" specification list (Toolbox).
 
 /**
  * Theme setup.

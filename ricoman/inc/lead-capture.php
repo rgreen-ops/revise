@@ -135,6 +135,9 @@ function ricoman_handle_lead() {
 		exit;
 	}
 
+	// Optional "My Project" specification list (JSON from the browser).
+	$project_items = ricoman_parse_project_items( isset( $_POST['project_items'] ) ? wp_unslash( $_POST['project_items'] ) : '' );
+
 	$data = array(
 		'name'      => $name,
 		'email'     => $email,
@@ -143,6 +146,7 @@ function ricoman_handle_lead() {
 		'role'      => $role,
 		'message'   => $message,
 		'source'    => $source,
+		'items'     => $project_items,
 		'submitted' => current_time( 'mysql' ),
 	);
 
@@ -160,6 +164,7 @@ function ricoman_handle_lead() {
 				'_lead_role'    => $role,
 				'_lead_message' => $message,
 				'_lead_source'  => $source,
+				'_lead_items'   => $project_items,
 			),
 		)
 	);
@@ -177,6 +182,9 @@ function ricoman_handle_lead() {
 		$source,
 		$message
 	);
+	if ( '' !== $project_items ) {
+		$body .= "\nProject list:\n" . $project_items . "\n";
+	}
 	wp_mail(
 		$admin,
 		sprintf( '[%s] New lead: %s', get_bloginfo( 'name' ), $name ),

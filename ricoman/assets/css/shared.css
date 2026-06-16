@@ -205,6 +205,146 @@
 	font-weight: 700;
 }
 
+/* ---- My Project (Toolbox) ------------------------------------------- */
+.ricoman-mp-link {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45em;
+	font-family: var(--wp--preset--font-family--heading);
+	font-weight: 600;
+	font-size: 0.9rem;
+	color: inherit;
+	text-decoration: none;
+}
+
+.ricoman-mp-count {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 1.5em;
+	height: 1.5em;
+	padding: 0 0.4em;
+	border-radius: 999px;
+	background: var(--wp--preset--color--accent);
+	color: #fff;
+	font-size: 0.78rem;
+	font-weight: 700;
+	line-height: 1;
+}
+
+.ricoman-mp-count[data-empty="true"] {
+	background: rgba(255, 255, 255, 0.18);
+	color: rgba(255, 255, 255, 0.85);
+}
+
+/* Add-to-project button */
+.ricoman-add-project {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5em;
+	font-family: var(--wp--preset--font-family--heading);
+	font-weight: 600;
+	font-size: 0.95rem;
+	cursor: pointer;
+	padding: 0.85em 1.6em;
+	border-radius: 6px;
+	border: 1.5px solid var(--wp--preset--color--line);
+	background: var(--wp--preset--color--base);
+	color: var(--wp--preset--color--ink);
+	transition: border-color 0.18s, background 0.18s, color 0.18s;
+}
+
+.ricoman-add-project:hover {
+	border-color: var(--wp--preset--color--ink);
+}
+
+.ricoman-add-project.is-added {
+	background: var(--wp--preset--color--accent);
+	border-color: var(--wp--preset--color--accent);
+	color: #fff;
+}
+
+/* The project list table */
+.ricoman-mp-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-bottom: 1.5rem;
+}
+
+.ricoman-mp-table th {
+	text-align: left;
+	font-family: var(--wp--preset--font-family--heading);
+	font-size: 0.78rem;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: var(--wp--preset--color--muted);
+	padding: 0 0 0.6em;
+	border-bottom: 1px solid var(--wp--preset--color--line);
+}
+
+.ricoman-mp-table td {
+	padding: 0.9em 0;
+	border-bottom: 1px solid var(--wp--preset--color--line);
+	vertical-align: middle;
+}
+
+.ricoman-mp-table .mp-name a {
+	font-weight: 600;
+	color: var(--wp--preset--color--ink);
+	text-decoration: none;
+}
+
+.ricoman-mp-table .mp-sku {
+	display: block;
+	font-size: 0.8rem;
+	color: var(--wp--preset--color--muted);
+}
+
+.ricoman-mp-table .mp-qty input {
+	width: 4rem;
+	padding: 0.4em 0.5em;
+	border: 1px solid var(--wp--preset--color--line);
+	border-radius: 6px;
+}
+
+.ricoman-mp-table .mp-remove button {
+	border: 0;
+	background: none;
+	font-size: 1.3rem;
+	line-height: 1;
+	color: var(--wp--preset--color--muted);
+	cursor: pointer;
+}
+
+.ricoman-mp-table .mp-remove button:hover {
+	color: var(--wp--preset--color--primary);
+}
+
+.ricoman-mp-empty {
+	color: var(--wp--preset--color--muted);
+	font-size: 1.05rem;
+	padding: 1.5rem 0;
+}
+
+.ricoman-mp-actions {
+	display: flex;
+	justify-content: flex-end;
+	margin-bottom: 1.5rem;
+}
+
+.ricoman-mp-clear {
+	border: 0;
+	background: none;
+	color: var(--wp--preset--color--muted);
+	font-weight: 600;
+	cursor: pointer;
+	text-decoration: underline;
+}
+
+.ricoman-mp-clear:hover {
+	color: var(--wp--preset--color--primary);
+}
+
 /* ---- Lighting "glow" accent under hero headings --------------------- */
 .ricoman-glow {
 	position: relative;

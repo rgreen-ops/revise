@@ -63,6 +63,20 @@ without a pile of extra plugins:
 | **Lead capture + Google Sheets automation** | `inc/lead-capture.php` | `[ricoman_lead_form]` shortcode / "Lead capture section" pattern. Submissions are validated (nonce + honeypot), saved as `Lead` posts, emailed to the admin, and POSTed to a Google Sheets webhook. |
 | **SEO / GEO: schema + breadcrumbs** | `inc/seo.php` | JSON-LD for Organization, WebSite, **Product** (with spec PropertyValues) and **BreadcrumbList**, plus a `[ricoman_breadcrumbs]` shortcode used across product/project templates. |
 
+#### My Project / Toolbox (`inc/my-project.php`, `assets/js/my-project.js`)
+A specification list, like Unios's Toolbox / your site's "Include in My Project":
+- **`[ricoman_add_to_project]`** — an "Add to My Project" button (already on the
+  product template). Saves the product to a browser-stored list.
+- **`[ricoman_project_count]`** — a live "My Project (n)" badge (already in the header).
+- **`[ricoman_my_project]`** — the list itself: review items, change quantities,
+  remove/clear, then submit as an enquiry.
+
+To set it up, create a **Page** with the slug `my-project` and either insert the
+**"My Project page"** pattern or just the `[ricoman_my_project]` shortcode.
+Submissions arrive as **Leads** (with the full item list attached) and flow through
+the same Google Sheets webhook as other enquiries. No login required — the list
+lives in the visitor's browser until they send it.
+
 #### Product display shortcodes (`inc/shortcodes.php`)
 Drop these into any template/page via the **Shortcode block**:
 - `[ricoman_product_specs]` — specification table
