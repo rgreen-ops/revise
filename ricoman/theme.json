@@ -14,26 +14,26 @@
 			"custom": true,
 			"customDuotone": false,
 			"palette": [
-				{ "slug": "base", "color": "#ffffff", "name": "Base" },
-				{ "slug": "surface", "color": "#f5f7fa", "name": "Surface" },
-				{ "slug": "line", "color": "#e3e8ef", "name": "Line" },
-				{ "slug": "contrast", "color": "#111827", "name": "Contrast" },
-				{ "slug": "muted", "color": "#5b6472", "name": "Muted" },
-				{ "slug": "ink", "color": "#0e1726", "name": "Ink" },
-				{ "slug": "primary", "color": "#d81f26", "name": "Brand Red" },
-				{ "slug": "primary-dark", "color": "#a3151b", "name": "Brand Red Dark" },
-				{ "slug": "accent", "color": "#ffb400", "name": "Light Amber" }
+				{ "slug": "base", "color": "#ffffff", "name": "White" },
+				{ "slug": "surface", "color": "#f5f6f8", "name": "Surface" },
+				{ "slug": "line", "color": "#e3e5ea", "name": "Line" },
+				{ "slug": "contrast", "color": "#15171a", "name": "Contrast" },
+				{ "slug": "muted", "color": "#5b626d", "name": "Muted" },
+				{ "slug": "ink", "color": "#0a0a0b", "name": "Black" },
+				{ "slug": "primary", "color": "#16335c", "name": "Brand Blue" },
+				{ "slug": "primary-dark", "color": "#0e2342", "name": "Brand Blue Dark" },
+				{ "slug": "accent", "color": "#3d7bed", "name": "Accent Blue" }
 			],
 			"gradients": [
 				{
 					"slug": "brand",
 					"name": "Brand",
-					"gradient": "linear-gradient(135deg, #d81f26 0%, #ff5a3c 100%)"
+					"gradient": "linear-gradient(135deg, #16335c 0%, #0e2342 100%)"
 				},
 				{
 					"slug": "ink-glow",
-					"name": "Ink Glow",
-					"gradient": "radial-gradient(900px 420px at 80% -10%, rgba(255,180,0,0.18), transparent 60%), linear-gradient(180deg, #0e1726 0%, #111827 100%)"
+					"name": "Black",
+					"gradient": "radial-gradient(900px 460px at 75% -20%, rgba(61,123,237,0.16), transparent 60%), linear-gradient(180deg, #0a0a0b 0%, #111317 100%)"
 				}
 			]
 		},
@@ -49,7 +49,7 @@
 				{
 					"slug": "heading",
 					"name": "Heading",
-					"fontFamily": "'Inter Tight', Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif"
+					"fontFamily": "Archivo, Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif"
 				}
 			],
 			"fontSizes": [
@@ -143,26 +143,26 @@
 			},
 			"button": {
 				"color": {
-					"background": "primary",
+					"background": "ink",
 					"text": "base"
 				},
-				"border": { "radius": "10px" },
+				"border": { "radius": "6px" },
 				"typography": {
 					"fontFamily": "var(--wp--preset--font-family--heading)",
-					"fontWeight": "700",
+					"fontWeight": "600",
 					"fontSize": "var(--wp--preset--font-size--medium)"
 				},
 				"spacing": {
 					"padding": {
 						"top": "0.85rem",
 						"bottom": "0.85rem",
-						"left": "1.5rem",
-						"right": "1.5rem"
+						"left": "1.6rem",
+						"right": "1.6rem"
 					}
 				},
-				":hover": { "color": { "background": "primary-dark" } },
-				":focus": { "color": { "background": "primary-dark" } },
-				":active": { "color": { "background": "primary-dark" } }
+				":hover": { "color": { "background": "primary" } },
+				":focus": { "color": { "background": "primary" } },
+				":active": { "color": { "background": "primary" } }
 			},
 			"caption": {
 				"color": { "text": "muted" },

@@ -75,7 +75,7 @@ function ricoman_enqueue_assets() {
 	// Brand web fonts.
 	wp_enqueue_style(
 		'ricoman-fonts',
-		'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Inter+Tight:wght@600;700;800;900&display=swap',
+		'https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap',
 		array(),
 		null
 	);
