@@ -3,75 +3,83 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Neptune — Ricoman (simple product page preview)</title>
+<title>Neptune — Ricoman (design-led simple product page)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --white:#fff; --surface:#f6f7f8; --line:#e6e7ea; --ink:#0a0a0b;
-  --text:#15171a; --muted:#6b7280; --blue:#16335c; --accent:#3d7bed;
-  --wide:1140px; --pad:clamp(20px,5vw,56px);
+  --paper:#f7f5f2; --white:#fffdfb; --surface:#efece7; --line:#e4dfd8; --ink:#0c0c0d;
+  --text:#1c1b1a; --muted:#86827b; --faint:#a8a39a; --blue:#16335c; --accent:#3d7bed;
+  --wide:1200px; --pad:clamp(24px,6vw,80px);
 }
 *{box-sizing:border-box}
-body{margin:0;font-family:Inter,system-ui,sans-serif;color:var(--text);background:var(--white);line-height:1.65;-webkit-font-smoothing:antialiased}
-h1,h2,h3,h4{font-family:Archivo,sans-serif;color:var(--ink);line-height:1.1;letter-spacing:-.02em;margin:0}
+body{margin:0;font-family:Inter,system-ui,sans-serif;color:var(--text);background:var(--paper);line-height:1.75;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;font-optical-sizing:auto;color:var(--ink);line-height:1.04;letter-spacing:-.015em;margin:0;font-weight:500}
+em{font-style:italic}
 a{color:inherit;text-decoration:none}
 img{max-width:100%;display:block}
 .wrap{max-width:var(--wide);margin:0 auto;padding-inline:var(--pad)}
-.eyebrow{font-family:Archivo;text-transform:uppercase;letter-spacing:.18em;font-size:.72rem;font-weight:700;color:var(--accent)}
-.btn{display:inline-flex;align-items:center;gap:.5em;font-family:Archivo;font-weight:600;font-size:.95rem;padding:.85em 1.5em;border-radius:6px;border:1.5px solid transparent;cursor:pointer;transition:.18s}
+.kicker{font-family:Archivo;text-transform:uppercase;letter-spacing:.28em;font-size:.68rem;font-weight:600;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;gap:.7em;font-family:Archivo;font-weight:600;font-size:.85rem;letter-spacing:.02em;padding:1.05em 1.9em;border-radius:2px;border:1px solid transparent;cursor:pointer;transition:.25s}
 .btn-solid{background:var(--ink);color:#fff}.btn-solid:hover{background:var(--blue)}
-.btn-out-dark{border-color:#d2d4d9;color:var(--ink)}.btn-out-dark:hover{border-color:var(--ink)}
+.btn-line-d{border-color:#cfcabf;color:var(--ink)}.btn-line-d:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
+.grain::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.45;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/></svg>")}
 
-header.site{position:sticky;top:0;z-index:50;background:var(--ink);border-bottom:1px solid rgba(255,255,255,.08)}
-.nav{display:flex;align-items:center;justify-content:space-between;height:64px;color:#fff}
-.brand{font-family:Archivo;font-weight:900;letter-spacing:.2em;font-size:1.15rem}
+.util{background:var(--ink);color:rgba(255,255,255,.55);font-family:Archivo;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase}
+.util .wrap{display:flex;justify-content:space-between;height:36px;align-items:center}
+@media(max-width:680px){.util .wrap span:first-child{display:none}}
+
+header.site{position:sticky;top:0;z-index:50;background:var(--ink);border-bottom:1px solid rgba(255,255,255,.06)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:74px;color:#fff}
+.brand{font-family:Archivo;font-weight:800;letter-spacing:.26em;font-size:1.15rem}
 .brand sup{font-size:.5em;top:-1em}
-.nav ul{display:flex;gap:28px;list-style:none;margin:0;padding:0;font-size:.9rem;font-weight:500}
-.nav ul a{color:rgba(255,255,255,.85)}.nav ul a:hover{color:#fff}
-.toolbox{border:1.5px solid rgba(255,255,255,.4);padding:.5em 1.1em;border-radius:999px;font-family:Archivo;font-weight:600;font-size:.85rem;color:#fff}
-@media(max-width:860px){.nav ul,.toolbox{display:none}}
+.nav ul{display:flex;gap:36px;list-style:none;margin:0;padding:0;font-family:Archivo;font-size:.82rem;font-weight:500;letter-spacing:.04em}
+.nav ul a{color:rgba(255,255,255,.8)}.nav ul a:hover{color:#fff}
+.toolbox{font-family:Archivo;font-weight:600;font-size:.78rem;letter-spacing:.06em;border:1px solid rgba(255,255,255,.3);padding:.6em 1.3em;border-radius:999px;color:#fff}
+@media(max-width:980px){.nav ul,.toolbox{display:none}}
 
-.crumb{font-size:.82rem;color:var(--muted);padding:22px 0}
-.crumb a:hover{color:var(--accent)} .crumb .sep{color:var(--line);margin:0 .5em}
+.crumb{font-family:Archivo;font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:26px 0}
+.crumb a:hover{color:var(--accent)} .crumb .sep{color:var(--line);margin:0 .6em}
 
-/* product head */
-.product{display:grid;grid-template-columns:1.05fr 1fr;gap:clamp(28px,5vw,72px);align-items:start;padding-bottom:clamp(40px,6vw,80px)}
+.product{display:grid;grid-template-columns:1.05fr 1fr;gap:clamp(34px,6vw,90px);align-items:start;padding-bottom:clamp(50px,7vw,90px)}
 @media(max-width:840px){.product{grid-template-columns:1fr}}
-.media{position:sticky;top:88px}
-.shot{aspect-ratio:1;border-radius:12px;background:radial-gradient(70% 70% at 50% 38%,#ffffff,#e7eaef 60%,#d7dbe2);position:relative;border:1px solid var(--line)}
-.shot::after{content:"";position:absolute;width:46%;aspect-ratio:1;left:27%;top:24%;border-radius:50%;
-  background:radial-gradient(circle at 50% 42%,#fff,#eef1f5 55%,#cfd4dd);box-shadow:0 30px 60px -20px rgba(20,30,50,.25),inset 0 -8px 20px rgba(0,0,0,.06)}
-.thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
-.thumbs div{aspect-ratio:1;border-radius:8px;border:1px solid var(--line);background:radial-gradient(60% 60% at 50% 40%,#fff,#e3e7ec)}
-.thumbs div:nth-child(1){outline:2px solid var(--ink);outline-offset:1px}
+.media{position:sticky;top:94px}
+.shot{position:relative;aspect-ratio:1;background:radial-gradient(72% 72% at 50% 36%,#fffdfb,#ece8e1 60%,#ddd8cf);border:1px solid var(--line)}
+.shot::after{content:"";position:absolute;width:44%;aspect-ratio:1;left:28%;top:24%;border-radius:50%;
+  background:radial-gradient(circle at 50% 40%,#fff,#efeae2 55%,#d4cec3);box-shadow:0 40px 70px -24px rgba(28,27,26,.3),inset 0 -8px 22px rgba(0,0,0,.06)}
+.thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}
+.thumbs div{aspect-ratio:1;border:1px solid var(--line);background:radial-gradient(60% 60% at 50% 40%,#fffdfb,#e6e1d9)}
+.thumbs div:first-child{outline:1px solid var(--ink);outline-offset:2px}
 
-.pname{font-size:clamp(2.4rem,5vw,3.6rem);font-weight:800;margin:.2em 0 .15em}
-.pdesc{color:var(--muted);font-size:1.1rem;margin:0 0 1.6em;max-width:42ch}
-.chiprow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.8em}
-.chip{font-family:Archivo;font-weight:600;font-size:.78rem;border:1px solid var(--line);border-radius:999px;padding:.4em 1em;color:var(--ink)}
-.actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:2.2em}
+.pname{font-size:clamp(2.8rem,6vw,4.5rem);margin:.22em 0 .25em;letter-spacing:-.02em}
+.pdesc{color:var(--muted);font-size:1.15rem;margin:0 0 1.8em;max-width:40ch}
+.chiprow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:2em}
+.chip{font-family:Archivo;font-weight:600;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--line);border-radius:999px;padding:.5em 1.1em;color:var(--ink)}
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:2.4em}
 .spec{width:100%;border-collapse:collapse}
-.spec th,.spec td{text-align:left;padding:.75em 0;border-bottom:1px solid var(--line);font-size:.95rem}
-.spec th{color:var(--muted);font-weight:500;width:46%}
+.spec th,.spec td{text-align:left;padding:.95em 0;border-bottom:1px solid var(--line);font-size:.95rem}
+.spec th{color:var(--muted);font-weight:400;width:46%}
 .spec td{font-family:Archivo;font-weight:600;color:var(--ink)}
 
-.varsblock{border-top:1px solid var(--line);padding:clamp(40px,6vw,70px) 0}
-.sectlabel{font-family:Archivo;font-weight:800;font-size:1.5rem;margin-bottom:1em;color:var(--ink)}
+.varsblock{border-top:1px solid var(--line);padding:clamp(50px,7vw,90px) 0}
+.sectlabel{font-family:Fraunces;font-weight:500;font-size:1.8rem;margin-bottom:1.1em;color:var(--ink)}
 .vars{width:100%;border-collapse:collapse}
-.vars thead th{background:var(--ink);color:#fff;padding:.7em .9em;font-family:Archivo;font-size:.8rem;text-align:left}
-.vars td{padding:.7em .9em;border-bottom:1px solid var(--line);font-size:.9rem}
-.vars tbody tr:hover{background:var(--surface)}
+.vars thead th{border-bottom:1.5px solid var(--ink);color:var(--ink);padding:.9em 0;font-family:Archivo;font-size:.72rem;text-align:left;letter-spacing:.12em;text-transform:uppercase}
+.vars td{padding:1em 0;border-bottom:1px solid var(--line);font-size:.92rem}
+.vars td:first-child{font-family:Archivo;font-weight:600}
 
-footer.site{background:var(--ink);color:rgba(255,255,255,.6);padding:50px 0;font-size:.85rem;margin-top:30px}
-footer .row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:20px}
+footer.site{background:var(--ink);color:rgba(255,255,255,.5);padding:60px 0;font-family:Archivo;font-size:.8rem;letter-spacing:.04em;margin-top:20px}
+footer .row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:20px;align-items:center}
 footer .brand{color:#fff}
-.tag{position:fixed;left:12px;bottom:12px;z-index:99;background:var(--accent);color:#fff;font-family:Archivo;font-weight:700;font-size:.72rem;padding:.5em 1em;border-radius:999px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.tag{position:fixed;left:14px;bottom:14px;z-index:99;background:var(--ink);color:#fff;font-family:Archivo;font-weight:600;font-size:.66rem;letter-spacing:.1em;padding:.6em 1.1em;border-radius:999px;box-shadow:0 8px 24px rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.2)}
 </style>
 </head>
 <body>
-<div class="tag">PREVIEW · Neptune — “simple” product template</div>
+<div class="tag">PREVIEW · NEPTUNE — SIMPLE TEMPLATE</div>
+
+<div class="util"><div class="wrap"><span>Designed &amp; manufactured in Manchester, UK</span><span>Specify · Datasheets · BIM →</span></div></div>
 
 <header class="site"><div class="wrap nav">
   <div class="brand">RICOMAN<sup>®</sup></div>
@@ -83,11 +91,11 @@ footer .brand{color:#fff}
 
 <section class="wrap product">
   <div class="media">
-    <div class="shot"></div>
+    <div class="shot grain"></div>
     <div class="thumbs"><div></div><div></div><div></div><div></div></div>
   </div>
   <div class="details">
-    <span class="eyebrow">Downlights · Fixed</span>
+    <span class="kicker">Downlights — Fixed</span>
     <h1 class="pname">Neptune</h1>
     <p class="pdesc">A clean, fire-rated LED downlight with switchable CCT and wattage — the dependable workhorse for offices, retail and healthcare ceilings.</p>
     <div class="chiprow">
@@ -95,7 +103,7 @@ footer .brand{color:#fff}
     </div>
     <div class="actions">
       <a class="btn btn-solid">＋ Add to My Project</a>
-      <a class="btn btn-out-dark">Download datasheet ↓</a>
+      <a class="btn btn-line-d">Download datasheet ↓</a>
     </div>
     <table class="spec"><tbody>
       <tr><th>Order code</th><td>NEP-DL-08</td></tr>
@@ -106,6 +114,7 @@ footer .brand{color:#fff}
       <tr><th>Beam angle</th><td>60°</td></tr>
       <tr><th>IP rating</th><td>IP65 (front)</td></tr>
       <tr><th>Cut-out</th><td>68–75 mm</td></tr>
+      <tr><th>Origin</th><td>Made in Manchester, UK</td></tr>
       <tr><th>Warranty</th><td>5 years</td></tr>
     </tbody></table>
   </div>

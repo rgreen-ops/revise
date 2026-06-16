@@ -3,174 +3,185 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Flow+ — Ricoman (premium product page preview)</title>
+<title>Flow+ — Ricoman (design-led product page)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --white:#fff; --paper:#fafafa; --surface:#f4f5f6; --line:#e6e7ea; --ink:#08090a;
-  --text:#15171a; --muted:#737a85; --faint:#9aa0aa; --blue:#16335c; --accent:#3d7bed;
-  --warm:#ffd9a8; --wide:1280px; --pad:clamp(22px,5.5vw,80px);
+  --paper:#f7f5f2; --white:#fffdfb; --surface:#efece7; --line:#e4dfd8; --ink:#0c0c0d;
+  --text:#1c1b1a; --muted:#86827b; --faint:#a8a39a; --blue:#16335c; --accent:#3d7bed;
+  --warm:#f0cd9a; --wide:1320px; --pad:clamp(24px,6vw,96px);
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;font-family:Inter,system-ui,sans-serif;color:var(--text);background:var(--white);line-height:1.7;-webkit-font-smoothing:antialiased;font-feature-settings:"ss01","cv01"}
-h1,h2,h3,h4{font-family:Archivo,sans-serif;color:var(--ink);line-height:1.05;letter-spacing:-.025em;margin:0;font-weight:800}
+body{margin:0;font-family:Inter,system-ui,sans-serif;color:var(--text);background:var(--paper);line-height:1.75;-webkit-font-smoothing:antialiased}
+.serif{font-family:Fraunces,Georgia,serif;font-optical-sizing:auto}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;font-optical-sizing:auto;color:var(--ink);line-height:1.02;letter-spacing:-.015em;margin:0;font-weight:500}
+em{font-style:italic}
 a{color:inherit;text-decoration:none}
 img{max-width:100%;display:block}
 .wrap{max-width:var(--wide);margin:0 auto;padding-inline:var(--pad)}
-.narrow{max-width:980px}
-.eyebrow{font-family:Archivo;text-transform:uppercase;letter-spacing:.24em;font-size:.7rem;font-weight:700;color:var(--accent)}
-.label{font-family:Archivo;text-transform:uppercase;letter-spacing:.22em;font-size:.7rem;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:.8em}
-.label .n{color:var(--accent)}
-.btn{display:inline-flex;align-items:center;gap:.6em;font-family:Archivo;font-weight:600;font-size:.92rem;letter-spacing:.01em;padding:.95em 1.7em;border-radius:4px;border:1.5px solid transparent;cursor:pointer;transition:.2s}
+.narrow{max-width:1040px}
+.kicker{font-family:Archivo;text-transform:uppercase;letter-spacing:.28em;font-size:.68rem;font-weight:600;color:var(--muted)}
+.kicker .n{color:var(--accent);margin-right:1em}
+.kicker.light{color:rgba(255,255,255,.6)}
+.btn{display:inline-flex;align-items:center;gap:.7em;font-family:Archivo;font-weight:600;font-size:.85rem;letter-spacing:.02em;padding:1.05em 1.9em;border-radius:2px;border:1px solid transparent;cursor:pointer;transition:.25s}
 .btn-solid{background:var(--ink);color:#fff}.btn-solid:hover{background:var(--blue)}
-.btn-out{border-color:rgba(255,255,255,.4);color:#fff}.btn-out:hover{background:rgba(255,255,255,.08);border-color:#fff}
-.btn-out-dark{border-color:#d4d6da;color:var(--ink)}.btn-out-dark:hover{border-color:var(--ink)}
-hr.hair{border:0;border-top:1px solid var(--line);margin:0}
+.btn-line{border-color:rgba(255,255,255,.35);color:#fff}.btn-line:hover{background:#fff;color:var(--ink);border-color:#fff}
+.btn-line-d{border-color:#cfcabf;color:var(--ink)}.btn-line-d:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
 
-/* utility bar */
-.util{background:var(--ink);color:rgba(255,255,255,.6);font-family:Archivo;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase}
-.util .wrap{display:flex;justify-content:space-between;height:34px;align-items:center}
-.util a{color:rgba(255,255,255,.75)}
+/* utility */
+.util{background:var(--ink);color:rgba(255,255,255,.55);font-family:Archivo;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase}
+.util .wrap{display:flex;justify-content:space-between;height:36px;align-items:center}
+.util a{color:rgba(255,255,255,.7)}
 @media(max-width:680px){.util .wrap span:first-child{display:none}}
 
 /* header */
-header.site{position:sticky;top:0;z-index:50;background:rgba(8,9,10,.7);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.07)}
-.nav{display:flex;align-items:center;justify-content:space-between;height:70px;color:#fff}
-.brand{font-family:Archivo;font-weight:900;letter-spacing:.22em;font-size:1.2rem}
+header.site{position:sticky;top:0;z-index:50;background:rgba(12,12,13,.65);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.06)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:74px;color:#fff}
+.brand{font-family:Archivo;font-weight:800;letter-spacing:.26em;font-size:1.15rem}
 .brand sup{font-size:.5em;top:-1em}
-.nav ul{display:flex;gap:34px;list-style:none;margin:0;padding:0;font-size:.88rem;font-weight:500}
-.nav ul a{color:rgba(255,255,255,.82)}.nav ul a:hover{color:#fff}
-.toolbox{border:1.5px solid rgba(255,255,255,.35);padding:.55em 1.2em;border-radius:999px;font-family:Archivo;font-weight:600;font-size:.82rem}
-@media(max-width:900px){.nav ul,.toolbox{display:none}}
+.nav ul{display:flex;gap:36px;list-style:none;margin:0;padding:0;font-family:Archivo;font-size:.82rem;font-weight:500;letter-spacing:.04em}
+.nav ul a{color:rgba(255,255,255,.8)}.nav ul a:hover{color:#fff}
+.toolbox{font-family:Archivo;font-weight:600;font-size:.78rem;letter-spacing:.06em;border:1px solid rgba(255,255,255,.3);padding:.6em 1.3em;border-radius:999px}
+@media(max-width:980px){.nav ul,.toolbox{display:none}}
+
+/* grain */
+.grain::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/></svg>")}
 
 /* HERO */
-.hero{position:relative;background:var(--ink);color:#fff;overflow:hidden;min-height:96vh;display:flex;flex-direction:column;justify-content:flex-end}
+.hero{position:relative;background:var(--ink);color:#fff;overflow:hidden;min-height:100vh;display:flex;flex-direction:column;justify-content:flex-end}
 .hero .glow{position:absolute;inset:0;background:
-  radial-gradient(55% 45% at 80% 16%,rgba(255,214,170,.26),transparent 62%),
-  radial-gradient(45% 38% at 12% 92%,rgba(61,123,237,.16),transparent 60%)}
-.hero svg{position:absolute;inset:0;width:100%;height:100%}
-.hero-inner{position:relative;z-index:2;padding-bottom:clamp(48px,7vw,100px)}
-.hero-index{font-family:Archivo;font-weight:700;letter-spacing:.2em;font-size:.78rem;color:rgba(255,255,255,.5);margin-bottom:18px}
-.hero h1{font-size:clamp(3.4rem,11vw,8.5rem);font-weight:900;letter-spacing:-.04em;margin:0 0 .12em;line-height:.92}
-.hero .sub{font-family:Archivo;font-weight:600;font-size:clamp(1.05rem,1.6vw,1.35rem);color:#fff;margin-bottom:.8em}
-.hero p.lede{font-size:clamp(1.05rem,1.5vw,1.25rem);color:rgba(255,255,255,.7);max-width:40ch;margin:0 0 2.2em}
-.hero-actions{display:flex;gap:14px;flex-wrap:wrap}
-.scrollcue{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);z-index:2;color:rgba(255,255,255,.4);font-family:Archivo;font-size:.66rem;letter-spacing:.3em;text-transform:uppercase}
+  radial-gradient(50% 42% at 82% 14%,rgba(240,205,154,.28),transparent 60%),
+  radial-gradient(42% 36% at 8% 96%,rgba(61,123,237,.14),transparent 60%)}
+.hero svg.curve{position:absolute;inset:0;width:100%;height:100%}
+.hero-inner{position:relative;z-index:3;padding-bottom:clamp(54px,8vw,120px)}
+.hero .topline{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid rgba(255,255,255,.14);padding-bottom:18px;margin-bottom:clamp(28px,5vw,60px)}
+.hero h1{font-weight:500;font-size:clamp(4rem,15vw,12rem);letter-spacing:-.04em;line-height:.86;margin:0}
+.hero .sub{font-family:Fraunces;font-style:italic;font-weight:400;font-size:clamp(1.2rem,2.2vw,1.8rem);color:rgba(255,255,255,.82);max-width:24ch;margin:.6em 0 0}
+.hero-row{display:flex;justify-content:space-between;align-items:flex-end;gap:30px;margin-top:clamp(30px,5vw,60px);flex-wrap:wrap}
+.hero p.lede{font-size:1.1rem;color:rgba(255,255,255,.66);max-width:38ch;margin:0}
+.hero-actions{display:flex;gap:12px;flex-wrap:wrap}
 
-/* hero facts strip */
+/* facts */
 .facts{background:var(--ink);color:#fff;border-top:1px solid rgba(255,255,255,.1)}
 .facts .wrap{display:grid;grid-template-columns:repeat(5,1fr)}
-.facts .f{padding:30px 0;border-right:1px solid rgba(255,255,255,.1)}
+.facts .f{padding:34px 0;border-right:1px solid rgba(255,255,255,.1)}
 .facts .f:last-child{border-right:0}
-.facts small{display:block;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.16em;font-size:.62rem;font-family:Archivo;margin-bottom:8px}
-.facts b{font-family:Archivo;font-weight:700;font-size:1.15rem}
-@media(max-width:820px){.facts .wrap{grid-template-columns:repeat(2,1fr)}.facts .f{border-right:0;border-bottom:1px solid rgba(255,255,255,.1);padding:22px var(--pad)}}
+.facts small{display:block;color:rgba(255,255,255,.42);text-transform:uppercase;letter-spacing:.18em;font-size:.6rem;font-family:Archivo;margin-bottom:10px}
+.facts b{font-family:Fraunces;font-weight:500;font-size:1.3rem;letter-spacing:-.01em}
+@media(max-width:820px){.facts .wrap{grid-template-columns:repeat(2,1fr)}.facts .f{border-right:0;border-bottom:1px solid rgba(255,255,255,.1);padding:24px var(--pad)}}
 
 /* statement */
-.statement{padding:clamp(80px,11vw,160px) 0}
-.statement p{font-family:Archivo;font-weight:600;font-size:clamp(1.8rem,4.4vw,3.4rem);line-height:1.22;letter-spacing:-.025em;max-width:18ch;margin:0;color:var(--ink)}
-.statement p span{color:var(--faint)}
+.statement{padding:clamp(100px,15vw,220px) 0}
+.statement p{font-family:Fraunces;font-weight:400;font-size:clamp(2rem,5.2vw,4.4rem);line-height:1.12;letter-spacing:-.02em;max-width:16ch;margin:0;color:var(--ink)}
+.statement em{color:var(--muted)}
 
-/* feature rows */
-.feature{display:grid;grid-template-columns:1fr 1fr;gap:clamp(30px,6vw,100px);align-items:center;padding:clamp(28px,4vw,56px) 0}
+/* feature */
+.feature{display:grid;grid-template-columns:1fr 1fr;gap:clamp(34px,7vw,120px);align-items:center;padding:clamp(40px,6vw,80px) 0}
 .feature.rev .media{order:2}
-.feature .media{aspect-ratio:5/4;border-radius:8px;overflow:hidden;position:relative;background:#0e0f12}
-.shot-a{background:radial-gradient(75% 85% at 72% 28%,rgba(255,224,184,.55),transparent 55%),linear-gradient(160deg,#1b1d23,#08090a)}
-.shot-c{background:radial-gradient(62% 72% at 28% 30%,rgba(120,170,255,.5),transparent 55%),linear-gradient(160deg,#101219,#08090a)}
-.feature .body{max-width:480px}
-.feature h2{font-size:clamp(1.9rem,3.4vw,2.9rem);margin:.5em 0 .5em}
-.feature p{color:var(--muted);font-size:1.08rem;margin:0 0 1.3em}
+.feature .media{position:relative;aspect-ratio:5/4;overflow:hidden;background:#0e0f12}
+.shot-a{background:radial-gradient(78% 88% at 74% 26%,rgba(240,210,165,.6),transparent 56%),linear-gradient(160deg,#1c1e24,#0a0a0b)}
+.shot-c{background:radial-gradient(64% 74% at 26% 30%,rgba(120,170,255,.5),transparent 56%),linear-gradient(160deg,#101219,#0a0a0b)}
+.feature .body{max-width:460px}
+.feature h2{font-size:clamp(2.1rem,3.6vw,3.2rem);margin:.55em 0 .6em}
+.feature p{color:var(--muted);font-size:1.08rem;margin:0 0 1.5em}
 .feature ul{margin:0;padding:0;list-style:none}
-.feature li{padding:.6em 0;border-top:1px solid var(--line);color:var(--text);font-size:.98rem;display:flex;gap:.7em}
-.feature li::before{content:"—";color:var(--accent)}
+.feature li{padding:.85em 0;border-top:1px solid var(--line);color:var(--text);font-size:.98rem;display:flex;gap:.9em;align-items:baseline}
+.feature li .ix{font-family:Archivo;font-size:.7rem;color:var(--faint);letter-spacing:.1em}
 
-/* MADE IN BRITAIN — full dark editorial */
-.britain{background:var(--ink);color:#fff;padding:clamp(80px,10vw,150px) 0;position:relative;overflow:hidden}
-.britain .glow{position:absolute;inset:0;background:radial-gradient(40% 60% at 85% 30%,rgba(61,123,237,.16),transparent 60%)}
-.britain .grid{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:clamp(30px,6vw,90px);align-items:center}
-.britain h2{color:#fff;font-size:clamp(2.2rem,4.6vw,3.6rem);margin:.4em 0 .6em}
-.britain p{color:rgba(255,255,255,.72);font-size:1.1rem;margin:0 0 1.2em;max-width:46ch}
-.britain .media{aspect-ratio:4/5;border-radius:8px;background:radial-gradient(60% 50% at 50% 20%,rgba(255,224,184,.4),transparent 55%),linear-gradient(160deg,#16181e,#08090a);position:relative}
-.stamp{position:absolute;right:24px;bottom:24px;width:92px;height:92px;border:1.5px solid rgba(255,255,255,.35);border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;font-family:Archivo;font-weight:700;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.85);line-height:1.3}
+/* full-bleed image break */
+.break{position:relative;height:clamp(360px,60vh,640px);overflow:hidden;background:
+  radial-gradient(60% 80% at 50% 0%,rgba(240,205,154,.4),transparent 55%),linear-gradient(160deg,#16181e,#0a0a0b);color:#fff;display:flex;align-items:flex-end}
+.break .cap{position:relative;z-index:2;padding:clamp(24px,5vw,60px);font-family:Fraunces;font-style:italic;font-size:clamp(1.2rem,2.2vw,1.7rem);max-width:30ch}
+.break .curve2{position:absolute;inset:0}
+
+/* britain */
+.britain{background:var(--ink);color:#fff;padding:clamp(100px,12vw,180px) 0;position:relative;overflow:hidden}
+.britain .glow{position:absolute;inset:0;background:radial-gradient(38% 56% at 88% 26%,rgba(61,123,237,.16),transparent 60%)}
+.britain .grid{position:relative;display:grid;grid-template-columns:1.05fr 1fr;gap:clamp(36px,7vw,110px);align-items:center}
+.britain h2{color:#fff;font-size:clamp(2.4rem,5vw,4rem);margin:.5em 0 .7em}
+.britain p{color:rgba(255,255,255,.7);font-size:1.12rem;margin:0 0 1.3em;max-width:46ch}
+.britain .media{position:relative;aspect-ratio:4/5;background:radial-gradient(62% 52% at 50% 18%,rgba(240,210,165,.45),transparent 56%),linear-gradient(160deg,#17191f,#0a0a0b)}
+.stamp{position:absolute;right:22px;bottom:22px;width:104px;height:104px;border:1px solid rgba(255,255,255,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;font-family:Archivo;font-weight:600;font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.85);line-height:1.4}
 @media(max-width:820px){.britain .grid{grid-template-columns:1fr}.britain .media{order:-1;aspect-ratio:16/10}}
 
-/* CUSTOMISATION grid */
-.custom{padding:clamp(80px,10vw,150px) 0}
-.custom .head{max-width:640px;margin-bottom:clamp(40px,6vw,70px)}
-.custom h2{font-size:clamp(2.2rem,4.6vw,3.6rem);margin:.4em 0 .4em}
+/* customisation — hairline editorial rows */
+.custom{padding:clamp(100px,12vw,180px) 0}
+.custom .head{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:end;margin-bottom:clamp(48px,7vw,90px)}
+.custom h2{font-size:clamp(2.4rem,5vw,4rem);margin:.45em 0 0}
 .custom .head p{color:var(--muted);font-size:1.12rem;margin:0}
-.optgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
-.opt{background:var(--white);padding:clamp(26px,3vw,40px);transition:.2s}
-.opt:hover{background:var(--paper)}
-.opt .on{font-family:Archivo;font-weight:700;font-size:.72rem;color:var(--accent);letter-spacing:.14em}
-.opt h3{font-size:1.3rem;margin:.5em 0 .35em}
-.opt p{color:var(--muted);font-size:.95rem;margin:0}
-@media(max-width:820px){.optgrid{grid-template-columns:1fr}}
+.optrow{display:grid;grid-template-columns:auto 1fr 2fr;gap:clamp(20px,4vw,60px);align-items:baseline;padding:clamp(26px,3vw,40px) 0;border-top:1px solid var(--line)}
+.optrow:last-child{border-bottom:1px solid var(--line)}
+.optrow .num{font-family:Fraunces;font-size:1.4rem;color:var(--faint)}
+.optrow h3{font-size:1.5rem;font-weight:500}
+.optrow p{color:var(--muted);margin:0;font-size:1rem}
+@media(max-width:760px){.optrow{grid-template-columns:auto 1fr;gap:14px}.optrow p{grid-column:1/-1}.custom .head{grid-template-columns:1fr}}
 
-/* DESIGN TEAM + process */
-.team{background:var(--surface);padding:clamp(80px,10vw,150px) 0}
-.team .top{display:grid;grid-template-columns:1fr 1fr;gap:clamp(30px,6vw,90px);align-items:end;margin-bottom:clamp(48px,6vw,80px)}
-.team h2{font-size:clamp(2.2rem,4.6vw,3.6rem);margin:.4em 0 0}
+/* design team */
+.team{background:var(--white);padding:clamp(100px,12vw,180px) 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.team .top{display:grid;grid-template-columns:1fr 1fr;gap:clamp(36px,7vw,110px);align-items:end;margin-bottom:clamp(54px,7vw,90px)}
+.team h2{font-size:clamp(2.4rem,5vw,4rem);margin:.45em 0 0}
 .team .top p{color:var(--muted);font-size:1.12rem;margin:0}
-.process{display:grid;grid-template-columns:repeat(5,1fr);gap:24px;counter-reset:step}
-.step{position:relative;padding-top:28px;border-top:2px solid var(--ink)}
-.step::before{counter-increment:step;content:"0" counter(step);position:absolute;top:14px;font-family:Archivo;font-weight:800;font-size:.8rem;color:var(--accent)}
-.step h4{font-size:1.15rem;margin:0 0 .4em}
-.step p{color:var(--muted);font-size:.9rem;margin:0}
+.process{display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(20px,3vw,40px)}
+.step{padding-top:26px;border-top:1px solid var(--ink);position:relative}
+.step .sn{font-family:Fraunces;font-style:italic;font-size:1.5rem;color:var(--accent);display:block;margin-bottom:.3em}
+.step h4{font-family:Archivo;font-weight:600;font-size:1.05rem;letter-spacing:.02em;margin:0 0 .5em}
+.step p{color:var(--muted);font-size:.92rem;margin:0}
 @media(max-width:820px){.team .top{grid-template-columns:1fr}.process{grid-template-columns:1fr 1fr}}
 
 /* spec band */
-.specband{background:var(--ink);color:#fff;padding:clamp(56px,7vw,100px) 0}
-.specband .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:24px;text-align:center}
-.specband b{font-family:Archivo;font-weight:800;font-size:clamp(1.9rem,3.6vw,3rem);color:#fff;display:block;letter-spacing:-.02em}
-.specband small{color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.14em;font-size:.68rem;font-family:Archivo}
-@media(max-width:820px){.specband .grid{grid-template-columns:repeat(2,1fr);gap:34px}}
+.specband{background:var(--ink);color:#fff;padding:clamp(70px,9vw,130px) 0;position:relative;overflow:hidden}
+.specband .grid{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:24px;text-align:center}
+.specband b{font-family:Fraunces;font-weight:500;font-size:clamp(2.1rem,4vw,3.4rem);color:#fff;display:block;letter-spacing:-.02em}
+.specband small{color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.18em;font-size:.64rem;font-family:Archivo}
+@media(max-width:820px){.specband .grid{grid-template-columns:repeat(2,1fr);gap:38px}}
 
 /* tables */
-.tables{padding:clamp(60px,8vw,110px) 0;display:grid;grid-template-columns:1fr 1.45fr;gap:clamp(30px,6vw,90px);align-items:start}
+.tables{padding:clamp(80px,10vw,150px) 0;display:grid;grid-template-columns:1fr 1.5fr;gap:clamp(34px,7vw,110px);align-items:start}
 @media(max-width:820px){.tables{grid-template-columns:1fr}}
 .spec{width:100%;border-collapse:collapse}
-.spec th,.spec td{text-align:left;padding:.95em 0;border-bottom:1px solid var(--line);font-size:.95rem}
-.spec th{color:var(--muted);font-weight:500;width:46%}
+.spec th,.spec td{text-align:left;padding:1.05em 0;border-bottom:1px solid var(--line);font-size:.95rem}
+.spec th{color:var(--muted);font-weight:400;width:46%}
 .spec td{font-family:Archivo;font-weight:600;color:var(--ink)}
-.sectlabel{font-family:Archivo;font-weight:800;font-size:1.5rem;margin-bottom:1.1em;color:var(--ink)}
+.sectlabel{font-family:Fraunces;font-weight:500;font-size:1.7rem;margin-bottom:1.1em;color:var(--ink)}
 .vars{width:100%;border-collapse:collapse}
-.vars thead th{background:var(--ink);color:#fff;padding:.85em 1em;font-family:Archivo;font-size:.78rem;text-align:left;letter-spacing:.04em}
-.vars td{padding:.85em 1em;border-bottom:1px solid var(--line);font-size:.9rem}
-.vars tbody tr:hover{background:var(--surface)}
+.vars thead th{border-bottom:1.5px solid var(--ink);color:var(--ink);padding:.9em 0;font-family:Archivo;font-size:.72rem;text-align:left;letter-spacing:.12em;text-transform:uppercase}
+.vars td{padding:1em 0;border-bottom:1px solid var(--line);font-size:.92rem}
+.vars td:first-child{font-family:Archivo;font-weight:600}
 
 /* gallery */
-.gallery{padding:0 0 clamp(60px,8vw,110px)}
-.gallery .g{display:grid;grid-template-columns:2fr 1fr;gap:16px}
-.gallery .col{display:grid;gap:16px}
-.gallery .big{aspect-ratio:16/11;border-radius:8px;background:radial-gradient(60% 70% at 60% 35%,rgba(255,214,170,.4),transparent 55%),linear-gradient(160deg,#17191f,#08090a)}
-.gallery .sm{aspect-ratio:4/3;border-radius:8px}
-.s1{background:linear-gradient(160deg,#e9ebef,#d3d7de)}
-.s2{background:radial-gradient(60% 70% at 40% 40%,rgba(120,170,255,.4),transparent 55%),linear-gradient(160deg,#14161c,#08090a)}
+.gallery{padding:0 0 clamp(80px,10vw,150px)}
+.gallery .g{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+.gallery .col{display:grid;gap:14px}
+.gallery .big{aspect-ratio:16/11;background:radial-gradient(58% 72% at 62% 34%,rgba(240,205,154,.42),transparent 56%),linear-gradient(160deg,#181a20,#0a0a0b)}
+.gallery .sm{aspect-ratio:4/3}
+.s1{background:linear-gradient(160deg,#e9e5de,#d6d1c7)}
+.s2{background:radial-gradient(60% 70% at 42% 42%,rgba(120,170,255,.4),transparent 56%),linear-gradient(160deg,#14161c,#0a0a0b)}
 @media(max-width:680px){.gallery .g{grid-template-columns:1fr}}
 
 /* quote */
-.quote{padding:clamp(70px,9vw,130px) 0;text-align:center}
-.quote blockquote{font-family:Archivo;font-weight:600;font-size:clamp(1.6rem,3.4vw,2.6rem);line-height:1.3;letter-spacing:-.02em;max-width:20ch;margin:0 auto .8em;color:var(--ink)}
-.quote cite{font-style:normal;color:var(--muted);font-size:.95rem;letter-spacing:.04em}
+.quote{padding:clamp(90px,12vw,170px) 0;text-align:center}
+.quote blockquote{font-family:Fraunces;font-weight:400;font-size:clamp(1.8rem,4vw,3rem);line-height:1.26;letter-spacing:-.015em;max-width:18ch;margin:0 auto .9em;color:var(--ink)}
+.quote cite{font-style:normal;color:var(--muted);font-family:Archivo;font-size:.78rem;letter-spacing:.16em;text-transform:uppercase}
 
 /* cta */
-.cta{background:var(--blue);color:#fff;text-align:center;padding:clamp(70px,9vw,130px) 0}
-.cta h2{color:#fff;font-size:clamp(2.2rem,4.4vw,3.4rem);margin-bottom:.45em}
-.cta p{color:rgba(255,255,255,.78);max-width:50ch;margin:0 auto 2.2em;font-size:1.1rem}
-.cta .btn-out{border-color:rgba(255,255,255,.55)}
+.cta{position:relative;overflow:hidden;background:var(--ink);color:#fff;text-align:center;padding:clamp(90px,12vw,170px) 0}
+.cta .glow{position:absolute;inset:0;background:radial-gradient(50% 60% at 50% 0%,rgba(240,205,154,.2),transparent 55%)}
+.cta h2{position:relative;color:#fff;font-size:clamp(2.4rem,5vw,4rem);margin-bottom:.5em}
+.cta p{position:relative;color:rgba(255,255,255,.72);max-width:48ch;margin:0 auto 2.4em;font-size:1.1rem}
+.cta .acts{position:relative;display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
 
-footer.site{background:var(--ink);color:rgba(255,255,255,.55);padding:56px 0;font-size:.85rem}
+footer.site{background:var(--ink);color:rgba(255,255,255,.5);padding:60px 0;font-family:Archivo;font-size:.8rem;letter-spacing:.04em}
 footer .row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:20px;align-items:center}
 footer .brand{color:#fff}
-.tag{position:fixed;left:14px;bottom:14px;z-index:99;background:var(--accent);color:#fff;font-family:Archivo;font-weight:700;font-size:.7rem;padding:.55em 1.1em;border-radius:999px;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.tag{position:fixed;left:14px;bottom:14px;z-index:99;background:var(--ink);color:#fff;font-family:Archivo;font-weight:600;font-size:.66rem;letter-spacing:.1em;padding:.6em 1.1em;border-radius:999px;box-shadow:0 8px 24px rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.2)}
 </style>
 </head>
 <body>
-<div class="tag">PREVIEW · Flow range — premium product template</div>
+<div class="tag">PREVIEW · FLOW — DESIGN-LED TEMPLATE</div>
 
 <div class="util"><div class="wrap"><span>Designed &amp; manufactured in Manchester, UK</span><span><a>Specify · Datasheets · BIM →</a></span></div></div>
 
@@ -180,112 +191,122 @@ footer .brand{color:#fff}
   <a class="toolbox">＋ My Project</a>
 </div></header>
 
-<section class="hero">
+<section class="hero grain">
   <div class="glow"></div>
-  <svg viewBox="0 0 1280 820" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <svg class="curve" viewBox="0 0 1320 860" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
     <defs>
-      <filter id="blur" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="7"/></filter>
-      <linearGradient id="neon" x1="0" x2="1"><stop offset="0" stop-color="#ffd9a8"/><stop offset=".5" stop-color="#fff3e0"/><stop offset="1" stop-color="#ffe8c4"/></linearGradient>
+      <filter id="b" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="8"/></filter>
+      <linearGradient id="n" x1="0" x2="1"><stop offset="0" stop-color="#f0cd9a"/><stop offset=".5" stop-color="#fff3e0"/><stop offset="1" stop-color="#f4dcb4"/></linearGradient>
     </defs>
-    <path d="M-60 240 C 240 90, 380 540, 660 430 S 1080 150, 1340 350" fill="none" stroke="url(#neon)" stroke-width="12" stroke-linecap="round" filter="url(#blur)" opacity=".85"/>
-    <path d="M-60 240 C 240 90, 380 540, 660 430 S 1080 150, 1340 350" fill="none" stroke="#fff7ec" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M-60 250 C 250 80, 400 560, 700 440 S 1120 150, 1400 360" fill="none" stroke="url(#n)" stroke-width="13" stroke-linecap="round" filter="url(#b)" opacity=".8"/>
+    <path d="M-60 250 C 250 80, 400 560, 700 440 S 1120 150, 1400 360" fill="none" stroke="#fff7ec" stroke-width="2" stroke-linecap="round"/>
   </svg>
   <div class="wrap hero-inner">
-    <div class="hero-index">FLOW+ &nbsp;/&nbsp; LINEAR LIGHTING &nbsp;/&nbsp; 01</div>
-    <h1>Flow+</h1>
-    <div class="sub">Seamless curves of light, precision engineered in Britain.</div>
-    <p class="lede">A flexible linear system that bends to any architectural line — continuous, dot-free and made to order in Manchester.</p>
-    <div class="hero-actions">
-      <a class="btn btn-out">＋ Add to My Project</a>
-      <a class="btn btn-out">Download Datasheet ↓</a>
+    <div class="topline"><span class="kicker light"><span class="n">01</span>Linear Lighting — Flexible System</span><span class="kicker light">Made to order</span></div>
+    <h1>Flow<span style="color:var(--warm)">+</span></h1>
+    <div class="hero-row">
+      <p class="lede">A flexible linear system that bends to any architectural line — continuous, dot-free and made to order in Manchester.</p>
+      <div class="hero-actions">
+        <a class="btn btn-line">＋ Add to My Project</a>
+        <a class="btn btn-line">Download Datasheet ↓</a>
+      </div>
     </div>
+    <p class="sub">Seamless curves of light, precision engineered in Britain.</p>
   </div>
-  <div class="scrollcue">Scroll</div>
 </section>
 
 <section class="facts"><div class="wrap">
   <div class="f"><small>Output</small><b>Up to 1100 lm/m</b></div>
   <div class="f"><small>Colour</small><b>2700–6500K · CRI 90+</b></div>
   <div class="f"><small>Bend</small><b>360° H &amp; V</b></div>
-  <div class="f"><small>Lengths</small><b>Bespoke / made to order</b></div>
+  <div class="f"><small>Lengths</small><b>Bespoke</b></div>
   <div class="f"><small>Warranty</small><b>5 years</b></div>
 </div></section>
 
 <section class="wrap statement narrow">
-  <p>Turn any installation into a genuine architectural creation. <span>Designed, engineered and built in Britain — to your line.</span></p>
+  <p>Turn any installation into a genuine architectural creation. <em>Designed, engineered and built in Britain — to your line.</em></p>
 </section>
 
 <section class="wrap feature">
-  <div class="media shot-a"></div>
+  <div class="media shot-a grain"></div>
   <div class="body">
-    <div class="label"><span class="n">01</span> Flexibility</div>
+    <span class="kicker"><span class="n">01</span>Flexibility</span>
     <h2>Shape light to the space</h2>
     <p>Flow+ bends both horizontally and vertically, tracing any architectural line without breaks, hotspots or visible joints.</p>
-    <ul><li>Horizontal &amp; vertical bending to 360°</li><li>Continuous, dot-free diffusion</li><li>Surface, suspended or recessed</li></ul>
+    <ul>
+      <li><span class="ix">01</span> Horizontal &amp; vertical bending to 360°</li>
+      <li><span class="ix">02</span> Continuous, dot-free diffusion</li>
+      <li><span class="ix">03</span> Surface, suspended or recessed</li>
+    </ul>
   </div>
 </section>
 
 <section class="wrap feature rev">
-  <div class="media shot-c"></div>
+  <div class="media shot-c grain"></div>
   <div class="body">
-    <div class="label"><span class="n">02</span> Light Quality</div>
+    <span class="kicker"><span class="n">02</span>Light Quality</span>
     <h2>Calibrated for interiors</h2>
     <p>High-CRI light with tunable white, factory-calibrated so every metre matches — across a single run or an entire scheme.</p>
-    <ul><li>CRI 90+ as standard</li><li>2700K – 6500K tunable white</li><li>DALI &amp; phase dimming</li></ul>
+    <ul>
+      <li><span class="ix">01</span> CRI 90+ as standard</li>
+      <li><span class="ix">02</span> 2700K – 6500K tunable white</li>
+      <li><span class="ix">03</span> DALI &amp; phase dimming</li>
+    </ul>
   </div>
 </section>
 
-<section class="britain">
+<section class="break grain">
+  <svg class="curve2" viewBox="0 0 1320 640" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <path d="M-60 420 C 300 520, 460 180, 720 280 S 1160 540, 1400 300" fill="none" stroke="#fff4e2" stroke-width="2.5" stroke-linecap="round" opacity=".9"/>
+  </svg>
+  <div class="cap">“A single, unbroken line of light — drawn exactly where the architecture wanted it.”</div>
+</section>
+
+<section class="britain grain">
   <div class="glow"></div>
   <div class="wrap grid">
     <div class="body">
-      <div class="label" style="color:rgba(255,255,255,.6)"><span class="n">03</span> Made in Britain</div>
+      <span class="kicker light"><span class="n">03</span>Made in Britain</span>
       <h2>Engineered &amp; built in Manchester</h2>
       <p>Flow+ isn’t imported and rebadged. It’s designed, assembled, tested and finished in our own UK facility — so we control quality, lead times and every bespoke detail.</p>
       <p>Vertical integration means shorter lead times, full traceability and the ability to make to order rather than to a catalogue.</p>
-      <a class="btn btn-out" style="margin-top:.6em">Inside our manufacturing →</a>
+      <a class="btn btn-line" style="margin-top:.6em">Inside our manufacturing →</a>
     </div>
-    <div class="media"><div class="stamp">Made<br>in<br>Britain</div></div>
+    <div class="media"><div class="stamp">Designed<br>&amp; made in<br>Britain</div></div>
   </div>
 </section>
 
 <section class="custom wrap">
   <div class="head">
-    <div class="label"><span class="n">04</span> Customisation</div>
-    <h2>Made to order, not off the shelf</h2>
+    <div><span class="kicker"><span class="n">04</span>Customisation</span><h2>Made to order,<br>not off the shelf</h2></div>
     <p>Because we manufacture in-house, almost everything about Flow+ can be tailored to your scheme — at project quantities, without bespoke-tooling minimums.</p>
   </div>
-  <div class="optgrid">
-    <div class="opt"><div class="on">/ LENGTH</div><h3>Bespoke runs</h3><p>Cut and joined to your exact dimensions — single continuous lengths or repeating modules.</p></div>
-    <div class="opt"><div class="on">/ FINISH</div><h3>Any RAL finish</h3><p>Powder-coated housings in standard white, black or any RAL to match the interior palette.</p></div>
-    <div class="opt"><div class="on">/ OPTIC</div><h3>Custom diffusers</h3><p>Opal, frosted or micro-prismatic diffusers and beam shaping for glare control.</p></div>
-    <div class="opt"><div class="on">/ COLOUR</div><h3>Tuned CCT</h3><p>Fixed or tunable white calibrated to a specified colour temperature and CRI.</p></div>
-    <div class="opt"><div class="on">/ MOUNTING</div><h3>Mounting &amp; trims</h3><p>Surface, suspended, recessed and plaster-in trims, with custom suspension drops.</p></div>
-    <div class="opt"><div class="on">/ CONTROLS</div><h3>Controls &amp; drivers</h3><p>DALI, DALI-2, phase or 1–10V, pre-wired and zoned to your control layout.</p></div>
-  </div>
+  <div class="optrow"><span class="num">01</span><h3>Bespoke runs</h3><p>Cut and joined to your exact dimensions — single continuous lengths or repeating modules.</p></div>
+  <div class="optrow"><span class="num">02</span><h3>Any RAL finish</h3><p>Powder-coated housings in white, black or any RAL to match the interior palette.</p></div>
+  <div class="optrow"><span class="num">03</span><h3>Custom diffusers &amp; optics</h3><p>Opal, frosted or micro-prismatic diffusers and beam shaping for glare control.</p></div>
+  <div class="optrow"><span class="num">04</span><h3>Tuned colour</h3><p>Fixed or tunable white calibrated to a specified colour temperature and CRI.</p></div>
+  <div class="optrow"><span class="num">05</span><h3>Mounting &amp; trims</h3><p>Surface, suspended, recessed and plaster-in trims, with custom suspension drops.</p></div>
+  <div class="optrow"><span class="num">06</span><h3>Controls &amp; drivers</h3><p>DALI, DALI-2, phase or 1–10V, pre-wired and zoned to your control layout.</p></div>
 </section>
 
 <section class="team">
   <div class="wrap">
     <div class="top">
-      <div>
-        <div class="label"><span class="n">05</span> Lighting Design</div>
-        <h2>Our in-house design team, on your project</h2>
-      </div>
+      <div><span class="kicker"><span class="n">05</span>Lighting Design</span><h2>Our in-house design team, on your project</h2></div>
       <p>Beyond the product, our UK lighting designers work alongside architects, interior designers and contractors to take a scheme from concept to commissioning — free of charge.</p>
     </div>
     <div class="process">
-      <div class="step"><h4>Consult</h4><p>We review drawings, finishes and the brief with your team.</p></div>
-      <div class="step"><h4>Design</h4><p>Relux &amp; DIALux calculations, lux levels and product schedules.</p></div>
-      <div class="step"><h4>Engineer</h4><p>Photometry, BIM/Revit objects and bespoke detailing.</p></div>
-      <div class="step"><h4>Manufacture</h4><p>Made to order in Manchester with full QA testing.</p></div>
-      <div class="step"><h4>Support</h4><p>Delivery, on-site support and handover documentation.</p></div>
+      <div class="step"><span class="sn">i</span><h4>Consult</h4><p>We review drawings, finishes and the brief with your team.</p></div>
+      <div class="step"><span class="sn">ii</span><h4>Design</h4><p>Relux &amp; DIALux calculations, lux levels and schedules.</p></div>
+      <div class="step"><span class="sn">iii</span><h4>Engineer</h4><p>Photometry, BIM/Revit objects and bespoke detailing.</p></div>
+      <div class="step"><span class="sn">iv</span><h4>Manufacture</h4><p>Made to order in Manchester with full QA testing.</p></div>
+      <div class="step"><span class="sn">v</span><h4>Support</h4><p>Delivery, on-site support and handover documentation.</p></div>
     </div>
   </div>
 </section>
 
-<section class="specband"><div class="wrap"><div class="grid">
-  <div><b>1100<small style="text-transform:none;letter-spacing:0"> lm/m</small></b><small>Output</small></div>
+<section class="specband grain"><div class="wrap"><div class="grid">
+  <div><b>1100<span style="font-size:.4em;font-family:Archivo;letter-spacing:.05em"> LM/M</span></b><small>Output</small></div>
   <div><b>90+</b><small>CRI</small></div>
   <div><b>2700–6500K</b><small>Tunable</small></div>
   <div><b>IP20–65</b><small>Rating</small></div>
@@ -319,31 +340,34 @@ footer .brand{color:#fff}
         <tr><td>FLW-BESPOKE</td><td>Made-to-order run (specify)</td><td>—</td><td>—</td><td>—</td></tr>
       </tbody>
     </table>
-    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:1.6em">
-      <a class="btn btn-solid">Download full datasheet (PDF) ↓</a>
-      <a class="btn btn-out-dark">＋ Add to My Project</a>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:1.8em">
+      <a class="btn btn-solid">Download datasheet (PDF) ↓</a>
+      <a class="btn btn-line-d">＋ Add to My Project</a>
     </div>
   </div>
 </section>
 
 <section class="wrap gallery"><div class="g">
-  <div class="big"></div>
-  <div class="col"><div class="sm s1"></div><div class="sm s2"></div></div>
+  <div class="big grain"></div>
+  <div class="col"><div class="sm s1"></div><div class="sm s2 grain"></div></div>
 </div></section>
 
 <section class="quote wrap narrow">
   <blockquote>“The Flow+ run was made to our exact ceiling geometry — no compromises.”</blockquote>
-  <cite>— Specification architect, commercial office fit-out</cite>
+  <cite>Specification Architect · Commercial Office Fit-out</cite>
 </section>
 
-<section class="cta"><div class="wrap">
-  <h2>Specify Flow+ on your next project</h2>
-  <p>Send us your drawings and our in-house lighting designers will return a fully specified, costed, made-to-order Flow+ scheme — usually within 48 hours.</p>
-  <div class="hero-actions" style="justify-content:center;display:flex;gap:14px;flex-wrap:wrap">
-    <a class="btn btn-out">＋ Add to My Project</a>
-    <a class="btn btn-solid" style="background:#fff;color:var(--ink)">Talk to the design team →</a>
+<section class="cta grain">
+  <div class="glow"></div>
+  <div class="wrap">
+    <h2>Specify Flow+ on your next project</h2>
+    <p>Send us your drawings and our in-house lighting designers will return a fully specified, costed, made-to-order Flow+ scheme — usually within 48 hours.</p>
+    <div class="acts">
+      <a class="btn btn-line">＋ Add to My Project</a>
+      <a class="btn btn-solid" style="background:#fff;color:var(--ink)">Talk to the design team →</a>
+    </div>
   </div>
-</div></section>
+</section>
 
 <footer class="site"><div class="wrap row">
   <div class="brand">RICOMAN<sup>®</sup></div>
