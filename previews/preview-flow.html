@@ -3,188 +3,289 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Flow+ — Ricoman (designed product page preview)</title>
+<title>Flow+ — Ricoman (premium product page preview)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --white:#fff; --surface:#f6f7f8; --line:#e6e7ea; --ink:#0a0a0b;
-  --text:#15171a; --muted:#6b7280; --blue:#16335c; --accent:#3d7bed;
-  --wide:1240px; --pad:clamp(20px,5vw,64px);
+  --white:#fff; --paper:#fafafa; --surface:#f4f5f6; --line:#e6e7ea; --ink:#08090a;
+  --text:#15171a; --muted:#737a85; --faint:#9aa0aa; --blue:#16335c; --accent:#3d7bed;
+  --warm:#ffd9a8; --wide:1280px; --pad:clamp(22px,5.5vw,80px);
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;font-family:Inter,system-ui,sans-serif;color:var(--text);background:var(--white);line-height:1.65;-webkit-font-smoothing:antialiased}
-h1,h2,h3,h4{font-family:Archivo,sans-serif;color:var(--ink);line-height:1.08;letter-spacing:-.02em;margin:0}
+body{margin:0;font-family:Inter,system-ui,sans-serif;color:var(--text);background:var(--white);line-height:1.7;-webkit-font-smoothing:antialiased;font-feature-settings:"ss01","cv01"}
+h1,h2,h3,h4{font-family:Archivo,sans-serif;color:var(--ink);line-height:1.05;letter-spacing:-.025em;margin:0;font-weight:800}
 a{color:inherit;text-decoration:none}
 img{max-width:100%;display:block}
 .wrap{max-width:var(--wide);margin:0 auto;padding-inline:var(--pad)}
-.eyebrow{font-family:Archivo;text-transform:uppercase;letter-spacing:.18em;font-size:.72rem;font-weight:700;color:var(--accent)}
-.btn{display:inline-flex;align-items:center;gap:.5em;font-family:Archivo;font-weight:600;font-size:.95rem;padding:.85em 1.5em;border-radius:6px;border:1.5px solid transparent;cursor:pointer;transition:.18s}
-.btn-solid{background:var(--ink);color:#fff}
-.btn-solid:hover{background:var(--blue)}
-.btn-out{border-color:rgba(255,255,255,.45);color:#fff}
-.btn-out:hover{background:rgba(255,255,255,.1);border-color:#fff}
-.btn-out-dark{border-color:#d2d4d9;color:var(--ink)}
-.btn-out-dark:hover{border-color:var(--ink)}
+.narrow{max-width:980px}
+.eyebrow{font-family:Archivo;text-transform:uppercase;letter-spacing:.24em;font-size:.7rem;font-weight:700;color:var(--accent)}
+.label{font-family:Archivo;text-transform:uppercase;letter-spacing:.22em;font-size:.7rem;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:.8em}
+.label .n{color:var(--accent)}
+.btn{display:inline-flex;align-items:center;gap:.6em;font-family:Archivo;font-weight:600;font-size:.92rem;letter-spacing:.01em;padding:.95em 1.7em;border-radius:4px;border:1.5px solid transparent;cursor:pointer;transition:.2s}
+.btn-solid{background:var(--ink);color:#fff}.btn-solid:hover{background:var(--blue)}
+.btn-out{border-color:rgba(255,255,255,.4);color:#fff}.btn-out:hover{background:rgba(255,255,255,.08);border-color:#fff}
+.btn-out-dark{border-color:#d4d6da;color:var(--ink)}.btn-out-dark:hover{border-color:var(--ink)}
+hr.hair{border:0;border-top:1px solid var(--line);margin:0}
+
+/* utility bar */
+.util{background:var(--ink);color:rgba(255,255,255,.6);font-family:Archivo;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase}
+.util .wrap{display:flex;justify-content:space-between;height:34px;align-items:center}
+.util a{color:rgba(255,255,255,.75)}
+@media(max-width:680px){.util .wrap span:first-child{display:none}}
 
 /* header */
-header.site{position:sticky;top:0;z-index:50;background:rgba(10,10,11,.85);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.08)}
-.nav{display:flex;align-items:center;justify-content:space-between;height:64px;color:#fff}
-.brand{font-family:Archivo;font-weight:900;letter-spacing:.2em;font-size:1.15rem}
+header.site{position:sticky;top:0;z-index:50;background:rgba(8,9,10,.7);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.07)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:70px;color:#fff}
+.brand{font-family:Archivo;font-weight:900;letter-spacing:.22em;font-size:1.2rem}
 .brand sup{font-size:.5em;top:-1em}
-.nav ul{display:flex;gap:28px;list-style:none;margin:0;padding:0;font-size:.9rem;font-weight:500}
-.nav ul a{color:rgba(255,255,255,.85)}.nav ul a:hover{color:#fff}
-.toolbox{border:1.5px solid rgba(255,255,255,.4);padding:.5em 1.1em;border-radius:999px;font-family:Archivo;font-weight:600;font-size:.85rem}
-@media(max-width:860px){.nav ul,.toolbox{display:none}}
-
-/* breadcrumb */
-.crumb{font-size:.82rem;color:var(--muted);padding:18px 0}
-.crumb a:hover{color:var(--accent)} .crumb .sep{color:var(--line);margin:0 .5em}
+.nav ul{display:flex;gap:34px;list-style:none;margin:0;padding:0;font-size:.88rem;font-weight:500}
+.nav ul a{color:rgba(255,255,255,.82)}.nav ul a:hover{color:#fff}
+.toolbox{border:1.5px solid rgba(255,255,255,.35);padding:.55em 1.2em;border-radius:999px;font-family:Archivo;font-weight:600;font-size:.82rem}
+@media(max-width:900px){.nav ul,.toolbox{display:none}}
 
 /* HERO */
-.hero{position:relative;background:var(--ink);color:#fff;overflow:hidden;min-height:88vh;display:flex;align-items:flex-end}
+.hero{position:relative;background:var(--ink);color:#fff;overflow:hidden;min-height:96vh;display:flex;flex-direction:column;justify-content:flex-end}
 .hero .glow{position:absolute;inset:0;background:
-  radial-gradient(60% 50% at 78% 20%,rgba(255,214,170,.22),transparent 60%),
-  radial-gradient(50% 40% at 20% 90%,rgba(61,123,237,.18),transparent 60%)}
-.hero svg{position:absolute;inset:0;width:100%;height:100%;opacity:.95}
-.hero-inner{position:relative;z-index:2;padding-bottom:clamp(40px,7vw,90px);padding-top:120px;max-width:760px}
-.hero h1{font-size:clamp(3rem,8vw,6rem);font-weight:800;margin:.25em 0 .3em}
-.hero p.lede{font-size:clamp(1.1rem,2vw,1.4rem);color:rgba(255,255,255,.82);max-width:34ch;margin:0 0 2em}
+  radial-gradient(55% 45% at 80% 16%,rgba(255,214,170,.26),transparent 62%),
+  radial-gradient(45% 38% at 12% 92%,rgba(61,123,237,.16),transparent 60%)}
+.hero svg{position:absolute;inset:0;width:100%;height:100%}
+.hero-inner{position:relative;z-index:2;padding-bottom:clamp(48px,7vw,100px)}
+.hero-index{font-family:Archivo;font-weight:700;letter-spacing:.2em;font-size:.78rem;color:rgba(255,255,255,.5);margin-bottom:18px}
+.hero h1{font-size:clamp(3.4rem,11vw,8.5rem);font-weight:900;letter-spacing:-.04em;margin:0 0 .12em;line-height:.92}
+.hero .sub{font-family:Archivo;font-weight:600;font-size:clamp(1.05rem,1.6vw,1.35rem);color:#fff;margin-bottom:.8em}
+.hero p.lede{font-size:clamp(1.05rem,1.5vw,1.25rem);color:rgba(255,255,255,.7);max-width:40ch;margin:0 0 2.2em}
 .hero-actions{display:flex;gap:14px;flex-wrap:wrap}
-.hero-meta{position:absolute;right:var(--pad);bottom:clamp(40px,7vw,90px);z-index:2;text-align:right;display:flex;flex-direction:column;gap:18px}
-.hero-meta div small{display:block;color:rgba(255,255,255,.55);font-size:.7rem;text-transform:uppercase;letter-spacing:.14em;font-family:Archivo}
-.hero-meta div b{font-family:Archivo;font-size:1.5rem;font-weight:700}
-@media(max-width:980px){.hero-meta{display:none}}
+.scrollcue{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);z-index:2;color:rgba(255,255,255,.4);font-family:Archivo;font-size:.66rem;letter-spacing:.3em;text-transform:uppercase}
+
+/* hero facts strip */
+.facts{background:var(--ink);color:#fff;border-top:1px solid rgba(255,255,255,.1)}
+.facts .wrap{display:grid;grid-template-columns:repeat(5,1fr)}
+.facts .f{padding:30px 0;border-right:1px solid rgba(255,255,255,.1)}
+.facts .f:last-child{border-right:0}
+.facts small{display:block;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.16em;font-size:.62rem;font-family:Archivo;margin-bottom:8px}
+.facts b{font-family:Archivo;font-weight:700;font-size:1.15rem}
+@media(max-width:820px){.facts .wrap{grid-template-columns:repeat(2,1fr)}.facts .f{border-right:0;border-bottom:1px solid rgba(255,255,255,.1);padding:22px var(--pad)}}
 
 /* statement */
-.statement{padding:clamp(60px,9vw,120px) 0}
-.statement p{font-family:Archivo;font-weight:500;font-size:clamp(1.5rem,3.4vw,2.4rem);line-height:1.32;max-width:20ch;margin:0;color:var(--text)}
-.statement strong{color:var(--ink)}
+.statement{padding:clamp(80px,11vw,160px) 0}
+.statement p{font-family:Archivo;font-weight:600;font-size:clamp(1.8rem,4.4vw,3.4rem);line-height:1.22;letter-spacing:-.025em;max-width:18ch;margin:0;color:var(--ink)}
+.statement p span{color:var(--faint)}
 
 /* feature rows */
-.feature{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,80px);align-items:center;padding:clamp(30px,5vw,60px) 0}
+.feature{display:grid;grid-template-columns:1fr 1fr;gap:clamp(30px,6vw,100px);align-items:center;padding:clamp(28px,4vw,56px) 0}
 .feature.rev .media{order:2}
-.feature .media{aspect-ratio:4/3;border-radius:10px;overflow:hidden;position:relative;background:#101114}
-.shot-a{background:
-  radial-gradient(70% 80% at 70% 30%,rgba(255,224,184,.5),transparent 55%),
-  linear-gradient(160deg,#1a1c22,#0a0a0b)}
-.shot-b{background:linear-gradient(160deg,#e9ebef,#cfd3da)}
-.shot-c{background:
-  radial-gradient(60% 70% at 30% 30%,rgba(120,170,255,.45),transparent 55%),
-  linear-gradient(160deg,#11131a,#0a0a0b)}
-.curve{position:absolute;inset:0}
-.feature h2{font-size:clamp(1.7rem,3.2vw,2.6rem);font-weight:800;margin-bottom:.4em}
-.feature p{color:var(--muted);font-size:1.05rem;margin:0 0 1.2em}
-.feature ul{margin:0;padding-left:1.1em;color:var(--muted)}.feature li{margin:.3em 0}
+.feature .media{aspect-ratio:5/4;border-radius:8px;overflow:hidden;position:relative;background:#0e0f12}
+.shot-a{background:radial-gradient(75% 85% at 72% 28%,rgba(255,224,184,.55),transparent 55%),linear-gradient(160deg,#1b1d23,#08090a)}
+.shot-c{background:radial-gradient(62% 72% at 28% 30%,rgba(120,170,255,.5),transparent 55%),linear-gradient(160deg,#101219,#08090a)}
+.feature .body{max-width:480px}
+.feature h2{font-size:clamp(1.9rem,3.4vw,2.9rem);margin:.5em 0 .5em}
+.feature p{color:var(--muted);font-size:1.08rem;margin:0 0 1.3em}
+.feature ul{margin:0;padding:0;list-style:none}
+.feature li{padding:.6em 0;border-top:1px solid var(--line);color:var(--text);font-size:.98rem;display:flex;gap:.7em}
+.feature li::before{content:"—";color:var(--accent)}
+
+/* MADE IN BRITAIN — full dark editorial */
+.britain{background:var(--ink);color:#fff;padding:clamp(80px,10vw,150px) 0;position:relative;overflow:hidden}
+.britain .glow{position:absolute;inset:0;background:radial-gradient(40% 60% at 85% 30%,rgba(61,123,237,.16),transparent 60%)}
+.britain .grid{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:clamp(30px,6vw,90px);align-items:center}
+.britain h2{color:#fff;font-size:clamp(2.2rem,4.6vw,3.6rem);margin:.4em 0 .6em}
+.britain p{color:rgba(255,255,255,.72);font-size:1.1rem;margin:0 0 1.2em;max-width:46ch}
+.britain .media{aspect-ratio:4/5;border-radius:8px;background:radial-gradient(60% 50% at 50% 20%,rgba(255,224,184,.4),transparent 55%),linear-gradient(160deg,#16181e,#08090a);position:relative}
+.stamp{position:absolute;right:24px;bottom:24px;width:92px;height:92px;border:1.5px solid rgba(255,255,255,.35);border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;font-family:Archivo;font-weight:700;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.85);line-height:1.3}
+@media(max-width:820px){.britain .grid{grid-template-columns:1fr}.britain .media{order:-1;aspect-ratio:16/10}}
+
+/* CUSTOMISATION grid */
+.custom{padding:clamp(80px,10vw,150px) 0}
+.custom .head{max-width:640px;margin-bottom:clamp(40px,6vw,70px)}
+.custom h2{font-size:clamp(2.2rem,4.6vw,3.6rem);margin:.4em 0 .4em}
+.custom .head p{color:var(--muted);font-size:1.12rem;margin:0}
+.optgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.opt{background:var(--white);padding:clamp(26px,3vw,40px);transition:.2s}
+.opt:hover{background:var(--paper)}
+.opt .on{font-family:Archivo;font-weight:700;font-size:.72rem;color:var(--accent);letter-spacing:.14em}
+.opt h3{font-size:1.3rem;margin:.5em 0 .35em}
+.opt p{color:var(--muted);font-size:.95rem;margin:0}
+@media(max-width:820px){.optgrid{grid-template-columns:1fr}}
+
+/* DESIGN TEAM + process */
+.team{background:var(--surface);padding:clamp(80px,10vw,150px) 0}
+.team .top{display:grid;grid-template-columns:1fr 1fr;gap:clamp(30px,6vw,90px);align-items:end;margin-bottom:clamp(48px,6vw,80px)}
+.team h2{font-size:clamp(2.2rem,4.6vw,3.6rem);margin:.4em 0 0}
+.team .top p{color:var(--muted);font-size:1.12rem;margin:0}
+.process{display:grid;grid-template-columns:repeat(5,1fr);gap:24px;counter-reset:step}
+.step{position:relative;padding-top:28px;border-top:2px solid var(--ink)}
+.step::before{counter-increment:step;content:"0" counter(step);position:absolute;top:14px;font-family:Archivo;font-weight:800;font-size:.8rem;color:var(--accent)}
+.step h4{font-size:1.15rem;margin:0 0 .4em}
+.step p{color:var(--muted);font-size:.9rem;margin:0}
+@media(max-width:820px){.team .top{grid-template-columns:1fr}.process{grid-template-columns:1fr 1fr}}
 
 /* spec band */
-.specband{background:var(--ink);color:#fff;padding:clamp(50px,7vw,90px) 0}
+.specband{background:var(--ink);color:#fff;padding:clamp(56px,7vw,100px) 0}
 .specband .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:24px;text-align:center}
-.specband b{font-family:Archivo;font-weight:800;font-size:clamp(1.8rem,3.5vw,2.8rem);color:#fff;display:block}
-.specband small{color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.12em;font-size:.72rem;font-family:Archivo}
-@media(max-width:860px){.specband .grid{grid-template-columns:repeat(2,1fr);gap:32px}}
+.specband b{font-family:Archivo;font-weight:800;font-size:clamp(1.9rem,3.6vw,3rem);color:#fff;display:block;letter-spacing:-.02em}
+.specband small{color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.14em;font-size:.68rem;font-family:Archivo}
+@media(max-width:820px){.specband .grid{grid-template-columns:repeat(2,1fr);gap:34px}}
 
-/* spec tables */
-.tables{padding:clamp(50px,7vw,90px) 0;display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(28px,5vw,70px);align-items:start}
-@media(max-width:860px){.tables{grid-template-columns:1fr}}
-table{width:100%;border-collapse:collapse}
-.spec th,.spec td{text-align:left;padding:.8em 0;border-bottom:1px solid var(--line);font-size:.95rem}
-.spec th{color:var(--muted);font-weight:500;width:48%}
+/* tables */
+.tables{padding:clamp(60px,8vw,110px) 0;display:grid;grid-template-columns:1fr 1.45fr;gap:clamp(30px,6vw,90px);align-items:start}
+@media(max-width:820px){.tables{grid-template-columns:1fr}}
+.spec{width:100%;border-collapse:collapse}
+.spec th,.spec td{text-align:left;padding:.95em 0;border-bottom:1px solid var(--line);font-size:.95rem}
+.spec th{color:var(--muted);font-weight:500;width:46%}
 .spec td{font-family:Archivo;font-weight:600;color:var(--ink)}
-.vars thead th{background:var(--ink);color:#fff;padding:.7em .9em;font-family:Archivo;font-size:.8rem;text-align:left}
-.vars td{padding:.7em .9em;border-bottom:1px solid var(--line);font-size:.9rem}
+.sectlabel{font-family:Archivo;font-weight:800;font-size:1.5rem;margin-bottom:1.1em;color:var(--ink)}
+.vars{width:100%;border-collapse:collapse}
+.vars thead th{background:var(--ink);color:#fff;padding:.85em 1em;font-family:Archivo;font-size:.78rem;text-align:left;letter-spacing:.04em}
+.vars td{padding:.85em 1em;border-bottom:1px solid var(--line);font-size:.9rem}
 .vars tbody tr:hover{background:var(--surface)}
-.sectlabel{font-family:Archivo;font-weight:800;font-size:1.4rem;margin-bottom:1em;color:var(--ink)}
 
 /* gallery */
-.gallery{padding:0 0 clamp(50px,7vw,90px)}
-.gallery .g{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.gallery .g div{aspect-ratio:1;border-radius:10px}
-.g1{background:linear-gradient(160deg,#15171c,#0a0a0b)}
-.g2{background:linear-gradient(160deg,#e9ebef,#d3d7de)}
-.g3{background:radial-gradient(70% 70% at 60% 40%,rgba(255,214,170,.4),transparent 55%),linear-gradient(160deg,#191b21,#0a0a0b)}
+.gallery{padding:0 0 clamp(60px,8vw,110px)}
+.gallery .g{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+.gallery .col{display:grid;gap:16px}
+.gallery .big{aspect-ratio:16/11;border-radius:8px;background:radial-gradient(60% 70% at 60% 35%,rgba(255,214,170,.4),transparent 55%),linear-gradient(160deg,#17191f,#08090a)}
+.gallery .sm{aspect-ratio:4/3;border-radius:8px}
+.s1{background:linear-gradient(160deg,#e9ebef,#d3d7de)}
+.s2{background:radial-gradient(60% 70% at 40% 40%,rgba(120,170,255,.4),transparent 55%),linear-gradient(160deg,#14161c,#08090a)}
 @media(max-width:680px){.gallery .g{grid-template-columns:1fr}}
 
-/* cta */
-.cta{background:var(--blue);color:#fff;text-align:center;padding:clamp(60px,8vw,110px) 0}
-.cta h2{color:#fff;font-size:clamp(2rem,4vw,3rem);font-weight:800;margin-bottom:.5em}
-.cta p{color:rgba(255,255,255,.8);max-width:48ch;margin:0 auto 2em}
+/* quote */
+.quote{padding:clamp(70px,9vw,130px) 0;text-align:center}
+.quote blockquote{font-family:Archivo;font-weight:600;font-size:clamp(1.6rem,3.4vw,2.6rem);line-height:1.3;letter-spacing:-.02em;max-width:20ch;margin:0 auto .8em;color:var(--ink)}
+.quote cite{font-style:normal;color:var(--muted);font-size:.95rem;letter-spacing:.04em}
 
-footer.site{background:var(--ink);color:rgba(255,255,255,.6);padding:50px 0;font-size:.85rem}
-footer .row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:20px}
+/* cta */
+.cta{background:var(--blue);color:#fff;text-align:center;padding:clamp(70px,9vw,130px) 0}
+.cta h2{color:#fff;font-size:clamp(2.2rem,4.4vw,3.4rem);margin-bottom:.45em}
+.cta p{color:rgba(255,255,255,.78);max-width:50ch;margin:0 auto 2.2em;font-size:1.1rem}
+.cta .btn-out{border-color:rgba(255,255,255,.55)}
+
+footer.site{background:var(--ink);color:rgba(255,255,255,.55);padding:56px 0;font-size:.85rem}
+footer .row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:20px;align-items:center}
 footer .brand{color:#fff}
-.tag{position:fixed;left:12px;bottom:12px;z-index:99;background:var(--accent);color:#fff;font-family:Archivo;font-weight:700;font-size:.72rem;padding:.5em 1em;border-radius:999px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.tag{position:fixed;left:14px;bottom:14px;z-index:99;background:var(--accent);color:#fff;font-family:Archivo;font-weight:700;font-size:.7rem;padding:.55em 1.1em;border-radius:999px;box-shadow:0 8px 24px rgba(0,0,0,.3)}
 </style>
 </head>
 <body>
-<div class="tag">PREVIEW · Flow range — “designed” product template</div>
+<div class="tag">PREVIEW · Flow range — premium product template</div>
+
+<div class="util"><div class="wrap"><span>Designed &amp; manufactured in Manchester, UK</span><span><a>Specify · Datasheets · BIM →</a></span></div></div>
 
 <header class="site"><div class="wrap nav">
   <div class="brand">RICOMAN<sup>®</sup></div>
-  <ul><li><a>Products</a></li><li><a>Projects</a></li><li><a>Lighting Design</a></li><li><a>About</a></li></ul>
+  <ul><li><a>Products</a></li><li><a>Projects</a></li><li><a>Lighting Design</a></li><li><a>Manufacturing</a></li><li><a>About</a></li></ul>
   <a class="toolbox">＋ My Project</a>
 </div></header>
 
 <section class="hero">
   <div class="glow"></div>
-  <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <svg viewBox="0 0 1280 820" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
     <defs>
-      <filter id="blur"><feGaussianBlur stdDeviation="6"/></filter>
-      <linearGradient id="neon" x1="0" x2="1">
-        <stop offset="0" stop-color="#ffd9a8"/><stop offset="1" stop-color="#fff3e0"/>
-      </linearGradient>
+      <filter id="blur" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="7"/></filter>
+      <linearGradient id="neon" x1="0" x2="1"><stop offset="0" stop-color="#ffd9a8"/><stop offset=".5" stop-color="#fff3e0"/><stop offset="1" stop-color="#ffe8c4"/></linearGradient>
     </defs>
-    <path d="M-50 250 C 250 120, 380 520, 650 420 S 1050 180, 1300 360"
-      fill="none" stroke="url(#neon)" stroke-width="10" stroke-linecap="round" filter="url(#blur)" opacity=".9"/>
-    <path d="M-50 250 C 250 120, 380 520, 650 420 S 1050 180, 1300 360"
-      fill="none" stroke="#fff7ec" stroke-width="3" stroke-linecap="round"/>
+    <path d="M-60 240 C 240 90, 380 540, 660 430 S 1080 150, 1340 350" fill="none" stroke="url(#neon)" stroke-width="12" stroke-linecap="round" filter="url(#blur)" opacity=".85"/>
+    <path d="M-60 240 C 240 90, 380 540, 660 430 S 1080 150, 1340 350" fill="none" stroke="#fff7ec" stroke-width="2.5" stroke-linecap="round"/>
   </svg>
   <div class="wrap hero-inner">
-    <span class="eyebrow">Linear Lighting · Flexible System</span>
+    <div class="hero-index">FLOW+ &nbsp;/&nbsp; LINEAR LIGHTING &nbsp;/&nbsp; 01</div>
     <h1>Flow+</h1>
-    <p class="lede">Seamless curves of light, precision engineered in Britain. Bend, shape and specify a continuous run — up to 360°.</p>
+    <div class="sub">Seamless curves of light, precision engineered in Britain.</div>
+    <p class="lede">A flexible linear system that bends to any architectural line — continuous, dot-free and made to order in Manchester.</p>
     <div class="hero-actions">
       <a class="btn btn-out">＋ Add to My Project</a>
       <a class="btn btn-out">Download Datasheet ↓</a>
     </div>
   </div>
-  <div class="hero-meta">
-    <div><small>Lengths</small><b>Bespoke</b></div>
-    <div><small>Output</small><b>Up to 1100 lm/m</b></div>
-    <div><small>Warranty</small><b>5 years</b></div>
-  </div>
+  <div class="scrollcue">Scroll</div>
 </section>
 
-<div class="wrap crumb"><a>Home</a><span class="sep">/</span><a>Products</a><span class="sep">/</span><a>Linear Lighting</a><span class="sep">/</span><span>Flow+</span></div>
+<section class="facts"><div class="wrap">
+  <div class="f"><small>Output</small><b>Up to 1100 lm/m</b></div>
+  <div class="f"><small>Colour</small><b>2700–6500K · CRI 90+</b></div>
+  <div class="f"><small>Bend</small><b>360° H &amp; V</b></div>
+  <div class="f"><small>Lengths</small><b>Bespoke / made to order</b></div>
+  <div class="f"><small>Warranty</small><b>5 years</b></div>
+</div></section>
 
-<section class="wrap statement">
-  <p>A genuine architectural creation. <strong>Turn any installation into a signature of light.</strong></p>
+<section class="wrap statement narrow">
+  <p>Turn any installation into a genuine architectural creation. <span>Designed, engineered and built in Britain — to your line.</span></p>
 </section>
 
 <section class="wrap feature">
   <div class="media shot-a"></div>
   <div class="body">
-    <span class="eyebrow">360° Flexibility</span>
+    <div class="label"><span class="n">01</span> Flexibility</div>
     <h2>Shape light to the space</h2>
-    <p>Flow+ bends both horizontally and vertically, letting you trace any architectural line without breaks, hotspots or visible joints.</p>
-    <ul><li>Horizontal &amp; vertical bending</li><li>Continuous, dot-free diffusion</li><li>Surface, suspended or recessed</li></ul>
+    <p>Flow+ bends both horizontally and vertically, tracing any architectural line without breaks, hotspots or visible joints.</p>
+    <ul><li>Horizontal &amp; vertical bending to 360°</li><li>Continuous, dot-free diffusion</li><li>Surface, suspended or recessed</li></ul>
   </div>
 </section>
 
 <section class="wrap feature rev">
   <div class="media shot-c"></div>
   <div class="body">
-    <span class="eyebrow">Tunable White</span>
+    <div class="label"><span class="n">02</span> Light Quality</div>
     <h2>Calibrated for interiors</h2>
-    <p>High-CRI light with switchable and tunable white options, factory-calibrated so every metre matches — across a single run or an entire scheme.</p>
-    <ul><li>CRI 90+ as standard</li><li>2700K – 6500K tunable</li><li>DALI &amp; phase dimming</li></ul>
+    <p>High-CRI light with tunable white, factory-calibrated so every metre matches — across a single run or an entire scheme.</p>
+    <ul><li>CRI 90+ as standard</li><li>2700K – 6500K tunable white</li><li>DALI &amp; phase dimming</li></ul>
+  </div>
+</section>
+
+<section class="britain">
+  <div class="glow"></div>
+  <div class="wrap grid">
+    <div class="body">
+      <div class="label" style="color:rgba(255,255,255,.6)"><span class="n">03</span> Made in Britain</div>
+      <h2>Engineered &amp; built in Manchester</h2>
+      <p>Flow+ isn’t imported and rebadged. It’s designed, assembled, tested and finished in our own UK facility — so we control quality, lead times and every bespoke detail.</p>
+      <p>Vertical integration means shorter lead times, full traceability and the ability to make to order rather than to a catalogue.</p>
+      <a class="btn btn-out" style="margin-top:.6em">Inside our manufacturing →</a>
+    </div>
+    <div class="media"><div class="stamp">Made<br>in<br>Britain</div></div>
+  </div>
+</section>
+
+<section class="custom wrap">
+  <div class="head">
+    <div class="label"><span class="n">04</span> Customisation</div>
+    <h2>Made to order, not off the shelf</h2>
+    <p>Because we manufacture in-house, almost everything about Flow+ can be tailored to your scheme — at project quantities, without bespoke-tooling minimums.</p>
+  </div>
+  <div class="optgrid">
+    <div class="opt"><div class="on">/ LENGTH</div><h3>Bespoke runs</h3><p>Cut and joined to your exact dimensions — single continuous lengths or repeating modules.</p></div>
+    <div class="opt"><div class="on">/ FINISH</div><h3>Any RAL finish</h3><p>Powder-coated housings in standard white, black or any RAL to match the interior palette.</p></div>
+    <div class="opt"><div class="on">/ OPTIC</div><h3>Custom diffusers</h3><p>Opal, frosted or micro-prismatic diffusers and beam shaping for glare control.</p></div>
+    <div class="opt"><div class="on">/ COLOUR</div><h3>Tuned CCT</h3><p>Fixed or tunable white calibrated to a specified colour temperature and CRI.</p></div>
+    <div class="opt"><div class="on">/ MOUNTING</div><h3>Mounting &amp; trims</h3><p>Surface, suspended, recessed and plaster-in trims, with custom suspension drops.</p></div>
+    <div class="opt"><div class="on">/ CONTROLS</div><h3>Controls &amp; drivers</h3><p>DALI, DALI-2, phase or 1–10V, pre-wired and zoned to your control layout.</p></div>
+  </div>
+</section>
+
+<section class="team">
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <div class="label"><span class="n">05</span> Lighting Design</div>
+        <h2>Our in-house design team, on your project</h2>
+      </div>
+      <p>Beyond the product, our UK lighting designers work alongside architects, interior designers and contractors to take a scheme from concept to commissioning — free of charge.</p>
+    </div>
+    <div class="process">
+      <div class="step"><h4>Consult</h4><p>We review drawings, finishes and the brief with your team.</p></div>
+      <div class="step"><h4>Design</h4><p>Relux &amp; DIALux calculations, lux levels and product schedules.</p></div>
+      <div class="step"><h4>Engineer</h4><p>Photometry, BIM/Revit objects and bespoke detailing.</p></div>
+      <div class="step"><h4>Manufacture</h4><p>Made to order in Manchester with full QA testing.</p></div>
+      <div class="step"><h4>Support</h4><p>Delivery, on-site support and handover documentation.</p></div>
+    </div>
   </div>
 </section>
 
 <section class="specband"><div class="wrap"><div class="grid">
-  <div><b>1100<small style="text-transform:none;letter-spacing:0">lm/m</small></b><small>Output</small></div>
+  <div><b>1100<small style="text-transform:none;letter-spacing:0"> lm/m</small></b><small>Output</small></div>
   <div><b>90+</b><small>CRI</small></div>
   <div><b>2700–6500K</b><small>Tunable</small></div>
   <div><b>IP20–65</b><small>Rating</small></div>
@@ -202,6 +303,7 @@ footer .brand{color:#fff}
       <tr><th>Beam</th><td>120°</td></tr>
       <tr><th>IP rating</th><td>IP20 / IP65</td></tr>
       <tr><th>Dimming</th><td>DALI, 1–10V, phase</td></tr>
+      <tr><th>Origin</th><td>Made in Manchester, UK</td></tr>
       <tr><th>Warranty</th><td>5 years</td></tr>
     </tbody></table>
   </div>
@@ -214,18 +316,33 @@ footer .brand{color:#fff}
         <tr><td>FLW-144-40</td><td>Flow+ 14.4W IP20</td><td>14.4</td><td>1000 lm/m</td><td>4000K</td></tr>
         <tr><td>FLW-192-TW</td><td>Flow+ 19.2W Tunable</td><td>19.2</td><td>1100 lm/m</td><td>2700–6500K</td></tr>
         <tr><td>FLW-144-65</td><td>Flow+ 14.4W IP65</td><td>14.4</td><td>950 lm/m</td><td>4000K</td></tr>
+        <tr><td>FLW-BESPOKE</td><td>Made-to-order run (specify)</td><td>—</td><td>—</td><td>—</td></tr>
       </tbody>
     </table>
-    <p style="margin-top:1.5em"><a class="btn btn-solid">Download full datasheet (PDF) ↓</a></p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:1.6em">
+      <a class="btn btn-solid">Download full datasheet (PDF) ↓</a>
+      <a class="btn btn-out-dark">＋ Add to My Project</a>
+    </div>
   </div>
 </section>
 
-<section class="wrap gallery"><div class="g"><div class="g1"></div><div class="g2"></div><div class="g3"></div></div></section>
+<section class="wrap gallery"><div class="g">
+  <div class="big"></div>
+  <div class="col"><div class="sm s1"></div><div class="sm s2"></div></div>
+</div></section>
+
+<section class="quote wrap narrow">
+  <blockquote>“The Flow+ run was made to our exact ceiling geometry — no compromises.”</blockquote>
+  <cite>— Specification architect, commercial office fit-out</cite>
+</section>
 
 <section class="cta"><div class="wrap">
   <h2>Specify Flow+ on your next project</h2>
-  <p>Send us your drawings and our lighting designers will return a fully specified, costed Flow+ scheme — usually within 48 hours.</p>
-  <a class="btn btn-out">＋ Add to My Project</a>
+  <p>Send us your drawings and our in-house lighting designers will return a fully specified, costed, made-to-order Flow+ scheme — usually within 48 hours.</p>
+  <div class="hero-actions" style="justify-content:center;display:flex;gap:14px;flex-wrap:wrap">
+    <a class="btn btn-out">＋ Add to My Project</a>
+    <a class="btn btn-solid" style="background:#fff;color:var(--ink)">Talk to the design team →</a>
+  </div>
 </div></section>
 
 <footer class="site"><div class="wrap row">
