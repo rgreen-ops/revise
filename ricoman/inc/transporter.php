@@ -1,16 +1,19 @@
 <?php
 /**
- * Content Transporter.
+ * Content Transporter — WordPress migration.
  *
- * Migrate existing pages into the new theme one at a time:
- *  - Paste one or more source URLs and pick the target post type + template.
- *  - The transporter fetches each page, pulls the title, meta description, hero
- *    image and main content, sideloads every image into the Media Library, and
- *    creates a draft using the chosen template.
- *  - Content that maps cleanly becomes blocks (headings, paragraphs, lists,
- *    images, quotes). Anything it can't confidently place is dropped into an
- *    "Unsorted imported content" box on the edit screen, ready to paste wherever
- *    it fits on the page.
+ * The current ricoman.com is WordPress whose pages render client-side, so
+ * scraping the front-end HTML misses the content. This tool reads the *stored*
+ * content instead, two ways:
+ *
+ *   1. WordPress export file (WXR .xml)  — Tools → Export on the old site.
+ *   2. Live WordPress via the REST API   — content.rendered is server-side, so
+ *      JS rendering doesn't matter.
+ *
+ * For each item it creates a draft on the template you choose, sideloads images
+ * into the Media Library, maps title / description / featured image / body into
+ * fields + blocks, and drops anything it can't confidently place into an
+ * "Unsorted imported content" box on the draft.
  *
  * Tools → Content Transporter.  Requires the DOM extension.
  *
@@ -66,25 +69,36 @@ function ricoman_transporter_page() {
 	}
 
 	$results = array();
-	if ( isset( $_POST['ricoman_transport'] ) && check_admin_referer( 'ricoman_transport' ) ) {
-		$urls      = isset( $_POST['urls'] ) ? sanitize_textarea_field( wp_unslash( $_POST['urls'] ) ) : '';
-		$post_type = isset( $_POST['post_type'] ) ? sanitize_key( $_POST['post_type'] ) : 'page';
-		$template  = isset( $_POST['template'] ) ? sanitize_text_field( wp_unslash( $_POST['template'] ) ) : '';
 
-		$list = array_filter( array_map( 'trim', preg_split( '/\r\n|\r|\n/', $urls ) ) );
-		foreach ( array_slice( $list, 0, 20 ) as $url ) {
-			$results[] = ricoman_transport_import( esc_url_raw( $url ), $post_type, $template );
+	// WXR upload.
+	if ( isset( $_POST['ricoman_wxr'] ) && check_admin_referer( 'ricoman_wxr' ) ) {
+		$pt   = isset( $_POST['wxr_post_type'] ) ? sanitize_key( $_POST['wxr_post_type'] ) : 'page';
+		$tpl  = isset( $_POST['wxr_template'] ) ? sanitize_text_field( wp_unslash( $_POST['wxr_template'] ) ) : '';
+		$only = isset( $_POST['wxr_only'] ) ? sanitize_text_field( wp_unslash( $_POST['wxr_only'] ) ) : 'page';
+		if ( ! empty( $_FILES['wxr_file']['tmp_name'] ) && is_uploaded_file( $_FILES['wxr_file']['tmp_name'] ) ) {
+			$xml     = file_get_contents( $_FILES['wxr_file']['tmp_name'] ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+			$results = ricoman_transport_wxr( $xml, $only, $pt, $tpl );
+		} else {
+			$results[] = new WP_Error( 'no_file', __( 'Please choose a WordPress export (.xml) file.', 'ricoman' ) );
 		}
 	}
 
-	$pt_default = 'page';
+	// REST pull.
+	if ( isset( $_POST['ricoman_rest'] ) && check_admin_referer( 'ricoman_rest' ) ) {
+		$base = isset( $_POST['rest_url'] ) ? esc_url_raw( wp_unslash( $_POST['rest_url'] ) ) : '';
+		$src  = isset( $_POST['rest_type'] ) ? sanitize_key( $_POST['rest_type'] ) : 'pages';
+		$pt   = isset( $_POST['rest_post_type'] ) ? sanitize_key( $_POST['rest_post_type'] ) : 'page';
+		$tpl  = isset( $_POST['rest_template'] ) ? sanitize_text_field( wp_unslash( $_POST['rest_template'] ) ) : '';
+		$results = ricoman_transport_rest( $base, $src, $pt, $tpl );
+	}
+
 	?>
 	<div class="wrap">
 		<h1><?php esc_html_e( 'Content Transporter', 'ricoman' ); ?></h1>
-		<p class="description"><?php esc_html_e( 'Bring existing pages into the new theme. Paste a URL (or several, one per line), choose where it should land and which template to use. Images come across automatically; anything that doesn’t fit a standard field is saved to an “Unsorted content” box on the draft.', 'ricoman' ); ?></p>
+		<p class="description"><?php esc_html_e( 'Migrate the existing WordPress content into the new theme. Both methods read the stored content (so the old site’s JavaScript rendering doesn’t matter). Each item becomes a draft on the template you pick; images come across automatically and anything that doesn’t fit a field is saved to an “Unsorted content” box on the draft.', 'ricoman' ); ?></p>
 
 		<?php if ( ! class_exists( 'DOMDocument' ) ) : ?>
-			<div class="notice notice-error"><p><?php esc_html_e( 'The PHP DOM extension is required for the transporter and isn’t available on this server.', 'ricoman' ); ?></p></div>
+			<div class="notice notice-error"><p><?php esc_html_e( 'The PHP DOM extension is required and isn’t available on this server.', 'ricoman' ); ?></p></div>
 		<?php endif; ?>
 
 		<?php foreach ( $results as $r ) : ?>
@@ -94,7 +108,7 @@ function ricoman_transporter_page() {
 				<div class="notice notice-success"><p>
 					<?php
 					printf(
-						/* translators: 1: page title, 2: image count, 3: edit link, 4: orphan note */
+						/* translators: 1: title, 2: images, 3: edit link, 4: orphan note */
 						esc_html__( 'Imported “%1$s” (%2$d images). %3$s %4$s', 'ricoman' ),
 						esc_html( $r['title'] ),
 						(int) $r['images'],
@@ -106,28 +120,60 @@ function ricoman_transporter_page() {
 			<?php endif; ?>
 		<?php endforeach; ?>
 
-		<form method="post">
-			<?php wp_nonce_field( 'ricoman_transport' ); ?>
-			<table class="form-table" role="presentation">
-				<tr>
-					<th scope="row"><label for="rt_urls"><?php esc_html_e( 'Source URL(s)', 'ricoman' ); ?></label></th>
-					<td><textarea id="rt_urls" name="urls" rows="5" class="large-text code" placeholder="https://old-site.com/about&#10;https://old-site.com/manufacturing"></textarea>
-						<p class="description"><?php esc_html_e( 'One URL per line (up to 20). Each becomes its own draft.', 'ricoman' ); ?></p></td>
-				</tr>
-				<tr>
-					<th scope="row"><label for="rt_pt"><?php esc_html_e( 'Create as', 'ricoman' ); ?></label></th>
-					<td>
-						<select id="rt_pt" name="post_type" onchange="ricomanRtTemplates(this.value)">
-							<option value="page"><?php esc_html_e( 'Page', 'ricoman' ); ?></option>
-							<option value="product"><?php esc_html_e( 'Product', 'ricoman' ); ?></option>
-							<option value="project"><?php esc_html_e( 'Project', 'ricoman' ); ?></option>
-						</select>
-						<select id="rt_tpl" name="template"></select>
-					</td>
-				</tr>
-			</table>
-			<?php submit_button( __( 'Transport as draft', 'ricoman' ), 'primary', 'ricoman_transport' ); ?>
-		</form>
+		<div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;max-width:1100px;margin-top:18px">
+
+			<!-- WXR -->
+			<div class="card" style="padding:20px">
+				<h2><?php esc_html_e( '1. From a WordPress export (.xml)', 'ricoman' ); ?></h2>
+				<p class="description"><?php esc_html_e( 'On the old site: Tools → Export → download the .xml, then upload it here. Most reliable.', 'ricoman' ); ?></p>
+				<form method="post" enctype="multipart/form-data">
+					<?php wp_nonce_field( 'ricoman_wxr' ); ?>
+					<p><input type="file" name="wxr_file" accept=".xml"></p>
+					<p>
+						<label><?php esc_html_e( 'Import items of type', 'ricoman' ); ?>
+							<input type="text" name="wxr_only" value="page" class="regular-text" placeholder="page, post, product…"></label>
+						<span class="description"><?php esc_html_e( '(the old site’s post type)', 'ricoman' ); ?></span>
+					</p>
+					<p>
+						<label><?php esc_html_e( 'Create here as', 'ricoman' ); ?>
+							<select name="wxr_post_type" onchange="ricomanRt(this.value,'wxr_template')">
+								<option value="page"><?php esc_html_e( 'Page', 'ricoman' ); ?></option>
+								<option value="product"><?php esc_html_e( 'Product', 'ricoman' ); ?></option>
+								<option value="project"><?php esc_html_e( 'Project', 'ricoman' ); ?></option>
+							</select></label>
+						<select name="wxr_template" id="wxr_template"></select>
+					</p>
+					<?php submit_button( __( 'Import from file', 'ricoman' ), 'primary', 'ricoman_wxr' ); ?>
+				</form>
+			</div>
+
+			<!-- REST -->
+			<div class="card" style="padding:20px">
+				<h2><?php esc_html_e( '2. From a live WordPress (REST API)', 'ricoman' ); ?></h2>
+				<p class="description"><?php esc_html_e( 'Enter the old site’s address. Reads stored content via /wp-json, so JS rendering doesn’t matter. The source must be WordPress with the REST API enabled.', 'ricoman' ); ?></p>
+				<form method="post">
+					<?php wp_nonce_field( 'ricoman_rest' ); ?>
+					<p><input type="url" name="rest_url" class="regular-text" placeholder="https://ricoman.com" required></p>
+					<p>
+						<label><?php esc_html_e( 'Pull', 'ricoman' ); ?>
+							<input type="text" name="rest_type" value="pages" class="regular-text" placeholder="pages, posts, product…"></label>
+						<span class="description"><?php esc_html_e( '(REST base on the source)', 'ricoman' ); ?></span>
+					</p>
+					<p>
+						<label><?php esc_html_e( 'Create here as', 'ricoman' ); ?>
+							<select name="rest_post_type" onchange="ricomanRt(this.value,'rest_template')">
+								<option value="page"><?php esc_html_e( 'Page', 'ricoman' ); ?></option>
+								<option value="product"><?php esc_html_e( 'Product', 'ricoman' ); ?></option>
+								<option value="project"><?php esc_html_e( 'Project', 'ricoman' ); ?></option>
+							</select></label>
+						<select name="rest_template" id="rest_template"></select>
+					</p>
+					<?php submit_button( __( 'Pull from REST', 'ricoman' ), 'secondary', 'ricoman_rest' ); ?>
+				</form>
+			</div>
+		</div>
+
+		<p class="description" style="margin-top:14px"><?php esc_html_e( 'Up to 50 items per run — run again to continue. Imports are drafts, so nothing goes live until you publish.', 'ricoman' ); ?></p>
 
 		<script>
 		var RICOMAN_RT = <?php echo wp_json_encode( array(
@@ -135,8 +181,9 @@ function ricoman_transporter_page() {
 			'product' => ricoman_transporter_templates( 'product' ),
 			'project' => ricoman_transporter_templates( 'project' ),
 		) ); ?>;
-		function ricomanRtTemplates( pt ) {
-			var sel = document.getElementById( 'rt_tpl' );
+		function ricomanRt( pt, target ) {
+			var sel = document.getElementById( target );
+			if ( ! sel ) { return; }
 			sel.innerHTML = '';
 			var opts = RICOMAN_RT[ pt ] || {};
 			Object.keys( opts ).forEach( function ( slug ) {
@@ -145,158 +192,192 @@ function ricoman_transporter_page() {
 				sel.appendChild( o );
 			} );
 		}
-		ricomanRtTemplates( '<?php echo esc_js( $pt_default ); ?>' );
+		ricomanRt( 'page', 'wxr_template' );
+		ricomanRt( 'page', 'rest_template' );
 		</script>
 	</div>
 	<?php
 }
 
-/**
- * Import a single URL into a draft.
- *
- * @param string $url       Source URL.
- * @param string $post_type Target post type.
- * @param string $template  Template slug ('' for default).
- * @return array|WP_Error
- */
-function ricoman_transport_import( $url, $post_type, $template ) {
+/* ---------------------------------------------------------------------------
+ * WXR (.xml) import
+ * ------------------------------------------------------------------------- */
+function ricoman_transport_wxr( $xml, $only_type, $post_type, $template ) {
 	if ( ! class_exists( 'DOMDocument' ) ) {
-		return new WP_Error( 'no_dom', __( 'PHP DOM extension is unavailable.', 'ricoman' ) );
+		return array( new WP_Error( 'no_dom', __( 'PHP DOM extension is unavailable.', 'ricoman' ) ) );
 	}
-	if ( ! $url || ! wp_http_validate_url( $url ) ) {
-		return new WP_Error( 'bad_url', sprintf( /* translators: %s: url */ __( 'Skipped invalid URL: %s', 'ricoman' ), $url ) );
+	$data = simplexml_load_string( $xml, 'SimpleXMLElement', LIBXML_NOCDATA | LIBXML_NOERROR | LIBXML_NOWARNING );
+	if ( ! $data || ! isset( $data->channel ) ) {
+		return array( new WP_Error( 'bad_xml', __( 'That doesn’t look like a WordPress export file.', 'ricoman' ) ) );
+	}
+	$ns = $data->getNamespaces( true );
+	if ( empty( $ns['wp'] ) ) {
+		return array( new WP_Error( 'bad_wxr', __( 'Missing the WordPress export namespace.', 'ricoman' ) ) );
 	}
 
-	$resp = wp_remote_get( $url, array(
-		'timeout'    => 25,
-		'user-agent' => 'RicomanTransporter/1.0',
-	) );
+	// First pass: map attachment post_id -> URL.
+	$attach = array();
+	foreach ( $data->channel->item as $item ) {
+		$wp = $item->children( $ns['wp'] );
+		if ( 'attachment' === (string) $wp->post_type ) {
+			$attach[ (string) $wp->post_id ] = (string) $wp->attachment_url;
+		}
+	}
+
+	$results = array();
+	$count   = 0;
+	foreach ( $data->channel->item as $item ) {
+		$wp = $item->children( $ns['wp'] );
+		if ( (string) $wp->post_type !== $only_type ) {
+			continue;
+		}
+		if ( $count >= 50 ) {
+			break;
+		}
+		$count++;
+
+		$title   = (string) $item->title;
+		$content = isset( $ns['content'] ) ? (string) $item->children( $ns['content'] )->encoded : '';
+		$excerpt = isset( $ns['excerpt'] ) ? (string) $item->children( $ns['excerpt'] )->encoded : '';
+
+		// Featured image via _thumbnail_id.
+		$featured = '';
+		foreach ( $wp->postmeta as $meta ) {
+			if ( '_thumbnail_id' === (string) $meta->meta_key ) {
+				$tid = (string) $meta->meta_value;
+				if ( isset( $attach[ $tid ] ) ) {
+					$featured = $attach[ $tid ];
+				}
+			}
+		}
+
+		$results[] = ricoman_transport_create( array(
+			'post_type'  => $post_type,
+			'title'      => $title,
+			'html'       => $content,
+			'excerpt'    => $excerpt,
+			'featured'   => $featured,
+			'template'   => $template,
+			'source_url' => (string) $item->link,
+		) );
+	}
+
+	if ( ! $results ) {
+		return array( new WP_Error( 'none', sprintf( /* translators: %s: type */ __( 'No “%s” items found in that file.', 'ricoman' ), $only_type ) ) );
+	}
+	return $results;
+}
+
+/* ---------------------------------------------------------------------------
+ * REST API import
+ * ------------------------------------------------------------------------- */
+function ricoman_transport_rest( $base, $rest_type, $post_type, $template ) {
+	if ( ! $base || ! wp_http_validate_url( $base ) ) {
+		return array( new WP_Error( 'bad_url', __( 'Enter a valid site URL.', 'ricoman' ) ) );
+	}
+	$endpoint = trailingslashit( $base ) . 'wp-json/wp/v2/' . rawurlencode( $rest_type ) . '?per_page=50&_embed=1';
+	$resp     = wp_remote_get( $endpoint, array( 'timeout' => 30, 'user-agent' => 'RicomanTransporter/1.0' ) );
 	if ( is_wp_error( $resp ) ) {
-		return new WP_Error( 'fetch', sprintf( /* translators: 1: url 2: error */ __( 'Could not fetch %1$s — %2$s', 'ricoman' ), $url, $resp->get_error_message() ) );
+		return array( new WP_Error( 'fetch', $resp->get_error_message() ) );
 	}
-	$html = wp_remote_retrieve_body( $resp );
-	if ( '' === trim( (string) $html ) ) {
-		return new WP_Error( 'empty', sprintf( /* translators: %s: url */ __( 'No HTML returned from %s', 'ricoman' ), $url ) );
+	$code = wp_remote_retrieve_response_code( $resp );
+	if ( 200 !== (int) $code ) {
+		return array( new WP_Error( 'http', sprintf( /* translators: 1: code 2: endpoint */ __( 'REST returned %1$d for %2$s', 'ricoman' ), $code, $endpoint ) ) );
 	}
-
-	$dom = new DOMDocument();
-	libxml_use_internal_errors( true );
-	$dom->loadHTML( '<?xml encoding="utf-8" ?>' . $html );
-	libxml_clear_errors();
-	$xpath = new DOMXPath( $dom );
-
-	// Title.
-	$title = ricoman_transport_meta( $xpath, 'og:title' );
-	if ( ! $title ) {
-		$h1 = $xpath->query( '//h1' );
-		$title = ( $h1->length ) ? trim( $h1->item( 0 )->textContent ) : '';
-	}
-	if ( ! $title ) {
-		$t = $dom->getElementsByTagName( 'title' );
-		$title = $t->length ? trim( $t->item( 0 )->textContent ) : __( 'Imported page', 'ricoman' );
+	$items = json_decode( wp_remote_retrieve_body( $resp ), true );
+	if ( ! is_array( $items ) ) {
+		return array( new WP_Error( 'json', __( 'Could not read the REST response.', 'ricoman' ) ) );
 	}
 
-	// Description + hero.
-	$desc = ricoman_transport_meta( $xpath, 'og:description' );
-	if ( ! $desc ) {
-		$md = $xpath->query( '//meta[@name="description"]/@content' );
-		$desc = $md->length ? trim( $md->item( 0 )->nodeValue ) : '';
+	$results = array();
+	foreach ( $items as $it ) {
+		$title    = isset( $it['title']['rendered'] ) ? $it['title']['rendered'] : '';
+		$content  = isset( $it['content']['rendered'] ) ? $it['content']['rendered'] : '';
+		$excerpt  = isset( $it['excerpt']['rendered'] ) ? wp_strip_all_tags( $it['excerpt']['rendered'] ) : '';
+		$featured = '';
+		if ( ! empty( $it['_embedded']['wp:featuredmedia'][0]['source_url'] ) ) {
+			$featured = $it['_embedded']['wp:featuredmedia'][0]['source_url'];
+		}
+		$results[] = ricoman_transport_create( array(
+			'post_type'  => $post_type,
+			'title'      => $title,
+			'html'       => $content,
+			'excerpt'    => $excerpt,
+			'featured'   => $featured,
+			'template'   => $template,
+			'source_url' => isset( $it['link'] ) ? $it['link'] : $base,
+		) );
 	}
-	$hero = ricoman_transport_meta( $xpath, 'og:image' );
+	if ( ! $results ) {
+		return array( new WP_Error( 'none', __( 'No items returned from that REST endpoint.', 'ricoman' ) ) );
+	}
+	return $results;
+}
 
-	// Main content container: most paragraph-dense of main/article/body.
-	$container = ricoman_transport_main( $xpath, $dom );
+/* ---------------------------------------------------------------------------
+ * Shared: create a draft from stored HTML
+ * ------------------------------------------------------------------------- */
+function ricoman_transport_create( $args ) {
+	$post_type = post_type_exists( $args['post_type'] ) ? $args['post_type'] : 'page';
+	$title     = wp_strip_all_tags( (string) $args['title'] );
+	if ( '' === $title ) {
+		$title = __( 'Imported item', 'ricoman' );
+	}
 
-	// Create the draft first so sideloaded images attach to it.
 	$post_id = wp_insert_post( array(
-		'post_type'   => post_type_exists( $post_type ) ? $post_type : 'page',
+		'post_type'   => $post_type,
 		'post_status' => 'draft',
-		'post_title'  => wp_strip_all_tags( $title ),
+		'post_title'  => $title,
 	), true );
 	if ( is_wp_error( $post_id ) ) {
 		return $post_id;
 	}
 
-	$img_count = 0;
-	$orphan    = array();
-	$blocks    = ricoman_transport_blocks( $container, $url, $post_id, $img_count, $orphan );
+	// Parse stored HTML.
+	$dom = new DOMDocument();
+	libxml_use_internal_errors( true );
+	$dom->loadHTML( '<?xml encoding="utf-8" ?><body>' . $args['html'] . '</body>' );
+	libxml_clear_errors();
+	$body = $dom->getElementsByTagName( 'body' );
+	$root = $body->length ? $body->item( 0 ) : $dom->documentElement;
 
-	// Featured image from the hero.
-	if ( $hero ) {
-		$hero_abs = ricoman_transport_abs( $hero, $url );
-		$att      = ricoman_transport_sideload( $hero_abs, $post_id );
+	$imgcount = 0;
+	$orphan   = array();
+	$blocks   = ricoman_transport_blocks( $root, $args['source_url'], $post_id, $imgcount, $orphan );
+
+	if ( ! empty( $args['featured'] ) ) {
+		$att = ricoman_transport_sideload( ricoman_transport_abs( $args['featured'], $args['source_url'] ), $post_id );
 		if ( $att ) {
 			set_post_thumbnail( $post_id, $att );
-			$img_count++;
+			$imgcount++;
 		}
 	}
 
-	// Update content + meta.
-	wp_update_post( array(
-		'ID'           => $post_id,
-		'post_content' => $blocks,
-	) );
-	if ( $desc ) {
-		update_post_meta( $post_id, '_ricoman_seo_desc', wp_strip_all_tags( $desc ) );
+	wp_update_post( array( 'ID' => $post_id, 'post_content' => $blocks ) );
+	if ( ! empty( $args['excerpt'] ) ) {
+		update_post_meta( $post_id, '_ricoman_seo_desc', wp_strip_all_tags( $args['excerpt'] ) );
 	}
-	if ( $template ) {
-		update_post_meta( $post_id, '_wp_page_template', $template );
+	if ( ! empty( $args['template'] ) ) {
+		update_post_meta( $post_id, '_wp_page_template', $args['template'] );
 	}
-	update_post_meta( $post_id, '_ricoman_source_url', $url );
+	if ( ! empty( $args['source_url'] ) ) {
+		update_post_meta( $post_id, '_ricoman_source_url', $args['source_url'] );
+	}
 	if ( $orphan ) {
 		update_post_meta( $post_id, '_ricoman_orphan_html', wp_kses_post( implode( "\n", $orphan ) ) );
 	}
 
 	return array(
 		'id'     => $post_id,
-		'title'  => wp_strip_all_tags( $title ),
-		'images' => $img_count,
+		'title'  => $title,
+		'images' => $imgcount,
 		'orphan' => ! empty( $orphan ),
 	);
 }
 
-/**
- * Read an og:/twitter: meta value.
- */
-function ricoman_transport_meta( $xpath, $property ) {
-	$q = $xpath->query( '//meta[@property="' . $property . '"]/@content | //meta[@name="' . $property . '"]/@content' );
-	return $q->length ? trim( $q->item( 0 )->nodeValue ) : '';
-}
-
-/**
- * Find the most content-dense container.
- *
- * @return DOMElement
- */
-function ricoman_transport_main( $xpath, $dom ) {
-	$candidates = $xpath->query( '//main | //article | //*[@role="main"]' );
-	$best       = null;
-	$best_len   = 0;
-	foreach ( $candidates as $c ) {
-		$len = strlen( trim( $c->textContent ) );
-		if ( $len > $best_len ) {
-			$best_len = $len;
-			$best     = $c;
-		}
-	}
-	if ( $best ) {
-		return $best;
-	}
-	$body = $dom->getElementsByTagName( 'body' );
-	return $body->length ? $body->item( 0 ) : $dom->documentElement;
-}
-
-/**
- * Walk a container into Gutenberg block markup; collect leftovers in $orphan.
- *
- * @param DOMNode $node     Container.
- * @param string  $base     Base URL for resolving links/images.
- * @param int     $post_id  Draft post ID.
- * @param int     $imgcount By-ref image counter.
- * @param array   $orphan   By-ref leftover HTML.
- * @param int     $depth    Recursion guard.
- * @return string
- */
+/* ---------------------------------------------------------------------------
+ * HTML → blocks (shared); leftovers collected in $orphan
+ * ------------------------------------------------------------------------- */
 function ricoman_transport_blocks( $node, $base, $post_id, &$imgcount, &$orphan, $depth = 0 ) {
 	$out = '';
 	if ( ! $node || ! $node->hasChildNodes() || $depth > 6 ) {
@@ -306,7 +387,7 @@ function ricoman_transport_blocks( $node, $base, $post_id, &$imgcount, &$orphan,
 		if ( XML_TEXT_NODE === $child->nodeType ) {
 			$t = trim( $child->textContent );
 			if ( '' !== $t ) {
-				$out .= "<!-- wp:paragraph --><p>" . esc_html( $t ) . "</p><!-- /wp:paragraph -->\n";
+				$out .= '<!-- wp:paragraph --><p>' . esc_html( $t ) . '</p><!-- /wp:paragraph -->' . "\n";
 			}
 			continue;
 		}
@@ -315,7 +396,7 @@ function ricoman_transport_blocks( $node, $base, $post_id, &$imgcount, &$orphan,
 		}
 		$tag = strtolower( $child->nodeName );
 
-		if ( in_array( $tag, array( 'script', 'style', 'nav', 'header', 'footer', 'form', 'aside', 'noscript', 'svg' ), true ) ) {
+		if ( in_array( $tag, array( 'script', 'style', 'nav', 'header', 'footer', 'form', 'aside', 'noscript', 'svg', 'link', 'meta' ), true ) ) {
 			continue;
 		}
 
@@ -326,8 +407,7 @@ function ricoman_transport_blocks( $node, $base, $post_id, &$imgcount, &$orphan,
 			case 'h4':
 			case 'h5':
 			case 'h6':
-				$level = (int) substr( $tag, 1 );
-				$level = max( 2, $level ); // never re-emit H1 inside content.
+				$level = max( 2, (int) substr( $tag, 1 ) );
 				$txt   = trim( $child->textContent );
 				if ( '' !== $txt ) {
 					$out .= '<!-- wp:heading {"level":' . $level . '} --><h' . $level . ' class="wp-block-heading">' . esc_html( $txt ) . '</h' . $level . '><!-- /wp:heading -->' . "\n";
@@ -337,7 +417,7 @@ function ricoman_transport_blocks( $node, $base, $post_id, &$imgcount, &$orphan,
 			case 'p':
 				$inner = ricoman_transport_inner( $child );
 				if ( '' !== trim( wp_strip_all_tags( $inner ) ) ) {
-					$out .= "<!-- wp:paragraph --><p>" . $inner . "</p><!-- /wp:paragraph -->\n";
+					$out .= '<!-- wp:paragraph --><p>' . $inner . '</p><!-- /wp:paragraph -->' . "\n";
 				}
 				break;
 
@@ -371,7 +451,7 @@ function ricoman_transport_blocks( $node, $base, $post_id, &$imgcount, &$orphan,
 						$att = ricoman_transport_sideload( ricoman_transport_abs( $src, $base ), $post_id );
 						if ( $att ) {
 							$imgcount++;
-							$u   = wp_get_attachment_image_url( $att, 'large' );
+							$u    = wp_get_attachment_image_url( $att, 'large' );
 							$out .= '<!-- wp:image {"id":' . $att . ',"sizeSlug":"large"} --><figure class="wp-block-image size-large"><img src="' . esc_url( $u ) . '" alt="' . esc_attr( $alt ) . '" class="wp-image-' . $att . '"/></figure><!-- /wp:image -->' . "\n";
 						}
 					}
@@ -382,12 +462,11 @@ function ricoman_transport_blocks( $node, $base, $post_id, &$imgcount, &$orphan,
 			case 'section':
 			case 'main':
 			case 'article':
-								// Recurse into structural wrappers.
+			case 'span':
 				$out .= ricoman_transport_blocks( $child, $base, $post_id, $imgcount, $orphan, $depth + 1 );
 				break;
 
 			default:
-				// Anything else we can't confidently place → orphan box.
 				$frag = trim( ricoman_transport_outer( $child ) );
 				if ( '' !== $frag && strlen( wp_strip_all_tags( $frag ) ) > 1 ) {
 					$orphan[] = $frag;
@@ -411,7 +490,6 @@ function ricoman_transport_inner( $node ) {
 		'em'     => array(),
 		'i'      => array(),
 		'br'     => array(),
-		'span'   => array(),
 	) );
 }
 
@@ -420,19 +498,22 @@ function ricoman_transport_outer( $node ) {
 	return $node->ownerDocument->saveHTML( $node );
 }
 
-/** Resolve a possibly-relative URL against the source page URL. */
+/** Resolve a possibly-relative URL against a base. */
 function ricoman_transport_abs( $src, $base ) {
 	if ( preg_match( '#^https?://#i', $src ) ) {
 		return $src;
 	}
 	if ( 0 === strpos( $src, '//' ) ) {
-		return ( 0 === strpos( $base, 'https' ) ? 'https:' : 'http:' ) . $src;
+		return ( 0 === strpos( (string) $base, 'https' ) ? 'https:' : 'http:' ) . $src;
 	}
-	$parts = wp_parse_url( $base );
+	$parts = wp_parse_url( (string) $base );
 	if ( empty( $parts['scheme'] ) || empty( $parts['host'] ) ) {
 		return $src;
 	}
 	$root = $parts['scheme'] . '://' . $parts['host'];
+	if ( '' === $src ) {
+		return '';
+	}
 	if ( 0 === strpos( $src, '/' ) ) {
 		return $root . $src;
 	}
@@ -454,14 +535,14 @@ function ricoman_transport_sideload( $url, $post_id ) {
 	if ( is_wp_error( $tmp ) ) {
 		return 0;
 	}
-	$name = basename( wp_parse_url( $url, PHP_URL_PATH ) );
+	$name = basename( (string) wp_parse_url( $url, PHP_URL_PATH ) );
 	if ( ! $name || ! preg_match( '/\.(jpe?g|png|gif|webp|avif)$/i', $name ) ) {
 		$name = 'imported-image.jpg';
 	}
 	$file = array( 'name' => $name, 'tmp_name' => $tmp );
 	$id   = media_handle_sideload( $file, $post_id );
 	if ( is_wp_error( $id ) ) {
-		@unlink( $tmp );
+		@unlink( $tmp ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
 		return 0;
 	}
 	return (int) $id;
@@ -470,14 +551,7 @@ function ricoman_transport_sideload( $url, $post_id ) {
 /* ---- "Unsorted imported content" box on the edit screen ---- */
 add_action( 'add_meta_boxes', function () {
 	foreach ( array( 'page', 'product', 'project', 'post' ) as $pt ) {
-		add_meta_box(
-			'ricoman_orphan',
-			__( 'Unsorted imported content', 'ricoman' ),
-			'ricoman_orphan_metabox',
-			$pt,
-			'normal',
-			'default'
-		);
+		add_meta_box( 'ricoman_orphan', __( 'Unsorted imported content', 'ricoman' ), 'ricoman_orphan_metabox', $pt, 'normal', 'default' );
 	}
 } );
 
