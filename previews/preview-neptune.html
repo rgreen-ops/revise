@@ -3,99 +3,95 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Neptune — Ricoman (design-led simple product page)</title>
+<title>Neptune — Ricoman</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --paper:#f7f5f2; --white:#fffdfb; --surface:#efece7; --line:#e4dfd8; --ink:#0c0c0d;
-  --text:#1c1b1a; --muted:#86827b; --faint:#a8a39a; --blue:#16335c; --accent:#3d7bed;
-  --wide:1200px; --pad:clamp(24px,6vw,80px);
+  --paper:#ffffff; --soft:#f4f3f1; --line:#e7e5e1; --ink:#0b0b0c;
+  --text:#16161a; --muted:#8c8b86; --faint:#b6b4ae; --blue:#1d4ed8; --accent:#1d4ed8;
+  --wide:1440px; --pad:clamp(20px,4vw,72px);
 }
 *{box-sizing:border-box}
-body{margin:0;font-family:Inter,system-ui,sans-serif;color:var(--text);background:var(--paper);line-height:1.75;-webkit-font-smoothing:antialiased}
-h1,h2,h3{font-family:Fraunces,Georgia,serif;font-optical-sizing:auto;color:var(--ink);line-height:1.04;letter-spacing:-.015em;margin:0;font-weight:500}
-em{font-style:italic}
-a{color:inherit;text-decoration:none}
-img{max-width:100%;display:block}
+body{margin:0;font-family:Inter,system-ui,sans-serif;color:var(--text);background:var(--paper);line-height:1.72;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:Archivo,sans-serif;color:var(--ink);margin:0;font-weight:600;letter-spacing:-.035em;line-height:1}
+a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
 .wrap{max-width:var(--wide);margin:0 auto;padding-inline:var(--pad)}
-.kicker{font-family:Archivo;text-transform:uppercase;letter-spacing:.28em;font-size:.68rem;font-weight:600;color:var(--muted)}
-.btn{display:inline-flex;align-items:center;gap:.7em;font-family:Archivo;font-weight:600;font-size:.85rem;letter-spacing:.02em;padding:1.05em 1.9em;border-radius:2px;border:1px solid transparent;cursor:pointer;transition:.25s}
+.kick{font-family:Archivo;text-transform:uppercase;letter-spacing:.32em;font-size:.66rem;font-weight:600;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;gap:.8em;font-family:Archivo;font-weight:600;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;padding:1.15em 2em;border:1px solid transparent;cursor:pointer;transition:.3s}
 .btn-solid{background:var(--ink);color:#fff}.btn-solid:hover{background:var(--blue)}
-.btn-line-d{border-color:#cfcabf;color:var(--ink)}.btn-line-d:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
-.grain::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.45;mix-blend-mode:overlay;
-  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/></svg>")}
+.btn-line-d{border-color:#d2cfc9;color:var(--ink)}.btn-line-d:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
 
-.util{background:var(--ink);color:rgba(255,255,255,.55);font-family:Archivo;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase}
-.util .wrap{display:flex;justify-content:space-between;height:36px;align-items:center}
+.util{background:var(--ink);color:rgba(255,255,255,.55);font-family:Archivo;font-size:.66rem;letter-spacing:.16em;text-transform:uppercase}
+.util .wrap{display:flex;justify-content:space-between;height:38px;align-items:center}
 @media(max-width:680px){.util .wrap span:first-child{display:none}}
 
-header.site{position:sticky;top:0;z-index:50;background:var(--ink);border-bottom:1px solid rgba(255,255,255,.06)}
-.nav{display:flex;align-items:center;justify-content:space-between;height:74px;color:#fff}
-.brand{font-family:Archivo;font-weight:800;letter-spacing:.26em;font-size:1.15rem}
+header.site{position:sticky;top:0;z-index:50;background:var(--ink)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:80px;color:#fff}
+.brand{font-family:Archivo;font-weight:700;letter-spacing:.3em;font-size:1.1rem}
 .brand sup{font-size:.5em;top:-1em}
-.nav ul{display:flex;gap:36px;list-style:none;margin:0;padding:0;font-family:Archivo;font-size:.82rem;font-weight:500;letter-spacing:.04em}
-.nav ul a{color:rgba(255,255,255,.8)}.nav ul a:hover{color:#fff}
-.toolbox{font-family:Archivo;font-weight:600;font-size:.78rem;letter-spacing:.06em;border:1px solid rgba(255,255,255,.3);padding:.6em 1.3em;border-radius:999px;color:#fff}
-@media(max-width:980px){.nav ul,.toolbox{display:none}}
+.nav ul{display:flex;gap:42px;list-style:none;margin:0;padding:0;font-family:Archivo;font-size:.72rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase}
+.nav ul a{color:rgba(255,255,255,.82)}.nav ul a:hover{color:#fff}
+.tbox{font-family:Archivo;font-weight:600;font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;border:1px solid rgba(255,255,255,.35);padding:.85em 1.5em;border-radius:999px;color:#fff}
+@media(max-width:1024px){.nav ul,.tbox{display:none}}
 
-.crumb{font-family:Archivo;font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:26px 0}
-.crumb a:hover{color:var(--accent)} .crumb .sep{color:var(--line);margin:0 .6em}
+.crumb{font-family:Archivo;font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);padding:30px 0}
+.crumb a:hover{color:var(--accent)} .crumb .sep{color:var(--line);margin:0 .7em}
 
-.product{display:grid;grid-template-columns:1.05fr 1fr;gap:clamp(34px,6vw,90px);align-items:start;padding-bottom:clamp(50px,7vw,90px)}
-@media(max-width:840px){.product{grid-template-columns:1fr}}
-.media{position:sticky;top:94px}
-.shot{position:relative;aspect-ratio:1;background:radial-gradient(72% 72% at 50% 36%,#fffdfb,#ece8e1 60%,#ddd8cf);border:1px solid var(--line)}
-.shot::after{content:"";position:absolute;width:44%;aspect-ratio:1;left:28%;top:24%;border-radius:50%;
-  background:radial-gradient(circle at 50% 40%,#fff,#efeae2 55%,#d4cec3);box-shadow:0 40px 70px -24px rgba(28,27,26,.3),inset 0 -8px 22px rgba(0,0,0,.06)}
+.product{display:grid;grid-template-columns:1.1fr 1fr;gap:clamp(34px,6vw,110px);align-items:start;padding-bottom:clamp(50px,7vw,100px)}
+@media(max-width:860px){.product{grid-template-columns:1fr}}
+.media{position:sticky;top:100px}
+.shot{width:100%;aspect-ratio:1;object-fit:cover;background:var(--soft)}
 .thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}
-.thumbs div{aspect-ratio:1;border:1px solid var(--line);background:radial-gradient(60% 60% at 50% 40%,#fffdfb,#e6e1d9)}
-.thumbs div:first-child{outline:1px solid var(--ink);outline-offset:2px}
+.thumbs img{width:100%;aspect-ratio:1;object-fit:cover;background:var(--soft);opacity:.72;cursor:pointer}
+.thumbs img:first-child{opacity:1;outline:1px solid var(--ink);outline-offset:2px}
 
-.pname{font-size:clamp(2.8rem,6vw,4.5rem);margin:.22em 0 .25em;letter-spacing:-.02em}
-.pdesc{color:var(--muted);font-size:1.15rem;margin:0 0 1.8em;max-width:40ch}
-.chiprow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:2em}
-.chip{font-family:Archivo;font-weight:600;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--line);border-radius:999px;padding:.5em 1.1em;color:var(--ink)}
-.actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:2.4em}
+.pname{font-size:clamp(3rem,6.5vw,5.5rem);margin:.22em 0 .3em;letter-spacing:-.045em;font-weight:500}
+.pdesc{color:var(--muted);font-size:1.18rem;margin:0 0 2em;max-width:40ch}
+.chiprow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:2.2em}
+.chip{font-family:Archivo;font-weight:600;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;border:1px solid var(--line);border-radius:999px;padding:.6em 1.2em;color:var(--ink)}
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:2.6em}
 .spec{width:100%;border-collapse:collapse}
-.spec th,.spec td{text-align:left;padding:.95em 0;border-bottom:1px solid var(--line);font-size:.95rem}
+.spec th,.spec td{text-align:left;padding:1.05em 0;border-bottom:1px solid var(--line);font-size:.95rem}
 .spec th{color:var(--muted);font-weight:400;width:46%}
 .spec td{font-family:Archivo;font-weight:600;color:var(--ink)}
 
-.varsblock{border-top:1px solid var(--line);padding:clamp(50px,7vw,90px) 0}
-.sectlabel{font-family:Fraunces;font-weight:500;font-size:1.8rem;margin-bottom:1.1em;color:var(--ink)}
+.varsblock{border-top:1px solid var(--line);padding:clamp(54px,7vw,100px) 0}
+.sectlabel{font-family:Archivo;font-weight:600;font-size:1.5rem;letter-spacing:-.02em;margin-bottom:1.2em}
 .vars{width:100%;border-collapse:collapse}
-.vars thead th{border-bottom:1.5px solid var(--ink);color:var(--ink);padding:.9em 0;font-family:Archivo;font-size:.72rem;text-align:left;letter-spacing:.12em;text-transform:uppercase}
-.vars td{padding:1em 0;border-bottom:1px solid var(--line);font-size:.92rem}
+.vars thead th{border-bottom:1.5px solid var(--ink);color:var(--ink);padding:1em 0;font-family:Archivo;font-size:.66rem;text-align:left;letter-spacing:.18em;text-transform:uppercase}
+.vars td{padding:1.1em 0;border-bottom:1px solid var(--line);font-size:.92rem}
 .vars td:first-child{font-family:Archivo;font-weight:600}
 
-footer.site{background:var(--ink);color:rgba(255,255,255,.5);padding:60px 0;font-family:Archivo;font-size:.8rem;letter-spacing:.04em;margin-top:20px}
+footer.site{background:var(--ink);color:rgba(255,255,255,.5);padding:64px 0;font-family:Archivo;font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;margin-top:10px}
 footer .row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:20px;align-items:center}
-footer .brand{color:#fff}
-.tag{position:fixed;left:14px;bottom:14px;z-index:99;background:var(--ink);color:#fff;font-family:Archivo;font-weight:600;font-size:.66rem;letter-spacing:.1em;padding:.6em 1.1em;border-radius:999px;box-shadow:0 8px 24px rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.2)}
+footer .brand{color:#fff;letter-spacing:.3em}
+.tag{position:fixed;left:14px;bottom:14px;z-index:99;background:var(--ink);color:#fff;font-family:Archivo;font-weight:600;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;padding:.6em 1.1em;border-radius:999px;border:1px solid rgba(255,255,255,.25)}
 </style>
 </head>
 <body>
-<div class="tag">PREVIEW · NEPTUNE — SIMPLE TEMPLATE</div>
+<div class="tag">Preview · Neptune — simple template</div>
 
 <div class="util"><div class="wrap"><span>Designed &amp; manufactured in Manchester, UK</span><span>Specify · Datasheets · BIM →</span></div></div>
 
 <header class="site"><div class="wrap nav">
   <div class="brand">RICOMAN<sup>®</sup></div>
   <ul><li><a>Products</a></li><li><a>Projects</a></li><li><a>Lighting Design</a></li><li><a>About</a></li></ul>
-  <a class="toolbox">＋ My Project</a>
+  <a class="tbox">＋ My Project</a>
 </div></header>
 
 <div class="wrap crumb"><a>Home</a><span class="sep">/</span><a>Products</a><span class="sep">/</span><a>Downlights</a><span class="sep">/</span><span>Neptune</span></div>
 
 <section class="wrap product">
   <div class="media">
-    <div class="shot grain"></div>
-    <div class="thumbs"><div></div><div></div><div></div><div></div></div>
+    <img class="shot" src="img/ceiling.jpg" alt="Neptune downlight installed">
+    <div class="thumbs">
+      <img src="img/ceiling.jpg" alt=""><img src="img/light-a.jpg" alt=""><img src="img/office2.jpg" alt=""><img src="img/build.jpg" alt="">
+    </div>
   </div>
   <div class="details">
-    <span class="kicker">Downlights — Fixed</span>
+    <span class="kick">Downlights — Fixed</span>
     <h1 class="pname">Neptune</h1>
     <p class="pdesc">A clean, fire-rated LED downlight with switchable CCT and wattage — the dependable workhorse for offices, retail and healthcare ceilings.</p>
     <div class="chiprow">
@@ -103,7 +99,7 @@ footer .brand{color:#fff}
     </div>
     <div class="actions">
       <a class="btn btn-solid">＋ Add to My Project</a>
-      <a class="btn btn-line-d">Download datasheet ↓</a>
+      <a class="btn btn-line-d">Datasheet ↓</a>
     </div>
     <table class="spec"><tbody>
       <tr><th>Order code</th><td>NEP-DL-08</td></tr>
@@ -134,8 +130,8 @@ footer .brand{color:#fff}
 
 <footer class="site"><div class="wrap row">
   <div class="brand">RICOMAN<sup>®</sup></div>
-  <div>Metroplex Business Park, 520 Broadway, M50 2UE, Manchester · 0161 451 5913</div>
-  <div>© 2026 Ricoman Ltd · Made in Britain</div>
+  <div>Metroplex Business Park · 520 Broadway · M50 2UE · Manchester · 0161 451 5913</div>
+  <div>© 2026 Ricoman Ltd</div>
 </div></footer>
 </body>
 </html>
