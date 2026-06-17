@@ -40,7 +40,8 @@ header.site{position:absolute;top:0;left:0;right:0;z-index:50}
 
 /* HERO */
 .hero{position:relative;height:100vh;min-height:680px;color:#fff;overflow:hidden}
-.hero .bg{position:absolute;inset:0;background:url(img/hero.jpg) center/cover no-repeat;transform:scale(1.03)}
+.hero .bg{position:absolute;inset:0;background:url(img/rico-ins2.png) center/cover no-repeat;transform:scale(1.03)}
+.hero .credit{position:absolute;right:var(--pad);bottom:16px;z-index:3;font-family:Archivo;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.55)}
 .hero .scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.45) 0%,rgba(0,0,0,.05) 35%,rgba(0,0,0,.15) 70%,rgba(0,0,0,.72) 100%)}
 .hero .inner{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;justify-content:flex-end}
 .hero .top{position:absolute;top:104px;left:0;right:0}
@@ -78,6 +79,8 @@ header.site{position:absolute;top:0;left:0;right:0;z-index:50}
 .feature + .feature{margin-top:clamp(60px,8vw,140px)}
 .feature.rev .media{order:2}
 .feature .media img{width:100%;aspect-ratio:4/5;object-fit:cover}
+.feature .media.prod{background:#f4f3f1}
+.feature .media.prod img{object-fit:contain;padding:9%}
 .feature .body{max-width:440px}
 .feature h2{font-size:clamp(2.2rem,4.2vw,3.6rem);margin:.7em 0 .7em;font-weight:600}
 .feature p{color:var(--muted);font-size:1.1rem;margin:0 0 1.8em}
@@ -118,7 +121,7 @@ header.site{position:absolute;top:0;left:0;right:0;z-index:50}
 
 /* spec band over image */
 .specband{position:relative;color:#fff;overflow:hidden}
-.specband .bg{position:absolute;inset:0;background:url(img/arch-line.jpg) center/cover no-repeat}
+.specband .bg{position:absolute;inset:0;background:url(img/rico-ins4.png) center/cover no-repeat}
 .specband .scrim{position:absolute;inset:0;background:rgba(8,8,9,.74)}
 .specband .grid{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:24px;text-align:center;padding-block:clamp(70px,9vw,140px)}
 .specband b{font-family:Archivo;font-weight:500;font-size:clamp(2rem,4vw,3.4rem);color:#fff;display:block;letter-spacing:-.03em}
@@ -153,7 +156,7 @@ header.site{position:absolute;top:0;left:0;right:0;z-index:50}
 
 /* cta */
 .cta{position:relative;color:#fff;text-align:center;overflow:hidden}
-.cta .bg{position:absolute;inset:0;background:url(img/warm-int.jpg) center/cover no-repeat}
+.cta .bg{position:absolute;inset:0;background:url(img/rico-kingsgate.png) center/cover no-repeat}
 .cta .scrim{position:absolute;inset:0;background:rgba(8,8,9,.7)}
 .cta .inner{position:relative;padding-block:clamp(90px,12vw,180px)}
 .cta h2{color:#fff;font-size:clamp(2.4rem,5vw,4.4rem);margin-bottom:.5em;font-weight:600}
@@ -186,6 +189,7 @@ footer .brand{color:#fff;letter-spacing:.3em}
         <div class="acts"><a class="btn btn-line">＋ Add to My Project</a><a class="btn btn-line">Datasheet ↓</a></div>
       </div>
     </div></div>
+    <div class="credit">Flour Patisserie · Photos courtesy of LED Lighting Technology Ltd</div>
   </div>
 </section>
 
@@ -201,11 +205,11 @@ footer .brand{color:#fff;letter-spacing:.3em}
   <p>Turn any installation into a genuine architectural creation. <span>Designed, engineered and built in Britain — to your line.</span></p>
 </div></section>
 
-<figure style="margin:0"><img class="bleed" src="img/arch-line.jpg" alt="Architectural lighting installation"></figure>
+<figure style="margin:0"><img class="bleed" src="img/rico-office.jpg" alt="Flow+ office lounge installation"></figure>
 
 <section class="sec"><div class="wrap">
   <div class="feature">
-    <div class="media"><img src="img/light-a.jpg" alt="Flow+ detail"></div>
+    <div class="media prod"><img src="img/rico-product.png" alt="Flow+ curved product"></div>
     <div class="body">
       <span class="kick"><span class="n">01</span>Flexibility</span>
       <h2>Shape light to the space</h2>
@@ -218,7 +222,7 @@ footer .brand{color:#fff;letter-spacing:.3em}
     </div>
   </div>
   <div class="feature rev">
-    <div class="media"><img src="img/warm-int.jpg" alt="Warm interior lighting"></div>
+    <div class="media"><img src="img/rico-kingsgate.png" alt="King's Gate lobby, Flow+ installation"></div>
     <div class="body">
       <span class="kick"><span class="n">02</span>Light Quality</span>
       <h2>Calibrated for interiors</h2>
@@ -313,8 +317,8 @@ footer .brand{color:#fff;letter-spacing:.3em}
 </div></div></section>
 
 <section class="tight" style="padding-top:0"><div class="wrap"><div class="mosaic">
-  <img class="big" src="img/office1.jpg" alt="Project install">
-  <div class="c"><img class="sm" src="img/pendant.jpg" alt="Detail"><img class="sm" src="img/build.jpg" alt="Architecture"></div>
+  <img class="big" src="img/rico-kingsgate.png" alt="King's Gate lobby">
+  <div class="c"><img class="sm" src="img/rico-twist.png" alt="Flow+ product render" style="background:#f4f3f1"><img class="sm" src="img/rico-ins4.png" alt="King's Gate installation"></div>
 </div></div></section>
 
 <section class="sec quote"><div class="wrap col">
