@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lighting Design — Ricoman</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#ffffff; --soft:#f4f3f1; --line:#e7e5e1; --ink:#0b0b0c;
+  --text:#16161a; --muted:#8c8b86; --faint:#b6b4ae; --blue:#1d4ed8; --accent:#1d4ed8;
+  --wide:1640px; --pad:clamp(20px,4vw,72px);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:Poppins,system-ui,sans-serif;color:var(--text);background:var(--paper);line-height:1.72;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:Poppins,sans-serif;color:var(--ink);margin:0;font-weight:600;letter-spacing:-.035em;line-height:.98}
+a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
+.wrap{max-width:var(--wide);margin:0 auto;padding-inline:var(--pad)}
+.col{max-width:1180px}
+.kick{font-family:Poppins;text-transform:uppercase;letter-spacing:.32em;font-size:.66rem;font-weight:600;color:var(--muted)}
+.kick .n{color:var(--ink);margin-right:1.4em}
+.kick.lt{color:rgba(255,255,255,.72)}.kick.lt .n{color:#fff}
+.btn{display:inline-flex;align-items:center;gap:.8em;font-family:Poppins;font-weight:600;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;padding:1.15em 2em;border:1px solid transparent;cursor:pointer;transition:.3s ease}
+.btn-solid{background:var(--ink);color:#fff}.btn-solid:hover{background:var(--blue)}
+.btn-line{border-color:rgba(255,255,255,.4);color:#fff}.btn-line:hover{background:#fff;color:var(--ink)}
+.btn-line-d{border-color:#d2cfc9;color:var(--ink)}.btn-line-d:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
+.btn-blue{background:var(--blue);color:#fff}.btn-blue:hover{background:var(--ink)}
+.lnk{font-family:Poppins;font-weight:600;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;display:inline-flex;gap:.7em;align-items:center}
+.lnk:hover{color:var(--blue)}
+
+header.site{position:absolute;top:0;left:0;right:0;z-index:50}
+.nav{display:flex;align-items:center;justify-content:space-between;height:88px;color:#fff}
+.brand{font-family:Poppins;font-weight:700;letter-spacing:.3em;font-size:1.1rem}
+.brand sup{font-size:.5em;top:-1em}
+.nav ul{display:flex;gap:42px;list-style:none;margin:0;padding:0;font-family:Poppins;font-size:.72rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase}
+.nav ul a{color:rgba(255,255,255,.82)}.nav ul a:hover,.nav ul a.on{color:#fff}
+.tbox{font-family:Poppins;font-weight:600;font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;border:1px solid rgba(255,255,255,.35);padding:.85em 1.5em;border-radius:999px;color:#fff}
+@media(max-width:1024px){.nav ul,.tbox{display:none}}
+
+.phero{position:relative;color:#fff;overflow:hidden;min-height:600px;display:flex;align-items:flex-end}
+.phero .bg{position:absolute;inset:0;background:center/cover no-repeat}
+.phero .scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.5) 0%,rgba(0,0,0,.18) 45%,rgba(0,0,0,.74) 100%)}
+.phero .inner{position:relative;z-index:2;width:100%;padding-bottom:clamp(48px,6vw,90px);padding-top:160px}
+.phero h1{font-weight:500;font-size:clamp(2.6rem,6vw,5.6rem);letter-spacing:-.04em;line-height:.98;max-width:17ch}
+.phero p.lede{font-size:1.15rem;color:rgba(255,255,255,.86);max-width:48ch;margin:1.4em 0 2em;font-weight:400}
+.phero .kick{display:block;margin-bottom:1.4em}
+.phero .acts{display:flex;gap:12px;flex-wrap:wrap}
+
+.sec{padding-block:clamp(70px,9vw,150px)}
+.sec.tight{padding-block:clamp(50px,6vw,96px)}
+.shead{display:flex;justify-content:space-between;align-items:flex-end;gap:30px;margin-bottom:clamp(34px,4vw,60px);flex-wrap:wrap}
+.shead h2{font-size:clamp(1.9rem,3.6vw,3rem);font-weight:600;letter-spacing:-.03em;max-width:18ch}
+.shead .kick{margin-bottom:1.2em;display:block}
+.statement p{font-family:Poppins;font-weight:500;font-size:clamp(1.7rem,4vw,3.4rem);line-height:1.1;letter-spacing:-.035em;max-width:24ch;margin:0;color:var(--ink)}
+.statement p span{color:var(--faint)}
+
+/* process steps */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,2.4vw,40px)}
+.step{border-top:2px solid var(--ink);padding-top:24px}
+.step .no{font-family:Poppins;font-weight:600;font-size:.9rem;color:var(--blue);letter-spacing:.1em;display:block;margin-bottom:1em}
+.step h3{font-family:Poppins;font-size:1.3rem;font-weight:600;margin:0 0 .6em;letter-spacing:-.02em}
+.step p{color:var(--muted);font-size:.96rem;margin:0}
+@media(max-width:860px){.steps{grid-template-columns:1fr 1fr;gap:30px}}
+@media(max-width:520px){.steps{grid-template-columns:1fr}}
+
+/* what you get split */
+.split{display:grid;grid-template-columns:1fr 1fr;align-items:stretch;background:var(--ink);color:#fff}
+.split .img{min-height:560px;background:center/cover no-repeat}
+.split .body{padding:clamp(54px,8vw,130px) clamp(28px,6vw,100px);align-self:center}
+.split h2{color:#fff;font-size:clamp(2rem,4vw,3.4rem);font-weight:600;margin:.5em 0 .8em}
+.split .ul{list-style:none;margin:1.4em 0 0;padding:0}
+.split .ul li{position:relative;padding:16px 0 16px 30px;border-top:1px solid rgba(255,255,255,.13);color:rgba(255,255,255,.82);font-size:1.02rem}
+.split .ul li:before{content:"";position:absolute;left:0;top:24px;width:8px;height:8px;border-radius:50%;background:var(--blue)}
+.split .ul li b{color:#fff;font-family:Poppins;font-weight:600}
+@media(max-width:860px){.split{grid-template-columns:1fr}.split .img{min-height:320px;order:-1}}
+
+/* deliverables gallery */
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,1.6vw,24px)}
+.dcard .ph{aspect-ratio:4/3;overflow:hidden;background:var(--soft)}
+.dcard .ph img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
+.dcard:hover .ph img{transform:scale(1.05)}
+.dcard h3{font-size:1.25rem;font-weight:600;margin:18px 0 .4em}
+.dcard p{color:var(--muted);font-size:.95rem;margin:0}
+@media(max-width:760px){.three{grid-template-columns:1fr}}
+
+/* form cta */
+.formc{background:var(--soft)}
+.formwrap{display:grid;grid-template-columns:1fr 1fr;gap:clamp(34px,5vw,80px);align-items:center}
+.formwrap h2{font-size:clamp(2rem,4vw,3.4rem);font-weight:600;margin-bottom:.5em}
+.formwrap p{color:var(--muted);font-size:1.08rem;max-width:42ch}
+.form{background:#fff;border:1px solid var(--line);padding:clamp(26px,3vw,44px)}
+.form .fr{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form label{display:block;font-family:Poppins;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:16px 0 8px}
+.form input,.form textarea{width:100%;border:1px solid var(--line);background:var(--soft);padding:14px 16px;font-family:Poppins;font-size:.95rem;color:var(--text)}
+.form input:focus,.form textarea:focus{outline:none;border-color:var(--blue);background:#fff}
+.form .file{border:1px dashed #c9c6c0;padding:16px;text-align:center;color:var(--muted);font-size:.9rem;margin-top:8px}
+.form .btn{width:100%;justify-content:center;margin-top:22px}
+@media(max-width:860px){.formwrap{grid-template-columns:1fr}.form .fr{grid-template-columns:1fr}}
+
+footer.site{background:var(--ink);color:rgba(255,255,255,.6);padding-block:clamp(60px,7vw,100px)}
+.fgrid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:clamp(30px,4vw,60px)}
+footer .brand{color:#fff;font-size:1.4rem;letter-spacing:.28em;margin-bottom:1.2em}
+footer p{font-size:.92rem;margin:0 0 .4em;color:rgba(255,255,255,.62)}
+footer h4{font-family:Poppins;text-transform:uppercase;letter-spacing:.16em;font-size:.68rem;color:#fff;font-weight:600;margin:0 0 1.2em}
+footer ul{list-style:none;margin:0;padding:0;font-size:.92rem}
+footer li{margin:.55em 0}
+footer li a{color:rgba(255,255,255,.62)}footer li a:hover{color:#fff}
+.fbar{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:clamp(40px,5vw,70px);padding-top:24px;border-top:1px solid rgba(255,255,255,.12);font-family:Poppins;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.45)}
+@media(max-width:820px){.fgrid{grid-template-columns:1fr 1fr}}
+.tag{position:fixed;left:14px;bottom:14px;z-index:99;background:var(--ink);color:#fff;font-family:Poppins;font-weight:600;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;padding:.6em 1.1em;border-radius:999px;border:1px solid rgba(255,255,255,.25)}
+</style>
+</head>
+<body>
+<div class="tag">Preview · Lighting Design</div>
+
+<header class="site"><div class="wrap nav">
+  <div class="brand"><a href="preview-home.html">RICOMAN<sup>®</sup></a></div>
+  <ul><li><a href="preview-products.html">Products</a></li><li><a href="preview-projects.html">Projects</a></li><li><a class="on" href="preview-lighting-design.html">Lighting Design</a></li><li><a href="preview-manufacturing.html">Manufacturing</a></li><li><a href="preview-about.html">About</a></li></ul>
+  <a class="tbox">＋ My Project</a>
+</div></header>
+
+<section class="phero">
+  <div class="bg" style="background-image:url(img/rico-office-render.webp)"></div><div class="scrim"></div>
+  <div class="inner"><div class="wrap">
+    <span class="kick lt">Free Scheme Design</span>
+    <h1>Your scheme, fully designed — at no cost.</h1>
+    <p class="lede">Send us a drawing or a finishes schedule and our in-house lighting designers return a fully specified, photometric-backed and costed scheme. Usually within 48 hours.</p>
+    <div class="acts"><a class="btn btn-blue" href="#brief">Start your scheme ↓</a><a class="btn btn-line" href="preview-projects.html">See the results →</a></div>
+  </div></div>
+</section>
+
+<section class="sec statement"><div class="wrap col">
+  <p>We don't just sell luminaires. <span>We design the light, prove it works, and cost it — before you commit a penny.</span></p>
+</div></section>
+
+<!-- process -->
+<section class="sec" style="padding-top:0"><div class="wrap">
+  <div class="shead"><div><span class="kick"><span class="n">01</span>How it works</span><h2>Four steps from drawing to delivered scheme</h2></div></div>
+  <div class="steps">
+    <div class="step"><span class="no">01</span><h3>Send your drawings</h3><p>A floor plan, reflected ceiling plan or even a sketch and a finishes schedule. PDF, DWG or photos — whatever you have.</p></div>
+    <div class="step"><span class="no">02</span><h3>We design the light</h3><p>Our team produces a DIALux photometric study — lux levels, uniformity, UGR and energy — matched to your finishes and budget.</p></div>
+    <div class="step"><span class="no">03</span><h3>Costed scheme in 48h</h3><p>You receive a fully specified luminaire schedule, layout and itemised costing, with value-engineered alternatives where it helps.</p></div>
+    <div class="step"><span class="no">04</span><h3>Made &amp; delivered</h3><p>Approve it and we make to order in Manchester, then deliver to your programme — phased to site if you need it.</p></div>
+  </div>
+</div></section>
+
+<!-- what you get -->
+<section class="split">
+  <div class="body">
+    <span class="kick lt"><span class="n">02</span>What you receive</span>
+    <h2>A scheme you can specify with confidence</h2>
+    <ul class="ul">
+      <li><b>DIALux photometric study</b> — lux, uniformity &amp; UGR proven on plan</li>
+      <li><b>Luminaire schedule</b> — every fitting, finish, beam and quantity</li>
+      <li><b>Reflected ceiling layout</b> — positions ready for the contractor</li>
+      <li><b>Energy &amp; load summary</b> — W/m² and circuit guidance</li>
+      <li><b>Itemised costing</b> — with value-engineered options</li>
+      <li><b>Full data sheets &amp; BIM files</b> — ready for your spec pack</li>
+    </ul>
+  </div>
+  <div class="img" style="background-image:url(img/office5.jpg)"></div>
+</section>
+
+<!-- deliverable gallery -->
+<section class="sec"><div class="wrap">
+  <div class="shead"><div><span class="kick"><span class="n">03</span>For the whole project team</span><h2>Documents that drop straight into your pack</h2></div><a class="lnk" href="preview-products.html">Browse products →</a></div>
+  <div class="three">
+    <div class="dcard"><div class="ph"><img src="img/build.jpg" alt=""></div><h3>For architects</h3><p>Clean photometrics, UGR compliance and BIM-ready families for precise specification.</p></div>
+    <div class="dcard"><div class="ph"><img src="img/warm-int.jpg" alt=""></div><h3>For interior designers</h3><p>Warm, high-CRI rendering and finish options that flatter materials and mood.</p></div>
+    <div class="dcard"><div class="ph"><img src="img/office1.jpg" alt=""></div><h3>For D&amp;B + contractors</h3><p>Budget certainty, value-engineered alternatives and a buildable layout.</p></div>
+  </div>
+</div></section>
+
+<!-- form -->
+<section class="sec formc" id="brief"><div class="wrap">
+  <div class="formwrap">
+    <div>
+      <span class="kick"><span class="n">04</span>Start your scheme</span>
+      <h2 style="margin-top:1em">Tell us about the project</h2>
+      <p>Share a few details and upload your drawings. One of our lighting designers will be in touch — and your costed scheme follows, usually within 48 hours.</p>
+    </div>
+    <form class="form" onsubmit="return false">
+      <div class="fr">
+        <div><label>Name</label><input type="text" placeholder="Your name"></div>
+        <div><label>Company</label><input type="text" placeholder="Practice / firm"></div>
+      </div>
+      <div class="fr">
+        <div><label>Email</label><input type="email" placeholder="you@studio.com"></div>
+        <div><label>Phone</label><input type="tel" placeholder="Optional"></div>
+      </div>
+      <label>Project &amp; sector</label>
+      <input type="text" placeholder="e.g. 6-floor office fit-out, Leeds">
+      <label>Anything else</label>
+      <textarea rows="3" placeholder="Timescales, budget, target lux levels…"></textarea>
+      <div class="file">＋ Attach drawings / schedule (PDF, DWG, images)</div>
+      <button class="btn btn-blue">Request my free scheme →</button>
+    </form>
+  </div>
+</div></section>
+
+<footer class="site"><div class="wrap">
+  <div class="fgrid">
+    <div>
+      <div class="brand">RICOMAN<sup style="font-size:.5em">®</sup></div>
+      <p>British LED lighting, designed and manufactured in Manchester. Fast UK delivery, large stockholding and free lighting scheme design.</p>
+    </div>
+    <div>
+      <h4>Contact</h4>
+      <p>Metroplex Business Park</p><p>520 Broadway, M50 2UE</p><p>Manchester, UK</p>
+      <p style="margin-top:.8em;color:#fff">0161 451 5913</p><p style="color:#fff">sales@ricoman.com</p>
+    </div>
+    <div>
+      <h4>Products</h4>
+      <ul><li><a href="preview-products.html">Linear Lighting</a></li><li><a href="preview-products.html">Downlights</a></li><li><a href="preview-products.html">Pendants</a></li><li><a href="preview-products.html">Track Lighting</a></li><li><a href="preview-products.html">Modular Recessed</a></li></ul>
+    </div>
+    <div>
+      <h4>Company</h4>
+      <ul><li><a href="preview-about.html">About Ricoman</a></li><li><a href="preview-manufacturing.html">Manufacturing</a></li><li><a href="preview-lighting-design.html">Lighting Design</a></li><li><a href="preview-projects.html">Projects</a></li><li><a href="preview-about.html">Contact</a></li></ul>
+    </div>
+  </div>
+  <div class="fbar"><span>© 2026 Ricoman Ltd · Made in Britain</span><span>Mon–Thu 8:30–17:00 · Fri 8:30–16:00</span></div>
+</div></footer>
+</body>
+</html>
