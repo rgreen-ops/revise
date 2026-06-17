@@ -29,6 +29,8 @@ PHP changes are needed for day-to-day content.
 | Template | Used for |
 |---|---|
 | `front-page.html` | Marketing homepage (hero → stats → products → audience → why → CTA) |
+| `single-product.html` | **Full product page** (default): large image, specs, variants/ordering, body content, CTA |
+| `single-product-simple.html` | **Simple product page** (custom template): just basic info, an excerpt, actions and the specs table — low on images and extra sections |
 | `index.html` | Blog listing / fallback |
 | `single.html` | Single post (with comments + prev/next) |
 | `page.html` | Standard page |
@@ -37,6 +39,11 @@ PHP changes are needed for day-to-day content.
 | `archive.html` | Category / tag / date archives |
 | `search.html` | Search results |
 | `404.html` | Not-found page |
+
+> **Choosing a product layout:** every product uses the **Full product page** by
+> default. To make a given product simple, open it in the editor and, in the
+> **Post → Template** panel on the right, switch its template to **"Product,
+> Simple"**. Switch back to the default any time — it's per-product.
 
 ### Template parts (`/parts`)
 - `header.html` — sticky header with logo, navigation and a "Get a quote" button.

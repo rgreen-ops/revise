@@ -195,6 +195,11 @@
 	},
 	"customTemplates": [
 		{
+			"name": "single-product-simple",
+			"title": "Product, Simple",
+			"postTypes": ["product"]
+		},
+		{
 			"name": "page-no-title",
 			"title": "Page, No Title",
 			"postTypes": ["page"]
