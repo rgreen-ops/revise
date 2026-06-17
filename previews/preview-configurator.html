@@ -136,7 +136,7 @@ footer .brand{color:#fff;letter-spacing:.3em}
       </div>
       <table class="spec"><tbody id="specBody"></tbody></table>
       <div class="pricerow">
-        <div class="p" id="price">£ —<small>Trade price · ex VAT</small></div>
+        <div class="p" id="price">Price on request<small>Add to project for a quote</small></div>
         <div class="p" id="stock" style="text-align:right">In stock<small>Lead time</small></div>
       </div>
     </div>
@@ -261,7 +261,7 @@ function render(){
   $("#vizCode").textContent = r.orderCode;
   const tb=$("#specBody"); tb.innerHTML="";
   Object.entries(r.specs).forEach(([k,v])=>{ tb.insertAdjacentHTML("beforeend",`<tr><th>${k}</th><td>${v}</td></tr>`); });
-  $("#price").innerHTML = r.price + "<small>Trade price · ex VAT</small>";
+  $("#price").innerHTML = "Price on request<small>Add to project for a quote</small>";
   $("#stock").innerHTML = r.stock + "<small>"+r.lead+"</small>";
   // live preview graphic
   const widths={ "01":150,"05":150,"11":230,"16":320,"21":400 };
