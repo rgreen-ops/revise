@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Case Study (Simple) — Ricoman</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#ffffff; --soft:#f4f3f1; --line:#e7e5e1; --ink:#0b0b0c;
+  --text:#16161a; --muted:#8c8b86; --faint:#b6b4ae; --blue:#1d4ed8; --accent:#1d4ed8;
+  --wide:1640px; --pad:clamp(20px,4vw,72px);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:Poppins,system-ui,sans-serif;color:var(--text);background:var(--paper);line-height:1.72;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:Poppins,sans-serif;color:var(--ink);margin:0;font-weight:600;letter-spacing:-.035em;line-height:.98}
+a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
+.wrap{max-width:var(--wide);margin:0 auto;padding-inline:var(--pad)}
+.col{max-width:1100px;margin-inline:auto}
+.kick{font-family:Poppins;text-transform:uppercase;letter-spacing:.32em;font-size:.66rem;font-weight:600;color:var(--muted)}
+.kick.lt{color:rgba(255,255,255,.72)}
+.btn{display:inline-flex;align-items:center;gap:.8em;font-family:Poppins;font-weight:600;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;padding:1.15em 2em;border:1px solid transparent;cursor:pointer;transition:.3s ease}
+.btn-solid{background:var(--ink);color:#fff}.btn-solid:hover{background:var(--blue)}
+.btn-line{border-color:rgba(255,255,255,.4);color:#fff}.btn-line:hover{background:#fff;color:var(--ink)}
+.btn-line-d{border-color:#d2cfc9;color:var(--ink)}.btn-line-d:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
+.lnk{font-family:Poppins;font-weight:600;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;display:inline-flex;gap:.7em;align-items:center}
+.lnk:hover{color:var(--blue)}
+
+header.site{position:absolute;top:0;left:0;right:0;z-index:50}
+.nav{display:flex;align-items:center;justify-content:space-between;height:88px;color:#fff}
+.brand{font-family:Poppins;font-weight:700;letter-spacing:.3em;font-size:1.1rem}
+.brand sup{font-size:.5em;top:-1em}
+.nav ul{display:flex;gap:42px;list-style:none;margin:0;padding:0;font-family:Poppins;font-size:.72rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase}
+.nav ul a{color:rgba(255,255,255,.82)}.nav ul a:hover,.nav ul a.on{color:#fff}
+.tbox{font-family:Poppins;font-weight:600;font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;border:1px solid rgba(255,255,255,.35);padding:.85em 1.5em;border-radius:999px;color:#fff}
+@media(max-width:1024px){.nav ul,.tbox{display:none}}
+
+/* ONE powerful hero image */
+.chero{position:relative;height:100vh;min-height:620px;display:flex;align-items:flex-end;overflow:hidden;color:#fff}
+.chero img.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.chero .sc{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.42) 0%,rgba(0,0,0,.05) 38%,rgba(0,0,0,.78) 100%)}
+.chero .in{position:relative;z-index:2;width:100%;padding-bottom:clamp(44px,6vw,96px);padding-top:140px}
+.chero .crumbs{font-family:Poppins;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:1.6em}
+.chero .crumbs a:hover{color:#fff}
+.chero h1{font-weight:500;font-size:clamp(2.6rem,7vw,6rem);letter-spacing:-.045em;line-height:.96;max-width:20ch}
+
+/* editorial intro — type does the work */
+.intro{padding-block:clamp(70px,9vw,150px)}
+.intro .lead{font-family:Poppins;font-weight:500;font-size:clamp(1.7rem,3.4vw,2.9rem);line-height:1.22;letter-spacing:-.03em;color:var(--ink);margin:0 0 clamp(40px,5vw,72px);max-width:24ch}
+.intro .grid{display:grid;grid-template-columns:1fr 1.3fr;gap:clamp(34px,5vw,90px)}
+.intro .facts{align-self:start}
+.intro .facts .row{display:flex;justify-content:space-between;gap:14px;padding:14px 0;border-top:1px solid var(--line);font-family:Poppins;font-size:.95rem}
+.intro .facts .row span:first-child{color:var(--muted)}
+.intro .facts .row b{font-weight:600;text-align:right}
+.intro .copy p{font-size:1.12rem;color:var(--text);margin:0 0 1.3em;max-width:56ch}
+.intro .copy h3{font-size:1.3rem;margin:1.6em 0 .5em}
+@media(max-width:860px){.intro .grid{grid-template-columns:1fr}}
+
+/* one supporting image, full bleed */
+.bleed{width:100%;aspect-ratio:16/9;object-fit:cover}
+.figcap .wrap{padding-top:14px;font-size:.86rem;color:var(--muted);font-family:Poppins}
+
+/* quote */
+.quote{background:var(--ink);color:#fff}
+.quote .wrap{max-width:1100px;text-align:center;padding-block:clamp(70px,9vw,130px)}
+.quote p{font-family:Poppins;font-weight:500;font-size:clamp(1.6rem,3.4vw,2.9rem);line-height:1.2;letter-spacing:-.03em;color:#fff;margin:0 0 1em}
+.quote .by{font-family:Poppins;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.55)}
+
+/* products used as text */
+.used{padding-block:clamp(56px,7vw,110px);text-align:center}
+.used .kick{display:block;margin-bottom:1.4em}
+.used h2{font-size:clamp(1.6rem,3vw,2.4rem);font-weight:600;margin-bottom:1.2em}
+.used .chips{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.used .chips a{font-family:Poppins;font-weight:600;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;padding:.8em 1.4em;border:1px solid var(--line);border-radius:999px;transition:.25s}
+.used .chips a:hover{border-color:var(--ink);background:var(--ink);color:#fff}
+
+.cta{position:relative;color:#fff;text-align:center;overflow:hidden}
+.cta .bg{position:absolute;inset:0;background:url(img/office6.jpg) center/cover no-repeat}
+.cta .scrim{position:absolute;inset:0;background:rgba(8,8,9,.74)}
+.cta .inner{position:relative;padding-block:clamp(80px,10vw,160px)}
+.cta h2{color:#fff;font-size:clamp(2.2rem,4.6vw,4rem);margin-bottom:.5em;font-weight:600}
+.cta p{color:rgba(255,255,255,.78);max-width:46ch;margin:0 auto 2.4em;font-size:1.12rem}
+.cta .acts{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+
+footer.site{background:var(--ink);color:rgba(255,255,255,.6);padding-block:clamp(60px,7vw,100px)}
+.fgrid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:clamp(30px,4vw,60px)}
+footer .brand{color:#fff;font-size:1.4rem;letter-spacing:.28em;margin-bottom:1.2em}
+footer p{font-size:.92rem;margin:0 0 .4em;color:rgba(255,255,255,.62)}
+footer h4{font-family:Poppins;text-transform:uppercase;letter-spacing:.16em;font-size:.68rem;color:#fff;font-weight:600;margin:0 0 1.2em}
+footer ul{list-style:none;margin:0;padding:0;font-size:.92rem}
+footer li{margin:.55em 0}
+footer li a{color:rgba(255,255,255,.62)}footer li a:hover{color:#fff}
+.fbar{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:clamp(40px,5vw,70px);padding-top:24px;border-top:1px solid rgba(255,255,255,.12);font-family:Poppins;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.45)}
+@media(max-width:820px){.fgrid{grid-template-columns:1fr 1fr}}
+.tag{position:fixed;left:14px;bottom:14px;z-index:99;background:var(--ink);color:#fff;font-family:Poppins;font-weight:600;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;padding:.6em 1.1em;border-radius:999px;border:1px solid rgba(255,255,255,.25)}
+</style>
+</head>
+<body>
+<div class="tag">Preview · Project (Simple · 1–2 images)</div>
+
+<header class="site"><div class="wrap nav">
+  <div class="brand"><a href="preview-home.html">RICOMAN<sup>®</sup></a></div>
+  <ul><li><a href="preview-products.html">Products</a></li><li><a class="on" href="preview-projects.html">Projects</a></li><li><a href="preview-lighting-design.html">Lighting Design</a></li><li><a href="preview-manufacturing.html">Manufacturing</a></li><li><a href="preview-about.html">About</a></li></ul>
+  <a class="tbox">＋ My Project</a>
+</div></header>
+
+<section class="chero">
+  <img class="bg" src="img/rico-breakout-lounge.jpg" alt=""><div class="sc"></div>
+  <div class="in"><div class="wrap">
+    <div class="crumbs"><a href="preview-projects.html">Projects</a> &nbsp;/&nbsp; Workplace</div>
+    <h1>A breakout space that feels like the best seat in the building.</h1>
+  </div></div>
+</section>
+
+<section class="intro"><div class="wrap col">
+  <p class="lead">One photograph. One idea: warm, low pools of light over a quiet corner — made to order, fitted in a day.</p>
+  <div class="grid">
+    <div class="facts">
+      <div class="row"><span>Sector</span><b>Workplace · Amenity</b></div>
+      <div class="row"><span>Location</span><b>Manchester, UK</b></div>
+      <div class="row"><span>Products</span><b>Cylinder pendants</b></div>
+      <div class="row"><span>Finish</span><b>Matte black</b></div>
+      <div class="row"><span>Completed</span><b>2026</b></div>
+      <div class="row"><span>Lead time</span><b>UK-made, ~6 days</b></div>
+    </div>
+    <div class="copy">
+      <p>The amenity corner needed to pull people away from their desks without feeling like a meeting room. We hung a cluster of matte-black cylinder pendants at staggered heights over the seating, tuned warm and dimmable, so the light gathers around the sofa rather than washing the whole floor.</p>
+      <h3>The result</h3>
+      <p>A single, confident gesture. No false ceiling, no clutter — just direct, glare-controlled light that makes the space feel intentional. Proof that a project page doesn't need a gallery to land: one strong image and the right words do the work.</p>
+    </div>
+  </div>
+</div></section>
+
+<figure style="margin:0" class="figcap">
+  <img class="bleed" src="img/rico-acoustic-corridor.jpg" alt="">
+  <div class="wrap">The same language carried into the corridor — staggered linear runs in an acoustic raft.</div>
+</figure>
+
+<section class="quote"><div class="wrap">
+  <p>"They took one corner and made it the most photographed spot in the office."</p>
+  <span class="by">— Workplace Lead</span>
+</div></section>
+
+<section class="used"><div class="wrap col">
+  <span class="kick">Products used</span>
+  <h2>Specified in this project</h2>
+  <div class="chips">
+    <a href="preview-products.html">Cylinder Pendant</a>
+    <a href="preview-products.html">Astrawave Acoustic</a>
+    <a href="preview-flow.html">Flow+</a>
+  </div>
+</div></section>
+
+<section class="cta"><div class="bg"></div><div class="scrim"></div><div class="inner"><div class="wrap col">
+  <h2>One photo, a real scheme.</h2>
+  <p>Even a single space deserves a proper case study. Send us yours and we'll spec, make and deliver it — UK-made on an average six-day lead.</p>
+  <div class="acts"><a class="btn btn-line" href="preview-lighting-design.html">Start a Project</a><a class="btn btn-solid" style="background:#fff;color:var(--ink)" href="preview-projects.html">See more projects →</a></div>
+</div></div></section>
+
+<footer class="site"><div class="wrap">
+  <div class="fgrid">
+    <div>
+      <div class="brand">RICOMAN<sup style="font-size:.5em">®</sup></div>
+      <p>British LED lighting, designed and manufactured in Manchester. UK-made on an average six-day lead, large component stockholding and free lighting scheme design.</p>
+    </div>
+    <div>
+      <h4>Contact</h4>
+      <p>Metroplex Business Park</p><p>520 Broadway, M50 2UE</p><p>Manchester, UK</p>
+      <p style="margin-top:.8em;color:#fff">0161 451 5913</p><p style="color:#fff">sales@ricoman.com</p>
+    </div>
+    <div>
+      <h4>Products</h4>
+      <ul><li><a href="preview-products.html">Linear Lighting</a></li><li><a href="preview-products.html">Acoustic Lighting</a></li><li><a href="preview-products.html">Downlights</a></li><li><a href="preview-products.html">Pendants</a></li><li><a href="preview-products.html">Track Lighting</a></li></ul>
+    </div>
+    <div>
+      <h4>Company</h4>
+      <ul><li><a href="preview-about.html">About Ricoman</a></li><li><a href="preview-manufacturing.html">Manufacturing</a></li><li><a href="preview-lighting-design.html">Lighting Design</a></li><li><a href="preview-projects.html">Projects</a></li><li><a href="preview-about.html">Contact</a></li></ul>
+    </div>
+  </div>
+  <div class="fbar"><span>© 2026 Ricoman Ltd · Made in Britain</span><span>Mon–Thu 8:30–17:00 · Fri 8:30–16:00</span></div>
+</div></footer>
+</body>
+</html>
