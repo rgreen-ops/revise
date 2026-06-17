@@ -28,6 +28,7 @@ require_once get_theme_file_path( 'inc/seo.php' );           // JSON-LD schema &
 require_once get_theme_file_path( 'inc/seo-score.php' );     // SEO scoring + back-office dashboard.
 require_once get_theme_file_path( 'inc/geo.php' );           // Generative SEO (AI search): FAQ, llms.txt.
 require_once get_theme_file_path( 'inc/transporter.php' );   // Content migration tool.
+require_once get_theme_file_path( 'inc/ricobot.php' );       // RICOBOT API settings + client.
 require_once get_theme_file_path( 'inc/datasheet.php' );     // Printable / PDF datasheets.
 require_once get_theme_file_path( 'inc/lead-capture.php' );  // Lead form + Sheets webhook.
 require_once get_theme_file_path( 'inc/shortcodes.php' );    // Product spec/variant/datasheet output.
@@ -76,6 +77,23 @@ function ricoman_enqueue_assets() {
 		get_theme_file_uri( 'assets/css/shared.css' ),
 		array( 'ricoman-style' ),
 		RICOMAN_VERSION
+	);
+
+	// Ported design-system stylesheet (chrome, heroes, sections, cards, footer).
+	wp_enqueue_style(
+		'ricoman-design',
+		get_theme_file_uri( 'assets/css/ricoman.css' ),
+		array( 'ricoman-shared' ),
+		RICOMAN_VERSION
+	);
+
+	// Subtle motion layer (count-up stats + reveal-on-scroll); deferred.
+	wp_enqueue_script(
+		'ricoman-anim',
+		get_theme_file_uri( 'assets/js/ricoman-motion.js' ),
+		array(),
+		RICOMAN_VERSION,
+		true
 	);
 
 	// Brand web font — self-hosted Poppins (see inc/performance.php for preload).

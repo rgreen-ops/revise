@@ -130,7 +130,7 @@ add_filter( 'wp_resource_hints', function ( $urls, $relation_type ) {
 	if ( 'preconnect' !== $relation_type ) {
 		return $urls;
 	}
-	$base = defined( 'RICOMAN_RICOBOT_URL' ) ? RICOMAN_RICOBOT_URL : '';
+	$base = function_exists( 'ricoman_ricobot_opt' ) ? ricoman_ricobot_opt( 'url' ) : ( defined( 'RICOMAN_RICOBOT_URL' ) ? RICOMAN_RICOBOT_URL : '' );
 	if ( $base ) {
 		$host = wp_parse_url( $base, PHP_URL_SCHEME ) . '://' . wp_parse_url( $base, PHP_URL_HOST );
 		$urls[] = array(
