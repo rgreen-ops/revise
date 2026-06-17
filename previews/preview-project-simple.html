@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="anim.css">
+<link rel="preload" as="image" href="img/rico-breakout-lounge.jpg">
 <style>
 :root{
   --paper:#ffffff; --soft:#f4f3f1; --line:#e7e5e1; --ink:#0b0b0c;
@@ -111,7 +112,7 @@ footer li a{color:rgba(255,255,255,.62)}footer li a:hover{color:#fff}
 </div></header>
 
 <section class="chero">
-  <img class="bg" src="img/rico-breakout-lounge.jpg" alt=""><div class="sc"></div>
+  <img loading="eager" decoding="async" fetchpriority="high" class="bg" src="img/rico-breakout-lounge.jpg" alt=""><div class="sc"></div>
   <div class="in"><div class="wrap">
     <div class="crumbs"><a href="preview-projects.html">Projects</a> &nbsp;/&nbsp; Workplace</div>
     <h1>A breakout space that feels like the best seat in the building.</h1>
@@ -138,7 +139,7 @@ footer li a{color:rgba(255,255,255,.62)}footer li a:hover{color:#fff}
 </div></section>
 
 <figure style="margin:0" class="figcap">
-  <img class="bleed" src="img/rico-acoustic-corridor.jpg" alt="">
+  <img loading="lazy" decoding="async" class="bleed" src="img/rico-acoustic-corridor.jpg" alt="">
   <div class="wrap">The same language carried into the corridor — staggered linear runs in an acoustic raft.</div>
 </figure>
 
