@@ -59,6 +59,22 @@ function ricoman_setup() {
 add_action( 'after_setup_theme', 'ricoman_setup' );
 
 /**
+ * Flag pages that open with a dark hero so the header overlays transparently;
+ * everything else gets a solid dark header bar (see ricoman.css).
+ */
+add_filter( 'body_class', function ( $classes ) {
+	if ( is_front_page() || is_post_type_archive( array( 'product', 'project' ) ) || is_tax( 'product_cat' ) || is_singular( array( 'product', 'project' ) ) ) {
+		$classes[] = 'rm-hero';
+	} elseif ( is_singular() || is_page() ) {
+		$post = get_post();
+		if ( $post && ( false !== strpos( $post->post_content, 'phero' ) || false !== strpos( $post->post_content, 'chero' ) || false !== strpos( $post->post_content, 'class="hero"' ) ) ) {
+			$classes[] = 'rm-hero';
+		}
+	}
+	return $classes;
+} );
+
+/**
  * Enqueue front-end assets: the theme stylesheet, a small shared stylesheet
  * and the Inter / Inter Tight web fonts used across the design.
  */
