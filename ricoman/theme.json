@@ -200,6 +200,11 @@
 			"postTypes": ["product"]
 		},
 		{
+			"name": "single-project-simple",
+			"title": "Project, Simple",
+			"postTypes": ["project"]
+		},
+		{
 			"name": "page-no-title",
 			"title": "Page, No Title",
 			"postTypes": ["page"]
@@ -207,6 +212,26 @@
 		{
 			"name": "page-wide",
 			"title": "Page, Full Width",
+			"postTypes": ["page"]
+		},
+		{
+			"name": "page-landing",
+			"title": "Page, Landing (hero + CTA)",
+			"postTypes": ["page"]
+		},
+		{
+			"name": "page-canvas",
+			"title": "Page, Blank Canvas",
+			"postTypes": ["page"]
+		},
+		{
+			"name": "page-sidebar",
+			"title": "Page, With Sidebar",
+			"postTypes": ["page"]
+		},
+		{
+			"name": "page-contact",
+			"title": "Page, Contact",
 			"postTypes": ["page"]
 		}
 	],

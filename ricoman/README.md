@@ -36,6 +36,11 @@ PHP changes are needed for day-to-day content.
 | `page.html` | Standard page |
 | `page-no-title.html` | Page with no title (custom template) |
 | `page-wide.html` | Full-width page (custom template) |
+| `page-landing.html` | **Landing page** — hero + content + CTA, no page title (custom template) |
+| `page-canvas.html` | **Blank canvas** — full-width, no title; build anything (custom template) |
+| `page-sidebar.html` | **With sidebar** — content + sidebar card (custom template) |
+| `page-contact.html` | **Contact** — enquiry form + contact details (custom template) |
+| `single-project-simple.html` | **Simple project** — one image + text (custom template) |
 | `archive.html` | Category / tag / date archives |
 | `search.html` | Search results |
 | `404.html` | Not-found page |
