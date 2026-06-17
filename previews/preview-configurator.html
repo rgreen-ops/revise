@@ -290,21 +290,25 @@ footer .brand{color:#fff;letter-spacing:.3em}
 /* ---- Mobile breathing room + section rhythm ---- */
 @media(max-width:620px){
   :root{--pad:28px}
-  .cfg{gap:52px;padding-top:28px;padding-bottom:64px}
+  .cfg{gap:40px;padding-top:26px;padding-bottom:56px}
   .crumb{padding:22px 0 0}
-  .pdesc{margin-bottom:1.7em}
-  .hl{gap:1.05em;margin-bottom:2em}
-  .hl li{font-size:1rem;line-height:1.55}
-  .qlinks{gap:14px 22px;margin-bottom:2.2em}
-  .axis{padding:1.4em 0}
-  .axis .lab{margin-bottom:1em}
-  .opt-b{padding:.78em 1.1em;font-size:.9rem}
-  .result{margin-top:2.2em}
-  .acts{margin-top:2em;gap:12px}
+  .pdesc{margin-bottom:1.5em}
+  .hl{gap:.9em;margin-bottom:1.6em}
+  .hl li{font-size:1rem;line-height:1.5}
+  .qlinks{gap:12px 20px;margin-bottom:1.7em}
+  /* compact the option rows so the whole build fits with fewer scrolls */
+  .axis{padding:.95em 0}
+  .axis .lab{margin-bottom:.65em}
+  .opt-b{padding:.6em .95em;font-size:.88rem}
+  .result{margin-top:1.5em}
+  .acts{margin-top:1.5em;gap:10px}
   .acts .btn{width:100%;justify-content:center}
-  .dl{gap:12px 20px;margin-top:1.6em}
-  .note{margin-top:1.8em}
+  .dl{gap:12px 20px;margin-top:1.4em}
+  .note{margin-top:1.5em}
   .stagecap{flex-wrap:wrap;gap:4px 14px}
+  /* keep content clear of the fixed live-result bar; hide preview watermark */
+  body{padding-bottom:80px}
+  .tag{display:none}
   /* generous, varied vertical rhythm so sections don't merge */
   .sec{padding-block:clamp(72px,17vw,130px)}
   .statement{padding-block:clamp(80px,20vw,150px)}
@@ -317,6 +321,20 @@ footer .brand{color:#fff;letter-spacing:.3em}
   .cap{padding:16px var(--pad) 0}
   /* alternating tinted/dark sections read as distinct on mobile */
   .alt-soft{background:var(--soft)}
+}
+
+/* Sticky live-result bar — mobile only: keeps the order code + key specs on
+   screen while configuring, so build & result are always visible together */
+.mbar{display:none}
+@media(max-width:620px){
+  .mbar{display:block;position:fixed;left:0;right:0;bottom:0;z-index:90;background:var(--ink);color:#fff;border-top:1px solid rgba(255,255,255,.14);box-shadow:0 -8px 24px rgba(0,0,0,.28)}
+  .mbar-in{display:flex;align-items:center;gap:12px;padding:9px 16px;padding-bottom:max(9px,env(safe-area-inset-bottom))}
+  .mbar-info{display:flex;flex-direction:column;min-width:0;flex:1}
+  .mbar-lbl{font-family:Poppins;font-weight:600;font-size:.52rem;letter-spacing:.16em;text-transform:uppercase;color:var(--blue-lt)}
+  .mbar-code{font-family:Poppins;font-weight:700;font-size:.98rem;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:1px 0}
+  .mbar-meta{font-family:Poppins;font-size:.62rem;letter-spacing:.03em;color:rgba(255,255,255,.62);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mbar-btn{flex:0 0 auto;font-family:Poppins;font-weight:600;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;background:var(--accent);color:#fff;border:0;border-radius:8px;padding:.95em 1.25em;cursor:pointer}
+  .mbar-btn:active{opacity:.85}
 }
 
 /* Fallback for iOS Safari versions without aspect-ratio support (<15) so
@@ -623,6 +641,18 @@ footer .brand{color:#fff;letter-spacing:.3em}
   <div class="acts"><a class="btn btn-line">＋ Add to My Project</a><a class="btn btn-solid" style="background:#fff;color:var(--ink)">Talk to a lighting designer →</a></div>
 </div></div></section>
 
+<!-- mobile-only sticky live-result bar -->
+<div class="mbar" id="mbar">
+  <div class="mbar-in">
+    <div class="mbar-info">
+      <span class="mbar-lbl">Your build</span>
+      <span class="mbar-code" id="mbarCode">R341601/WT/3K</span>
+      <span class="mbar-meta" id="mbarMeta">42 W · 4,650 lm · 3000K</span>
+    </div>
+    <button class="mbar-btn" id="mbarAdd">＋ Add</button>
+  </div>
+</div>
+
 <footer class="site"><div class="wrap row">
   <div class="brand">RICOMAN<sup>®</sup></div>
   <div>Metroplex Business Park · 520 Broadway · M50 2UE · Manchester · 0161 451 5913</div>
@@ -786,6 +816,9 @@ function render(){
   const r = resolveConfig(state);
   $("#code").textContent = r.orderCode;
   $("#vizCode").textContent = r.orderCode;
+  // sticky mobile live-result bar
+  $("#mbarCode").textContent = r.orderCode;
+  $("#mbarMeta").textContent = r.specs["Wattage"]+" · "+r.specs["Output"]+" · "+r.specs["Colour temp"];
   const tb=$("#specBody"); tb.innerHTML="";
   Object.entries(r.specs).forEach(([k,v])=>{ tb.insertAdjacentHTML("beforeend",`<tr><th>${k}</th><td>${v}</td></tr>`); });
 
@@ -808,6 +841,8 @@ function render(){
 let mp=0;
 $("#addBtn").onclick=()=>{ mp++; $("#mpCount").textContent=mp; const b=$("#addBtn"); const t=b.textContent; b.textContent="✓ Added "+resolveConfig(state).orderCode; setTimeout(()=>b.textContent=t,1600); };
 $("#copy").onclick=()=>{ navigator.clipboard&&navigator.clipboard.writeText($("#code").textContent); $("#copy").textContent="Copied"; setTimeout(()=>$("#copy").textContent="Copy",1200); };
+
+$("#mbarAdd").onclick=()=>{ mp++; $("#mpCount").textContent=mp; const b=$("#mbarAdd"); b.textContent="✓ Added"; setTimeout(()=>b.textContent="＋ Add",1400); };
 
 // gallery studio / in-situ tabs
 $("#gtabs").querySelectorAll("button").forEach(b=>{
