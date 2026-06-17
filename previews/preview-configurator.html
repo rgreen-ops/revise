@@ -55,6 +55,13 @@ header.site{position:sticky;top:0;z-index:50;background:var(--ink)}
 /* indirect up-light bloom */
 .viz .up{position:absolute;left:0;right:0;top:0;height:38%;background:linear-gradient(180deg,rgba(255,255,255,.55),transparent);opacity:0;transition:opacity .5s ease;pointer-events:none}
 .viz .grad{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.35) 0%,transparent 24%,transparent 60%,rgba(0,0,0,.55) 100%);pointer-events:none}
+/* product (white-background) shots: light stage, contained, dark badges */
+.viz.prod{background:#f1f1f3}
+.viz.prod img{object-fit:contain;padding:7%}
+.viz.prod .grad{opacity:0}
+.viz.prod .side span{color:rgba(0,0,0,.4)}
+.viz.prod .chip{background:rgba(11,11,12,.62);border-color:rgba(255,255,255,.18)}
+.viz.prod .code{background:rgba(11,11,12,.7)}
 .viz .side{position:absolute;left:14px;top:0;bottom:0;display:flex;align-items:center;pointer-events:none}
 .viz .side span{writing-mode:vertical-rl;transform:rotate(180deg);font-family:Poppins;font-weight:600;text-transform:uppercase;letter-spacing:.34em;font-size:.58rem;color:rgba(255,255,255,.6)}
 .viz .chips{position:absolute;right:16px;top:16px;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
@@ -104,6 +111,93 @@ footer.site{background:var(--ink);color:rgba(255,255,255,.5);padding:54px 0;font
 footer .row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:18px;align-items:center}
 footer .brand{color:#fff;letter-spacing:.3em}
 .tag{position:fixed;left:14px;bottom:14px;z-index:99;background:var(--ink);color:#fff;font-family:Poppins;font-weight:600;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;padding:.55em 1em;border-radius:999px;border:1px solid rgba(255,255,255,.25)}
+
+/* =================== EDITORIAL CONTENT (Flow-style) =================== */
+.btn-line{border-color:rgba(255,255,255,.4);color:#fff}.btn-line:hover{background:#fff;color:var(--ink)}
+.kick .n{color:var(--ink);margin-right:1.4em}
+.kick.lt{color:rgba(255,255,255,.7)}.kick.lt .n{color:#fff}
+.col{max-width:1120px}
+.sec{padding-block:clamp(72px,10vw,160px)}
+.sec.tight{padding-block:clamp(48px,6vw,90px)}
+
+.facts{border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.facts .wrap{display:grid;grid-template-columns:repeat(5,1fr)}
+.facts .f{padding:clamp(26px,3vw,42px) 0;padding-right:24px;border-right:1px solid var(--line)}
+.facts .f:last-child{border-right:0}
+.facts small{display:block;color:var(--muted);text-transform:uppercase;letter-spacing:.2em;font-size:.6rem;font-family:Poppins;font-weight:600;margin-bottom:12px}
+.facts b{font-family:Poppins;font-weight:500;font-size:clamp(1.05rem,1.4vw,1.45rem);letter-spacing:-.02em;color:var(--ink)}
+@media(max-width:820px){.facts .wrap{grid-template-columns:repeat(2,1fr)}.facts .f{border-right:0;border-bottom:1px solid var(--line);padding:22px var(--pad)}}
+
+.statement p{font-family:Poppins;font-weight:500;font-size:clamp(1.9rem,5vw,4.4rem);line-height:1.05;letter-spacing:-.035em;max-width:20ch;margin:0;color:var(--ink)}
+.statement p span{color:var(--faint)}
+
+.bleed{width:100%;height:clamp(380px,64vh,760px);object-fit:cover}
+.cap{font-family:Poppins;text-transform:uppercase;letter-spacing:.2em;font-size:.62rem;color:var(--muted);padding-top:14px}
+
+.feature{display:grid;grid-template-columns:1fr 1fr;gap:clamp(34px,6vw,120px);align-items:center}
+.feature + .feature{margin-top:clamp(56px,8vw,130px)}
+.feature.rev .media{order:2}
+.feature .media img{width:100%;aspect-ratio:4/5;object-fit:cover}
+.feature .media.prod{background:#f4f3f1;display:flex;align-items:center;justify-content:center}
+.feature .media.prod img{object-fit:contain;padding:8%;aspect-ratio:auto}
+.feature .body{max-width:440px}
+.feature h2{font-size:clamp(2rem,4vw,3.4rem);margin:.7em 0 .6em;font-weight:600}
+.feature .body>p{color:var(--muted);font-size:1.08rem;margin:0 0 1.6em}
+.feature ul{margin:0;padding:0;list-style:none}
+.feature li{padding:1em 0;border-top:1px solid var(--line);display:flex;gap:1.2em;align-items:baseline;font-size:1rem}
+.feature li .ix{font-family:Poppins;font-size:.66rem;letter-spacing:.14em;color:var(--faint)}
+@media(max-width:820px){.feature{grid-template-columns:1fr;gap:30px}.feature.rev .media{order:0}}
+
+.dark{background:var(--ink);color:#fff}
+.britain{display:grid;grid-template-columns:1fr 1fr;align-items:stretch}
+.britain .img{min-height:480px;background:url(img/rico-making.webp) center/cover no-repeat}
+.britain .body{padding:clamp(54px,8vw,130px) clamp(28px,6vw,100px)}
+.britain h2{color:#fff;font-size:clamp(2.2rem,4.4vw,3.6rem);margin:.6em 0 .7em;font-weight:600}
+.britain p{color:rgba(255,255,255,.7);font-size:1.1rem;margin:0 0 1.3em;max-width:44ch}
+@media(max-width:860px){.britain{grid-template-columns:1fr}.britain .img{min-height:320px;order:-1}}
+
+.specband{position:relative;color:#fff;overflow:hidden}
+.specband .bg{position:absolute;inset:0;background:url(img/estrella-canteen.jpg) center/cover no-repeat}
+.specband .scrim{position:absolute;inset:0;background:rgba(8,8,9,.76)}
+.specband .grid{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:24px;text-align:center;padding-block:clamp(64px,8vw,130px)}
+.specband b{font-family:Poppins;font-weight:500;font-size:clamp(1.8rem,3.6vw,3.2rem);color:#fff;display:block;letter-spacing:-.03em}
+.specband small{color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.2em;font-size:.62rem;font-family:Poppins;font-weight:600}
+@media(max-width:820px){.specband .grid{grid-template-columns:repeat(2,1fr);gap:40px}}
+
+.tables{display:grid;grid-template-columns:1fr 1.5fr;gap:clamp(32px,6vw,100px);align-items:start}
+@media(max-width:820px){.tables{grid-template-columns:1fr}}
+.dtable{width:100%;border-collapse:collapse}
+.dtable th,.dtable td{text-align:left;padding:1.05em 0;border-bottom:1px solid var(--line);font-size:.95rem}
+.dtable th{color:var(--muted);font-weight:400;width:46%}
+.dtable td{font-family:Poppins;font-weight:600;color:var(--ink)}
+.sectlabel{font-family:Poppins;font-weight:600;font-size:1.35rem;letter-spacing:-.02em;margin-bottom:1.1em}
+.vars{width:100%;border-collapse:collapse}
+.vars thead th{border-bottom:1.5px solid var(--ink);color:var(--ink);padding:1em 0;font-family:Poppins;font-size:.66rem;text-align:left;letter-spacing:.16em;text-transform:uppercase}
+.vars td{padding:1.05em 0;border-bottom:1px solid var(--line);font-size:.9rem}
+.vars td:first-child{font-family:Poppins;font-weight:600}
+
+.mosaic{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+.mosaic .c{display:grid;gap:14px}
+.mosaic img{width:100%;object-fit:cover}
+.mosaic .big{aspect-ratio:16/12}
+.mosaic .sm{aspect-ratio:1}
+@media(max-width:680px){.mosaic{grid-template-columns:1fr}}
+
+.quote{text-align:center}
+.quote blockquote{font-family:Poppins;font-weight:500;font-size:clamp(1.8rem,4.2vw,3.2rem);line-height:1.14;letter-spacing:-.03em;max-width:18ch;margin:0 auto .9em;color:var(--ink)}
+.quote cite{font-style:normal;color:var(--muted);font-family:Poppins;font-size:.7rem;letter-spacing:.2em;text-transform:uppercase}
+
+.shead{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:end;margin-bottom:clamp(40px,6vw,80px)}
+.shead h2{font-size:clamp(2.2rem,4.6vw,4rem);margin:.5em 0 0;font-weight:600}
+@media(max-width:760px){.shead{grid-template-columns:1fr}}
+
+.ctaband{position:relative;color:#fff;text-align:center;overflow:hidden}
+.ctaband .bg{position:absolute;inset:0;background:url(img/estrella-lounge.webp) center/cover no-repeat}
+.ctaband .scrim{position:absolute;inset:0;background:rgba(8,8,9,.72)}
+.ctaband .inner{position:relative;padding-block:clamp(80px,11vw,170px)}
+.ctaband h2{color:#fff;font-size:clamp(2.2rem,4.6vw,4rem);margin-bottom:.5em;font-weight:600}
+.ctaband p{color:rgba(255,255,255,.78);max-width:46ch;margin:0 auto 2.2em;font-size:1.1rem}
+.ctaband .acts{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -167,6 +261,127 @@ footer .brand{color:#fff;letter-spacing:.3em}
   </div>
 </section>
 
+<!-- ============================ STORY / CONTENT ============================ -->
+<section class="facts"><div class="wrap">
+  <div class="f"><small>Output</small><b>Up to 6,200 lm</b></div>
+  <div class="f"><small>Colour</small><b>3000K / 4000K · CRI 90</b></div>
+  <div class="f"><small>Optics</small><b>Opal · UGR&lt;19 · Wallwash</b></div>
+  <div class="f"><small>Mounting</small><b>Surface / Suspended</b></div>
+  <div class="f"><small>Warranty</small><b>5 years</b></div>
+</div></section>
+
+<section class="sec statement"><div class="wrap col">
+  <p>One profile, drawn as a single clean line. <span>Surface or suspended, in straight runs, L-shapes and frames — configured to your scheme.</span></p>
+</div></section>
+
+<figure style="margin:0"><img class="bleed" src="img/estrella-canteen.jpg" alt="Estrella suspended linear run in a workplace fit-out"></figure>
+<div class="wrap"><div class="cap">Workplace fit-out · Estrella suspended in matt black</div></div>
+
+<section class="sec"><div class="wrap">
+  <div class="feature">
+    <div class="media prod"><img src="img/estrella-finishes.png" alt="Estrella in black and white finishes"></div>
+    <div class="body">
+      <span class="kick"><span class="n">01</span>Finish</span>
+      <h2>Two finishes, one clean line</h2>
+      <p>A crisp extruded aluminium housing with a flush opal diffuser. Specified in matt black or white as standard, or any RAL to match the interior — with no visible fixings down the run.</p>
+      <ul>
+        <li><span class="ix">01</span> Matt black &amp; white as standard</li>
+        <li><span class="ix">02</span> Any RAL finish to order</li>
+        <li><span class="ix">03</span> Flush opal, UGR&lt;19, wallwash or louvre optics</li>
+      </ul>
+    </div>
+  </div>
+  <div class="feature rev">
+    <div class="media"><img src="img/estrella-lounge.webp" alt="Estrella continuous run in a breakout space"></div>
+    <div class="body">
+      <span class="kick"><span class="n">02</span>Continuous runs</span>
+      <h2>Built to run line after line</h2>
+      <p>Estrella links end-to-end into long, dot-free runs and turns through L-shapes and rectangular frames — so a single specified detail can carry across a whole floorplate.</p>
+      <ul>
+        <li><span class="ix">01</span> Continuous, joint-free diffusion</li>
+        <li><span class="ix">02</span> L-shapes &amp; rectangular frames</li>
+        <li><span class="ix">03</span> Integral 3hr emergency &amp; indirect up-light options</li>
+      </ul>
+    </div>
+  </div>
+</div></section>
+
+<section class="dark">
+  <div class="britain">
+    <div class="body">
+      <span class="kick lt"><span class="n">03</span>In-house Manufacturing</span>
+      <h2>Made to order in Manchester</h2>
+      <p>Estrella isn’t imported and rebadged. It’s engineered, assembled and tested under one roof in the UK — so runs are cut to your dimensions, finishes matched to your palette, and lead times stay short.</p>
+      <p>Designing and making in-house means tighter tolerances, full traceability, and the freedom to build to your geometry — to order, not to a catalogue.</p>
+      <a class="btn btn-line" style="margin-top:.6em">Inside our manufacturing →</a>
+    </div>
+    <div class="img"></div>
+  </div>
+</section>
+
+<section class="specband"><div class="bg"></div><div class="scrim"></div><div class="wrap"><div class="grid">
+  <div><b>6,200<span style="font-size:.34em;font-family:Poppins;letter-spacing:.05em"> LM</span></b><small>Max output</small></div>
+  <div><b>90</b><small>CRI</small></div>
+  <div><b>127<span style="font-size:.34em;font-family:Poppins;letter-spacing:.05em"> LM/W</span></b><small>Efficacy</small></div>
+  <div><b>IP20</b><small>Rating</small></div>
+  <div><b>5 yr</b><small>Warranty</small></div>
+</div></div></section>
+
+<section class="sec"><div class="wrap"><div class="tables">
+  <div>
+    <div class="sectlabel">Specifications</div>
+    <table class="dtable"><tbody>
+      <tr><th>Wattage</th><td>14 – 56 W</td></tr>
+      <tr><th>Output</th><td>1,550 – 6,200 lm</td></tr>
+      <tr><th>Efficacy</th><td>Up to 127 lm/W</td></tr>
+      <tr><th>CCT</th><td>3000K / 4000K</td></tr>
+      <tr><th>CRI</th><td>90</td></tr>
+      <tr><th>Optics</th><td>Opal · UGR&lt;19 · Wallwash · Louvre</td></tr>
+      <tr><th>Lengths</th><td>532 / 1064 / 1596 / 2128 mm · L-shape</td></tr>
+      <tr><th>IP rating</th><td>IP20</td></tr>
+      <tr><th>Controls</th><td>Non-dim · DALI · 1–10V</td></tr>
+      <tr><th>Options</th><td>3hr emergency · indirect up-light</td></tr>
+      <tr><th>Origin</th><td>Made in Manchester, UK</td></tr>
+    </tbody></table>
+  </div>
+  <div>
+    <div class="sectlabel">Ordering &amp; variants</div>
+    <table class="vars">
+      <thead><tr><th>Order code</th><th>Description</th><th>Watts</th><th>Lumens</th><th>CCT</th></tr></thead>
+      <tbody>
+        <tr><td>R340501/WT/3K</td><td>532 mm · Opal · White</td><td>14</td><td>1,550 lm</td><td>3000K</td></tr>
+        <tr><td>R341101/BK/4K</td><td>1064 mm · Opal · Black</td><td>28</td><td>3,100 lm</td><td>4000K</td></tr>
+        <tr><td>R341609/WT/4K/DD</td><td>1596 mm · UGR&lt;19 · DALI</td><td>42</td><td>4,185 lm</td><td>4000K</td></tr>
+        <tr><td>R342101/BK/4K/DD/E/UP</td><td>2128 mm · Opal · EM · up-light</td><td>40</td><td>5,084 lm</td><td>4000K</td></tr>
+        <tr><td>R340101/BK/4K</td><td>L-shape frame · Opal · Black</td><td>24</td><td>2,600 lm</td><td>4000K</td></tr>
+      </tbody>
+    </table>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:2em">
+      <a class="btn btn-solid">Datasheet (PDF) ↓</a>
+      <a class="btn btn-line-d">＋ Add to My Project</a>
+    </div>
+  </div>
+</div></div></section>
+
+<section class="tight" style="padding-top:0"><div class="wrap"><div class="mosaic">
+  <img class="big" src="img/estrella-lounge.webp" alt="Estrella continuous run — breakout space">
+  <div class="c">
+    <img class="sm" src="img/estrella-black.png" alt="Estrella black product detail" style="background:#f4f3f1">
+    <img class="sm" src="img/estrella-canteen.jpg" alt="Estrella suspended in workplace canteen">
+  </div>
+</div></div></section>
+
+<section class="sec quote"><div class="wrap col">
+  <blockquote>“Specified as one continuous detail — the run carried straight through the whole floor.”</blockquote>
+  <cite>Lighting Designer · Commercial Office Fit-out</cite>
+</div></section>
+
+<section class="ctaband"><div class="bg"></div><div class="scrim"></div><div class="inner"><div class="wrap col">
+  <h2>Specify Estrella on your next project</h2>
+  <p>Build your configuration above, save it to My Project, and our in-house lighting team will return a fully specified, made-to-order scheme — with BIM, photometric and datasheet files.</p>
+  <div class="acts"><a class="btn btn-line">＋ Add to My Project</a><a class="btn btn-solid" style="background:#fff;color:var(--ink)">Talk to a lighting designer →</a></div>
+</div></div></section>
+
 <footer class="site"><div class="wrap row">
   <div class="brand">RICOMAN<sup>®</sup></div>
   <div>Metroplex Business Park · 520 Broadway · M50 2UE · Manchester · 0161 451 5913</div>
@@ -215,15 +430,20 @@ const MOCK_FEED = {
 
 /* real Estrella / project photography fed alongside the model */
 const GALLERY = [
-  { src:"img/rico-office-render.webp", cap:"Studio macro" },
-  { src:"img/rico-office.jpg",         cap:"Office · continuous curve" },
-  { src:"img/ceiling.jpg",             cap:"Workplace · suspended run" },
-  { src:"img/rico-kingsgate.png",      cap:"Fleur Patisserie · feature line" },
-  { src:"img/rico-ins2.png",           cap:"Fleur Patisserie · vertical sweep" }
+  { id:"black",    prod:true, src:"img/estrella-black.png",    cap:"Studio · black finish" },
+  { id:"finishes", prod:true, src:"img/estrella-finishes.png", cap:"Black &amp; white finishes" },
+  { id:"frame",    prod:true, src:"img/estrella-frame.png",    cap:"L-shape / frame form" },
+  { id:"canteen",             src:"img/estrella-canteen.jpg",  cap:"Workplace · suspended run" },
+  { id:"lounge",              src:"img/estrella-lounge.webp",  cap:"Breakout · continuous run" }
 ];
+function heroIndexFor(){
+  if(state.size==="01")   return GALLERY.findIndex(g=>g.id==="frame");
+  if(state.colour==="WT") return GALLERY.findIndex(g=>g.id==="finishes");
+  return GALLERY.findIndex(g=>g.id==="black");
+}
 
 const state = { size:"16", optic:"01", colour:"WT", cct:"3K", dim:"", em:"", up:"" };
-let activeImg = 0;
+let activeImg = heroIndexFor();
 
 function resolveConfig(sel){
   // ---- this is the bit RICOBOT does for real ----
@@ -278,7 +498,7 @@ function build(){
     ax.options.forEach(o=>{
       const b=document.createElement("button");
       b.className="opt-b"+(o.v===cur?" on":""); b.textContent=o.label;
-      b.onclick=()=>{ state[ax.key]=o.v; render(); };
+      b.onclick=()=>{ state[ax.key]=o.v; if(ax.key==="colour"||ax.key==="size"){ activeImg=heroIndexFor(); } render(); };
       opts.appendChild(b);
     });
     wrap.appendChild(opts); host.appendChild(wrap);
@@ -296,10 +516,12 @@ function render(){
   // ---- live photography stage ----
   const g = GALLERY[activeImg];
   if ($("#vizImg").getAttribute("src") !== g.src){ $("#vizImg").src = g.src; }
-  $("#capView").textContent = g.cap;
-  // colour-temperature wash responds to CCT toggle
-  $("#vizCct").style.background = state.cct==="3K"
-    ? "rgba(255,176,84,.55)" : "rgba(150,200,255,.45)";
+  $("#capView").innerHTML = g.cap;
+  document.querySelector(".viz").classList.toggle("prod", !!g.prod);
+  // colour-temperature wash responds to CCT toggle (subtler on product shots)
+  const warm = g.prod ? "rgba(255,176,84,.30)" : "rgba(255,176,84,.55)";
+  const cool = g.prod ? "rgba(150,200,255,.26)" : "rgba(150,200,255,.45)";
+  $("#vizCct").style.background = state.cct==="3K" ? warm : cool;
   // indirect up-light bloom
   $("#vizUp").style.opacity = state.up ? "1" : "0";
   // finish + optic chips
