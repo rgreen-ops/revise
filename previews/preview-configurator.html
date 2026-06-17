@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estrella Pro — Ricoman (configurator preview)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#ffffff; --soft:#f4f3f1; --line:#e7e5e1; --ink:#0b0b0c;
+  --text:#16161a; --muted:#8c8b86; --faint:#b6b4ae; --blue:#1d4ed8; --accent:#1d4ed8;
+  --wide:1440px; --pad:clamp(20px,4vw,72px);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,sans-serif;color:var(--text);background:var(--paper);line-height:1.7;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:Poppins,sans-serif;color:var(--ink);margin:0;font-weight:600;letter-spacing:-.03em;line-height:1.05}
+a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
+.wrap{max-width:var(--wide);margin:0 auto;padding-inline:var(--pad)}
+.kick{font-family:Poppins;text-transform:uppercase;letter-spacing:.28em;font-size:.66rem;font-weight:600;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;gap:.7em;font-family:Poppins;font-weight:600;font-size:.8rem;letter-spacing:.05em;text-transform:uppercase;padding:1.05em 1.8em;border:1px solid transparent;cursor:pointer;transition:.25s}
+.btn-solid{background:var(--ink);color:#fff}.btn-solid:hover{background:var(--blue)}
+.btn-line-d{border-color:#d2cfc9;color:var(--ink)}.btn-line-d:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+.util{background:var(--ink);color:rgba(255,255,255,.6);font-family:Poppins;font-size:.66rem;letter-spacing:.16em;text-transform:uppercase}
+.util .wrap{display:flex;justify-content:space-between;height:38px;align-items:center}
+.util .live{display:inline-flex;align-items:center;gap:.5em;color:#7CFFB2}
+.util .live .dot{width:7px;height:7px;border-radius:50%;background:#34d399;box-shadow:0 0 0 0 rgba(52,211,153,.6);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(52,211,153,.5)}70%{box-shadow:0 0 0 6px rgba(52,211,153,0)}100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}}
+@media(max-width:680px){.util .wrap span.addr{display:none}}
+
+header.site{position:sticky;top:0;z-index:50;background:var(--ink)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:78px;color:#fff}
+.brand{font-family:Poppins;font-weight:700;letter-spacing:.3em;font-size:1.1rem}
+.brand sup{font-size:.5em;top:-1em}
+.nav ul{display:flex;gap:40px;list-style:none;margin:0;padding:0;font-family:Poppins;font-size:.72rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase}
+.nav ul a{color:rgba(255,255,255,.82)}
+.tbox{font-family:Poppins;font-weight:600;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;border:1px solid rgba(255,255,255,.35);padding:.8em 1.4em;border-radius:999px;color:#fff}
+.tbox .c{display:inline-flex;min-width:1.4em;height:1.4em;align-items:center;justify-content:center;background:var(--accent);border-radius:999px;margin-left:.5em;font-size:.85em}
+@media(max-width:1024px){.nav ul,.tbox{display:none}}
+
+.crumb{font-family:Poppins;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:26px 0}
+.crumb .sep{color:var(--line);margin:0 .6em}
+
+.cfg{display:grid;grid-template-columns:1.1fr 1fr;gap:clamp(34px,5vw,84px);align-items:start;padding-bottom:clamp(50px,7vw,90px)}
+@media(max-width:920px){.cfg{grid-template-columns:1fr}}
+
+/* live preview stage */
+.stage{position:sticky;top:96px}
+.viz{position:relative;aspect-ratio:4/3;background:linear-gradient(160deg,#15171c,#0a0a0b);border-radius:4px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.lum{position:relative;height:26px;border-radius:18px;transition:width .35s ease, background .3s, box-shadow .3s;display:flex;align-items:center;justify-content:center}
+.lum .glow{position:absolute;inset:5px 10px;border-radius:12px;transition:background .3s, box-shadow .3s}
+.lum .up{position:absolute;left:6%;right:6%;top:-26px;height:22px;border-radius:50%;filter:blur(9px);opacity:0;transition:opacity .3s}
+.lum .em{position:absolute;right:-9px;top:-9px;width:12px;height:12px;border-radius:50%;background:#34d399;box-shadow:0 0 8px #34d399;opacity:0;transition:opacity .3s}
+.viz .code{position:absolute;left:18px;bottom:16px;font-family:Poppins;font-weight:600;letter-spacing:.04em;font-size:.8rem;color:rgba(255,255,255,.9);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);padding:.45em .8em;border-radius:6px}
+.viz .opt{position:absolute;right:18px;top:16px;font-family:Poppins;font-weight:600;text-transform:uppercase;letter-spacing:.14em;font-size:.58rem;color:rgba(255,255,255,.55)}
+.thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
+.thumbs div{aspect-ratio:1;border-radius:3px;background:linear-gradient(160deg,#1a1c22,#0a0a0b);border:1px solid var(--line)}
+.thumbs div:first-child{outline:1px solid var(--ink);outline-offset:2px}
+
+/* details */
+.pname{font-size:clamp(2.4rem,5vw,3.8rem);letter-spacing:-.04em;font-weight:600;margin:.1em 0 .25em}
+.pdesc{color:var(--muted);font-size:1.1rem;margin:0 0 1.6em;max-width:46ch}
+
+.axis{padding:1.1em 0;border-top:1px solid var(--line)}
+.axis .lab{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.7em}
+.axis .lab b{font-family:Poppins;font-weight:600;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase}
+.axis .lab span{color:var(--muted);font-size:.9rem;font-family:Poppins}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt-b{font-family:Poppins;font-weight:500;font-size:.86rem;padding:.6em 1em;border:1px solid var(--line);border-radius:6px;cursor:pointer;background:#fff;transition:.15s}
+.opt-b:hover{border-color:#bdbab3}
+.opt-b.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+.result{margin-top:1.6em;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.result .code{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--soft);padding:1em 1.2em;border-bottom:1px solid var(--line)}
+.result .code .lbl{font-family:Poppins;text-transform:uppercase;letter-spacing:.14em;font-size:.6rem;color:var(--muted)}
+.result .code .v{font-family:Poppins;font-weight:700;font-size:1.25rem;letter-spacing:.02em}
+.result .code .copy{font-family:Poppins;font-size:.62rem;text-transform:uppercase;letter-spacing:.12em;color:var(--blue);cursor:pointer}
+.spec{width:100%;border-collapse:collapse}
+.spec th,.spec td{text-align:left;padding:.7em 1.2em;border-bottom:1px solid var(--line);font-size:.9rem}
+.spec th{color:var(--muted);font-weight:400;width:50%}
+.spec td{font-family:Poppins;font-weight:600;color:var(--ink)}
+.spec tr:last-child th,.spec tr:last-child td{border-bottom:0}
+.pricerow{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:1em 1.2em;background:var(--ink);color:#fff}
+.pricerow .p{font-family:Poppins;font-weight:600;font-size:1.15rem}
+.pricerow .p small{display:block;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.55);font-weight:500}
+.acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:1.4em}
+.dl{display:flex;gap:10px;flex-wrap:wrap;margin-top:1em}
+.dl a{font-family:Poppins;font-weight:600;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);border-bottom:1px solid var(--line);padding:.3em 0}
+.dl a:hover{border-color:var(--ink)}
+.note{margin-top:1.4em;font-size:.82rem;color:var(--muted)}
+
+footer.site{background:var(--ink);color:rgba(255,255,255,.5);padding:54px 0;font-family:Poppins;font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;margin-top:10px}
+footer .row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:18px;align-items:center}
+footer .brand{color:#fff;letter-spacing:.3em}
+.tag{position:fixed;left:14px;bottom:14px;z-index:99;background:var(--ink);color:#fff;font-family:Poppins;font-weight:600;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;padding:.55em 1em;border-radius:999px;border:1px solid rgba(255,255,255,.25)}
+</style>
+</head>
+<body>
+<div class="tag">Preview · Configurator (RICOBOT-fed)</div>
+
+<div class="util"><div class="wrap"><span class="addr">Designed &amp; manufactured in Manchester, UK</span><span class="live"><span class="dot"></span> Live product data · RICOBOT</span></div></div>
+
+<header class="site"><div class="wrap nav">
+  <div class="brand">RICOMAN<sup>®</sup></div>
+  <ul><li><a>Products</a></li><li><a>Projects</a></li><li><a>Lighting Design</a></li><li><a>Manufacturing</a></li></ul>
+  <a class="tbox">My Project <span class="c" id="mpCount">0</span></a>
+</div></header>
+
+<div class="wrap crumb">Home <span class="sep">/</span> Products <span class="sep">/</span> Linear Lighting <span class="sep">/</span> <span id="crumbName">Estrella Pro</span></div>
+
+<section class="wrap cfg">
+  <!-- LIVE PREVIEW -->
+  <div class="stage">
+    <div class="viz">
+      <div class="opt" id="vizOptic">OPAL</div>
+      <div class="lum" id="lum"><div class="up" id="vizUp"></div><div class="glow" id="vizGlow"></div><div class="em" id="vizEm"></div></div>
+      <div class="code" id="vizCode">R341601/WT/4K</div>
+    </div>
+    <div class="thumbs"><div></div><div></div><div></div><div></div></div>
+  </div>
+
+  <!-- CONFIGURATOR -->
+  <div class="details">
+    <span class="kick">Linear Lighting · Suspended / Surface</span>
+    <h1 class="pname" id="pName">Estrella Pro</h1>
+    <p class="pdesc">A precision architectural linear luminaire. Configure length, optic, finish and controls — the order code, specification and price update live from RICOBOT.</p>
+
+    <div id="axes"></div>
+
+    <div class="result">
+      <div class="code">
+        <div><div class="lbl">Order code</div><div class="v" id="code">R341601/WT/4K</div></div>
+        <div class="copy" id="copy">Copy</div>
+      </div>
+      <table class="spec"><tbody id="specBody"></tbody></table>
+      <div class="pricerow">
+        <div class="p" id="price">£ —<small>Trade price · ex VAT</small></div>
+        <div class="p" id="stock" style="text-align:right">In stock<small>Lead time</small></div>
+      </div>
+    </div>
+
+    <div class="acts">
+      <button class="btn btn-solid" id="addBtn">＋ Add to My Project</button>
+      <a class="btn btn-line-d">Configure &amp; quote →</a>
+    </div>
+    <div class="dl">
+      <a id="dlData">Datasheet (PDF) ↓</a>
+      <a id="dlBim">BIM / Revit ↓</a>
+      <a id="dlIes">Photometric (IES) ↓</a>
+    </div>
+    <p class="note">Specification, order code, price, stock and downloads are resolved from RICOBOT for the exact configuration. Invalid combinations are disabled automatically.</p>
+  </div>
+</section>
+
+<footer class="site"><div class="wrap row">
+  <div class="brand">RICOMAN<sup>®</sup></div>
+  <div>Metroplex Business Park · 520 Broadway · M50 2UE · Manchester · 0161 451 5913</div>
+  <div>© 2026 Ricoman Ltd</div>
+</div></footer>
+
+<script>
+/* ============================================================================
+ * Configurator — front end.
+ *
+ * In production this data is FED BY RICOBOT (internal). RICOBOT pushes the
+ * product model + valid-combination rules into the website, and resolves a
+ * configuration to { orderCode, specs, price, stock, downloads }. The browser
+ * never calls RICOBOT directly — it reads the synced data (and, for live
+ * price/stock, the site's own server proxies a cached RICOBOT lookup).
+ *
+ * Swap MOCK_FEED + resolveConfig() for the real adapter:
+ *   async function resolveConfig(baseId, selection) {
+ *     return fetch('/wp-json/ricoman/v1/resolve', {            // WP REST proxy
+ *       method:'POST', body: JSON.stringify({ baseId, selection })
+ *     }).then(r => r.json());   // -> { orderCode, specs, price, stock, downloads }
+ *   }
+ * ==========================================================================*/
+
+const MOCK_FEED = {
+  baseId: "R34", family: "Estrella Pro",
+  axes: [
+    { key:"size",  label:"Length",            unit:"",  options:[
+      {v:"01",label:"L-Shape"},{v:"05",label:"532 mm"},{v:"11",label:"1064 mm"},{v:"16",label:"1596 mm"},{v:"21",label:"2128 mm"}]},
+    { key:"optic", label:"Optic / diffuser",  options:[
+      {v:"01",label:"Opal"},{v:"09",label:"UGR <19"},{v:"04",label:"Wallwash"},{v:"07",label:"White louvre"}]},
+    { key:"colour",label:"Body colour",       options:[{v:"WT",label:"White"},{v:"BK",label:"Black"}]},
+    { key:"cct",   label:"Colour temperature",options:[{v:"3K",label:"3000K"},{v:"4K",label:"4000K"}]},
+    { key:"dim",   label:"Dimming",           options:[{v:"",label:"Non-dim"},{v:"DD",label:"DALI"},{v:"DH",label:"1–10V"}]},
+    { key:"em",    label:"Emergency",          options:[{v:"",label:"No"},{v:"E",label:"3hr EM"}]},
+    { key:"up",    label:"Indirect up-light",  options:[{v:"",label:"No"},{v:"UP",label:"Yes"}]}
+  ],
+  // illustrative spec map by size (the kind of data RICOBOT returns)
+  sizeSpec: {
+    "01":{mm:"600 × 600", w:24, lm:2600, w_em:18},
+    "05":{mm:"532",  w:14, lm:1550, w_em:10},
+    "11":{mm:"1064", w:28, lm:3100, w_em:20},
+    "16":{mm:"1596", w:42, lm:4650, w_em:30},
+    "21":{mm:"2128", w:56, lm:6200, w_em:40}
+  }
+};
+
+const state = { size:"16", optic:"01", colour:"WT", cct:"3K", dim:"", em:"", up:"" };
+
+function resolveConfig(sel){
+  // ---- this is the bit RICOBOT does for real ----
+  const s = MOCK_FEED.sizeSpec[sel.size];
+  let order = MOCK_FEED.baseId + sel.size + sel.optic + "/" + sel.colour + "/" + sel.cct;
+  if (sel.dim) order += "/" + sel.dim;
+  if (sel.em)  order += "/E";
+  if (sel.up)  order += "/UP";
+  const w = sel.em ? s.w_em : s.w;
+  const lm = Math.round(s.lm * (sel.em?0.82:1) * (sel.optic==="09"?0.9:1));
+  const opticName = {"01":"Opal","09":"UGR <19 microprismatic","04":"Wallwash","07":"White louvre"}[sel.optic];
+  const price = (8.5*w + (sel.dim?22:0) + (sel.em?46:0) + (sel.up?38:0) + 35).toFixed(2);
+  return {
+    orderCode: order,
+    specs: {
+      "Wattage": w + " W",
+      "Output": lm.toLocaleString() + " lm",
+      "Efficacy": Math.round(lm/w) + " lm/W",
+      "Colour temp": sel.cct==="3K"?"3000K":"4000K",
+      "CRI": "90",
+      "Optic": opticName,
+      "Length": s.mm + (sel.size==="01"?"":" mm"),
+      "IP rating": "IP20",
+      "Dimming": sel.dim==="DD"?"DALI":sel.dim==="DH"?"1–10V":"Non-dimmable",
+      "Emergency": sel.em?"3hr self-test":"—"
+    },
+    price: "£" + price,
+    stock: w>45 ? "Made to order" : "In stock",
+    lead:  w>45 ? "10–15 days" : "Next day",
+    downloads: { data:"#datasheet", bim:"#bim", ies:"#ies" }
+  };
+}
+
+const $ = s => document.querySelector(s);
+function build(){
+  const host = $("#axes"); host.innerHTML="";
+  MOCK_FEED.axes.forEach(ax=>{
+    const wrap=document.createElement("div"); wrap.className="axis";
+    const sel = MOCK_FEED.axes.find(a=>a.key===ax.key);
+    const cur = state[ax.key];
+    const curLabel = (ax.options.find(o=>o.v===cur)||{}).label||"";
+    wrap.innerHTML = `<div class="lab"><b>${ax.label}</b><span data-cur="${ax.key}">${curLabel}</span></div>`;
+    const opts=document.createElement("div"); opts.className="opts";
+    ax.options.forEach(o=>{
+      const b=document.createElement("button");
+      b.className="opt-b"+(o.v===cur?" on":""); b.textContent=o.label;
+      b.onclick=()=>{ state[ax.key]=o.v; render(); };
+      opts.appendChild(b);
+    });
+    wrap.appendChild(opts); host.appendChild(wrap);
+  });
+}
+function render(){
+  build();
+  const r = resolveConfig(state);
+  $("#code").textContent = r.orderCode;
+  $("#vizCode").textContent = r.orderCode;
+  const tb=$("#specBody"); tb.innerHTML="";
+  Object.entries(r.specs).forEach(([k,v])=>{ tb.insertAdjacentHTML("beforeend",`<tr><th>${k}</th><td>${v}</td></tr>`); });
+  $("#price").innerHTML = r.price + "<small>Trade price · ex VAT</small>";
+  $("#stock").innerHTML = r.stock + "<small>"+r.lead+"</small>";
+  // live preview graphic
+  const widths={ "01":150,"05":150,"11":230,"16":320,"21":400 };
+  const lum=$("#lum"), glow=$("#vizGlow");
+  lum.style.width = widths[state.size]+"px";
+  const body = state.colour==="BK" ? "#15161a" : "#e9e9ec";
+  lum.style.background = body;
+  lum.style.boxShadow = "0 10px 30px rgba(0,0,0,.4)";
+  const warm = state.cct==="3K" ? "#ffdfb0" : "#eaf3ff";
+  glow.style.background = warm;
+  glow.style.boxShadow = "0 0 22px "+warm;
+  $("#vizUp").style.opacity = state.up?".9":"0";
+  $("#vizUp").style.background = warm;
+  $("#vizEm").style.opacity = state.em?"1":"0";
+  $("#vizOptic").textContent = ({"01":"OPAL","09":"UGR <19","04":"WALLWASH","07":"LOUVRE"})[state.optic];
+}
+
+let mp=0;
+$("#addBtn").onclick=()=>{ mp++; $("#mpCount").textContent=mp; const b=$("#addBtn"); const t=b.textContent; b.textContent="✓ Added "+resolveConfig(state).orderCode; setTimeout(()=>b.textContent=t,1600); };
+$("#copy").onclick=()=>{ navigator.clipboard&&navigator.clipboard.writeText($("#code").textContent); $("#copy").textContent="Copied"; setTimeout(()=>$("#copy").textContent="Copy",1200); };
+render();
+</script>
+</body>
+</html>
