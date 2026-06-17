@@ -22,7 +22,10 @@ if ( ! defined( 'RICOMAN_VERSION' ) ) {
  */
 require_once get_theme_file_path( 'inc/post-types.php' );    // Products, Projects, Leads.
 require_once get_theme_file_path( 'inc/meta.php' );          // Product specs & variants.
+require_once get_theme_file_path( 'inc/performance.php' );   // Speed: fonts, bloat removal, prefetch.
+require_once get_theme_file_path( 'inc/images.php' );        // Auto web-ready images (AVIF/WebP, alt text).
 require_once get_theme_file_path( 'inc/seo.php' );           // JSON-LD schema & breadcrumbs.
+require_once get_theme_file_path( 'inc/seo-score.php' );     // SEO scoring + back-office dashboard.
 require_once get_theme_file_path( 'inc/datasheet.php' );     // Printable / PDF datasheets.
 require_once get_theme_file_path( 'inc/lead-capture.php' );  // Lead form + Sheets webhook.
 require_once get_theme_file_path( 'inc/shortcodes.php' );    // Product spec/variant/datasheet output.
@@ -73,36 +76,15 @@ function ricoman_enqueue_assets() {
 		RICOMAN_VERSION
 	);
 
-	// Brand web fonts.
+	// Brand web font — self-hosted Poppins (see inc/performance.php for preload).
 	wp_enqueue_style(
 		'ricoman-fonts',
-		'https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap',
+		get_theme_file_uri( 'assets/css/fonts.css' ),
 		array(),
-		null
+		RICOMAN_VERSION
 	);
 }
 add_action( 'wp_enqueue_scripts', 'ricoman_enqueue_assets' );
-
-/**
- * Preconnect to the Google Fonts hosts so the brand fonts paint quickly.
- *
- * @param array  $urls          URLs to print for resource hints.
- * @param string $relation_type The relation type the URLs are printed for.
- * @return array
- */
-function ricoman_resource_hints( $urls, $relation_type ) {
-	if ( 'preconnect' === $relation_type && wp_style_is( 'ricoman-fonts', 'enqueued' ) ) {
-		$urls[] = array(
-			'href' => 'https://fonts.googleapis.com',
-		);
-		$urls[] = array(
-			'href'        => 'https://fonts.gstatic.com',
-			'crossorigin' => 'anonymous',
-		);
-	}
-	return $urls;
-}
-add_filter( 'wp_resource_hints', 'ricoman_resource_hints', 10, 2 );
 
 /**
  * Register the block pattern categories that the bundled patterns slot into.

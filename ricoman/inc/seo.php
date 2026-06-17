@@ -462,6 +462,39 @@ function ricoman_output_schema() {
 		),
 	);
 
+	// LocalBusiness (local SEO / map results) — only when an address is set.
+	if ( ricoman_seo_opt( 'street' ) ) {
+		$lb = array(
+			'@type'    => 'LocalBusiness',
+			'@id'      => home_url( '/#localbusiness' ),
+			'name'     => get_bloginfo( 'name' ),
+			'url'      => home_url( '/' ),
+			'parentOrganization' => array( '@id' => $org_id ),
+			'address'  => array_filter( array(
+				'@type'           => 'PostalAddress',
+				'streetAddress'   => ricoman_seo_opt( 'street' ),
+				'addressLocality' => ricoman_seo_opt( 'locality' ),
+				'addressRegion'   => ricoman_seo_opt( 'region' ),
+				'postalCode'      => ricoman_seo_opt( 'postcode' ),
+				'addressCountry'  => ricoman_seo_opt( 'country', 'GB' ),
+			) ),
+		);
+		if ( ricoman_seo_opt( 'phone' ) ) {
+			$lb['telephone'] = ricoman_seo_opt( 'phone' );
+		}
+		if ( $logo ) {
+			$lb['image'] = $logo;
+		}
+		if ( ricoman_seo_opt( 'lat' ) && ricoman_seo_opt( 'lng' ) ) {
+			$lb['geo'] = array(
+				'@type'     => 'GeoCoordinates',
+				'latitude'  => ricoman_seo_opt( 'lat' ),
+				'longitude' => ricoman_seo_opt( 'lng' ),
+			);
+		}
+		$graph[] = $lb;
+	}
+
 	// Per-context nodes.
 	if ( is_singular( 'product' ) ) {
 		$id    = get_queried_object_id();
@@ -657,6 +690,13 @@ function ricoman_seo_metabox( $post ) {
 		<p class="description"><?php esc_html_e( 'Aim for ~120–160 characters.', 'ricoman' ); ?></p>
 	</div>
 	<div class="ricoman-seo-field">
+		<label for="ricoman_seo_focus"><?php esc_html_e( 'Focus keyphrase', 'ricoman' ); ?></label>
+		<input type="text" id="ricoman_seo_focus" name="ricoman_seo_focus" value="<?php echo esc_attr( (string) get_post_meta( $post->ID, '_ricoman_seo_focus', true ) ); ?>"
+			placeholder="<?php esc_attr_e( 'e.g. linear lighting', 'ricoman' ); ?>">
+		<p class="description"><?php esc_html_e( 'The phrase you want this page to rank for. Used to score the page below.', 'ricoman' ); ?></p>
+	</div>
+	<div id="ricoman_seo_panel"></div>
+	<div class="ricoman-seo-field">
 		<label><input type="checkbox" name="ricoman_seo_noindex" value="1" <?php checked( $noindex, '1' ); ?>>
 			<?php esc_html_e( 'Hide this from search engines (noindex)', 'ricoman' ); ?></label>
 	</div>
@@ -685,10 +725,12 @@ add_action( 'save_post', function ( $post_id ) {
 
 	$title = isset( $_POST['ricoman_seo_title'] ) ? sanitize_text_field( wp_unslash( $_POST['ricoman_seo_title'] ) ) : '';
 	$desc  = isset( $_POST['ricoman_seo_desc'] ) ? sanitize_textarea_field( wp_unslash( $_POST['ricoman_seo_desc'] ) ) : '';
+	$focus = isset( $_POST['ricoman_seo_focus'] ) ? sanitize_text_field( wp_unslash( $_POST['ricoman_seo_focus'] ) ) : '';
 	$noidx = ! empty( $_POST['ricoman_seo_noindex'] ) ? '1' : '';
 
 	$title ? update_post_meta( $post_id, '_ricoman_seo_title', $title ) : delete_post_meta( $post_id, '_ricoman_seo_title' );
 	$desc ? update_post_meta( $post_id, '_ricoman_seo_desc', $desc ) : delete_post_meta( $post_id, '_ricoman_seo_desc' );
+	$focus ? update_post_meta( $post_id, '_ricoman_seo_focus', $focus ) : delete_post_meta( $post_id, '_ricoman_seo_focus' );
 	$noidx ? update_post_meta( $post_id, '_ricoman_seo_noindex', '1' ) : delete_post_meta( $post_id, '_ricoman_seo_noindex' );
 } );
 
@@ -715,31 +757,24 @@ function ricoman_seo_render_column( $col, $post_id ) {
 	if ( 'ricoman_seo' !== $col ) {
 		return;
 	}
-	$issues = array();
-
-	$has_desc = get_post_meta( $post_id, '_ricoman_seo_desc', true ) || has_excerpt( $post_id );
-	if ( ! $has_desc ) {
-		$issues[] = __( 'no description', 'ricoman' );
-	}
-	if ( ! has_post_thumbnail( $post_id ) ) {
-		$issues[] = __( 'no image', 'ricoman' );
-	}
-	$tlen = strlen( get_the_title( $post_id ) );
-	if ( $tlen < 15 || $tlen > 65 ) {
-		$issues[] = __( 'title length', 'ricoman' );
-	}
 	if ( get_post_meta( $post_id, '_ricoman_seo_noindex', true ) ) {
 		echo '<span title="noindex" style="color:#646970">⊘ hidden</span>';
 		return;
 	}
-
-	if ( empty( $issues ) ) {
-		echo '<span title="' . esc_attr__( 'Looks good', 'ricoman' ) . '" style="color:#008a20;font-weight:600">● Good</span>';
-	} else {
-		$count = count( $issues );
-		$color = $count > 1 ? '#b32d2e' : '#dba617';
-		echo '<span title="' . esc_attr( implode( ', ', $issues ) ) . '" style="color:' . esc_attr( $color ) . ';font-weight:600">● ' . esc_html( implode( ', ', $issues ) ) . '</span>';
+	if ( ! function_exists( 'ricoman_seo_score' ) ) {
+		echo '—';
+		return;
 	}
+	$r     = ricoman_seo_score( $post_id );
+	$score = (int) $r['score'];
+	$fails = array();
+	foreach ( $r['checks'] as $c ) {
+		if ( ! $c['pass'] ) {
+			$fails[] = $c['label'];
+		}
+	}
+	$color = $score >= 80 ? '#008a20' : ( $score >= 50 ? '#dba617' : '#b32d2e' );
+	echo '<span title="' . esc_attr( $fails ? implode( ', ', $fails ) : __( 'Looks good', 'ricoman' ) ) . '" style="color:' . esc_attr( $color ) . ';font-weight:700">● ' . esc_html( (string) $score ) . '<span style="font-weight:400">/100</span></span>';
 }
 
 /* ---------------------------------------------------------------------------
@@ -762,7 +797,7 @@ add_action( 'admin_init', function () {
 
 function ricoman_seo_sanitize( $input ) {
 	$out  = array();
-	$text = array( 'twitter', 'phone', 'street', 'locality', 'region', 'postcode', 'country', 'founding', 'google_verification' );
+	$text = array( 'twitter', 'phone', 'street', 'locality', 'region', 'postcode', 'country', 'founding', 'google_verification', 'psi_key', 'lat', 'lng' );
 	foreach ( $text as $k ) {
 		if ( isset( $input[ $k ] ) ) {
 			$out[ $k ] = sanitize_text_field( $input[ $k ] );
@@ -828,6 +863,13 @@ function ricoman_seo_settings_page() {
 				<tr><th scope="row"><label for="rs_gv"><?php esc_html_e( 'Google verification code', 'ricoman' ); ?></label></th>
 					<td><input type="text" class="regular-text" id="rs_gv" name="ricoman_seo[google_verification]" value="<?php echo $f( 'google_verification' ); ?>">
 					<p class="description"><?php esc_html_e( 'The content value from the Search Console “HTML tag” method.', 'ricoman' ); ?></p></td></tr>
+				<tr><th scope="row"><label for="rs_geo"><?php esc_html_e( 'HQ coordinates', 'ricoman' ); ?></label></th>
+					<td><input type="text" id="rs_geo" name="ricoman_seo[lat]" value="<?php echo $f( 'lat' ); ?>" placeholder="<?php esc_attr_e( 'Latitude', 'ricoman' ); ?>">
+					<input type="text" name="ricoman_seo[lng]" value="<?php echo $f( 'lng' ); ?>" placeholder="<?php esc_attr_e( 'Longitude', 'ricoman' ); ?>">
+					<p class="description"><?php esc_html_e( 'Optional — adds geo coordinates to your LocalBusiness data for local/map results.', 'ricoman' ); ?></p></td></tr>
+				<tr><th scope="row"><label for="rs_psi"><?php esc_html_e( 'PageSpeed API key', 'ricoman' ); ?></label></th>
+					<td><input type="text" class="regular-text" id="rs_psi" name="ricoman_seo[psi_key]" value="<?php echo $f( 'psi_key' ); ?>">
+					<p class="description"><?php esc_html_e( 'Optional — a Google PageSpeed Insights API key lets the SEO & Speed dashboard fetch live scores reliably.', 'ricoman' ); ?></p></td></tr>
 			</table>
 			<?php submit_button(); ?>
 		</form>

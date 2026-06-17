@@ -1,0 +1,10 @@
+/* Self-hosted Poppins (latin subset). Removes the Google Fonts round-trip.
+   font-display:swap keeps text visible during load. */
+@font-face{font-family:"Poppins";font-style:normal;font-weight:400;font-display:swap;src:url(../fonts/poppins-400.woff2) format("woff2")}
+@font-face{font-family:"Poppins";font-style:normal;font-weight:500;font-display:swap;src:url(../fonts/poppins-500.woff2) format("woff2")}
+@font-face{font-family:"Poppins";font-style:normal;font-weight:600;font-display:swap;src:url(../fonts/poppins-600.woff2) format("woff2")}
+@font-face{font-family:"Poppins";font-style:normal;font-weight:700;font-display:swap;src:url(../fonts/poppins-700.woff2) format("woff2")}
+@font-face{font-family:"Poppins";font-style:normal;font-weight:800;font-display:swap;src:url(../fonts/poppins-800.woff2) format("woff2")}
+
+/* Fallback metrics to reduce layout shift when Poppins swaps in. */
+@font-face{font-family:"Poppins Fallback";src:local("Arial");ascent-override:105%;descent-override:35%;line-gap-override:0%;size-adjust:112%}
