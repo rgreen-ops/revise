@@ -37,3 +37,35 @@ html {
 .wp-block-template-part .wp-block-navigation {
 	z-index: 30;
 }
+
+/* ---- Accessibility ---- */
+
+/* Visible keyboard focus (helps a11y + Lighthouse "best practices"). */
+:where(a, button, input, select, textarea, summary, .wp-block-button__link):focus-visible {
+	outline: 2px solid var(--wp--preset--color--primary, #16335c);
+	outline-offset: 2px;
+	border-radius: 2px;
+}
+
+/* WordPress' auto "skip to content" link — visible only when focused. */
+.skip-link.screen-reader-text:focus {
+	background: var(--wp--preset--color--base, #fff);
+	color: var(--wp--preset--color--primary, #16335c);
+	z-index: 100000;
+	padding: 14px 20px;
+	font-weight: 600;
+}
+
+/* Respect reduced-motion across the theme. */
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
+	.is-style-card {
+		transition: none;
+	}
+	.is-style-card:hover {
+		transform: none;
+	}
+}
+
