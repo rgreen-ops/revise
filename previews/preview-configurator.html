@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Estrella Pro — Ricoman (configurator preview)</title>
+<title>Estrella — Ricoman (configurator preview)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
   --paper:#ffffff; --soft:#f4f3f1; --line:#e7e5e1; --ink:#0b0b0c;
-  --text:#16161a; --muted:#8c8b86; --faint:#b6b4ae; --blue:#1d4ed8; --accent:#1d4ed8;
+  --text:#16161a; --muted:#8c8b86; --faint:#b6b4ae; --blue:#1d4ed8; --accent:#c8651b;
   --wide:1440px; --pad:clamp(20px,4vw,72px);
 }
 *{box-sizing:border-box}
@@ -18,9 +18,9 @@ body{margin:0;font-family:Inter,system-ui,sans-serif;color:var(--text);backgroun
 h1,h2,h3,h4{font-family:Poppins,sans-serif;color:var(--ink);margin:0;font-weight:600;letter-spacing:-.03em;line-height:1.05}
 a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
 .wrap{max-width:var(--wide);margin:0 auto;padding-inline:var(--pad)}
-.kick{font-family:Poppins;text-transform:uppercase;letter-spacing:.28em;font-size:.66rem;font-weight:600;color:var(--muted)}
+.kick{font-family:Poppins;text-transform:uppercase;letter-spacing:.28em;font-size:.66rem;font-weight:600;color:var(--accent)}
 .btn{display:inline-flex;align-items:center;gap:.7em;font-family:Poppins;font-weight:600;font-size:.8rem;letter-spacing:.05em;text-transform:uppercase;padding:1.05em 1.8em;border:1px solid transparent;cursor:pointer;transition:.25s}
-.btn-solid{background:var(--ink);color:#fff}.btn-solid:hover{background:var(--blue)}
+.btn-solid{background:var(--ink);color:#fff}.btn-solid:hover{background:var(--accent)}
 .btn-line-d{border-color:#d2cfc9;color:var(--ink)}.btn-line-d:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
 
 .util{background:var(--ink);color:rgba(255,255,255,.6);font-family:Poppins;font-size:.66rem;letter-spacing:.16em;text-transform:uppercase}
@@ -40,53 +40,62 @@ header.site{position:sticky;top:0;z-index:50;background:var(--ink)}
 .tbox .c{display:inline-flex;min-width:1.4em;height:1.4em;align-items:center;justify-content:center;background:var(--accent);border-radius:999px;margin-left:.5em;font-size:.85em}
 @media(max-width:1024px){.nav ul,.tbox{display:none}}
 
-.crumb{font-family:Poppins;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:26px 0}
+.crumb{font-family:Poppins;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:26px 0 0}
 .crumb .sep{color:var(--line);margin:0 .6em}
 
-.cfg{display:grid;grid-template-columns:1.1fr 1fr;gap:clamp(34px,5vw,84px);align-items:start;padding-bottom:clamp(50px,7vw,90px)}
+.cfg{display:grid;grid-template-columns:1.15fr 1fr;gap:clamp(34px,5vw,88px);align-items:start;padding:30px 0 clamp(50px,7vw,90px)}
 @media(max-width:920px){.cfg{grid-template-columns:1fr}}
 
-/* live preview stage */
+/* ---- live preview stage : real Estrella photography ---- */
 .stage{position:sticky;top:96px}
-.viz{position:relative;aspect-ratio:4/3;background:linear-gradient(160deg,#15171c,#0a0a0b);border-radius:4px;overflow:hidden;display:flex;align-items:center;justify-content:center}
-.lum{position:relative;height:26px;border-radius:18px;transition:width .35s ease, background .3s, box-shadow .3s;display:flex;align-items:center;justify-content:center}
-.lum .glow{position:absolute;inset:5px 10px;border-radius:12px;transition:background .3s, box-shadow .3s}
-.lum .up{position:absolute;left:6%;right:6%;top:-26px;height:22px;border-radius:50%;filter:blur(9px);opacity:0;transition:opacity .3s}
-.lum .em{position:absolute;right:-9px;top:-9px;width:12px;height:12px;border-radius:50%;background:#34d399;box-shadow:0 0 8px #34d399;opacity:0;transition:opacity .3s}
-.viz .code{position:absolute;left:18px;bottom:16px;font-family:Poppins;font-weight:600;letter-spacing:.04em;font-size:.8rem;color:rgba(255,255,255,.9);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);padding:.45em .8em;border-radius:6px}
-.viz .opt{position:absolute;right:18px;top:16px;font-family:Poppins;font-weight:600;text-transform:uppercase;letter-spacing:.14em;font-size:.58rem;color:rgba(255,255,255,.55)}
-.thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
-.thumbs div{aspect-ratio:1;border-radius:3px;background:linear-gradient(160deg,#1a1c22,#0a0a0b);border:1px solid var(--line)}
-.thumbs div:first-child{outline:1px solid var(--ink);outline-offset:2px}
+.viz{position:relative;aspect-ratio:4/3;background:#0a0a0b;border-radius:4px;overflow:hidden}
+.viz img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .5s ease}
+/* live colour-temperature wash over the photo */
+.viz .cct{position:absolute;inset:0;mix-blend-mode:soft-light;transition:background .5s ease;pointer-events:none}
+/* indirect up-light bloom */
+.viz .up{position:absolute;left:0;right:0;top:0;height:38%;background:linear-gradient(180deg,rgba(255,255,255,.55),transparent);opacity:0;transition:opacity .5s ease;pointer-events:none}
+.viz .grad{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.35) 0%,transparent 24%,transparent 60%,rgba(0,0,0,.55) 100%);pointer-events:none}
+.viz .side{position:absolute;left:14px;top:0;bottom:0;display:flex;align-items:center;pointer-events:none}
+.viz .side span{writing-mode:vertical-rl;transform:rotate(180deg);font-family:Poppins;font-weight:600;text-transform:uppercase;letter-spacing:.34em;font-size:.58rem;color:rgba(255,255,255,.6)}
+.viz .chips{position:absolute;right:16px;top:16px;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.viz .chip{font-family:Poppins;font-weight:600;text-transform:uppercase;letter-spacing:.14em;font-size:.56rem;color:#fff;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);padding:.4em .7em;border-radius:999px;backdrop-filter:blur(4px)}
+.viz .code{position:absolute;left:18px;bottom:16px;font-family:Poppins;font-weight:600;letter-spacing:.04em;font-size:.82rem;color:#fff;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.18);padding:.5em .85em;border-radius:6px;backdrop-filter:blur(4px)}
+.thumbs{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:8px}
+.thumbs button{padding:0;border:0;cursor:pointer;background:none}
+.thumbs img{aspect-ratio:1;width:100%;object-fit:cover;border-radius:3px;border:1px solid var(--line);opacity:.62;transition:.2s}
+.thumbs button:hover img{opacity:1}
+.thumbs button.on img{opacity:1;outline:2px solid var(--ink);outline-offset:1px}
+.stagecap{display:flex;justify-content:space-between;font-family:Poppins;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:12px}
 
-/* details */
-.pname{font-size:clamp(2.4rem,5vw,3.8rem);letter-spacing:-.04em;font-weight:600;margin:.1em 0 .25em}
-.pdesc{color:var(--muted);font-size:1.1rem;margin:0 0 1.6em;max-width:46ch}
+/* ---- details ---- */
+.head{position:relative}
+.idx{position:absolute;right:0;top:-28px;font-family:Poppins;font-weight:700;font-size:7rem;line-height:1;color:var(--soft);letter-spacing:-.04em;z-index:0;user-select:none}
+.head>*{position:relative;z-index:1}
+.pname{font-size:clamp(2.6rem,5.5vw,4.2rem);letter-spacing:-.045em;font-weight:600;margin:.12em 0 .2em}
+.pdesc{color:var(--muted);font-size:1.08rem;margin:0 0 1.4em;max-width:46ch}
 
-.axis{padding:1.1em 0;border-top:1px solid var(--line)}
-.axis .lab{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.7em}
+.axis{padding:1.05em 0;border-top:1px solid var(--line)}
+.axis .lab{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.7em;gap:12px}
 .axis .lab b{font-family:Poppins;font-weight:600;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase}
-.axis .lab span{color:var(--muted);font-size:.9rem;font-family:Poppins}
+.axis .lab b i{font-style:normal;color:var(--faint);margin-right:.7em;font-weight:600}
+.axis .lab span{color:var(--ink);font-size:.9rem;font-family:Poppins;font-weight:600}
 .opts{display:flex;flex-wrap:wrap;gap:8px}
 .opt-b{font-family:Poppins;font-weight:500;font-size:.86rem;padding:.6em 1em;border:1px solid var(--line);border-radius:6px;cursor:pointer;background:#fff;transition:.15s}
 .opt-b:hover{border-color:#bdbab3}
 .opt-b.on{background:var(--ink);color:#fff;border-color:var(--ink)}
 
 .result{margin-top:1.6em;border:1px solid var(--line);border-radius:8px;overflow:hidden}
-.result .code{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--soft);padding:1em 1.2em;border-bottom:1px solid var(--line)}
-.result .code .lbl{font-family:Poppins;text-transform:uppercase;letter-spacing:.14em;font-size:.6rem;color:var(--muted)}
-.result .code .v{font-family:Poppins;font-weight:700;font-size:1.25rem;letter-spacing:.02em}
-.result .code .copy{font-family:Poppins;font-size:.62rem;text-transform:uppercase;letter-spacing:.12em;color:var(--blue);cursor:pointer}
+.result .code{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--ink);color:#fff;padding:1.05em 1.2em}
+.result .code .lbl{font-family:Poppins;text-transform:uppercase;letter-spacing:.14em;font-size:.6rem;color:rgba(255,255,255,.5)}
+.result .code .v{font-family:Poppins;font-weight:700;font-size:1.28rem;letter-spacing:.02em}
+.result .code .copy{font-family:Poppins;font-size:.62rem;text-transform:uppercase;letter-spacing:.12em;color:#fff;border:1px solid rgba(255,255,255,.35);padding:.55em .9em;border-radius:999px;cursor:pointer}
 .spec{width:100%;border-collapse:collapse}
 .spec th,.spec td{text-align:left;padding:.7em 1.2em;border-bottom:1px solid var(--line);font-size:.9rem}
 .spec th{color:var(--muted);font-weight:400;width:50%}
 .spec td{font-family:Poppins;font-weight:600;color:var(--ink)}
 .spec tr:last-child th,.spec tr:last-child td{border-bottom:0}
-.pricerow{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:1em 1.2em;background:var(--ink);color:#fff}
-.pricerow .p{font-family:Poppins;font-weight:600;font-size:1.15rem}
-.pricerow .p small{display:block;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.55);font-weight:500}
 .acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:1.4em}
-.dl{display:flex;gap:10px;flex-wrap:wrap;margin-top:1em}
+.dl{display:flex;gap:18px;flex-wrap:wrap;margin-top:1.2em}
 .dl a{font-family:Poppins;font-weight:600;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);border-bottom:1px solid var(--line);padding:.3em 0}
 .dl a:hover{border-color:var(--ink)}
 .note{margin-top:1.4em;font-size:.82rem;color:var(--muted)}
@@ -108,24 +117,32 @@ footer .brand{color:#fff;letter-spacing:.3em}
   <a class="tbox">My Project <span class="c" id="mpCount">0</span></a>
 </div></header>
 
-<div class="wrap crumb">Home <span class="sep">/</span> Products <span class="sep">/</span> Linear Lighting <span class="sep">/</span> <span id="crumbName">Estrella Pro</span></div>
+<div class="wrap crumb">Home <span class="sep">/</span> Products <span class="sep">/</span> Linear Lighting <span class="sep">/</span> <span id="crumbName">Estrella</span></div>
 
 <section class="wrap cfg">
-  <!-- LIVE PREVIEW -->
+  <!-- LIVE PREVIEW — real Estrella photography -->
   <div class="stage">
     <div class="viz">
-      <div class="opt" id="vizOptic">OPAL</div>
-      <div class="lum" id="lum"><div class="up" id="vizUp"></div><div class="glow" id="vizGlow"></div><div class="em" id="vizEm"></div></div>
+      <img id="vizImg" src="img/rico-office-render.webp" alt="Estrella architectural linear luminaire">
+      <div class="cct" id="vizCct"></div>
+      <div class="up" id="vizUp"></div>
+      <div class="grad"></div>
+      <div class="side"><span>Architectural Linear · Continuous Run</span></div>
+      <div class="chips"><span class="chip" id="chipFinish">Black</span><span class="chip" id="chipOptic">Opal</span></div>
       <div class="code" id="vizCode">R341601/WT/4K</div>
     </div>
-    <div class="thumbs"><div></div><div></div><div></div><div></div></div>
+    <div class="thumbs" id="thumbs"></div>
+    <div class="stagecap"><span>Estrella · architectural linear</span><span id="capView">Studio macro</span></div>
   </div>
 
   <!-- CONFIGURATOR -->
   <div class="details">
-    <span class="kick">Linear Lighting · Suspended / Surface</span>
-    <h1 class="pname" id="pName">Estrella Pro</h1>
-    <p class="pdesc">A precision architectural linear luminaire. Configure length, optic, finish and controls — the order code, specification and price update live from RICOBOT.</p>
+    <div class="head">
+      <div class="idx">01</div>
+      <span class="kick">Linear Lighting · Suspended / Surface</span>
+      <h1 class="pname" id="pName">Estrella</h1>
+      <p class="pdesc">A precision architectural linear luminaire, built to run in continuous lines and bespoke curves. Configure length, optic, finish and controls — the order code, specification and downloads resolve live from RICOBOT.</p>
+    </div>
 
     <div id="axes"></div>
 
@@ -135,22 +152,18 @@ footer .brand{color:#fff;letter-spacing:.3em}
         <div class="copy" id="copy">Copy</div>
       </div>
       <table class="spec"><tbody id="specBody"></tbody></table>
-      <div class="pricerow">
-        <div class="p" id="price">Price on request<small>Add to project for a quote</small></div>
-        <div class="p" id="stock" style="text-align:right">In stock<small>Lead time</small></div>
-      </div>
     </div>
 
     <div class="acts">
       <button class="btn btn-solid" id="addBtn">＋ Add to My Project</button>
-      <a class="btn btn-line-d">Configure &amp; quote →</a>
+      <a class="btn btn-line-d">Talk to a lighting designer →</a>
     </div>
     <div class="dl">
       <a id="dlData">Datasheet (PDF) ↓</a>
       <a id="dlBim">BIM / Revit ↓</a>
       <a id="dlIes">Photometric (IES) ↓</a>
     </div>
-    <p class="note">Specification, order code, price, stock and downloads are resolved from RICOBOT for the exact configuration. Invalid combinations are disabled automatically.</p>
+    <p class="note">Specification, order code and downloads are resolved from RICOBOT for the exact configuration. Invalid combinations are disabled automatically. Save builds to My Project and our team will follow up directly.</p>
   </div>
 </section>
 
@@ -166,20 +179,19 @@ footer .brand{color:#fff;letter-spacing:.3em}
  *
  * In production this data is FED BY RICOBOT (internal). RICOBOT pushes the
  * product model + valid-combination rules into the website, and resolves a
- * configuration to { orderCode, specs, price, stock, downloads }. The browser
- * never calls RICOBOT directly — it reads the synced data (and, for live
- * price/stock, the site's own server proxies a cached RICOBOT lookup).
+ * configuration to { orderCode, specs, downloads }. No pricing or stock is
+ * surfaced on the website — those are handled offline by the team.
  *
  * Swap MOCK_FEED + resolveConfig() for the real adapter:
  *   async function resolveConfig(baseId, selection) {
  *     return fetch('/wp-json/ricoman/v1/resolve', {            // WP REST proxy
  *       method:'POST', body: JSON.stringify({ baseId, selection })
- *     }).then(r => r.json());   // -> { orderCode, specs, price, stock, downloads }
+ *     }).then(r => r.json());   // -> { orderCode, specs, downloads }
  *   }
  * ==========================================================================*/
 
 const MOCK_FEED = {
-  baseId: "R34", family: "Estrella Pro",
+  baseId: "R34", family: "Estrella",
   axes: [
     { key:"size",  label:"Length",            unit:"",  options:[
       {v:"01",label:"L-Shape"},{v:"05",label:"532 mm"},{v:"11",label:"1064 mm"},{v:"16",label:"1596 mm"},{v:"21",label:"2128 mm"}]},
@@ -201,7 +213,17 @@ const MOCK_FEED = {
   }
 };
 
+/* real Estrella / project photography fed alongside the model */
+const GALLERY = [
+  { src:"img/rico-office-render.webp", cap:"Studio macro" },
+  { src:"img/rico-office.jpg",         cap:"Office · continuous curve" },
+  { src:"img/ceiling.jpg",             cap:"Workplace · suspended run" },
+  { src:"img/rico-kingsgate.png",      cap:"Fleur Patisserie · feature line" },
+  { src:"img/rico-ins2.png",           cap:"Fleur Patisserie · vertical sweep" }
+];
+
 const state = { size:"16", optic:"01", colour:"WT", cct:"3K", dim:"", em:"", up:"" };
+let activeImg = 0;
 
 function resolveConfig(sel){
   // ---- this is the bit RICOBOT does for real ----
@@ -213,7 +235,6 @@ function resolveConfig(sel){
   const w = sel.em ? s.w_em : s.w;
   const lm = Math.round(s.lm * (sel.em?0.82:1) * (sel.optic==="09"?0.9:1));
   const opticName = {"01":"Opal","09":"UGR <19 microprismatic","04":"Wallwash","07":"White louvre"}[sel.optic];
-  const price = (8.5*w + (sel.dim?22:0) + (sel.em?46:0) + (sel.up?38:0) + 35).toFixed(2);
   return {
     orderCode: order,
     specs: {
@@ -228,22 +249,31 @@ function resolveConfig(sel){
       "Dimming": sel.dim==="DD"?"DALI":sel.dim==="DH"?"1–10V":"Non-dimmable",
       "Emergency": sel.em?"3hr self-test":"—"
     },
-    price: "£" + price,
-    stock: w>45 ? "Made to order" : "In stock",
-    lead:  w>45 ? "10–15 days" : "Next day",
     downloads: { data:"#datasheet", bim:"#bim", ies:"#ies" }
   };
 }
 
 const $ = s => document.querySelector(s);
+
+function buildThumbs(){
+  const host=$("#thumbs"); host.innerHTML="";
+  GALLERY.forEach((g,i)=>{
+    const b=document.createElement("button");
+    b.className = i===activeImg?"on":"";
+    b.innerHTML = `<img src="${g.src}" alt="">`;
+    b.onclick=()=>{ activeImg=i; render(); };
+    host.appendChild(b);
+  });
+}
+
 function build(){
   const host = $("#axes"); host.innerHTML="";
-  MOCK_FEED.axes.forEach(ax=>{
+  MOCK_FEED.axes.forEach((ax,i)=>{
     const wrap=document.createElement("div"); wrap.className="axis";
-    const sel = MOCK_FEED.axes.find(a=>a.key===ax.key);
     const cur = state[ax.key];
     const curLabel = (ax.options.find(o=>o.v===cur)||{}).label||"";
-    wrap.innerHTML = `<div class="lab"><b>${ax.label}</b><span data-cur="${ax.key}">${curLabel}</span></div>`;
+    const n = String(i+1).padStart(2,"0");
+    wrap.innerHTML = `<div class="lab"><b><i>${n}</i>${ax.label}</b><span>${curLabel}</span></div>`;
     const opts=document.createElement("div"); opts.className="opts";
     ax.options.forEach(o=>{
       const b=document.createElement("button");
@@ -254,29 +284,27 @@ function build(){
     wrap.appendChild(opts); host.appendChild(wrap);
   });
 }
+
 function render(){
-  build();
+  build(); buildThumbs();
   const r = resolveConfig(state);
   $("#code").textContent = r.orderCode;
   $("#vizCode").textContent = r.orderCode;
   const tb=$("#specBody"); tb.innerHTML="";
   Object.entries(r.specs).forEach(([k,v])=>{ tb.insertAdjacentHTML("beforeend",`<tr><th>${k}</th><td>${v}</td></tr>`); });
-  $("#price").innerHTML = "Price on request<small>Add to project for a quote</small>";
-  $("#stock").innerHTML = r.stock + "<small>"+r.lead+"</small>";
-  // live preview graphic
-  const widths={ "01":150,"05":150,"11":230,"16":320,"21":400 };
-  const lum=$("#lum"), glow=$("#vizGlow");
-  lum.style.width = widths[state.size]+"px";
-  const body = state.colour==="BK" ? "#15161a" : "#e9e9ec";
-  lum.style.background = body;
-  lum.style.boxShadow = "0 10px 30px rgba(0,0,0,.4)";
-  const warm = state.cct==="3K" ? "#ffdfb0" : "#eaf3ff";
-  glow.style.background = warm;
-  glow.style.boxShadow = "0 0 22px "+warm;
-  $("#vizUp").style.opacity = state.up?".9":"0";
-  $("#vizUp").style.background = warm;
-  $("#vizEm").style.opacity = state.em?"1":"0";
-  $("#vizOptic").textContent = ({"01":"OPAL","09":"UGR <19","04":"WALLWASH","07":"LOUVRE"})[state.optic];
+
+  // ---- live photography stage ----
+  const g = GALLERY[activeImg];
+  if ($("#vizImg").getAttribute("src") !== g.src){ $("#vizImg").src = g.src; }
+  $("#capView").textContent = g.cap;
+  // colour-temperature wash responds to CCT toggle
+  $("#vizCct").style.background = state.cct==="3K"
+    ? "rgba(255,176,84,.55)" : "rgba(150,200,255,.45)";
+  // indirect up-light bloom
+  $("#vizUp").style.opacity = state.up ? "1" : "0";
+  // finish + optic chips
+  $("#chipFinish").textContent = state.colour==="BK" ? "Black" : "White";
+  $("#chipOptic").textContent  = ({"01":"Opal","09":"UGR <19","04":"Wallwash","07":"Louvre"})[state.optic];
 }
 
 let mp=0;
