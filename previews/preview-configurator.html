@@ -44,8 +44,8 @@ header.site{position:-webkit-sticky;position:sticky;top:0;z-index:50;background:
 .crumb{font-family:Poppins;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:26px 0 0}
 .crumb .sep{color:var(--line);margin:0 .6em}
 
-.cfg{display:grid;grid-template-columns:1.15fr 1fr;gap:clamp(34px,5vw,88px);align-items:start;padding:30px 0 clamp(50px,7vw,90px)}
-@media(max-width:920px){.cfg{grid-template-columns:1fr}}
+.cfg{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:clamp(34px,5vw,88px);align-items:start;padding:30px 0 clamp(50px,7vw,90px)}
+@media(max-width:920px){.cfg{grid-template-columns:1fr}.stage{position:static;top:auto}}
 
 /* ---- live preview stage : real Estrella photography ---- */
 .stage{position:-webkit-sticky;position:sticky;top:96px}
@@ -69,9 +69,9 @@ header.site{position:-webkit-sticky;position:sticky;top:0;z-index:50;background:
 .viz .chips{position:absolute;right:16px;top:16px;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
 .viz .chip{font-family:Poppins;font-weight:600;text-transform:uppercase;letter-spacing:.14em;font-size:.56rem;color:#fff;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);padding:.4em .7em;border-radius:999px;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
 .viz .code{position:absolute;left:18px;bottom:16px;font-family:Poppins;font-weight:600;letter-spacing:.04em;font-size:.82rem;color:#fff;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.18);padding:.5em .85em;border-radius:6px;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
-.thumbs{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:8px}
-.thumbs button{padding:0;border:0;cursor:pointer;background:none}
-.thumbs img{aspect-ratio:1;width:100%;object-fit:cover;border-radius:3px;border:1px solid var(--line);opacity:.62;transition:.2s}
+.thumbs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:8px}
+.thumbs button{padding:0;border:0;cursor:pointer;background:none;min-width:0}
+.thumbs img{aspect-ratio:1;width:100%;min-width:0;object-fit:cover;border-radius:3px;border:1px solid var(--line);opacity:.62;transition:.2s}
 .thumbs button:hover img{opacity:1}
 .thumbs button.on img{opacity:1;outline:2px solid var(--ink);outline-offset:1px}
 .stagecap{display:flex;justify-content:space-between;font-family:Poppins;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:12px}
@@ -178,7 +178,7 @@ footer .brand{color:#fff;letter-spacing:.3em}
 .vars td{padding:1.05em 0;border-bottom:1px solid var(--line);font-size:.9rem}
 .vars td:first-child{font-family:Poppins;font-weight:600}
 
-.mosaic{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+.mosaic{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:14px}
 .mosaic .c{display:grid;gap:14px}
 .mosaic img{width:100%;object-fit:cover}
 .mosaic .big{aspect-ratio:16/12}
@@ -249,7 +249,8 @@ footer .brand{color:#fff;letter-spacing:.3em}
 .cyp .sel{min-width:210px;flex:1}
 .cyp .sel label{display:block;font-family:Poppins;font-weight:600;font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
 .cyp .sel select{width:100%;font-family:Poppins;font-size:.9rem;padding:.85em 1em;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);cursor:pointer}
-.cyp table{width:100%;border-collapse:collapse}
+.cyp .tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.cyp table{width:100%;border-collapse:collapse;min-width:540px}
 .cyp thead th{border-bottom:1.5px solid var(--ink);color:var(--ink);padding:1em .6em;font-family:Poppins;font-size:.6rem;text-align:left;letter-spacing:.13em;text-transform:uppercase}
 .cyp tbody td{padding:1em .6em;border-bottom:1px solid var(--line);font-size:.86rem;vertical-align:middle}
 .cyp td.cd{font-family:Poppins;font-weight:600;color:var(--accent);white-space:nowrap}
@@ -530,10 +531,12 @@ footer .brand{color:#fff;letter-spacing:.3em}
     <div class="sel"><label>Body colour</label><select><option>All finishes</option><option>White</option><option>Black</option></select></div>
     <div class="sel"><label>Colour temperature</label><select><option>All</option><option>3000K</option><option>4000K</option></select></div>
   </div>
+  <div class="tscroll">
   <table>
     <thead><tr><th></th><th>Part code</th><th>Description</th><th class="center hidem">Lumens</th><th class="hidem">Dimensions</th><th class="center">View</th><th class="center">Add</th><th class="center hidem">LDT</th><th class="center">Datasheet</th></tr></thead>
     <tbody id="cypBody"></tbody>
   </table>
+  </div>
   <div style="margin-top:26px"><a class="btn btn-line-d">View all variants ▾</a></div>
 </div></section>
 
@@ -689,7 +692,7 @@ function buildThumbs(){
   const host=$("#thumbs"); host.innerHTML="";
   const shown = GALLERY.map((g,i)=>({g,i})).filter(x=> galFilter==="all" || x.g.set===galFilter);
   if(!shown.some(x=>x.i===activeImg)){ activeImg = shown[0].i; }
-  host.style.gridTemplateColumns = `repeat(${Math.max(shown.length,1)},1fr)`;
+  host.style.gridTemplateColumns = `repeat(${Math.max(shown.length,1)},minmax(0,1fr))`;
   shown.forEach(({g,i})=>{
     const b=document.createElement("button");
     b.className = i===activeImg?"on":"";
