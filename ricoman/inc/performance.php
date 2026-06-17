@@ -30,6 +30,21 @@ add_action( 'wp_head', function () {
 	}
 }, 1 );
 
+/* ---- Preload the LCP image (featured image) on singular views ---- */
+add_action( 'wp_head', function () {
+	if ( ! is_singular() || ! has_post_thumbnail() ) {
+		return;
+	}
+	$id  = get_post_thumbnail_id();
+	$src = wp_get_attachment_image_src( $id, 'ricoman-hero' );
+	if ( ! $src ) {
+		$src = wp_get_attachment_image_src( $id, 'large' );
+	}
+	if ( $src ) {
+		echo '<link rel="preload" as="image" href="' . esc_url( $src[0] ) . '" fetchpriority="high">' . "\n";
+	}
+}, 2 );
+
 /* ---- Remove front-end bloat ---- */
 add_action( 'init', function () {
 	// Emoji.

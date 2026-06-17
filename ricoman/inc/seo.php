@@ -816,6 +816,7 @@ function ricoman_seo_sanitize( $input ) {
 		$lines = array_map( 'esc_url_raw', $lines );
 		$out['social'] = implode( "\n", $lines );
 	}
+	$out['allow_ai'] = empty( $input['allow_ai'] ) ? '0' : '1';
 	return $out;
 }
 
@@ -867,6 +868,10 @@ function ricoman_seo_settings_page() {
 					<td><input type="text" id="rs_geo" name="ricoman_seo[lat]" value="<?php echo $f( 'lat' ); ?>" placeholder="<?php esc_attr_e( 'Latitude', 'ricoman' ); ?>">
 					<input type="text" name="ricoman_seo[lng]" value="<?php echo $f( 'lng' ); ?>" placeholder="<?php esc_attr_e( 'Longitude', 'ricoman' ); ?>">
 					<p class="description"><?php esc_html_e( 'Optional — adds geo coordinates to your LocalBusiness data for local/map results.', 'ricoman' ); ?></p></td></tr>
+				<tr><th scope="row"><?php esc_html_e( 'AI / generative search', 'ricoman' ); ?></th>
+					<td><label><input type="checkbox" name="ricoman_seo[allow_ai]" value="1" <?php checked( ricoman_seo_opt( 'allow_ai', '1' ), '1' ); ?>>
+						<?php esc_html_e( 'Welcome AI crawlers (ChatGPT, Claude, Perplexity, Google AI) and publish an /llms.txt guide', 'ricoman' ); ?></label>
+					<p class="description"><?php esc_html_e( 'Recommended ON for generative-engine optimisation — it lets answer engines read and cite your pages.', 'ricoman' ); ?></p></td></tr>
 				<tr><th scope="row"><label for="rs_psi"><?php esc_html_e( 'PageSpeed API key', 'ricoman' ); ?></label></th>
 					<td><input type="text" class="regular-text" id="rs_psi" name="ricoman_seo[psi_key]" value="<?php echo $f( 'psi_key' ); ?>">
 					<p class="description"><?php esc_html_e( 'Optional — a Google PageSpeed Insights API key lets the SEO & Speed dashboard fetch live scores reliably.', 'ricoman' ); ?></p></td></tr>
