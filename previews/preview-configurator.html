@@ -296,11 +296,15 @@ footer .brand{color:#fff;letter-spacing:.3em}
   .hl{gap:.9em;margin-bottom:1.6em}
   .hl li{font-size:1rem;line-height:1.5}
   .qlinks{gap:12px 20px;margin-bottom:1.7em}
-  /* compact the option rows so the whole build fits with fewer scrolls */
-  .axis{padding:.95em 0}
-  .axis .lab{margin-bottom:.65em}
-  .opt-b{padding:.6em .95em;font-size:.88rem}
-  .result{margin-top:1.5em}
+  /* compact the option rows so the whole build fits on one screen */
+  .axis{padding:.5em 0}
+  .axis .lab{margin-bottom:.4em}
+  .axis .lab b{font-size:.7rem;letter-spacing:.1em}
+  .axis .lab b i{margin-right:.5em}
+  .axis .lab span{font-size:.8rem}
+  .opts{gap:6px}
+  .opt-b{padding:.42em .72em;font-size:.8rem;border-radius:5px}
+  .result{margin-top:1.3em}
   .acts{margin-top:1.5em;gap:10px}
   .acts .btn{width:100%;justify-content:center}
   .dl{gap:12px 20px;margin-top:1.4em}
@@ -327,7 +331,8 @@ footer .brand{color:#fff;letter-spacing:.3em}
    screen while configuring, so build & result are always visible together */
 .mbar{display:none}
 @media(max-width:620px){
-  .mbar{display:block;position:fixed;left:0;right:0;bottom:0;z-index:90;background:var(--ink);color:#fff;border-top:1px solid rgba(255,255,255,.14);box-shadow:0 -8px 24px rgba(0,0,0,.28)}
+  .mbar{display:block;position:fixed;left:0;right:0;bottom:0;z-index:90;background:var(--ink);color:#fff;border-top:1px solid rgba(255,255,255,.14);box-shadow:0 -8px 24px rgba(0,0,0,.28);transform:translateY(118%);transition:transform .28s ease;will-change:transform}
+  .mbar.show{transform:translateY(0)}
   .mbar-in{display:flex;align-items:center;gap:12px;padding:9px 16px;padding-bottom:max(9px,env(safe-area-inset-bottom))}
   .mbar-info{display:flex;flex-direction:column;min-width:0;flex:1}
   .mbar-lbl{font-family:Poppins;font-weight:600;font-size:.52rem;letter-spacing:.16em;text-transform:uppercase;color:var(--blue-lt)}
@@ -843,6 +848,16 @@ $("#addBtn").onclick=()=>{ mp++; $("#mpCount").textContent=mp; const b=$("#addBt
 $("#copy").onclick=()=>{ navigator.clipboard&&navigator.clipboard.writeText($("#code").textContent); $("#copy").textContent="Copied"; setTimeout(()=>$("#copy").textContent="Copy",1200); };
 
 $("#mbarAdd").onclick=()=>{ mp++; $("#mpCount").textContent=mp; const b=$("#mbarAdd"); b.textContent="✓ Added"; setTimeout(()=>b.textContent="＋ Add",1400); };
+
+// Show the live-build bar only while the configurator (build area) is on screen
+(function(){
+  const cfg=$(".cfg"), bar=$("#mbar");
+  if(!cfg||!bar) return;
+  if("IntersectionObserver" in window){
+    new IntersectionObserver(es=>es.forEach(e=>bar.classList.toggle("show", e.isIntersecting)),{threshold:0})
+      .observe(cfg);
+  } else { bar.classList.add("show"); }
+})();
 
 // gallery studio / in-situ tabs
 $("#gtabs").querySelectorAll("button").forEach(b=>{
