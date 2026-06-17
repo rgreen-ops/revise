@@ -103,6 +103,17 @@ CONFIRM full registered address + phone for footer.)
 - `rico-product-boards.jpg` — product presentation boards on easels (showroom/event)
 - `rico-office-fitout.jpg` — open office fit-out, exposed services, linear + track
 
+## Design & QA rules (must hold on every page / template)
+- **Contrast guard — never dark-on-dark / dark-on-photo.** Base headings use the
+  near-black `--ink`. Any heading sitting on a dark section or photo MUST be forced
+  light. Every preview now carries a guard rule (`.hero/.phero/.chero/.dark/.cta/
+  .quote/.cstudy/.contact/.metastrip h1..h3 { color:#fff }`). When porting to the
+  WordPress theme, bake the same into `theme.json` (dark section block styles) and
+  the stylesheet so editors can't create unreadable text.
+- Body text on dark sections: white at 70–86% opacity, never full `--ink`.
+- Minimum target: WCAG AA (4.5:1 body, 3:1 large headings). Re-check any new
+  section that overlays text on imagery.
+
 ## Open questions for founder
 1. Components stocked: **1000+** (deck) or **2000+** (your note)?
 2. Confirm registered address + phone for the footer (current placeholder:
