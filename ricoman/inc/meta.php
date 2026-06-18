@@ -78,6 +78,7 @@ function ricoman_register_product_meta() {
 		'_ricoman_datasheet'    => 'esc_url_raw',
 		'_ricoman_extra_specs'  => 'sanitize_textarea_field',
 		'_ricoman_downloads'    => 'sanitize_textarea_field',
+		'_ricoman_gallery'      => 'sanitize_textarea_field',
 		'_ricoman_hide_options' => 'sanitize_text_field',
 	);
 	foreach ( $extra as $key => $sanitize ) {
@@ -276,6 +277,33 @@ function ricoman_render_product_metabox( $post ) {
 
 		<div class="full"><label for="_ricoman_datasheet"><?php esc_html_e( 'Datasheet URL (optional — overrides the auto PDF)', 'ricoman' ); ?></label><input type="url" id="_ricoman_datasheet" name="_ricoman_datasheet" value="<?php echo esc_attr( $m( '_ricoman_datasheet' ) ); ?>" placeholder="https://ricobot.ricoman.com/api/public/products/CODE/datasheet.pdf"></div>
 
+		<h3><?php esc_html_e( 'Product gallery', 'ricoman' ); ?></h3>
+		<div class="rmpb-rep" id="rmpb-gl">
+		<?php
+		$gallery = array();
+		foreach ( preg_split( '/\r\n|\r|\n/', (string) $m( '_ricoman_gallery' ) ) as $gl_line ) {
+			$gl_line = trim( $gl_line );
+			if ( '' === $gl_line ) {
+				continue;
+			}
+			$gp        = array_map( 'trim', explode( '|', $gl_line ) );
+			$gallery[] = array( isset( $gp[0] ) ? $gp[0] : '', isset( $gp[1] ) ? $gp[1] : 'studio', isset( $gp[2] ) ? $gp[2] : '' );
+		}
+		if ( ! $gallery ) {
+			$gallery = array( array( '', 'studio', '' ) );
+		}
+		$gl_types = array( 'studio' => 'Studio', 'insitu' => 'In-situ', 'project' => 'Project', 'dimension' => 'Dimension' );
+		foreach ( $gallery as $r ) {
+			$opts = '';
+			foreach ( $gl_types as $tv => $tl ) {
+				$opts .= '<option value="' . esc_attr( $tv ) . '"' . selected( $r[1], $tv, false ) . '>' . esc_html( $tl ) . '</option>';
+			}
+			echo '<div class="rmpb-row"><input type="text" class="rmpb-gl-url" name="rmpb_gl_url[]" placeholder="Image URL" value="' . esc_attr( $r[0] ) . '"><select name="rmpb_gl_type[]" style="max-width:120px">' . $opts . '</select><input type="text" name="rmpb_gl_cap[]" placeholder="Caption (optional)" value="' . esc_attr( $r[2] ) . '"><button type="button" class="button rmpb-gl-pick">' . esc_html__( 'Choose image', 'ricoman' ) . '</button><button type="button" class="button-link rmpb-del" title="Remove">✕</button></div>'; // phpcs:ignore WordPress.Security.EscapeOutput
+		}
+		?>
+		</div>
+		<p><button type="button" class="button" id="rmpb-gl-add">＋ <?php esc_html_e( 'Add gallery image', 'ricoman' ); ?></button> <span class="hint"><?php esc_html_e( 'Upload product shots and tag each Studio / In-situ / Project — shown as tabs on the product page.', 'ricoman' ); ?></span></p>
+
 		<h3><?php esc_html_e( 'Downloads', 'ricoman' ); ?></h3>
 		<div class="rmpb-rep" id="rmpb-dl">
 		<?php
@@ -357,6 +385,8 @@ function ricoman_render_product_metabox( $post ) {
 				addRow( 'rmpb-xspec', '<input type="text" name="rmpb_xspec_label[]" placeholder="Label"><input type="text" name="rmpb_xspec_value[]" placeholder="Value"><button type="button" class="button-link rmpb-del" title="Remove">✕</button>' );
 			} );
 		}
+		var ga = document.getElementById( 'rmpb-gl-add' );
+		if ( ga ) { ga.addEventListener( 'click', function () { addRow( 'rmpb-gl', '<input type="text" class="rmpb-gl-url" name="rmpb_gl_url[]" placeholder="Image URL"><select name="rmpb_gl_type[]" style="max-width:120px"><option value="studio">Studio</option><option value="insitu">In-situ</option><option value="project">Project</option><option value="dimension">Dimension</option></select><input type="text" name="rmpb_gl_cap[]" placeholder="Caption (optional)"><button type="button" class="button rmpb-gl-pick">Choose image</button><button type="button" class="button-link rmpb-del" title="Remove">✕</button>' ); } ); }
 		var da = document.getElementById( 'rmpb-dl-add' );
 		if ( da ) {
 			da.addEventListener( 'click', function () {
@@ -380,6 +410,18 @@ function ricoman_render_product_metabox( $post ) {
 					if ( t && ! t.value ) { t.value = a.title || a.filename || 'Download'; }
 				} );
 				frame.open();
+			}
+			if ( e.target.classList.contains( 'rmpb-gl-pick' ) && window.wp && wp.media ) {
+				e.preventDefault();
+				var grow = e.target.closest( '.rmpb-row' );
+				var gframe = wp.media( { title: 'Select gallery image', multiple: false, library: { type: 'image' } } );
+				gframe.on( 'select', function () {
+					var gimg = gframe.state().get( 'selection' ).first().toJSON();
+					grow.querySelector( '.rmpb-gl-url' ).value = gimg.url;
+					var gc = grow.querySelector( 'input[name="rmpb_gl_cap[]"]' );
+					if ( gc && ! gc.value ) { gc.value = gimg.caption || gimg.alt || ''; }
+				} );
+				gframe.open();
 			}
 		} );
 	} )();
@@ -446,6 +488,25 @@ function ricoman_save_product_meta( $post_id ) {
 			}
 		}
 		update_post_meta( $post_id, '_ricoman_downloads', implode( "\n", $rows ) );
+	}
+
+	// Gallery -> "URL | type | caption" lines.
+	if ( isset( $_POST['rmpb_gl_url'] ) ) {
+		$g_urls  = (array) wp_unslash( $_POST['rmpb_gl_url'] );
+		$g_types = isset( $_POST['rmpb_gl_type'] ) ? (array) wp_unslash( $_POST['rmpb_gl_type'] ) : array();
+		$g_caps  = isset( $_POST['rmpb_gl_cap'] ) ? (array) wp_unslash( $_POST['rmpb_gl_cap'] ) : array();
+		$allowed = array( 'studio', 'insitu', 'project', 'dimension' );
+		$rows    = array();
+		foreach ( $g_urls as $i => $url ) {
+			$url = esc_url_raw( $url );
+			if ( '' === $url ) {
+				continue;
+			}
+			$type = isset( $g_types[ $i ] ) && in_array( $g_types[ $i ], $allowed, true ) ? $g_types[ $i ] : 'studio';
+			$cap  = isset( $g_caps[ $i ] ) ? sanitize_text_field( $g_caps[ $i ] ) : '';
+			$rows[] = $url . ' | ' . $type . ' | ' . $cap;
+		}
+		update_post_meta( $post_id, '_ricoman_gallery', implode( "\n", $rows ) );
 	}
 }
 add_action( 'save_post_product', 'ricoman_save_product_meta' );

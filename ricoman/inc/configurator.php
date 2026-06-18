@@ -217,11 +217,25 @@ add_shortcode( 'ricoman_configurator_hero', function ( $atts ) {
 			$fb_rows .= '<tr><th scope="row">' . esc_html( $pr2[0] ) . '</th><td>' . esc_html( $pr2[1] ) . '</td></tr>';
 		}
 	}
+	// Locally uploaded gallery (Product Builder) — used for the preview/thumbs,
+	// overridden by the variant-aware RICOBOT gallery when that resolves.
+	$local_gallery = array();
+	foreach ( preg_split( '/\r\n|\r|\n/', (string) get_post_meta( $pid, '_ricoman_gallery', true ) ) as $gline ) {
+		$gline = trim( $gline );
+		if ( '' === $gline ) {
+			continue;
+		}
+		$gp = array_map( 'trim', explode( '|', $gline ) );
+		if ( ! empty( $gp[0] ) ) {
+			$local_gallery[] = array( 'url' => $gp[0], 'type' => isset( $gp[1] ) ? $gp[1] : 'studio', 'caption' => isset( $gp[2] ) ? $gp[2] : '' );
+		}
+	}
+	$gallery_json  = wp_json_encode( $local_gallery );
 	$fb_spec       = $fb_rows ? '<table class="ricoman-spec-table"><tbody>' . $fb_rows . '</tbody></table>' : '';
 	$fallback_html = '<div class="rm-cfg-fallback" hidden><p class="rm-cfg-fbnote">Live configuration is being set up for this product. Here&rsquo;s the standard specification — contact us for the exact order code and a quote.</p>' . $fb_spec . '<div class="rm-cfg-acts"><a class="btn btn-solid" href="' . $enquire . '?sku=' . rawurlencode( $code ) . '">＋ Add to My Project</a> <a class="btn btn-line-d" href="' . esc_url( home_url( '/contact/' ) ) . '">Request a quote &rarr;</a></div></div>';
 	ob_start();
 	?>
-	<div class="rm-cfghero" data-code="<?php echo esc_attr( $code ); ?>" data-nonce="<?php echo esc_attr( $nonce ); ?>" data-ajax="<?php echo $ajax; ?>" data-enquire="<?php echo $enquire; ?>" data-hide="<?php echo esc_attr( $hide ); ?>">
+	<div class="rm-cfghero" data-code="<?php echo esc_attr( $code ); ?>" data-nonce="<?php echo esc_attr( $nonce ); ?>" data-ajax="<?php echo $ajax; ?>" data-enquire="<?php echo $enquire; ?>" data-hide="<?php echo esc_attr( $hide ); ?>" data-gallery="<?php echo esc_attr( $gallery_json ); ?>">
 		<div class="rm-cfg-stage">
 			<div class="rm-cfg-viz"><img class="rm-cfg-img" src="<?php echo esc_url( $hero ); ?>" alt="<?php echo esc_attr( $title ); ?>"><div class="rm-cfg-chips"></div><div class="rm-cfg-codeov"></div></div>
 			<div class="rm-cfg-gtabs"><button type="button" class="on" data-set="all">All</button><button type="button" data-set="studio">Studio</button><button type="button" data-set="insitu">In-situ</button></div>
@@ -253,7 +267,8 @@ add_shortcode( 'ricoman_configurator_hero', function ( $atts ) {
 		var imgEl = root.querySelector( '.rm-cfg-img' ), chipsEl = root.querySelector( '.rm-cfg-chips' ), codeOv = root.querySelector( '.rm-cfg-codeov' );
 		var thumbsEl = root.querySelector( '.rm-cfg-thumbs' ), gtabs = root.querySelectorAll( '.rm-cfg-gtabs button' );
 		var fbEl = root.querySelector( '.rm-cfg-fallback' );
-		var axes = [], sel = {}, gallery = [], gset = 'all';
+		var axes = [], sel = {}, gset = 'all';
+		var gallery = ( function () { try { return JSON.parse( d.gallery || '[]' ); } catch ( e ) { return []; } } )();
 		function showFallback() { axesEl.innerHTML = ''; resEl.hidden = true; actEl.innerHTML = ''; dlEl.innerHTML = ''; if ( fbEl ) { fbEl.hidden = false; } }
 		function call( action, params ) { var b = new FormData(); b.append( 'action', action ); b.append( 'nonce', nonce ); Object.keys( params ).forEach( function ( k ) { if ( params[ k ] ) { b.append( k, params[ k ] ); } } ); return fetch( ajax, { method: 'POST', body: b } ).then( function ( r ) { return r.json(); } ); }
 		function esc( s ) { return String( s == null ? '' : s ).replace( /[&<>"]/g, function ( c ) { return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[ c ]; } ); }
@@ -285,6 +300,7 @@ add_shortcode( 'ricoman_configurator_hero', function ( $atts ) {
 			} ).catch( function () {} );
 		}
 		gtabs.forEach( function ( t ) { t.addEventListener( 'click', function () { gtabs.forEach( function ( x ) { x.classList.remove( 'on' ); } ); t.classList.add( 'on' ); gset = t.dataset.set; renderThumbs(); } ); } );
+		if ( gallery.length ) { renderThumbs(); }
 		document.dispatchEvent( new CustomEvent( 'ricoman:product', { detail: { code: code } } ) );
 		call( 'ricoman_rb_config', { code: code } ).then( function ( res ) {
 			if ( ! res.success || ! res.data || ! res.data.options || ! res.data.options.length ) { showFallback(); return; }

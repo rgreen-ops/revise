@@ -248,9 +248,24 @@ function ricoman_product_detail( $pid = 0 ) {
 
 /* ---- Product gallery (studio / in-situ tabs; falls back to featured image) ---- */
 add_shortcode( 'ricoman_product_gallery', function () {
-	$pid    = get_the_ID();
-	$detail = ricoman_product_detail( $pid );
-	$shots  = ( isset( $detail['gallery'] ) && is_array( $detail['gallery'] ) ) ? $detail['gallery'] : array();
+	$pid = get_the_ID();
+	// 1) Locally uploaded gallery (Product Builder) takes priority.
+	$shots = array();
+	foreach ( preg_split( '/\r\n|\r|\n/', (string) get_post_meta( $pid, '_ricoman_gallery', true ) ) as $gline ) {
+		$gline = trim( $gline );
+		if ( '' === $gline ) {
+			continue;
+		}
+		$gp = array_map( 'trim', explode( '|', $gline ) );
+		if ( ! empty( $gp[0] ) ) {
+			$shots[] = array( 'url' => $gp[0], 'type' => isset( $gp[1] ) ? $gp[1] : 'studio', 'caption' => isset( $gp[2] ) ? $gp[2] : '' );
+		}
+	}
+	// 2) Otherwise fall back to the RICOBOT gallery.
+	if ( ! $shots ) {
+		$detail = ricoman_product_detail( $pid );
+		$shots  = ( isset( $detail['gallery'] ) && is_array( $detail['gallery'] ) ) ? $detail['gallery'] : array();
+	}
 	if ( ! $shots ) {
 		$thumb = get_the_post_thumbnail( $pid, 'large', array( 'class' => 'rm-gallery-solo' ) );
 		return $thumb ? '<div class="rm-gallery">' . $thumb . '</div>' : '';
@@ -263,7 +278,7 @@ add_shortcode( 'ricoman_product_gallery', function () {
 			$tabs[ $type ][] = $url;
 		}
 	}
-	$labels = array( 'studio' => 'Studio', 'insitu' => 'In situ', 'dimension' => 'Dimensions', 'diagram' => 'Diagrams' );
+	$labels = array( 'studio' => 'Studio', 'insitu' => 'In-situ', 'project' => 'Project', 'dimension' => 'Dimensions', 'diagram' => 'Diagrams' );
 	$out    = '<div class="rm-gallery"><div class="rm-gallery-tabs">';
 	$first  = true;
 	foreach ( $tabs as $type => $imgs ) {
