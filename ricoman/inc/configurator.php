@@ -269,7 +269,21 @@ add_shortcode( 'ricoman_configurator_hero', function ( $atts ) {
 		var fbEl = root.querySelector( '.rm-cfg-fallback' );
 		var axes = [], sel = {}, gset = 'all';
 		var gallery = ( function () { try { return JSON.parse( d.gallery || '[]' ); } catch ( e ) { return []; } } )();
-		function showFallback() { axesEl.innerHTML = ''; resEl.hidden = true; actEl.innerHTML = ''; dlEl.innerHTML = ''; if ( fbEl ) { fbEl.hidden = false; } }
+		function showFallback() {
+			axesEl.innerHTML = ''; resEl.hidden = true; actEl.innerHTML = ''; dlEl.innerHTML = '';
+			if ( fbEl ) { fbEl.hidden = false; }
+			// Even without configurator axes, show the LIVE spec + downloads from RICOBOT.
+			call( 'ricoman_rb_specs', { code: code } ).then( function ( res ) {
+				if ( ! res.success ) { return; }
+				var rows = '';
+				( res.data.technicalData || [] ).forEach( function ( s ) { ( s.rows || [] ).forEach( function ( r ) { rows += '<tr><th scope="row">' + esc( r.label ) + '</th><td>' + esc( r.value ) + '</td></tr>'; } ); } );
+				if ( rows && fbEl ) { var t = fbEl.querySelector( '.ricoman-spec-table' ); if ( t ) { t.innerHTML = '<tbody>' + rows + '</tbody>'; } }
+				var dl = '';
+				( res.data.documents || [] ).forEach( function ( d ) { if ( d.url ) { dl += '<a href="' + esc( d.url ) + '" target="_blank" rel="noopener">' + esc( d.title || 'Datasheet' ) + ' (PDF) &darr;</a>'; } } );
+				if ( dl ) { dlEl.innerHTML = dl; }
+				if ( res.data.gallery && res.data.gallery.length ) { gallery = res.data.gallery; renderThumbs(); }
+			} ).catch( function () {} );
+		}
 		function call( action, params ) { var b = new FormData(); b.append( 'action', action ); b.append( 'nonce', nonce ); Object.keys( params ).forEach( function ( k ) { if ( params[ k ] ) { b.append( k, params[ k ] ); } } ); return fetch( ajax, { method: 'POST', body: b } ).then( function ( r ) { return r.json(); } ); }
 		function esc( s ) { return String( s == null ? '' : s ).replace( /[&<>"]/g, function ( c ) { return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[ c ]; } ); }
 		function sku() { var parts = [ code ]; for ( var i = 0; i < axes.length; i++ ) { if ( ! sel[ i ] ) { return null; } parts.push( sel[ i ] ); } return parts.join( '/' ); }

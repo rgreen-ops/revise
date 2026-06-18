@@ -39,7 +39,10 @@ add_action( 'init', function () {
 
 	$p = array();
 
-	$p['flow-hero'] = array( 'Flow · Hero', $cover( $u( 'bf-flow3.webp' ),
+	// Rolling banner — slides editable in Ricoman → Flow+ rolling banner.
+	$p['flow-hero'] = array( 'Flow · Hero (rolling banner)', '<!-- wp:group {"align":"full","className":"rm-banner-wrap","layout":{"type":"default"}} --><div class="wp-block-group alignfull rm-banner-wrap"><!-- wp:shortcode -->[ricoman_flow_banner]<!-- /wp:shortcode --></div><!-- /wp:group -->' );
+	// Static cover hero kept as an alternative.
+	$p['flow-hero-cover'] = array( 'Flow · Hero (static cover)', $cover( $u( 'bf-flow3.webp' ),
 		$eyebrow( 'Linear Lighting — Flexible System' ) .
 		'<!-- wp:heading {"level":1,"style":{"typography":{"fontSize":"clamp(3rem, 8vw, 6rem)","fontWeight":"500","lineHeight":"1"}}} --><h1 class="wp-block-heading" style="font-size:clamp(3rem, 8vw, 6rem);font-weight:500;line-height:1">Flow+</h1><!-- /wp:heading -->' .
 		$para( 'A flexible linear system that bends to any architectural line — continuous, dot-free and made to order in Manchester.' ) .

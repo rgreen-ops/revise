@@ -160,3 +160,44 @@ add_shortcode( 'ricoman_footer', function () {
 		. '<div class="fbar"><span>&copy; ' . esc_html( gmdate( 'Y' ) ) . ' Ricoman Ltd &middot; Made in Britain</span><span class="rm-foot-legal">' . $legal . '</span></div>'
 		. '</div></footer>';
 } );
+
+/* ------------------------------------------------ Flow+ rolling banner ----- */
+add_shortcode( 'ricoman_flow_banner', function () {
+	$slides = array();
+	foreach ( ricoman_opt_lines( 'flow_banner' ) as $p ) {
+		$img = isset( $p[0] ) ? $p[0] : '';
+		if ( '' === $img ) {
+			continue;
+		}
+		$slides[] = array(
+			'img'    => $img,
+			'eyebrow'=> isset( $p[1] ) ? $p[1] : '',
+			'head'   => isset( $p[2] ) ? $p[2] : '',
+			'sub'    => isset( $p[3] ) ? $p[3] : '',
+			'blabel' => isset( $p[4] ) ? $p[4] : '',
+			'burl'   => isset( $p[5] ) ? $p[5] : '#',
+		);
+	}
+	if ( ! $slides ) {
+		return '';
+	}
+	$out = '<div class="rm-banner" data-rotate="6000">';
+	foreach ( $slides as $i => $s ) {
+		$btn = ( '' !== trim( $s['blabel'] ) ) ? '<a class="btn btn-line" href="' . esc_url( $s['burl'] ) . '">' . esc_html( $s['blabel'] ) . '</a>' : '';
+		$out .= '<div class="rm-banner-slide' . ( 0 === $i ? ' on' : '' ) . '" style="background-image:url(' . esc_url( $s['img'] ) . ')"><div class="rm-banner-scrim"></div><div class="rm-banner-inner">'
+			. ( $s['eyebrow'] ? '<p class="rm-eyebrow">' . esc_html( $s['eyebrow'] ) . '</p>' : '' )
+			. ( $s['head'] ? '<h1 class="rm-banner-head">' . esc_html( $s['head'] ) . '</h1>' : '' )
+			. ( $s['sub'] ? '<p class="rm-banner-sub">' . esc_html( $s['sub'] ) . '</p>' : '' )
+			. $btn . '</div></div>';
+	}
+	$dots = '';
+	if ( count( $slides ) > 1 ) {
+		for ( $i = 0; $i < count( $slides ); $i++ ) {
+			$dots .= '<button type="button" class="rm-banner-dot' . ( 0 === $i ? ' on' : '' ) . '" data-i="' . $i . '" aria-label="Slide ' . ( $i + 1 ) . '"></button>';
+		}
+		$dots = '<div class="rm-banner-dots">' . $dots . '</div>';
+	}
+	$out .= $dots . '</div>';
+	$out .= '<script>(function(){var b=document.currentScript.previousElementSibling;if(!b||b.dataset.rmInit)return;b.dataset.rmInit=1;var s=b.querySelectorAll(".rm-banner-slide"),d=b.querySelectorAll(".rm-banner-dot"),n=s.length,cur=0,t=parseInt(b.dataset.rotate,10)||6000,timer;if(n<2)return;function go(i){s[cur].classList.remove("on");d[cur]&&d[cur].classList.remove("on");cur=(i+n)%n;s[cur].classList.add("on");d[cur]&&d[cur].classList.add("on");}function start(){timer=setInterval(function(){go(cur+1);},t);}d.forEach(function(x){x.addEventListener("click",function(){clearInterval(timer);go(parseInt(x.dataset.i,10));start();});});start();})();</script>';
+	return $out;
+} );

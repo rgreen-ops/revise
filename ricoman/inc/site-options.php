@@ -28,6 +28,8 @@ function ricoman_settings_defaults() {
 		'mega_card2_img'   => get_theme_file_uri( 'assets/images/rico-downloads.webp' ),
 		'mega_card2_title' => 'Request Your Lighting Catalogue',
 		'mega_card2_url'   => '/downloads/',
+		'flow_banner'      => get_theme_file_uri( 'assets/images/ceiling.webp' ) . " | Flow+ · Curved Linear | Seamless curves of light, made to order | A flexible linear system that bends to any architectural line — continuous and dot-free. | Design your run → | /flow-designer/\n"
+			. get_theme_file_uri( 'assets/images/arch-line.webp' ) . " | Made in Britain | Built to your exact geometry | Designed, made and tested in Manchester — bespoke is how our factory is built to work. | Talk to our designers | /contact/",
 		'show_search'      => '1',
 		'login_url'        => '',
 		'login_label'      => 'Login',
@@ -108,7 +110,7 @@ function ricoman_sanitize_settings( $input ) {
 			$out[ $key ] = current_user_can( 'unfiltered_html' ) ? $val : wp_kses_post( $val );
 		} elseif ( in_array( $key, $urls, true ) ) {
 			$out[ $key ] = esc_url_raw( trim( $val ) );
-		} elseif ( false !== strpos( $key, 'foot_address' ) || false !== strpos( $key, 'foot_hours' ) || false !== strpos( $key, 'nav_' ) || false !== strpos( $key, 'mega_' ) || false !== strpos( $key, 'foot_col' ) || false !== strpos( $key, 'foot_legal' ) ) {
+		} elseif ( false !== strpos( $key, 'foot_address' ) || false !== strpos( $key, 'foot_hours' ) || false !== strpos( $key, 'nav_' ) || false !== strpos( $key, 'mega_' ) || false !== strpos( $key, 'foot_col' ) || false !== strpos( $key, 'foot_legal' ) || 'flow_banner' === $key ) {
 			$out[ $key ] = sanitize_textarea_field( $val );
 		} else {
 			$out[ $key ] = sanitize_text_field( $val );
@@ -172,6 +174,12 @@ function ricoman_settings_page() {
 				ricoman_field( 'mega_card2_title', __( 'Promo card 2 title', 'ricoman' ), 'text' );
 				ricoman_field( 'mega_card2_url', __( 'Promo card 2 link', 'ricoman' ), 'text' );
 				?>
+			</table>
+
+			<h2 class="title"><?php esc_html_e( 'Flow+ rolling banner', 'ricoman' ); ?></h2>
+			<p class="description"><?php esc_html_e( 'The rotating hero banner at the top of the Flow+ product page. One slide per line:', 'ricoman' ); ?> <code>image URL | eyebrow | heading | sub-text | button label | /button-url</code></p>
+			<table class="form-table" role="presentation">
+				<?php ricoman_field( 'flow_banner', __( 'Banner slides', 'ricoman' ), 'textarea', __( 'Tip: paste image URLs from the Media Library. Leave the button label blank for no button.', 'ricoman' ), 6 ); ?>
 			</table>
 
 			<h2 class="title"><?php esc_html_e( 'Footer — contact & socials', 'ricoman' ); ?></h2>
