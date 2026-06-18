@@ -269,6 +269,7 @@ add_shortcode( 'ricoman_configurator_hero', function ( $atts ) {
 		var fbEl = root.querySelector( '.rm-cfg-fallback' );
 		var axes = [], sel = {}, gset = 'all';
 		var gallery = ( function () { try { return JSON.parse( d.gallery || '[]' ); } catch ( e ) { return []; } } )();
+		var hasLocal = gallery.length > 0; // locally uploaded images win over RICOBOT's
 		function showFallback() {
 			axesEl.innerHTML = ''; resEl.hidden = true; actEl.innerHTML = ''; dlEl.innerHTML = '';
 			if ( fbEl ) { fbEl.hidden = false; }
@@ -281,17 +282,32 @@ add_shortcode( 'ricoman_configurator_hero', function ( $atts ) {
 				var dl = '';
 				( res.data.documents || [] ).forEach( function ( d ) { if ( d.url ) { dl += '<a href="' + esc( d.url ) + '" target="_blank" rel="noopener">' + esc( d.title || 'Datasheet' ) + ' (PDF) &darr;</a>'; } } );
 				if ( dl ) { dlEl.innerHTML = dl; }
-				if ( res.data.gallery && res.data.gallery.length ) { gallery = res.data.gallery; renderThumbs(); }
+				if ( ! hasLocal && res.data.gallery && res.data.gallery.length ) { gallery = res.data.gallery; renderThumbs(); }
 			} ).catch( function () {} );
 		}
 		function call( action, params ) { var b = new FormData(); b.append( 'action', action ); b.append( 'nonce', nonce ); Object.keys( params ).forEach( function ( k ) { if ( params[ k ] ) { b.append( k, params[ k ] ); } } ); return fetch( ajax, { method: 'POST', body: b } ).then( function ( r ) { return r.json(); } ); }
 		function esc( s ) { return String( s == null ? '' : s ).replace( /[&<>"]/g, function ( c ) { return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[ c ]; } ); }
 		function sku() { var parts = [ code ]; for ( var i = 0; i < axes.length; i++ ) { if ( ! sel[ i ] ) { return null; } parts.push( sel[ i ] ); } return parts.join( '/' ); }
+		var heroDefault = imgEl ? imgEl.src : '';
 		function renderThumbs() {
 			var list = gallery.filter( function ( g ) { return 'all' === gset || ( g.type || 'studio' ) === gset; } );
 			thumbsEl.innerHTML = '';
-			list.forEach( function ( g, i ) { var b = document.createElement( 'button' ); b.type = 'button'; b.className = 'rm-cfg-thumb' + ( 0 === i ? ' on' : '' ); b.innerHTML = '<img src="' + esc( g.url ) + '" alt="" loading="lazy">'; b.addEventListener( 'click', function () { imgEl.src = g.url; thumbsEl.querySelectorAll( '.rm-cfg-thumb' ).forEach( function ( x ) { x.classList.remove( 'on' ); } ); b.classList.add( 'on' ); } ); thumbsEl.appendChild( b ); } );
-			if ( list[ 0 ] ) { imgEl.src = list[ 0 ].url; }
+			var firstOk = null;
+			list.forEach( function ( g ) {
+				var b = document.createElement( 'button' ); b.type = 'button'; b.className = 'rm-cfg-thumb';
+				var im = new Image(); im.loading = 'lazy'; im.alt = '';
+				// Drop the thumb (and never use as hero) if the image 404s.
+				im.onerror = function () { b.remove(); };
+				im.src = g.url;
+				b.appendChild( im );
+				b.addEventListener( 'click', function () { imgEl.src = g.url; thumbsEl.querySelectorAll( '.rm-cfg-thumb' ).forEach( function ( x ) { x.classList.remove( 'on' ); } ); b.classList.add( 'on' ); } );
+				thumbsEl.appendChild( b );
+				if ( null === firstOk ) { firstOk = b; b.classList.add( 'on' ); }
+			} );
+			if ( imgEl && list[ 0 ] ) {
+				imgEl.onerror = function () { imgEl.onerror = null; imgEl.src = heroDefault; };
+				imgEl.src = list[ 0 ].url;
+			}
 		}
 		function update() {
 			var s = sku();
@@ -309,7 +325,7 @@ add_shortcode( 'ricoman_configurator_hero', function ( $atts ) {
 				( res.data.documents || [] ).forEach( function ( doc ) { if ( doc.url ) { dl += '<a href="' + esc( doc.url ) + '" target="_blank" rel="noopener">' + esc( doc.title || 'Datasheet' ) + ' (PDF) ↓</a>'; } } );
 				( res.data.photometric || [] ).forEach( function ( ph ) { if ( ph.url ) { dl += '<a href="' + esc( ph.url ) + '" target="_blank" rel="noopener">Photometric (IES/LDT) ↓</a>'; } } );
 				dlEl.innerHTML = dl;
-				if ( res.data.gallery && res.data.gallery.length ) { gallery = res.data.gallery; renderThumbs(); }
+				if ( ! hasLocal && res.data.gallery && res.data.gallery.length ) { gallery = res.data.gallery; renderThumbs(); }
 				else if ( res.data.heroUrl && imgEl.src.indexOf( res.data.heroUrl ) === -1 ) { imgEl.src = res.data.heroUrl; }
 			} ).catch( function () {} );
 		}

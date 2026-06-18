@@ -290,7 +290,7 @@ add_shortcode( 'ricoman_product_gallery', function () {
 	foreach ( $tabs as $type => $imgs ) {
 		$out .= '<div class="rm-gpane' . ( $first ? ' on' : '' ) . '" data-pane="' . esc_attr( $type ) . '">';
 		foreach ( $imgs as $url ) {
-			$out .= '<img src="' . esc_url( $url ) . '" alt="" loading="lazy">';
+			$out .= '<img src="' . esc_url( $url ) . '" alt="" loading="lazy" onerror="this.style.display=\'none\'">';
 		}
 		$out  .= '</div>';
 		$first = false;
