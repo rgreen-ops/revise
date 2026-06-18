@@ -140,3 +140,63 @@ function ricoman_flush_rewrites() {
 	flush_rewrite_rules();
 }
 add_action( 'after_switch_theme', 'ricoman_flush_rewrites' );
+
+/**
+ * Dynamic grid of real Project posts — every tile links to a live permalink, so
+ * the listing always works regardless of what was seeded or imported.
+ * Use: [ricoman_projects_grid count="12"]
+ */
+add_shortcode( 'ricoman_projects_grid', function ( $atts ) {
+	$atts = shortcode_atts( array( 'count' => 12 ), $atts, 'ricoman_projects_grid' );
+	$q    = new WP_Query( array(
+		'post_type'      => 'project',
+		'post_status'    => 'publish',
+		'posts_per_page' => (int) $atts['count'],
+		'orderby'        => array( 'menu_order' => 'ASC', 'date' => 'DESC' ),
+		'no_found_rows'  => true,
+	) );
+	if ( ! $q->have_posts() ) {
+		return '<p class="rm-config-note">Projects will appear here once published.</p>';
+	}
+	$out = '<div class="rm-projgrid">';
+	while ( $q->have_posts() ) {
+		$q->the_post();
+		$img    = get_the_post_thumbnail_url( get_the_ID(), 'large' );
+		$terms  = get_the_terms( get_the_ID(), 'application' );
+		$sector = ( $terms && ! is_wp_error( $terms ) ) ? $terms[0]->name : '';
+		$style  = $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '';
+		$out   .= '<a class="rm-projcard" href="' . esc_url( get_permalink() ) . '"' . $style . '><span class="rm-projcard-ov">'
+			. ( $sector ? '<span class="rm-eyebrow">' . esc_html( $sector ) . '</span>' : '' )
+			. '<span class="rm-projcard-t">' . esc_html( get_the_title() ) . '</span></span></a>';
+	}
+	wp_reset_postdata();
+	return $out . '</div>';
+} );
+
+/** Dynamic grid of real Product posts (same idea). [ricoman_products_grid] */
+add_shortcode( 'ricoman_products_grid', function ( $atts ) {
+	$atts = shortcode_atts( array( 'count' => 12 ), $atts, 'ricoman_products_grid' );
+	$q    = new WP_Query( array(
+		'post_type'      => 'product',
+		'post_status'    => 'publish',
+		'posts_per_page' => (int) $atts['count'],
+		'orderby'        => array( 'menu_order' => 'ASC', 'date' => 'DESC' ),
+		'no_found_rows'  => true,
+	) );
+	if ( ! $q->have_posts() ) {
+		return '<p class="rm-config-note">Products will appear here once published.</p>';
+	}
+	$out = '<div class="rm-projgrid rm-prodgrid">';
+	while ( $q->have_posts() ) {
+		$q->the_post();
+		$img    = get_the_post_thumbnail_url( get_the_ID(), 'large' );
+		$terms  = get_the_terms( get_the_ID(), 'product_cat' );
+		$cat    = ( $terms && ! is_wp_error( $terms ) ) ? $terms[0]->name : '';
+		$style  = $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '';
+		$out   .= '<a class="rm-projcard" href="' . esc_url( get_permalink() ) . '"' . $style . '><span class="rm-projcard-ov">'
+			. ( $cat ? '<span class="rm-eyebrow">' . esc_html( $cat ) . '</span>' : '' )
+			. '<span class="rm-projcard-t">' . esc_html( get_the_title() ) . '</span></span></a>';
+	}
+	wp_reset_postdata();
+	return $out . '</div>';
+} );

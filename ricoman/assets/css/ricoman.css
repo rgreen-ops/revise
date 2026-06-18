@@ -666,3 +666,25 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 /* configurator fallback (when RICOBOT can't resolve the code yet) */
 .rm-cfg-fbnote{font-size:.9rem;color:var(--muted);margin:0 0 16px;line-height:1.6}
 .rm-cfg-fallback .ricoman-spec-table{margin-bottom:18px}
+
+/* Hero pages: header overlays, so the first full-bleed section must sit flush to
+   the very top (kill the block-gap margin that left a white strip above it). */
+.rm-hero .wp-site-blocks > main,
+.rm-hero .wp-site-blocks > main:not(:first-child){margin-block-start:0!important}
+.rm-hero main > .wp-block-cover:first-child,
+.rm-hero main > .wp-block-group:first-child,
+.rm-hero main > .rm-cfghero-wrap:first-child{margin-top:0!important}
+.rm-hero .wp-site-blocks{margin-top:0}
+
+/* Dynamic project / product grid (real posts, real permalinks) */
+.rm-projgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:clamp(20px,3vw,34px)}
+.rm-projcard{position:relative;display:flex;align-items:flex-end;min-height:340px;border-radius:4px;overflow:hidden;background:#1c1c1e center/cover no-repeat;color:#fff!important;text-decoration:none}
+.rm-projcard::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.62))}
+.rm-projcard>*{position:relative;z-index:1}
+.rm-projcard-ov{padding:22px;width:100%}
+.rm-projcard .rm-eyebrow{color:rgba(255,255,255,.82);display:block;margin-bottom:.4em}
+.rm-projcard-t{font-family:Poppins;font-weight:600;font-size:1.25rem;letter-spacing:-.01em;line-height:1.15;color:#fff}
+.rm-projcard img{width:100%;height:100%;object-fit:cover}
+.rm-projcard:hover{transform:translateY(-2px);transition:transform .25s}
+@media(max-width:860px){.rm-projgrid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.rm-projgrid{grid-template-columns:1fr}}

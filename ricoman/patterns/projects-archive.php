@@ -33,22 +33,7 @@ echo $cover(
 	50
 );
 
-echo $sec(
-	'<!-- wp:columns --><div class="wp-block-columns">' .
-	$tile( $u( 'rico-acoustic-corridor.webp' ), 'Commercial Office · Manchester', 'Acoustic linear ceiling', '/projects/acoustic-ceiling/', 420 ) .
-	$tile( $u( 'retail.webp' ), 'Retail · Manchester', 'Flagship Store', '/projects/flagship-store/', 420 ) .
-	'</div><!-- /wp:columns -->' .
-	'<!-- wp:columns --><div class="wp-block-columns">' .
-	$tile( $u( 'rico-breakout-lounge.webp' ), 'Workplace · Amenity', 'Breakout lounge', '/projects/breakout-lounge/' ) .
-	$tile( $u( 'office2.webp' ), 'Hospitality', 'Boutique Hotel', '/projects/boutique-hotel/' ) .
-	$tile( $u( 'rico-betfred7.webp' ), 'Workplace · Warrington', 'Betfred HQ', '/projects/betfred-hq/' ) .
-	'</div><!-- /wp:columns -->' .
-	'<!-- wp:columns --><div class="wp-block-columns">' .
-	$tile( $u( 'rico-kingsgate.webp' ), 'Retail · London', 'Kingsgate', '/projects/kingsgate/' ) .
-	$tile( $u( 'estrella-canteen.webp' ), 'Hospitality · Staff dining', 'Estrella Canteen', '/projects/estrella-canteen/' ) .
-	$tile( $u( 'office5.webp' ), 'Education', 'Campus Library', '/projects/campus-library/' ) .
-	'</div><!-- /wp:columns -->'
-);
+echo $sec( '<!-- wp:shortcode -->[ricoman_projects_grid count="12"]<!-- /wp:shortcode -->' );
 
 echo $cover(
 	$u( 'office6.webp' ),

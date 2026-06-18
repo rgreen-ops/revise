@@ -279,13 +279,18 @@ function ricoman_transport_rest( $base, $rest_type, $post_type, $template ) {
 	$base = untrailingslashit( $base );
 	$ua   = array( 'timeout' => 30, 'user-agent' => 'RicomanTransporter/1.0' );
 
+	// Site origin (scheme://host[:port]) — candidates are built from the ROOT, so a
+	// pasted deep page URL (e.g. /back-end/projects/x) still resolves correctly.
+	$pp     = wp_parse_url( $base );
+	$origin = ( isset( $pp['scheme'] ) ? $pp['scheme'] : 'https' ) . '://' . ( isset( $pp['host'] ) ? $pp['host'] : '' ) . ( isset( $pp['port'] ) ? ':' . $pp['port'] : '' );
+
 	// Build candidate REST roots — the source may be headless or live in a
 	// sub-folder (e.g. ricoman.com/back-end), so try discovery + common paths.
 	$roots = array();
 	if ( false !== strpos( $base, 'wp-json' ) ) {
 		$roots[] = preg_replace( '#/wp-json.*$#', '/wp-json', $base );
 	}
-	$home = wp_remote_get( $base . '/', array( 'timeout' => 15, 'user-agent' => 'RicomanTransporter/1.0' ) );
+	$home = wp_remote_get( $origin . '/', array( 'timeout' => 15, 'user-agent' => 'RicomanTransporter/1.0' ) );
 	if ( ! is_wp_error( $home ) ) {
 		$link = wp_remote_retrieve_header( $home, 'link' );
 		$link = is_array( $link ) ? implode( ',', $link ) : (string) $link;
@@ -293,9 +298,11 @@ function ricoman_transport_rest( $base, $rest_type, $post_type, $template ) {
 			$roots[] = untrailingslashit( $mm[1] );
 		}
 	}
+	// Whatever path was pasted, plus origin-root variants.
 	$roots[] = $base . '/wp-json';
-	$roots[] = $base . '/back-end/wp-json';
-	$roots[] = $base . '/blog/wp-json';
+	$roots[] = $origin . '/wp-json';
+	$roots[] = $origin . '/back-end/wp-json';
+	$roots[] = $origin . '/blog/wp-json';
 	$roots   = array_values( array_unique( $roots ) );
 
 	$items = null;
@@ -318,7 +325,7 @@ function ricoman_transport_rest( $base, $rest_type, $post_type, $template ) {
 	}
 	// Fallback: ?rest_route= style (works even without pretty permalinks).
 	if ( null === $items ) {
-		foreach ( array( $base, $base . '/back-end' ) as $rr ) {
+		foreach ( array_unique( array( $base, $origin, $origin . '/back-end' ) ) as $rr ) {
 			$items = $fetch( $rr . '/?rest_route=' . rawurlencode( '/wp/v2/' . $rest_type ) . '&per_page=50&_embed=1' );
 			if ( null !== $items ) {
 				break;
