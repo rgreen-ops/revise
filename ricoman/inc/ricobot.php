@@ -79,7 +79,9 @@ function ricoman_ricobot_get( $path, $bypass_cache = false ) {
 	if ( ! is_array( $data ) ) {
 		return new WP_Error( 'ricobot_json', __( 'RICOBOT did not return JSON.', 'ricoman' ) );
 	}
-	set_transient( $cache_key, $data, HOUR_IN_SECONDS );
+	if ( ! $bypass_cache ) {
+		set_transient( $cache_key, $data, HOUR_IN_SECONDS );
+	}
 	return $data;
 }
 

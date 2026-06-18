@@ -382,6 +382,21 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-play span{width:84px;height:84px;border-radius:50%;background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center;color:var(--ink);font-size:1.4rem;padding-left:5px}
 .rm-overlap{margin-top:-80px;position:relative;z-index:2;background:#fff;padding:clamp(28px,4vw,56px)}
 
+/* live configurator */
+.rm-config{margin:0 0 clamp(20px,3vw,36px)}
+.rm-axis{margin-bottom:18px}
+.rm-axis-label{font-family:Poppins;text-transform:uppercase;letter-spacing:.14em;font-size:.62rem;font-weight:600;color:var(--muted);margin-bottom:.7em}
+.rm-axis-choices{display:flex;flex-wrap:wrap;gap:8px}
+.rm-choice{font-family:Poppins;font-size:.78rem;font-weight:500;border:1px solid var(--line);background:#fff;color:var(--text);border-radius:999px;padding:.6em 1.1em;cursor:pointer;transition:.18s}
+.rm-choice:hover{border-color:var(--ink)}
+.rm-choice.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.rm-config-result{border-top:1px solid var(--line);margin-top:18px;padding-top:18px}
+.rm-config-sku{font-family:Poppins;font-size:.68rem;letter-spacing:.08em;color:var(--muted);word-break:break-all;margin-bottom:.5em}
+.rm-bigprice{font-family:Poppins;font-weight:600;font-size:clamp(1.6rem,3vw,2.4rem);letter-spacing:-.02em;color:var(--ink);display:inline-block}
+.rm-config-note{display:block;color:var(--muted);font-size:.9rem;margin-top:.3em}
+.rm-config-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:1em}
+.rm-config-loading,.rm-config-spin{color:var(--muted);font-size:.9rem}
+
 /* full-screen embedded tool (Flow+ Designer) */
 .rm-tool{display:flex;flex-direction:column;height:100vh}
 .rm-tool-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;background:var(--ink);color:#fff;padding:10px 18px;font-family:Poppins;font-weight:600;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase}
