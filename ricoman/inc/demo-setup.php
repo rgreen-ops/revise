@@ -32,18 +32,13 @@ function ricoman_pattern_content( $slug ) {
 	return '<!-- wp:pattern {"slug":"' . esc_attr( $slug ) . '"} /-->';
 }
 
-/** Create a page, or refresh its content if it already exists. Returns the ID. */
+/** Create a page from a pattern if it doesn't already exist (never overwrites). */
 function ricoman_upsert_page( $title, $slug, $pattern_slug, $template = '' ) {
-	$content  = ricoman_pattern_content( $pattern_slug );
 	$existing = get_page_by_path( $slug );
 	if ( $existing && 'page' === $existing->post_type ) {
-		wp_update_post( array( 'ID' => $existing->ID, 'post_content' => $content ) );
-		if ( $template ) {
-			update_post_meta( $existing->ID, '_wp_page_template', $template );
-		}
-		return (int) $existing->ID;
+		return (int) $existing->ID; // leave existing content untouched.
 	}
-	return ricoman_make_post( 'page', $title, $slug, $content, $template );
+	return ricoman_make_post( 'page', $title, $slug, ricoman_pattern_content( $pattern_slug ), $template );
 }
 
 /** Create a post once (idempotent by slug + type). Returns the ID or 0. */
@@ -98,8 +93,20 @@ function ricoman_set_featured_from_theme( $post_id, $file ) {
 }
 
 function ricoman_scaffold_site() {
-	if ( get_option( 'ricoman_scaffold_v28' ) ) {
+	// Run the demo scaffold ONCE, ever. After that the installer NEVER touches
+	// existing content — pages, products, images and any edits are safe across
+	// every theme update. Theme *code* (patterns, blocks, CSS, the Product
+	// Builder) still updates freely; only stored content is left alone.
+	if ( get_option( 'ricoman_scaffolded' ) ) {
 		return;
+	}
+	// Migrate older installs: if a previous version already scaffolded, mark it
+	// done and stop — so we never re-seed over content that already exists.
+	foreach ( range( 14, 40 ) as $v ) {
+		if ( get_option( 'ricoman_scaffold_v' . $v ) ) {
+			update_option( 'ricoman_scaffolded', 1 );
+			return;
+		}
 	}
 
 	$img = function ( $f ) { return esc_url( get_theme_file_uri( 'assets/images/' . $f ) ); };
@@ -118,21 +125,19 @@ function ricoman_scaffold_site() {
 		}
 	}
 
-	// ---- Pages (create, or refresh to the latest native-block design) ----
-	$home_content = function_exists( 'ricoman_home_blocks' ) ? ricoman_home_blocks() : ricoman_pattern_content( 'ricoman/home' );
-	$home_page    = get_page_by_path( 'home' );
+	// ---- Pages: CREATE ONLY (never overwrite an existing page) ----
+	$home_page = get_page_by_path( 'home' );
 	if ( $home_page && 'page' === $home_page->post_type ) {
-		wp_update_post( array( 'ID' => $home_page->ID, 'post_content' => $home_content ) );
 		$home_id = $home_page->ID;
 	} else {
-		$home_id = ricoman_make_post( 'page', 'Home', 'home', $home_content );
+		$home_content = function_exists( 'ricoman_home_blocks' ) ? ricoman_home_blocks() : ricoman_pattern_content( 'ricoman/home' );
+		$home_id      = ricoman_make_post( 'page', 'Home', 'home', $home_content );
 	}
-	if ( $home_id ) {
+	if ( $home_id && ! get_option( 'page_on_front' ) ) {
 		update_option( 'show_on_front', 'page' );
 		update_option( 'page_on_front', $home_id );
 	}
-	// About / Manufacturing / Lighting Design — native editable block stacks
-	// (recreated from the original previews as add/remove sections).
+
 	$native_pages = array(
 		'lighting-design' => array( 'Lighting Design', 'ricoman_lighting_blocks' ),
 		'manufacturing'   => array( 'Manufacturing', 'ricoman_manufacturing_blocks' ),
@@ -142,28 +147,22 @@ function ricoman_scaffold_site() {
 		'contact'         => array( 'Contact', 'ricoman_contact_blocks' ),
 	);
 	foreach ( $native_pages as $slug => $info ) {
-		$content = function_exists( $info[1] ) ? call_user_func( $info[1] ) : ricoman_pattern_content( 'ricoman/home' );
-		$existing = get_page_by_path( $slug );
-		if ( $existing && 'page' === $existing->post_type ) {
-			wp_update_post( array( 'ID' => $existing->ID, 'post_content' => $content ) );
-			update_post_meta( $existing->ID, '_wp_page_template', 'page-plain' );
-		} else {
-			ricoman_make_post( 'page', $info[0], $slug, $content, 'page-plain' );
+		if ( get_page_by_path( $slug ) ) {
+			continue; // already exists — leave the editor's content untouched.
 		}
+		$content = function_exists( $info[1] ) ? call_user_func( $info[1] ) : ricoman_pattern_content( 'ricoman/home' );
+		ricoman_make_post( 'page', $info[0], $slug, $content, 'page-plain' );
 	}
 
-	// Secondary / legal pages (Sustainability, Warranty, policies, Site Map…).
+	// Secondary / legal pages — create only.
 	if ( function_exists( 'ricoman_info_pages' ) ) {
 		foreach ( ricoman_info_pages() as $info_slug => $info ) {
+			if ( get_page_by_path( $info_slug ) ) {
+				continue;
+			}
 			$info_content = ricoman_info_blocks( $info[0], $info[1], $info[2], $info[3] );
 			$info_title   = html_entity_decode( wp_strip_all_tags( $info[1] ) );
-			$info_exist   = get_page_by_path( $info_slug );
-			if ( $info_exist && 'page' === $info_exist->post_type ) {
-				wp_update_post( array( 'ID' => $info_exist->ID, 'post_content' => $info_content ) );
-				update_post_meta( $info_exist->ID, '_wp_page_template', 'page-plain' );
-			} else {
-				ricoman_make_post( 'page', $info_title, $info_slug, $info_content, 'page-plain' );
-			}
+			ricoman_make_post( 'page', $info_title, $info_slug, $info_content, 'page-plain' );
 		}
 	}
 
@@ -216,6 +215,9 @@ function ricoman_scaffold_site() {
 		'neptune'   => array( 'Fire-rated downlight with a clean trimless aperture.', 'In stock · next-day available', "90-minute fire rating\nIP65 front face\nSwitchable CCT\nTrimless bezel option", 'Matt white, Matt black', array( '_ricoman_wattage' => '8W', '_ricoman_lumens' => '900 lm', '_ricoman_cct' => '3000/4000/6000K', '_ricoman_ip' => 'IP65', '_ricoman_warranty' => '5 years', '_ricoman_sku' => 'RM-NEPTUNE' ), "Cut-out | 68mm\nDriver | Integral\nDimming | Mains / DALI" ),
 	);
 	foreach ( $products as $slug => $p ) {
+		if ( get_page_by_path( $slug, OBJECT, 'product' ) ) {
+			continue; // exists — never overwrite content, meta, images or edits.
+		}
 		// Flow+ keeps its full bespoke "Flow experience" layout; every other product
 		// uses the configurator-preview layout (split hero, facts, variant table…).
 		if ( 'flow-plus' === $slug && function_exists( 'ricoman_flow_product_blocks' ) ) {
@@ -223,11 +225,10 @@ function ricoman_scaffold_site() {
 		} else {
 			$content = function_exists( 'ricoman_default_product_blocks' ) ? ricoman_default_product_blocks() : '';
 		}
-		$pid      = ricoman_make_post( 'product', $p[0], $slug, $content );
+		$pid = ricoman_make_post( 'product', $p[0], $slug, $content );
 		if ( $pid ) {
-			wp_update_post( array( 'ID' => $pid, 'post_content' => $content, 'post_excerpt' => $p[3] ) );
+			wp_update_post( array( 'ID' => $pid, 'post_excerpt' => $p[3] ) );
 			wp_set_object_terms( $pid, $p[1], 'product_cat' );
-			delete_post_thumbnail( $pid ); // refresh demo hero to the corrected image
 			ricoman_set_featured_from_theme( $pid, $p[2] );
 			// Demonstrate both product layouts: Neptune = Basic, others = Featured.
 			update_post_meta( $pid, '_wp_page_template', 'neptune' === $slug ? 'single-product-basic' : 'single-product-featured' );
@@ -267,6 +268,9 @@ function ricoman_scaffold_site() {
 	// Show both project layouts: a few rich "feature" case studies, the rest "simple".
 	$feature_projects = array( 'allianz-hq', 'acoustic-ceiling', 'flagship-store', 'betfred-hq' );
 	foreach ( $projects as $slug => $pr ) {
+		if ( get_page_by_path( $slug, OBJECT, 'project' ) ) {
+			continue; // exists — never overwrite.
+		}
 		$is_feature = in_array( $slug, $feature_projects, true );
 		if ( $is_feature && function_exists( 'ricoman_project_feature_content' ) ) {
 			$content = ricoman_project_feature_content( $pr );
@@ -277,7 +281,7 @@ function ricoman_scaffold_site() {
 		}
 		$prid = ricoman_make_post( 'project', $pr[0], $slug, $content );
 		if ( $prid ) {
-			wp_update_post( array( 'ID' => $prid, 'post_content' => $content, 'post_excerpt' => $pr[3] ) );
+			wp_update_post( array( 'ID' => $prid, 'post_excerpt' => $pr[3] ) );
 			wp_set_object_terms( $prid, $pr[2], 'application' );
 			ricoman_set_featured_from_theme( $prid, $pr[1] );
 			update_post_meta( $prid, '_wp_page_template', $is_feature ? 'single-project' : 'single-project-simple' );
@@ -285,5 +289,5 @@ function ricoman_scaffold_site() {
 	}
 
 	flush_rewrite_rules( true );
-	update_option( 'ricoman_scaffold_v28', 1 );
+	update_option( 'ricoman_scaffolded', 1 );
 }
