@@ -108,8 +108,7 @@ add_shortcode( 'ricoman_family', function ( $atts ) {
 	<div class="rm-fam" data-family="<?php echo esc_attr( $family ); ?>" data-nonce="<?php echo esc_attr( $nonce ); ?>" data-ajax="<?php echo $ajax; ?>" data-enquire="<?php echo $enquire; ?>">
 		<p class="rm-fam-intro">Loading the <?php echo esc_html( $family ); ?> range…</p>
 		<div class="rm-fam-filter" hidden>
-			<div class="rm-fam-facets"></div>
-			<div class="rm-fam-meta"><span class="rm-fam-count"></span><button type="button" class="rm-fam-clear">Clear all filters</button></div>
+			<div class="rm-vf-row"></div>
 		</div>
 		<div class="rm-fam-products"></div>
 		<div class="rm-fam-configure"></div>
@@ -120,12 +119,10 @@ add_shortcode( 'ricoman_family', function ( $atts ) {
 		var nonce = root.dataset.nonce, ajax = root.dataset.ajax, enquire = root.dataset.enquire, family = root.dataset.family;
 		var introEl = root.querySelector( '.rm-fam-intro' );
 		var filterEl = root.querySelector( '.rm-fam-filter' );
-		var facetsEl = root.querySelector( '.rm-fam-facets' );
-		var countEl = root.querySelector( '.rm-fam-count' );
+		var filtersEl = root.querySelector( '.rm-vf-row' );
 		var productsEl = root.querySelector( '.rm-fam-products' );
 		var configureEl = root.querySelector( '.rm-fam-configure' );
-		var clearBtn = root.querySelector( '.rm-fam-clear' );
-		var facets = [], products = [], selected = {};
+		var facets = [], products = [], selected = {}, expanded = false, LIMIT = 6;
 
 		function call( action, params ) {
 			var b = new FormData(); b.append( 'action', action ); b.append( 'nonce', nonce );
@@ -138,35 +135,86 @@ add_shortcode( 'ricoman_family', function ( $atts ) {
 			return true;
 		}
 		function matching() { return products.filter( function ( p ) { return matches( p, null ); } ); }
+		function esc( s ) { return String( s == null ? '' : s ).replace( /[&<>"]/g, function ( c ) { return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[ c ]; } ); }
+		function attr( a, keys ) { for ( var i = 0; i < keys.length; i++ ) { if ( a[ keys[ i ] ] != null && a[ keys[ i ] ] !== '' ) { return a[ keys[ i ] ]; } } return ''; }
+		function descOf( p ) {
+			if ( p.description ) { return p.description; }
+			var a = p.attributes || {}, parts = [];
+			[ 'length', 'size', 'optic', 'shape', 'bodyColour', 'finish', 'cct', 'kelvin', 'control', 'dimming' ].forEach( function ( k ) { if ( a[ k ] ) { parts.push( a[ k ] ); } } );
+			return parts.length ? parts.join( ' · ' ) : ( p.name || '' );
+		}
 
 		function render() {
-			// facet counts recomputed against the other active filters
-			facetsEl.innerHTML = '';
+			// Dropdown filters (Length / Body Colour / Colour Temperature …).
+			filtersEl.innerHTML = '';
 			facets.forEach( function ( f ) {
-				var row = document.createElement( 'div' ); row.className = 'rm-facet';
-				var lab = document.createElement( 'div' ); lab.className = 'rm-facet-label'; lab.textContent = f.label; row.appendChild( lab );
-				var chips = document.createElement( 'div' ); chips.className = 'rm-facet-chips';
+				var wrap = document.createElement( 'div' ); wrap.className = 'rm-vf';
+				var lab = document.createElement( 'label' ); lab.className = 'rm-vf-label'; lab.textContent = f.label; wrap.appendChild( lab );
+				var sel = document.createElement( 'select' ); sel.className = 'rm-vf-sel';
+				var all = document.createElement( 'option' ); all.value = ''; all.textContent = 'All'; sel.appendChild( all );
 				f.choices.forEach( function ( c ) {
-					var n = products.filter( function ( p ) { return matches( p, f.key ) && String( ( p.attributes || {} )[ f.key ] ) === String( c.value ); } ).length;
-					var b = document.createElement( 'button' ); b.type = 'button'; b.className = 'rm-fchip' + ( selected[ f.key ] === c.value ? ' on' : '' ) + ( n === 0 ? ' off' : '' );
-					b.innerHTML = c.label + ' <span class="rm-fcount">' + n + '</span>';
-					b.addEventListener( 'click', function () { selected[ f.key ] = ( selected[ f.key ] === c.value ) ? '' : c.value; render(); } );
-					chips.appendChild( b );
+					var o = document.createElement( 'option' ); o.value = c.value; o.textContent = c.label;
+					if ( selected[ f.key ] === c.value ) { o.selected = true; }
+					sel.appendChild( o );
 				} );
-				row.appendChild( chips ); facetsEl.appendChild( row );
+				sel.addEventListener( 'change', function () { selected[ f.key ] = sel.value; expanded = false; render(); } );
+				wrap.appendChild( sel ); filtersEl.appendChild( wrap );
 			} );
+
+			// Variant table (Part code · Description · Lumens · Dimensions · actions).
 			var m = matching();
-			countEl.textContent = m.length + ' of ' + products.length + ' match';
-			// matching products list
-			productsEl.innerHTML = '<h3 class="rm-shead">Matching codes (' + m.length + ')</h3>';
-			var ul = document.createElement( 'div' ); ul.className = 'rm-fam-list';
-			m.forEach( function ( p ) {
-				var a = document.createElement( 'button' ); a.type = 'button'; a.className = 'rm-fam-product';
-				a.innerHTML = '<span class="fp-code">' + p.code + '</span><span class="fp-name">' + ( p.name || '' ) + '</span>';
-				a.addEventListener( 'click', function () { loadConfigurator( p ); } );
-				ul.appendChild( a );
+			var shown = expanded ? m : m.slice( 0, LIMIT );
+			var rows = shown.map( function ( p ) {
+				var a = p.attributes || {};
+				var lum = attr( a, [ 'lumens', 'output', 'lm' ] );
+				var dim = attr( a, [ 'dimensions', 'size', 'dimension' ] );
+				var thumb = p.heroUrl ? '<img src="' + esc( p.heroUrl ) + '" alt="" loading="lazy">' : '<span class="rm-vt-noimg"></span>';
+				return '<tr>' +
+					'<td class="vt-thumb">' + thumb + '</td>' +
+					'<td class="vt-code"><button type="button" class="rm-vt-view" data-code="' + esc( p.code ) + '">' + esc( p.code ) + '</button></td>' +
+					'<td class="vt-desc">' + esc( descOf( p ) ) + '</td>' +
+					'<td class="vt-num">' + esc( lum ) + '</td>' +
+					'<td class="vt-num">' + esc( dim ) + '</td>' +
+					'<td class="vt-act"><button type="button" class="rm-vt-view rm-vt-ico" title="View &amp; configure" data-code="' + esc( p.code ) + '" aria-label="View">&#128065;</button></td>' +
+					'<td class="vt-act"><a class="rm-vt-ico" title="Add to My Project" aria-label="Add" href="' + enquire + '?sku=' + encodeURIComponent( p.code ) + '">&#65291;</a></td>' +
+					'<td class="vt-act"><button type="button" class="rm-vt-doc rm-vt-ico" data-kind="ldt" data-code="' + esc( p.code ) + '" title="Photometric (LDT)" aria-label="LDT">&#8615;</button></td>' +
+					'<td class="vt-act"><button type="button" class="rm-vt-doc rm-vt-ico" data-kind="datasheet" data-code="' + esc( p.code ) + '" title="Datasheet (PDF)" aria-label="Datasheet">&#8615;</button></td>' +
+					'</tr>';
+			} ).join( '' );
+
+			productsEl.innerHTML =
+				'<div class="rm-vt-wrap"><table class="rm-vtable"><thead><tr>' +
+				'<th></th><th>Part Code</th><th>Description</th><th>Lumens</th><th>Dimensions</th>' +
+				'<th>View</th><th>Add</th><th>LDT</th><th>Datasheet</th>' +
+				'</tr></thead><tbody>' + ( rows || '<tr><td colspan="9" class="rm-vt-empty">No variants match these filters.</td></tr>' ) + '</tbody></table></div>' +
+				( m.length > LIMIT ? '<button type="button" class="rm-vt-more">' + ( expanded ? 'Show fewer' : 'View all variants (' + m.length + ') ▾' ) + '</button>' : '' );
+
+			productsEl.querySelectorAll( '.rm-vt-view' ).forEach( function ( b ) {
+				b.addEventListener( 'click', function () { loadConfigurator( { code: b.dataset.code } ); } );
 			} );
-			productsEl.appendChild( ul );
+			productsEl.querySelectorAll( '.rm-vt-doc' ).forEach( function ( b ) {
+				b.addEventListener( 'click', function () { openDoc( b.dataset.code, b.dataset.kind, b ); } );
+			} );
+			var more = productsEl.querySelector( '.rm-vt-more' );
+			if ( more ) { more.addEventListener( 'click', function () { expanded = ! expanded; render(); } ); }
+		}
+
+		// Resolve a datasheet / photometric link on demand and open it.
+		function openDoc( code, kind, btn ) {
+			btn.classList.add( 'is-loading' );
+			call( 'ricoman_rb_specs', { code: code } ).then( function ( res ) {
+				btn.classList.remove( 'is-loading' );
+				if ( ! res.success ) { return; }
+				var url = '';
+				if ( 'datasheet' === kind ) {
+					( res.data.documents || [] ).some( function ( d ) { if ( ( d.type || '' ).toLowerCase().indexOf( 'datasheet' ) > -1 || /\.pdf/i.test( d.url || '' ) ) { url = d.url; return true; } return false; } );
+				} else {
+					var ph = res.data.photometric || [];
+					if ( ph.length ) { url = ph[ 0 ].url; }
+				}
+				if ( url ) { window.open( url, '_blank', 'noopener' ); }
+				else { btn.classList.add( 'rm-vt-na' ); btn.title = 'Not published — please enquire'; }
+			} ).catch( function () { btn.classList.remove( 'is-loading' ); } );
 		}
 
 		/* inline configurator for the chosen product (no pricing) */
@@ -214,12 +262,10 @@ add_shortcode( 'ricoman_family', function ( $atts ) {
 			} ).catch( function () { axesEl.innerHTML = '<p class="rm-config-note">Could not load options.</p>'; } );
 		}
 
-		clearBtn.addEventListener( 'click', function () { selected = {}; configureEl.innerHTML = ''; render(); } );
-
 		call( 'ricoman_rb_family', { family: family } ).then( function ( res ) {
 			if ( ! res.success ) { introEl.textContent = res.data || 'Range unavailable.'; return; }
 			facets = res.data.facets || []; products = res.data.products || [];
-			introEl.textContent = products.length + ' sizes / variants in this family. Filter below, then pick one to configure.';
+			introEl.textContent = products.length + ' sizes &amp; variants — filter, then View to configure or download.';
 			filterEl.hidden = false;
 			render();
 		} ).catch( function () { introEl.textContent = 'Could not load the range.'; } );

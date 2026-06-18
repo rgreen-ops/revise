@@ -46,6 +46,7 @@ function ricoman_rb_specs_cb() {
 			'technicalData' => isset( $data['technicalData'] ) && is_array( $data['technicalData'] ) ? $data['technicalData'] : array(),
 			'accessories'   => isset( $data['accessories'] ) && is_array( $data['accessories'] ) ? $data['accessories'] : array(),
 			'documents'     => isset( $data['documents'] ) && is_array( $data['documents'] ) ? $data['documents'] : array(),
+			'photometric'   => isset( $data['photometric'] ) && is_array( $data['photometric'] ) ? $data['photometric'] : array(),
 		)
 	);
 }
