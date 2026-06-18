@@ -2,11 +2,15 @@
 /**
  * RICOBOT integration settings.
  *
- * RICOBOT is Ricoman's product/pricing engine (Next.js app with a JSON API at,
- * e.g., https://ricobot.ricoman.com — /api/products, /api/product/<code>).
- * This adds a single place to enter the API base URL + key (no credentials are
- * hardcoded in the theme), a connection test, and a small authenticated client
- * the product/datasheet features can call for on-the-fly data.
+ * RICOBOT is Ricoman's product/pricing engine. Public read-only API
+ * (https://ricobot.ricoman.com), Authorization: Bearer <token>:
+ *   GET /api/public/health                        -> { ok, version }
+ *   GET /api/public/products                      -> { products:[...], total, page }
+ *   GET /api/public/products/{code}               -> full detail (specs, finishes, price, datasheet)
+ *   GET /api/public/products/{code}/datasheet.pdf -> PDF
+ * Rate limit 60/min per token; responses are cached for 1 hour here so we never
+ * hit it. The token is stored server-side only and is NEVER output to the front
+ * end / JS — all calls go through PHP (wp_remote_get).
  *
  * Settings → RICOBOT.
  *
@@ -35,21 +39,33 @@ function ricoman_ricobot_ready() {
 }
 
 /**
- * Authenticated GET against the RICOBOT API. Returns decoded data or WP_Error.
+ * Authenticated, cached GET against the RICOBOT API. Returns decoded data or
+ * WP_Error. Results are cached for 1 hour (per path) to stay well under the
+ * 60 req/min rate limit; pass $bypass_cache = true for the connection test.
  *
- * @param string $path e.g. 'api/product/R340501-BK-4K'
+ * @param string $path        e.g. 'api/public/products/flow-plus'
+ * @param bool   $bypass_cache Skip the transient cache for this call.
  * @return array|WP_Error
  */
-function ricoman_ricobot_get( $path ) {
+function ricoman_ricobot_get( $path, $bypass_cache = false ) {
 	$base = untrailingslashit( (string) ricoman_ricobot_opt( 'url' ) );
 	if ( ! $base ) {
 		return new WP_Error( 'ricobot_no_url', __( 'RICOBOT API URL is not set (Settings → RICOBOT).', 'ricoman' ) );
 	}
+
+	$cache_key = 'ricoman_rb_' . md5( $base . '|' . $path );
+	if ( ! $bypass_cache ) {
+		$cached = get_transient( $cache_key );
+		if ( false !== $cached ) {
+			return $cached;
+		}
+	}
+
 	$args = array( 'timeout' => 20, 'headers' => array( 'Accept' => 'application/json' ) );
 	$key  = ricoman_ricobot_opt( 'key' );
 	if ( $key ) {
+		// Token is sent server-side only (Authorization: Bearer), never to JS.
 		$args['headers']['Authorization'] = 'Bearer ' . $key;
-		$args['headers']['X-API-Key']     = $key;
 	}
 	$resp = wp_remote_get( $base . '/' . ltrim( $path, '/' ), $args );
 	if ( is_wp_error( $resp ) ) {
@@ -60,7 +76,19 @@ function ricoman_ricobot_get( $path ) {
 		return new WP_Error( 'ricobot_http', sprintf( /* translators: %d: HTTP status */ __( 'RICOBOT returned HTTP %d.', 'ricoman' ), $code ) );
 	}
 	$data = json_decode( wp_remote_retrieve_body( $resp ), true );
-	return is_array( $data ) ? $data : new WP_Error( 'ricobot_json', __( 'RICOBOT did not return JSON.', 'ricoman' ) );
+	if ( ! is_array( $data ) ) {
+		return new WP_Error( 'ricobot_json', __( 'RICOBOT did not return JSON.', 'ricoman' ) );
+	}
+	set_transient( $cache_key, $data, HOUR_IN_SECONDS );
+	return $data;
+}
+
+/** Convenience wrappers matching the documented RICOBOT endpoints. */
+function ricoman_ricobot_products() {
+	return ricoman_ricobot_get( 'api/public/products' );
+}
+function ricoman_ricobot_product( $code ) {
+	return ricoman_ricobot_get( 'api/public/products/' . rawurlencode( $code ) );
 }
 
 /* ---- Settings page ---- */
@@ -87,11 +115,11 @@ function ricoman_ricobot_settings_page() {
 	// Connection test.
 	$test = null;
 	if ( isset( $_POST['ricoman_ricobot_test'] ) && check_admin_referer( 'ricoman_ricobot_test' ) ) {
-		$health = ricoman_ricobot_get( 'api/health' );
+		$health = ricoman_ricobot_get( 'api/public/health', true );
 		if ( is_wp_error( $health ) ) {
 			$test = array( false, $health->get_error_message() );
 		} else {
-			$auth = ricoman_ricobot_get( 'api/products' );
+			$auth = ricoman_ricobot_get( 'api/public/products', true );
 			$test = is_wp_error( $auth )
 				? array( true, __( 'Reachable. API key not accepted yet (product endpoint needs a valid key): ', 'ricoman' ) . $auth->get_error_message() )
 				: array( true, __( 'Connected — health OK and the products endpoint authenticated. ✓', 'ricoman' ) );
@@ -112,7 +140,7 @@ function ricoman_ricobot_settings_page() {
 				<tr>
 					<th scope="row"><label for="rb_url"><?php esc_html_e( 'API base URL', 'ricoman' ); ?></label></th>
 					<td><input type="url" class="regular-text" id="rb_url" name="ricoman_ricobot[url]" value="<?php echo esc_attr( get_option( 'ricoman_ricobot' )['url'] ?? '' ); ?>" placeholder="https://ricobot.ricoman.com">
-					<p class="description"><?php esc_html_e( 'No trailing slash. The theme calls e.g. /api/product/&lt;order-code&gt;.', 'ricoman' ); ?></p></td>
+					<p class="description"><?php esc_html_e( 'No trailing slash (e.g. https://ricobot.ricoman.com). The theme calls /api/public/products and /api/public/products/{code}.', 'ricoman' ); ?></p></td>
 				</tr>
 				<tr>
 					<th scope="row"><label for="rb_key"><?php esc_html_e( 'API key / token', 'ricoman' ); ?></label></th>
@@ -126,7 +154,7 @@ function ricoman_ricobot_settings_page() {
 		<form method="post" style="margin-top:-8px">
 			<?php wp_nonce_field( 'ricoman_ricobot_test' ); ?>
 			<button type="submit" name="ricoman_ricobot_test" value="1" class="button"><?php esc_html_e( 'Test connection', 'ricoman' ); ?></button>
-			<span class="description" style="margin-left:8px"><?php esc_html_e( 'Checks /api/health, then /api/products with your key.', 'ricoman' ); ?></span>
+			<span class="description" style="margin-left:8px"><?php esc_html_e( 'Checks /api/public/health, then /api/public/products with your key.', 'ricoman' ); ?></span>
 		</form>
 	</div>
 	<?php

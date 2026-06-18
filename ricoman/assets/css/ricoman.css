@@ -289,6 +289,38 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .fbar{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:clamp(40px,5vw,70px);padding-top:24px;border-top:1px solid rgba(255,255,255,.12);font-family:Poppins;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.45)}
 @media(max-width:820px){.fgrid{grid-template-columns:1fr 1fr}}
 
+/* =========================================================================
+   Native-block homepage — styles for the click-to-edit Gutenberg version.
+   These hook onto classNames set on core blocks so the design survives while
+   each element stays individually editable in the block editor.
+   ========================================================================= */
+.rm-eyebrow{font-family:Poppins;text-transform:uppercase;letter-spacing:.28em;font-size:.7rem;font-weight:600;margin:0 0 1.4em}
+.rm-section{padding-block:clamp(60px,9vw,150px)}
+.rm-statement h2,.rm-statement p{font-family:Poppins;font-weight:500;font-size:clamp(1.9rem,5vw,4rem);line-height:1.08;letter-spacing:-.035em;max-width:24ch}
+.rm-shead{font-size:clamp(2rem,4vw,3.4rem);font-weight:600;letter-spacing:-.03em;max-width:18ch;margin-bottom:.8em}
+/* facts band */
+.rm-facts{border-block:1px solid var(--line)}
+.rm-facts .wp-block-column{border-right:1px solid var(--line);padding-right:24px}
+.rm-facts .wp-block-column:last-child{border-right:0}
+.rm-flabel{font-family:Poppins;text-transform:uppercase;letter-spacing:.2em;font-size:.6rem;font-weight:600;color:var(--muted);margin:0 0 .8em}
+.rm-fval{font-family:Poppins;font-weight:500;font-size:clamp(1.05rem,1.4vw,1.4rem);letter-spacing:-.02em;color:var(--ink);margin:0}
+@media(max-width:781px){.rm-facts .wp-block-column{border-right:0;border-bottom:1px solid var(--line);padding-bottom:18px}}
+/* cards (ranges) */
+.rm-card{display:block}
+.rm-card img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:transform .6s ease}
+.rm-card:hover img{transform:scale(1.04)}
+.rm-card h3{font-size:1.35rem;font-weight:600;letter-spacing:-.02em;margin:.7em 0 .15em}
+.rm-card p{color:var(--muted);font-size:.92rem;margin:0}
+.rm-card .wp-block-image{overflow:hidden;margin:0}
+/* audience / values columns */
+.rm-aud-card{border-top:1px solid var(--ink);padding-top:1.2em}
+.rm-aud-card h3{font-size:1.25rem;font-weight:600;letter-spacing:-.02em;margin:0 0 .4em}
+.rm-aud-card p{color:var(--muted);font-size:.95rem;margin:0}
+/* dark split blocks already get white text via cover/ink group */
+.rm-dark{background:var(--ink)}
+.rm-dark :where(h2,h3,p,a){color:#fff}
+.rm-dark p{color:rgba(255,255,255,.74)}
+
 /* motion */
 .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s cubic-bezier(.2,.6,.2,1),transform .7s cubic-bezier(.2,.6,.2,1)}
 .reveal.in{opacity:1;transform:none}
