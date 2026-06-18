@@ -3,42 +3,58 @@
  * Title: Projects listing
  * Slug: ricoman/projects-archive
  * Categories: ricoman, ricoman-pages
- * Description: Projects listing — hero, sector filter, case-study mosaic, CTA.
+ * Description: Projects listing — native editable, clickable case-study tiles.
  *
  * @package Ricoman
  */
 $img = function ( $f ) { return esc_url( get_theme_file_uri( 'assets/images/' . $f ) ); };
+
+$tile = function ( $file, $sector, $name, $href ) use ( $img ) {
+	?>
+	<!-- wp:column --><div class="wp-block-column"><!-- wp:cover {"url":"<?php echo $img( $file ); ?>","dimRatio":40,"overlayColor":"ink","minHeight":320,"contentPosition":"bottom left","isLink":true,"href":"<?php echo esc_url( $href ); ?>"} -->
+	<div class="wp-block-cover has-custom-content-position is-position-bottom-left" style="min-height:320px"><span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-40 has-background-dim"></span><img class="wp-block-cover__image-background" alt="<?php echo esc_attr( $name ); ?>" src="<?php echo $img( $file ); ?>" data-object-fit="cover"/><div class="wp-block-cover__inner-container">
+		<!-- wp:paragraph {"className":"rm-eyebrow","textColor":"base"} --><p class="rm-eyebrow has-base-color has-text-color"><?php echo esc_html( $sector ); ?></p><!-- /wp:paragraph -->
+		<!-- wp:heading {"level":3,"textColor":"base"} --><h3 class="wp-block-heading has-base-color has-text-color"><?php echo esc_html( $name ); ?></h3><!-- /wp:heading -->
+	</div></div>
+	<!-- /wp:cover --></div><!-- /wp:column -->
+	<?php
+};
 ?>
-<!-- wp:html -->
-<section class="phero">
-  <div class="bg" style="background-image:url(<?php echo $img( 'office1.jpg' ); ?>)"></div><div class="scrim"></div>
-  <div class="inner"><div class="wrap">
-    <span class="kick lt">Selected Work</span>
-    <h1>Light that performs in the real world.</h1>
-    <p class="lede">From workplace fit-outs to flagship retail, our luminaires are specified, delivered and installed across the UK.</p>
-  </div></div>
-</section>
-
-<div class="filter"><div class="wrap">
-  <span class="chip on">All sectors</span><span class="chip">Workplace</span><span class="chip">Retail</span><span class="chip">Hospitality</span><span class="chip">Healthcare</span><span class="chip">Education</span><span class="chip">Leisure</span>
+<!-- wp:cover {"url":"<?php echo $img( 'office1.jpg' ); ?>","dimRatio":60,"overlayColor":"ink","minHeight":58,"minHeightUnit":"vh","contentPosition":"bottom left","align":"full","textColor":"base"} -->
+<div class="wp-block-cover alignfull has-base-color has-text-color has-custom-content-position is-position-bottom-left" style="min-height:58vh"><span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-60 has-background-dim"></span><img class="wp-block-cover__image-background" alt="" src="<?php echo $img( 'office1.jpg' ); ?>" data-object-fit="cover"/><div class="wp-block-cover__inner-container">
+	<!-- wp:paragraph {"className":"rm-eyebrow"} --><p class="rm-eyebrow">Selected Work</p><!-- /wp:paragraph -->
+	<!-- wp:heading {"level":1,"style":{"typography":{"fontWeight":"500","fontSize":"clamp(2.6rem, 6vw, 5rem)"}}} --><h1 class="wp-block-heading" style="font-size:clamp(2.6rem, 6vw, 5rem);font-weight:500">Light that performs in the real world.</h1><!-- /wp:heading -->
 </div></div>
+<!-- /wp:cover -->
 
-<section class="sec tight"><div class="wrap">
-  <div class="mosaic">
-    <a class="pj big" href="/projects/"><span class="tagp">Case study</span><img src="<?php echo $img( 'rico-acoustic-corridor.jpg' ); ?>" alt="Acoustic linear ceiling"><div class="ov"><small>Commercial Office · Manchester</small><h3>Acoustic linear ceiling</h3></div></a>
-    <a class="pj wide" href="/projects/"><img src="<?php echo $img( 'retail.jpg' ); ?>" alt="Flagship store"><div class="ov"><small>Retail · Manchester</small><h3>Flagship Store</h3></div></a>
-    <a class="pj" href="/projects/"><span class="tagp">Case study</span><img src="<?php echo $img( 'rico-breakout-lounge.jpg' ); ?>" alt="Breakout lounge"><div class="ov"><small>Workplace · Amenity</small><h3>Breakout lounge</h3></div></a>
-    <a class="pj" href="/projects/"><img src="<?php echo $img( 'office2.jpg' ); ?>" alt="Boutique hotel"><div class="ov"><small>Hospitality</small><h3>Boutique Hotel</h3></div></a>
-    <a class="pj" href="/projects/"><img src="<?php echo $img( 'rico-betfred7.webp' ); ?>" alt="Betfred HQ"><div class="ov"><small>Workplace · Warrington</small><h3>Betfred HQ</h3></div></a>
-    <a class="pj" href="/projects/"><img src="<?php echo $img( 'rico-kingsgate.png' ); ?>" alt="Kingsgate"><div class="ov"><small>Retail · London</small><h3>Kingsgate</h3></div></a>
-    <a class="pj wide" href="/projects/"><img src="<?php echo $img( 'estrella-canteen.jpg' ); ?>" alt="Estrella canteen"><div class="ov"><small>Hospitality · Staff dining</small><h3>Estrella Canteen</h3></div></a>
-    <a class="pj" href="/projects/"><img src="<?php echo $img( 'office5.jpg' ); ?>" alt="Campus library"><div class="ov"><small>Education</small><h3>Campus Library</h3></div></a>
-  </div>
-</div></section>
+<!-- wp:group {"align":"full","className":"rm-section","layout":{"type":"constrained"}} -->
+<div class="wp-block-group alignfull rm-section">
+	<!-- wp:heading {"level":2,"className":"rm-shead"} --><h2 class="wp-block-heading rm-shead">Specified, delivered and installed across the UK</h2><!-- /wp:heading -->
+	<!-- wp:columns -->
+	<div class="wp-block-columns">
+		<?php
+		$tile( 'office1.jpg', 'Commercial Office · Leeds', 'Allianz HQ Fit-out', '/projects/allianz-hq/' );
+		$tile( 'retail.jpg', 'Retail · Manchester', 'Flagship Retail Store', '/projects/flagship-store/' );
+		$tile( 'office2.jpg', 'Hospitality', 'Boutique Hotel', '/projects/' );
+		?>
+	</div>
+	<!-- /wp:columns -->
+	<!-- wp:columns -->
+	<div class="wp-block-columns">
+		<?php
+		$tile( 'rico-betfred7.webp', 'Workplace · Warrington', 'Betfred HQ', '/projects/' );
+		$tile( 'rico-acoustic-corridor.jpg', 'Workplace · Acoustic', 'Acoustic Ceiling', '/projects/' );
+		$tile( 'office5.jpg', 'Education', 'Campus Library', '/projects/' );
+		?>
+	</div>
+	<!-- /wp:columns -->
+</div>
+<!-- /wp:group -->
 
-<section class="cta"><div class="bg" style="background-image:url(<?php echo $img( 'office6.jpg' ); ?>)"></div><div class="scrim"></div><div class="inner"><div class="wrap col">
-  <h2>Have a project on the board?</h2>
-  <p>Send us your drawings or a finishes schedule and our in-house lighting designers will return a fully specified, costed scheme — usually within 3–5 days.</p>
-  <div class="acts"><a class="btn btn-line" href="/lighting-design/">Start a Project</a><a class="btn btn-solid" style="background:#fff;color:var(--ink)" href="/about/">Talk to the design team →</a></div>
-</div></div></section>
-<!-- /wp:html -->
+<!-- wp:cover {"url":"<?php echo $img( 'office6.jpg' ); ?>","dimRatio":70,"overlayColor":"ink","minHeight":52,"minHeightUnit":"vh","contentPosition":"center center","align":"full","textColor":"base"} -->
+<div class="wp-block-cover alignfull has-base-color has-text-color" style="min-height:52vh"><span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-70 has-background-dim"></span><img class="wp-block-cover__image-background" alt="" src="<?php echo $img( 'office6.jpg' ); ?>" data-object-fit="cover"/><div class="wp-block-cover__inner-container">
+	<!-- wp:heading {"level":2,"textAlign":"center"} --><h2 class="wp-block-heading has-text-align-center">Have a project on the board?</h2><!-- /wp:heading -->
+	<!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">Send us your drawings and our in-house designers will return a fully specified, costed scheme — usually within 3–5 days.</p><!-- /wp:paragraph -->
+	<!-- wp:buttons {"layout":{"type":"flex","justifyContent":"center"}} --><div class="wp-block-buttons"><!-- wp:button {"className":"is-style-outline-light"} --><div class="wp-block-button is-style-outline-light"><a class="wp-block-button__link wp-element-button" href="/lighting-design/">Start a Project</a></div><!-- /wp:button --><!-- wp:button --><div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="/about/">Talk to the team</a></div><!-- /wp:button --></div><!-- /wp:buttons -->
+</div></div>
+<!-- /wp:cover -->

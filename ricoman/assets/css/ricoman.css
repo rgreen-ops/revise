@@ -311,7 +311,12 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-card:hover img{transform:scale(1.04)}
 .rm-card h3{font-size:1.35rem;font-weight:600;letter-spacing:-.02em;margin:.7em 0 .15em}
 .rm-card p{color:var(--muted);font-size:.92rem;margin:0}
-.rm-card .wp-block-image{overflow:hidden;margin:0}
+.rm-card .wp-block-image,.rm-card .wp-block-post-featured-image{overflow:hidden;margin:0}
+.rm-card .wp-block-post-featured-image img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:transform .6s ease}
+.rm-card:hover .wp-block-post-featured-image img{transform:scale(1.04)}
+.rm-card .wp-block-post-title{font-size:1.35rem;font-weight:600;letter-spacing:-.02em;margin:.5em 0 .15em}
+.rm-card .wp-block-post-title a{text-decoration:none;color:inherit}
+.rm-card .wp-block-post-excerpt{color:var(--muted);font-size:.92rem;margin:0}
 /* audience / values columns */
 .rm-aud-card{border-top:1px solid var(--ink);padding-top:1.2em}
 .rm-aud-card h3{font-size:1.25rem;font-weight:600;letter-spacing:-.02em;margin:0 0 .4em}
@@ -320,6 +325,16 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-dark{background:var(--ink)}
 .rm-dark :where(h2,h3,p,a){color:#fff}
 .rm-dark p{color:rgba(255,255,255,.74)}
+/* stat band */
+.rm-statband{border-block:1px solid var(--line)}
+.rm-statband .wp-block-column{border-right:1px solid var(--line);padding-right:24px}
+.rm-statband .wp-block-column:last-child{border-right:0}
+.rm-statnum{font-family:Poppins;font-weight:600;font-size:clamp(2rem,3.6vw,3.2rem);letter-spacing:-.03em;color:var(--ink);line-height:1;margin:0}
+.rm-dark .rm-statnum{color:#fff}
+@media(max-width:781px){.rm-statband .wp-block-column{border-right:0;border-bottom:1px solid var(--line);padding-bottom:18px}}
+/* numbered step / value cards reuse rm-aud-card; lists in dark sections */
+.rm-ul li{margin:.5em 0}
+.rm-ul li::marker{color:var(--accent)}
 
 /* motion */
 .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s cubic-bezier(.2,.6,.2,1),transform .7s cubic-bezier(.2,.6,.2,1)}

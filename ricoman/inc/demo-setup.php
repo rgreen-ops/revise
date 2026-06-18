@@ -32,6 +32,20 @@ function ricoman_pattern_content( $slug ) {
 	return '<!-- wp:pattern {"slug":"' . esc_attr( $slug ) . '"} /-->';
 }
 
+/** Create a page, or refresh its content if it already exists. Returns the ID. */
+function ricoman_upsert_page( $title, $slug, $pattern_slug, $template = '' ) {
+	$content  = ricoman_pattern_content( $pattern_slug );
+	$existing = get_page_by_path( $slug );
+	if ( $existing && 'page' === $existing->post_type ) {
+		wp_update_post( array( 'ID' => $existing->ID, 'post_content' => $content ) );
+		if ( $template ) {
+			update_post_meta( $existing->ID, '_wp_page_template', $template );
+		}
+		return (int) $existing->ID;
+	}
+	return ricoman_make_post( 'page', $title, $slug, $content, $template );
+}
+
 /** Create a post once (idempotent by slug + type). Returns the ID or 0. */
 function ricoman_make_post( $type, $title, $slug, $content, $template = '' ) {
 	$existing = get_page_by_path( $slug, OBJECT, $type );
@@ -57,7 +71,7 @@ function ricoman_make_post( $type, $title, $slug, $content, $template = '' ) {
 }
 
 function ricoman_scaffold_site() {
-	if ( get_option( 'ricoman_scaffold_v2' ) ) {
+	if ( get_option( 'ricoman_scaffold_v3' ) ) {
 		return;
 	}
 
@@ -77,8 +91,8 @@ function ricoman_scaffold_site() {
 		}
 	}
 
-	// ---- Pages ----
-	$home_id = ricoman_make_post( 'page', 'Home', 'home', ricoman_pattern_content( 'ricoman/home' ) );
+	// ---- Pages (create, or refresh to the latest native-block design) ----
+	$home_id = ricoman_upsert_page( 'Home', 'home', 'ricoman/home' );
 	if ( $home_id ) {
 		update_option( 'show_on_front', 'page' );
 		update_option( 'page_on_front', $home_id );
@@ -90,7 +104,7 @@ function ricoman_scaffold_site() {
 		'my-project'      => array( 'My Project', 'ricoman/page-my-project' ),
 	);
 	foreach ( $pages as $slug => $info ) {
-		ricoman_make_post( 'page', $info[0], $slug, ricoman_pattern_content( $info[1] ), 'page-plain' );
+		ricoman_upsert_page( $info[0], $slug, $info[1], 'page-plain' );
 	}
 
 	// ---- Product categories ----
@@ -168,5 +182,5 @@ function ricoman_scaffold_site() {
 	}
 
 	flush_rewrite_rules( true );
-	update_option( 'ricoman_scaffold_v2', 1 );
+	update_option( 'ricoman_scaffold_v3', 1 );
 }
