@@ -236,6 +236,34 @@ function ricoman_render_product_metabox( $post ) {
 		<div class="full"><label for="_ricoman_tagline"><?php esc_html_e( 'Tagline (one line under the title)', 'ricoman' ); ?></label><input type="text" id="_ricoman_tagline" name="_ricoman_tagline" value="<?php echo esc_attr( $m( '_ricoman_tagline' ) ); ?>" placeholder="Seamless curves of light, made to order"></div>
 		<div class="full"><label for="_ricoman_lead"><?php esc_html_e( 'Availability / lead-time line', 'ricoman' ); ?></label><input type="text" id="_ricoman_lead" name="_ricoman_lead" value="<?php echo esc_attr( $m( '_ricoman_lead' ) ); ?>" placeholder="Made to order · ~6 day UK lead"></div>
 
+		<h3><?php esc_html_e( '🖼 Product gallery — add as many images as you like', 'ricoman' ); ?></h3>
+		<p class="hint"><?php esc_html_e( 'These are the images at the top of the product page. Add several and tag each Studio or In-situ — they appear under the All / Studio / In-situ tabs.', 'ricoman' ); ?></p>
+		<div class="rmpb-rep" id="rmpb-gl">
+		<?php
+		$gallery = array();
+		foreach ( preg_split( '/\r\n|\r|\n/', (string) $m( '_ricoman_gallery' ) ) as $gl_line ) {
+			$gl_line = trim( $gl_line );
+			if ( '' === $gl_line ) {
+				continue;
+			}
+			$gp        = array_map( 'trim', explode( '|', $gl_line ) );
+			$gallery[] = array( isset( $gp[0] ) ? $gp[0] : '', isset( $gp[1] ) ? $gp[1] : 'studio', isset( $gp[2] ) ? $gp[2] : '' );
+		}
+		if ( ! $gallery ) {
+			$gallery = array( array( '', 'studio', '' ) );
+		}
+		$gl_types = array( 'studio' => 'Studio', 'insitu' => 'In-situ', 'project' => 'Project', 'dimension' => 'Dimension' );
+		foreach ( $gallery as $r ) {
+			$opts = '';
+			foreach ( $gl_types as $tv => $tl ) {
+				$opts .= '<option value="' . esc_attr( $tv ) . '"' . selected( $r[1], $tv, false ) . '>' . esc_html( $tl ) . '</option>';
+			}
+			echo '<div class="rmpb-row"><input type="text" class="rmpb-gl-url" name="rmpb_gl_url[]" placeholder="Image URL" value="' . esc_attr( $r[0] ) . '"><select name="rmpb_gl_type[]" style="max-width:120px">' . $opts . '</select><input type="text" name="rmpb_gl_cap[]" placeholder="Caption (optional)" value="' . esc_attr( $r[2] ) . '"><button type="button" class="button rmpb-gl-pick">' . esc_html__( 'Choose image', 'ricoman' ) . '</button><button type="button" class="button-link rmpb-del" title="Remove">✕</button></div>'; // phpcs:ignore WordPress.Security.EscapeOutput
+		}
+		?>
+		</div>
+		<p><button type="button" class="button button-primary" id="rmpb-gl-add">＋ <?php esc_html_e( 'Add gallery image', 'ricoman' ); ?></button> <span class="hint"><?php esc_html_e( 'Add a row per image — Studio, In-situ or Project — then Update.', 'ricoman' ); ?></span></p>
+
 		<h3><?php esc_html_e( 'Specifications', 'ricoman' ); ?></h3>
 		<div class="grid">
 		<?php
@@ -276,33 +304,6 @@ function ricoman_render_product_metabox( $post ) {
 		<div class="full"><label for="_ricoman_variants"><?php esc_html_e( 'One per line: SKU | Description | Wattage | Lumens | CCT', 'ricoman' ); ?></label><textarea id="_ricoman_variants" name="_ricoman_variants" rows="5" placeholder="RM-DL-08 | 8W fixed downlight | 8W | 800lm | 3000/4000/6000K"><?php echo esc_textarea( $m( '_ricoman_variants' ) ); ?></textarea></div>
 
 		<div class="full"><label for="_ricoman_datasheet"><?php esc_html_e( 'Datasheet URL (optional — overrides the auto PDF)', 'ricoman' ); ?></label><input type="url" id="_ricoman_datasheet" name="_ricoman_datasheet" value="<?php echo esc_attr( $m( '_ricoman_datasheet' ) ); ?>" placeholder="https://ricobot.ricoman.com/api/public/products/CODE/datasheet.pdf"></div>
-
-		<h3><?php esc_html_e( 'Product gallery', 'ricoman' ); ?></h3>
-		<div class="rmpb-rep" id="rmpb-gl">
-		<?php
-		$gallery = array();
-		foreach ( preg_split( '/\r\n|\r|\n/', (string) $m( '_ricoman_gallery' ) ) as $gl_line ) {
-			$gl_line = trim( $gl_line );
-			if ( '' === $gl_line ) {
-				continue;
-			}
-			$gp        = array_map( 'trim', explode( '|', $gl_line ) );
-			$gallery[] = array( isset( $gp[0] ) ? $gp[0] : '', isset( $gp[1] ) ? $gp[1] : 'studio', isset( $gp[2] ) ? $gp[2] : '' );
-		}
-		if ( ! $gallery ) {
-			$gallery = array( array( '', 'studio', '' ) );
-		}
-		$gl_types = array( 'studio' => 'Studio', 'insitu' => 'In-situ', 'project' => 'Project', 'dimension' => 'Dimension' );
-		foreach ( $gallery as $r ) {
-			$opts = '';
-			foreach ( $gl_types as $tv => $tl ) {
-				$opts .= '<option value="' . esc_attr( $tv ) . '"' . selected( $r[1], $tv, false ) . '>' . esc_html( $tl ) . '</option>';
-			}
-			echo '<div class="rmpb-row"><input type="text" class="rmpb-gl-url" name="rmpb_gl_url[]" placeholder="Image URL" value="' . esc_attr( $r[0] ) . '"><select name="rmpb_gl_type[]" style="max-width:120px">' . $opts . '</select><input type="text" name="rmpb_gl_cap[]" placeholder="Caption (optional)" value="' . esc_attr( $r[2] ) . '"><button type="button" class="button rmpb-gl-pick">' . esc_html__( 'Choose image', 'ricoman' ) . '</button><button type="button" class="button-link rmpb-del" title="Remove">✕</button></div>'; // phpcs:ignore WordPress.Security.EscapeOutput
-		}
-		?>
-		</div>
-		<p><button type="button" class="button" id="rmpb-gl-add">＋ <?php esc_html_e( 'Add gallery image', 'ricoman' ); ?></button> <span class="hint"><?php esc_html_e( 'Upload product shots and tag each Studio / In-situ / Project — shown as tabs on the product page.', 'ricoman' ); ?></span></p>
 
 		<h3><?php esc_html_e( 'Downloads', 'ricoman' ); ?></h3>
 		<div class="rmpb-rep" id="rmpb-dl">
