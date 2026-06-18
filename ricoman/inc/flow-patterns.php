@@ -43,7 +43,7 @@ add_action( 'init', function () {
 		$eyebrow( 'Linear Lighting — Flexible System' ) .
 		'<!-- wp:heading {"level":1,"style":{"typography":{"fontSize":"clamp(3rem, 8vw, 6rem)","fontWeight":"500","lineHeight":"1"}}} --><h1 class="wp-block-heading" style="font-size:clamp(3rem, 8vw, 6rem);font-weight:500;line-height:1">Flow+</h1><!-- /wp:heading -->' .
 		$para( 'A flexible linear system that bends to any architectural line — continuous, dot-free and made to order in Manchester.' ) .
-		$buttons( $btn( '＋ Add to My Project' ) . $btn( 'Datasheet ↓' ) ), 86, 'bottom left', 60 ) );
+		$buttons( '<!-- wp:button {"className":"is-style-outline-light"} --><div class="wp-block-button is-style-outline-light"><a class="wp-block-button__link wp-element-button" href="/flow-designer/">Design your run →</a></div><!-- /wp:button -->' . $btn( '＋ Add to My Project' ) . $btn( 'Datasheet ↓' ) ), 86, 'bottom left', 60 ) );
 
 	$p['flow-facts'] = array( 'Flow · Facts band', $sec( $cols( $stat( 'Up to 1100 lm/m', 'Output' ) . $stat( '2700–6500K · CRI 90+', 'Colour' ) . $stat( '360° H &amp; V', 'Bend' ) . $stat( 'Bespoke', 'Lengths' ) . $stat( '5 years', 'Warranty' ) ), 'rm-facts' ) );
 

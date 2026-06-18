@@ -98,7 +98,7 @@ function ricoman_set_featured_from_theme( $post_id, $file ) {
 }
 
 function ricoman_scaffold_site() {
-	if ( get_option( 'ricoman_scaffold_v13' ) ) {
+	if ( get_option( 'ricoman_scaffold_v14' ) ) {
 		return;
 	}
 
@@ -119,7 +119,14 @@ function ricoman_scaffold_site() {
 	}
 
 	// ---- Pages (create, or refresh to the latest native-block design) ----
-	$home_id = ricoman_upsert_page( 'Home', 'home', 'ricoman/home' );
+	$home_content = function_exists( 'ricoman_home_blocks' ) ? ricoman_home_blocks() : ricoman_pattern_content( 'ricoman/home' );
+	$home_page    = get_page_by_path( 'home' );
+	if ( $home_page && 'page' === $home_page->post_type ) {
+		wp_update_post( array( 'ID' => $home_page->ID, 'post_content' => $home_content ) );
+		$home_id = $home_page->ID;
+	} else {
+		$home_id = ricoman_make_post( 'page', 'Home', 'home', $home_content );
+	}
 	if ( $home_id ) {
 		update_option( 'show_on_front', 'page' );
 		update_option( 'page_on_front', $home_id );
@@ -244,5 +251,5 @@ function ricoman_scaffold_site() {
 	}
 
 	flush_rewrite_rules( true );
-	update_option( 'ricoman_scaffold_v13', 1 );
+	update_option( 'ricoman_scaffold_v14', 1 );
 }
