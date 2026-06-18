@@ -93,6 +93,25 @@ function ricoman_ricobot_product( $code ) {
 	return ricoman_ricobot_get( 'api/public/products/' . rawurlencode( $code ) );
 }
 
+/** Page through the whole product catalogue (cached). Returns a flat array of products. */
+function ricoman_ricobot_all_products() {
+	$list  = array();
+	$page  = 1;
+	$guard = 0;
+	do {
+		$data = ricoman_ricobot_get( 'api/public/products?page=' . $page );
+		if ( is_wp_error( $data ) ) {
+			break;
+		}
+		$items = ( isset( $data['products'] ) && is_array( $data['products'] ) ) ? $data['products'] : ( is_array( $data ) ? $data : array() );
+		$list  = array_merge( $list, $items );
+		$total = isset( $data['total'] ) ? (int) $data['total'] : count( $list );
+		$page++;
+		$guard++;
+	} while ( count( $items ) > 0 && count( $list ) < $total && $guard < 50 );
+	return $list;
+}
+
 /* ---- Settings page ---- */
 add_action( 'admin_menu', function () {
 	add_options_page( __( 'RICOBOT', 'ricoman' ), __( 'RICOBOT', 'ricoman' ), 'manage_options', 'ricoman-ricobot', 'ricoman_ricobot_settings_page' );

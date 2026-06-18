@@ -412,6 +412,29 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-acc-table .acc-code{font-family:Poppins;font-size:.7rem;font-weight:600;color:var(--accent);white-space:nowrap;width:1%}
 @media(max-width:680px){.rm-gpane.on{grid-template-columns:1fr}}
 
+/* family filter page */
+.rm-fam-intro{color:var(--muted);font-size:1.05rem}
+.rm-fam-filter{border:1px solid var(--line);border-radius:14px;padding:clamp(18px,2.4vw,28px);margin:clamp(20px,3vw,34px) 0}
+.rm-facet{display:grid;grid-template-columns:90px 1fr;gap:14px;align-items:start;padding:8px 0}
+.rm-facet+.rm-facet{border-top:1px solid var(--line)}
+.rm-facet-label{font-family:Poppins;font-size:.66rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);padding-top:.5em}
+.rm-facet-chips{display:flex;flex-wrap:wrap;gap:6px}
+.rm-fchip{font-family:Poppins;font-size:.72rem;font-weight:500;border:1px solid var(--line);background:#fff;color:var(--text);border-radius:999px;padding:.45em .9em;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:.5em}
+.rm-fchip:hover{border-color:var(--ink)}
+.rm-fchip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.rm-fchip.off{opacity:.4;cursor:default}
+.rm-fcount{font-size:.62rem;opacity:.7}
+.rm-fam-meta{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.rm-fam-count{font-family:Poppins;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.rm-fam-clear{background:none;border:0;color:var(--accent);font-family:Poppins;font-size:.72rem;font-weight:600;cursor:pointer}
+.rm-fam-list{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:1em}
+.rm-fam-product{display:flex;gap:12px;align-items:baseline;text-align:left;border:1px solid var(--line);border-radius:10px;background:#fff;padding:12px 14px;cursor:pointer;transition:.15s}
+.rm-fam-product:hover{border-color:var(--accent);box-shadow:0 12px 30px -22px rgba(29,78,216,.5)}
+.rm-fam-product .fp-code{font-family:Poppins;font-size:.68rem;font-weight:600;color:var(--accent);white-space:nowrap}
+.rm-fam-product .fp-name{font-size:.9rem}
+.rm-fam-configure{margin-top:clamp(20px,3vw,34px)}
+@media(max-width:680px){.rm-fam-list{grid-template-columns:1fr}.rm-facet{grid-template-columns:1fr}}
+
 /* full-screen embedded tool (Flow+ Designer) */
 .rm-tool{display:flex;flex-direction:column;height:100vh}
 .rm-tool-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;background:var(--ink);color:#fff;padding:10px 18px;font-family:Poppins;font-weight:600;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase}

@@ -59,6 +59,16 @@ add_action( 'init', function () {
 			)
 		);
 	}
+
+	// Family filter page block — available on any page (not just products).
+	register_block_pattern(
+		'ricoman/product-family',
+		array(
+			'title'      => 'Family · Filter page',
+			'categories' => array( 'ricoman-product', 'ricoman-library' ),
+			'content'    => $sec( '<!-- wp:heading {"level":1} --><h1 class="wp-block-heading">Family name</h1><!-- /wp:heading --><!-- wp:shortcode -->[ricoman_family family="Estrella"]<!-- /wp:shortcode -->' ),
+		)
+	);
 }, 11 );
 
 /**
