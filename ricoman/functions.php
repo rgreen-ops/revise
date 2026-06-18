@@ -33,6 +33,7 @@ require_once get_theme_file_path( 'inc/datasheet.php' );     // Printable / PDF 
 require_once get_theme_file_path( 'inc/lead-capture.php' );  // Lead form + Sheets webhook.
 require_once get_theme_file_path( 'inc/shortcodes.php' );    // Product spec/variant/datasheet output.
 require_once get_theme_file_path( 'inc/product-builder.php' );// Product Builder: RICOBOT sync + field shortcodes.
+require_once get_theme_file_path( 'inc/product-fields.php' ); // Structured product content (variants/zigzag/paragraphs) as fields.
 require_once get_theme_file_path( 'inc/configurator.php' );   // Live variant configurator (RICOBOT price/options).
 require_once get_theme_file_path( 'inc/product-patterns.php' );// Product page blocks (Hero/Specs/Configurator/…).
 require_once get_theme_file_path( 'inc/family.php' );         // Family filter page (facets -> pick -> configure).

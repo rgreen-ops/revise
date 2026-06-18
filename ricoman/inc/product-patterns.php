@@ -98,6 +98,12 @@ add_action( 'init', function () {
 
 	$p['product-related'] = array( 'Product · You may also like', $sec( $eyebrow( 'More from the range' ) . $shead( 'You may also like' ) . '<!-- wp:columns --><div class="wp-block-columns">' . $rel( $u( 'arch-line.webp' ), 'Linear · Made to order', 'Flow+', '/products/flow-plus/' ) . $rel( $u( 'estrella-lounge.webp' ), 'Pendant · Configurable', 'Estrella', '/products/estrella/' ) . $rel( $u( 'ceiling.webp' ), 'Downlight · Fire-rated', 'Neptune', '/products/neptune/' ) . '</div><!-- /wp:columns -->' ) );
 
+	// ---- Structured-field sections (edited in the Product page content meta box) ----
+	$p['product-colour'] = array( 'Product · Colour variants (fields)', $sec( $sc( 'ricoman_colour_variants' ) ) );
+	$p['product-paragraphs'] = array( 'Product · Paragraph info (fields)', $sec( $sc( 'ricoman_paragraphs' ) ) );
+	$p['product-zigzag'] = array( 'Product · Zig-zag content (fields)', $sec( $sc( 'ricoman_zigzag' ) ) );
+	$p['product-cta-buttons'] = array( 'Product · Lighting Design / Trade buttons (fields)', $sec( $sc( 'ricoman_cta_buttons' ) ) );
+
 	foreach ( $p as $slug => $data ) {
 		register_block_pattern(
 			'ricoman/' . $slug,
