@@ -70,8 +70,35 @@ function ricoman_make_post( $type, $title, $slug, $content, $template = '' ) {
 	return 0;
 }
 
+/** Copy a bundled theme image into the media library and set it as the post's featured image. */
+function ricoman_set_featured_from_theme( $post_id, $file ) {
+	if ( ! $post_id || has_post_thumbnail( $post_id ) ) {
+		return;
+	}
+	$src = get_theme_file_path( 'assets/images/' . $file );
+	if ( ! file_exists( $src ) ) {
+		return;
+	}
+	require_once ABSPATH . 'wp-admin/includes/image.php';
+	$upload = wp_upload_bits( $file, null, file_get_contents( $src ) );
+	if ( ! empty( $upload['error'] ) ) {
+		return;
+	}
+	$type    = wp_check_filetype( $upload['file'] );
+	$attach  = array(
+		'post_mime_type' => $type['type'],
+		'post_title'     => sanitize_file_name( pathinfo( $file, PATHINFO_FILENAME ) ),
+		'post_status'    => 'inherit',
+	);
+	$attach_id = wp_insert_attachment( $attach, $upload['file'], $post_id );
+	if ( $attach_id && ! is_wp_error( $attach_id ) ) {
+		wp_update_attachment_metadata( $attach_id, wp_generate_attachment_metadata( $attach_id, $upload['file'] ) );
+		set_post_thumbnail( $post_id, $attach_id );
+	}
+}
+
 function ricoman_scaffold_site() {
-	if ( get_option( 'ricoman_scaffold_v4' ) ) {
+	if ( get_option( 'ricoman_scaffold_v5' ) ) {
 		return;
 	}
 
@@ -142,14 +169,16 @@ function ricoman_scaffold_site() {
 		),
 	);
 	foreach ( $products as $slug => $p ) {
-		$content  = '<!-- wp:image --><figure class="wp-block-image size-large"><img src="' . $img( $p[2] ) . '" alt="' . esc_attr( $p[0] ) . '"/></figure><!-- /wp:image -->';
-		$content .= '<!-- wp:paragraph --><p>' . esc_html( $p[3] ) . '</p><!-- /wp:paragraph -->';
+		$content  = '<!-- wp:paragraph {"className":"rm-eyebrow"} --><p class="rm-eyebrow">' . esc_html( $p[1] ) . '</p><!-- /wp:paragraph -->';
+		$content .= '<!-- wp:paragraph {"style":{"typography":{"fontSize":"1.15rem"}}} --><p style="font-size:1.15rem">' . esc_html( $p[3] ) . '</p><!-- /wp:paragraph -->';
 		$content .= '<!-- wp:heading {"level":3} --><h3 class="wp-block-heading">Seen in</h3><!-- /wp:heading -->';
 		$content .= '<!-- wp:paragraph --><p>See ' . esc_html( $p[0] ) . ' in <a href="/projects/' . $p[4] . '/">' . esc_html( $p[5] ) . '</a>.</p><!-- /wp:paragraph -->';
 		$content .= '<!-- wp:buttons --><div class="wp-block-buttons"><!-- wp:button {"className":"is-style-outline"} --><div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="/my-project/">Add to My Project</a></div><!-- /wp:button --><!-- wp:button {"className":"is-style-outline"} --><div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="/products/">All products</a></div><!-- /wp:button --></div><!-- /wp:buttons -->';
 		$pid      = ricoman_make_post( 'product', $p[0], $slug, $content );
 		if ( $pid ) {
+			wp_update_post( array( 'ID' => $pid, 'post_content' => $content, 'post_excerpt' => $p[3] ) );
 			wp_set_object_terms( $pid, $p[1], 'product_cat' );
+			ricoman_set_featured_from_theme( $pid, $p[2] );
 		}
 	}
 
@@ -178,9 +207,13 @@ function ricoman_scaffold_site() {
 		}
 		$content .= '<!-- wp:paragraph --><p>' . implode( ' · ', $links ) . '</p><!-- /wp:paragraph -->';
 		$content .= '<!-- wp:buttons --><div class="wp-block-buttons"><!-- wp:button {"className":"is-style-outline"} --><div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="/projects/">All projects</a></div><!-- /wp:button --></div><!-- /wp:buttons -->';
-		ricoman_make_post( 'project', $pr[0], $slug, $content );
+		$prid     = ricoman_make_post( 'project', $pr[0], $slug, $content );
+		if ( $prid ) {
+			wp_update_post( array( 'ID' => $prid, 'post_content' => $content, 'post_excerpt' => $pr[2] ) );
+			ricoman_set_featured_from_theme( $prid, $pr[1] );
+		}
 	}
 
 	flush_rewrite_rules( true );
-	update_option( 'ricoman_scaffold_v4', 1 );
+	update_option( 'ricoman_scaffold_v5', 1 );
 }
