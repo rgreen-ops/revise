@@ -405,11 +405,12 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-gtab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
 .rm-gpane{display:none;grid-template-columns:repeat(2,1fr);gap:10px}
 .rm-gpane.on{display:grid}
-.rm-accessories ul{list-style:none;padding:0;margin:1em 0 0;display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.rm-accessories li{display:flex;gap:10px;align-items:baseline;border:1px solid var(--line);border-radius:8px;padding:12px 14px}
-.rm-accessories .acc-code{font-family:Poppins;font-size:.66rem;font-weight:600;color:var(--accent)}
-.rm-accessories .acc-name{font-size:.9rem}
-@media(max-width:680px){.rm-accessories ul,.rm-gpane.on{grid-template-columns:1fr}}
+.rm-accessories{margin-top:clamp(28px,4vw,48px)}
+.rm-acc-table{width:100%;border-collapse:collapse;margin-top:1em;font-size:.9rem}
+.rm-acc-table td{border-top:1px solid var(--line);padding:9px 12px}
+.rm-acc-table tr:last-child td{border-bottom:1px solid var(--line)}
+.rm-acc-table .acc-code{font-family:Poppins;font-size:.7rem;font-weight:600;color:var(--accent);white-space:nowrap;width:1%}
+@media(max-width:680px){.rm-gpane.on{grid-template-columns:1fr}}
 
 /* full-screen embedded tool (Flow+ Designer) */
 .rm-tool{display:flex;flex-direction:column;height:100vh}

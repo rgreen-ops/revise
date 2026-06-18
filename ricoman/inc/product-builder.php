@@ -224,14 +224,14 @@ add_shortcode( 'ricoman_product_accessories', function () {
 	if ( ! $acc ) {
 		return '';
 	}
-	// No pricing on the website — code + name only.
-	$out = '<div class="rm-accessories"><h3 class="rm-shead">Compatible accessories (' . count( $acc ) . ')</h3><ul>';
+	// No pricing on the website — a small code + name table, lower on the page.
+	$out = '<div class="rm-accessories"><h3 class="rm-shead">Compatible accessories (' . count( $acc ) . ')</h3><table class="rm-acc-table"><tbody>';
 	foreach ( $acc as $a ) {
 		$code = isset( $a['code'] ) ? $a['code'] : '';
 		$name = isset( $a['name'] ) ? $a['name'] : $code;
-		$out .= '<li><span class="acc-code">' . esc_html( $code ) . '</span><span class="acc-name">' . esc_html( $name ) . '</span></li>';
+		$out .= '<tr><td class="acc-code">' . esc_html( $code ) . '</td><td class="acc-name">' . esc_html( $name ) . '</td></tr>';
 	}
-	return $out . '</ul></div>';
+	return $out . '</tbody></table></div>';
 } );
 
 add_shortcode( 'ricoman_product_downloads', function () {
