@@ -88,12 +88,26 @@ add_action( 'wp_ajax_ricoman_ricobot_list', function () {
 	if ( ! function_exists( 'ricoman_ricobot_products' ) ) {
 		wp_send_json_error( 'RICOBOT client unavailable.' );
 	}
-	$data = ricoman_ricobot_products();
-	if ( is_wp_error( $data ) ) {
-		wp_send_json_error( $data->get_error_message() );
-	}
-	$list = ( isset( $data['products'] ) && is_array( $data['products'] ) ) ? $data['products'] : ( is_array( $data ) ? $data : array() );
-	$out  = array();
+	// Page through the whole catalogue (731 products) — the list endpoint paginates.
+	$list  = array();
+	$page  = 1;
+	$guard = 0;
+	do {
+		$data = ricoman_ricobot_get( 'api/public/products?page=' . $page );
+		if ( is_wp_error( $data ) ) {
+			if ( 1 === $page ) {
+				wp_send_json_error( $data->get_error_message() );
+			}
+			break;
+		}
+		$items = ( isset( $data['products'] ) && is_array( $data['products'] ) ) ? $data['products'] : ( is_array( $data ) ? $data : array() );
+		$list  = array_merge( $list, $items );
+		$total = isset( $data['total'] ) ? (int) $data['total'] : count( $list );
+		$page++;
+		$guard++;
+	} while ( count( $items ) > 0 && count( $list ) < $total && $guard < 50 );
+
+	$out = array();
 	foreach ( $list as $p ) {
 		$code = isset( $p['code'] ) ? $p['code'] : ( isset( $p['sku'] ) ? $p['sku'] : '' );
 		if ( '' === $code ) {

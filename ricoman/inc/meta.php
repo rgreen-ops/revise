@@ -319,10 +319,15 @@ function ricoman_render_product_metabox( $post ) {
 			fetch( ajaxurl, { method: 'POST', body: lb } ).then( function ( r ) { return r.json(); } ).then( function ( res ) {
 				if ( ! res.success ) { sel.innerHTML = '<option value="">— ' + ( res.data || 'unavailable' ) + ' —</option>'; return; }
 				var cur = sel.getAttribute( 'data-current' ) || '';
-				var html = '<option value="">— Link a RICOBOT product —</option>';
-				res.data.forEach( function ( p ) {
-					var label = ( p.name || p.code ) + ' (' + p.code + ')';
-					html += '<option value="' + p.code + '"' + ( p.code === cur ? ' selected' : '' ) + '>' + label + '</option>';
+				var groups = {};
+				res.data.forEach( function ( p ) { var f = p.family || 'Other'; ( groups[ f ] = groups[ f ] || [] ).push( p ); } );
+				var html = '<option value="">— Link a RICOBOT product (' + res.data.length + ') —</option>';
+				Object.keys( groups ).sort().forEach( function ( f ) {
+					html += '<optgroup label="' + f + '">';
+					groups[ f ].forEach( function ( p ) {
+						html += '<option value="' + p.code + '"' + ( p.code === cur ? ' selected' : '' ) + '>' + ( p.name || p.code ) + ' (' + p.code + ')</option>';
+					} );
+					html += '</optgroup>';
 				} );
 				sel.innerHTML = html;
 			} ).catch( function () { sel.innerHTML = '<option value="">— could not load —</option>'; } );
