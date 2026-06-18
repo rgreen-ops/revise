@@ -412,6 +412,17 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-acc-table .acc-code{font-family:Poppins;font-size:.7rem;font-weight:600;color:var(--accent);white-space:nowrap;width:1%}
 @media(max-width:680px){.rm-gpane.on{grid-template-columns:1fr}}
 
+/* flow product patterns (native blocks) */
+.rm-flist{list-style:none;padding:0;margin:1.2em 0 0}
+.rm-flist li{padding:.6em 0;border-top:1px solid var(--line);font-size:1rem}
+.rm-dark .rm-aud-card{border-color:rgba(255,255,255,.22)}
+.rm-dark .rm-aud-card h3,.rm-dark .rm-aud-card h4{color:#fff}
+.rm-dark .rm-aud-card p{color:rgba(255,255,255,.7)}
+.wp-block-cover .rm-statnum{color:#fff}
+.wp-block-cover .rm-flabel{color:rgba(255,255,255,.7)}
+.rm-shapecard img{aspect-ratio:1;object-fit:cover;width:100%;background:var(--soft)}
+.rm-shapecard h4{font-size:1.05rem;font-weight:600;margin:.6em 0 0}
+
 /* family filter page */
 .rm-fam-intro{color:var(--muted);font-size:1.05rem}
 .rm-fam-filter{border:1px solid var(--line);border-radius:14px;padding:clamp(18px,2.4vw,28px);margin:clamp(20px,3vw,34px) 0}
@@ -472,3 +483,5 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .reveal.in{opacity:1;transform:none}
 .statband .big,.facts b,.metastrip .m b{font-variant-numeric:tabular-nums}
 @media (prefers-reduced-motion: reduce){.reveal,.reveal.in{opacity:1!important;transform:none!important;transition:none!important}}
+
+.rm-soft{background:var(--soft)}
