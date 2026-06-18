@@ -30,20 +30,28 @@ add_action( 'wp_head', function () {
 	}
 }, 1 );
 
-/* ---- Preload the LCP image (featured image) on singular views ---- */
-add_action( 'wp_head', function () {
-	if ( ! is_singular() || ! has_post_thumbnail() ) {
-		return;
+/* ---- Prioritise the LCP hero image without forcing a fixed size ----
+ * The first Cover / image on a page is the LCP element. Preloading one fixed
+ * 2000px size overrode the responsive srcset and made phones download the huge
+ * hero (9s+ LCP). Instead, mark the actual rendered hero image
+ * fetchpriority="high" + eager so the browser still picks the right size from
+ * srcset but fetches it first. Applies to every page automatically. */
+add_filter( 'render_block', function ( $content, $block ) {
+	static $done = false;
+	if ( $done || is_admin() || is_feed() ) {
+		return $content;
 	}
-	$id  = get_post_thumbnail_id();
-	$src = wp_get_attachment_image_src( $id, 'ricoman-hero' );
-	if ( ! $src ) {
-		$src = wp_get_attachment_image_src( $id, 'large' );
+	if ( ! is_singular() && ! is_front_page() && ! is_post_type_archive() && ! is_home() ) {
+		return $content;
 	}
-	if ( $src ) {
-		echo '<link rel="preload" as="image" href="' . esc_url( $src[0] ) . '" fetchpriority="high">' . "\n";
+	$name = isset( $block['blockName'] ) ? $block['blockName'] : '';
+	if ( in_array( $name, array( 'core/cover', 'core/image', 'core/post-featured-image' ), true ) && false !== strpos( $content, '<img' ) ) {
+		$content = str_replace( ' loading="lazy"', '', $content );
+		$content = preg_replace( '/<img (?![^>]*fetchpriority)/', '<img fetchpriority="high" decoding="async" ', $content, 1 );
+		$done    = true;
 	}
-}, 2 );
+	return $content;
+}, 9, 2 );
 
 /* ---- Remove front-end bloat ---- */
 add_action( 'init', function () {

@@ -44,7 +44,7 @@ echo $sec(
 	$tile( $u( 'rico-betfred7.webp' ), 'Workplace · Warrington', 'Betfred HQ', '/projects/betfred-hq/' ) .
 	'</div><!-- /wp:columns -->' .
 	'<!-- wp:columns --><div class="wp-block-columns">' .
-	$tile( $u( 'rico-kingsgate.png' ), 'Retail · London', 'Kingsgate', '/projects/kingsgate/' ) .
+	$tile( $u( 'rico-kingsgate.jpg' ), 'Retail · London', 'Kingsgate', '/projects/kingsgate/' ) .
 	$tile( $u( 'estrella-canteen.jpg' ), 'Hospitality · Staff dining', 'Estrella Canteen', '/projects/estrella-canteen/' ) .
 	$tile( $u( 'office5.jpg' ), 'Education', 'Campus Library', '/projects/campus-library/' ) .
 	'</div><!-- /wp:columns -->'

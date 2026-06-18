@@ -72,6 +72,18 @@ function ricoman_setup() {
 add_action( 'after_setup_theme', 'ricoman_setup' );
 
 /**
+ * Site favicon — use the bundled icon unless an admin has set one in the Customizer.
+ */
+add_action( 'wp_head', function () {
+	if ( get_option( 'site_icon' ) ) {
+		return;
+	}
+	$f = esc_url( get_theme_file_uri( 'assets/images/favicon.png' ) );
+	echo '<link rel="icon" href="' . $f . '" sizes="any">' . "\n";
+	echo '<link rel="apple-touch-icon" href="' . $f . '">' . "\n";
+}, 2 );
+
+/**
  * Flag pages that open with a dark hero so the header overlays transparently;
  * everything else gets a solid dark header bar (see ricoman.css).
  */

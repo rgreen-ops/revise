@@ -244,7 +244,7 @@ function ricoman_scaffold_site() {
 		'breakout-lounge' => array( 'Breakout Lounge', 'rico-breakout-lounge.jpg', 'Workplace', 'Warm, layered light for an informal amenity space — comfortable, flattering and energy-efficient.', array() ),
 		'boutique-hotel'  => array( 'Boutique Hotel', 'office2.jpg', 'Hospitality', 'Decorative pendants and dimmable downlights creating a warm, welcoming hospitality scheme.', array( 'estrella' => 'Estrella' ) ),
 		'betfred-hq'      => array( 'Betfred HQ', 'rico-betfred7.webp', 'Workplace', 'A large headquarters fit-out delivered on programme with UK-made linear lighting throughout.', array( 'flow-plus' => 'Flow+' ) ),
-		'kingsgate'       => array( 'Kingsgate', 'rico-kingsgate.png', 'Retail', 'High-CRI accent lighting bringing focus and warmth to a flagship retail environment.', array() ),
+		'kingsgate'       => array( 'Kingsgate', 'rico-kingsgate.jpg', 'Retail', 'High-CRI accent lighting bringing focus and warmth to a flagship retail environment.', array() ),
 		'estrella-canteen'=> array( 'Estrella Canteen', 'estrella-canteen.jpg', 'Hospitality', 'Configurable Estrella pendants over a staff dining space, built to a bespoke layout.', array( 'estrella' => 'Estrella' ) ),
 		'campus-library'  => array( 'Campus Library', 'office5.jpg', 'Education', 'Comfortable, low-glare light for study and reading areas across a university library.', array( 'neptune' => 'Neptune' ) ),
 		'studio-hq'       => array( 'Studio HQ', 'office6.jpg', 'Workplace', 'A creative studio headquarters lit for focus and atmosphere in equal measure.', array() ),
