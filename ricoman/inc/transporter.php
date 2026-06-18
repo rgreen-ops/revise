@@ -153,7 +153,8 @@ function ricoman_transporter_page() {
 				<p class="description"><?php esc_html_e( 'Enter the old site’s address. Reads stored content via /wp-json, so JS rendering doesn’t matter. The source must be WordPress with the REST API enabled.', 'ricoman' ); ?></p>
 				<form method="post">
 					<?php wp_nonce_field( 'ricoman_rest' ); ?>
-					<p><input type="url" name="rest_url" class="regular-text" placeholder="https://ricoman.com" required></p>
+					<p><input type="url" name="rest_url" class="regular-text" placeholder="https://ricoman.com/back-end" required></p>
+				<p class="description"><?php esc_html_e( 'If WordPress is in a sub-folder (your admin is at /back-end/wp-admin), enter that — e.g. https://ricoman.com/back-end. The tool also auto-detects the REST root.', 'ricoman' ); ?></p>
 					<p>
 						<label><?php esc_html_e( 'Pull', 'ricoman' ); ?>
 							<input type="text" name="rest_type" value="pages" class="regular-text" placeholder="pages, posts, product…"></label>
@@ -275,18 +276,57 @@ function ricoman_transport_rest( $base, $rest_type, $post_type, $template ) {
 	if ( ! $base || ! wp_http_validate_url( $base ) ) {
 		return array( new WP_Error( 'bad_url', __( 'Enter a valid site URL.', 'ricoman' ) ) );
 	}
-	$endpoint = trailingslashit( $base ) . 'wp-json/wp/v2/' . rawurlencode( $rest_type ) . '?per_page=50&_embed=1';
-	$resp     = wp_remote_get( $endpoint, array( 'timeout' => 30, 'user-agent' => 'RicomanTransporter/1.0' ) );
-	if ( is_wp_error( $resp ) ) {
-		return array( new WP_Error( 'fetch', $resp->get_error_message() ) );
+	$base = untrailingslashit( $base );
+	$ua   = array( 'timeout' => 30, 'user-agent' => 'RicomanTransporter/1.0' );
+
+	// Build candidate REST roots — the source may be headless or live in a
+	// sub-folder (e.g. ricoman.com/back-end), so try discovery + common paths.
+	$roots = array();
+	if ( false !== strpos( $base, 'wp-json' ) ) {
+		$roots[] = preg_replace( '#/wp-json.*$#', '/wp-json', $base );
 	}
-	$code = wp_remote_retrieve_response_code( $resp );
-	if ( 200 !== (int) $code ) {
-		return array( new WP_Error( 'http', sprintf( /* translators: 1: code 2: endpoint */ __( 'REST returned %1$d for %2$s', 'ricoman' ), $code, $endpoint ) ) );
+	$home = wp_remote_get( $base . '/', array( 'timeout' => 15, 'user-agent' => 'RicomanTransporter/1.0' ) );
+	if ( ! is_wp_error( $home ) ) {
+		$link = wp_remote_retrieve_header( $home, 'link' );
+		$link = is_array( $link ) ? implode( ',', $link ) : (string) $link;
+		if ( preg_match( '#<([^>]+)>;\s*rel="https://api\.w\.org/"#', $link, $mm ) ) {
+			$roots[] = untrailingslashit( $mm[1] );
+		}
 	}
-	$items = json_decode( wp_remote_retrieve_body( $resp ), true );
-	if ( ! is_array( $items ) ) {
-		return array( new WP_Error( 'json', __( 'Could not read the REST response.', 'ricoman' ) ) );
+	$roots[] = $base . '/wp-json';
+	$roots[] = $base . '/back-end/wp-json';
+	$roots[] = $base . '/blog/wp-json';
+	$roots   = array_values( array_unique( $roots ) );
+
+	$items = null;
+	$tried = array();
+	$fetch = function ( $endpoint ) use ( $ua, &$tried ) {
+		$tried[] = $endpoint;
+		$resp    = wp_remote_get( $endpoint, $ua );
+		if ( is_wp_error( $resp ) || 200 !== (int) wp_remote_retrieve_response_code( $resp ) ) {
+			return null;
+		}
+		$decoded = json_decode( wp_remote_retrieve_body( $resp ), true );
+		// A valid list of posts is a numerically-indexed array (not an error object).
+		return ( is_array( $decoded ) && ! isset( $decoded['code'] ) ) ? $decoded : null;
+	};
+	foreach ( $roots as $root ) {
+		$items = $fetch( $root . '/wp/v2/' . rawurlencode( $rest_type ) . '?per_page=50&_embed=1' );
+		if ( null !== $items ) {
+			break;
+		}
+	}
+	// Fallback: ?rest_route= style (works even without pretty permalinks).
+	if ( null === $items ) {
+		foreach ( array( $base, $base . '/back-end' ) as $rr ) {
+			$items = $fetch( $rr . '/?rest_route=' . rawurlencode( '/wp/v2/' . $rest_type ) . '&per_page=50&_embed=1' );
+			if ( null !== $items ) {
+				break;
+			}
+		}
+	}
+	if ( null === $items ) {
+		return array( new WP_Error( 'json', sprintf( /* translators: %s: endpoints tried */ __( 'Could not read a REST response. If WordPress is in a sub-folder, enter that exact URL (e.g. https://ricoman.com/back-end). Tried: %s', 'ricoman' ), implode( ' · ', array_slice( $tried, 0, 5 ) ) ) ) );
 	}
 
 	$results = array();
