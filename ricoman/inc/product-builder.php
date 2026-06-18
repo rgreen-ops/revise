@@ -127,6 +127,22 @@ add_shortcode( 'ricoman_product_features', function () {
 	return $out . '</ul></div>';
 } );
 
+add_shortcode( 'ricoman_product_downloads', function () {
+	if ( ! function_exists( 'ricoman_parse_pairs' ) ) {
+		return '';
+	}
+	$rows = ricoman_parse_pairs( (string) get_post_meta( get_the_ID(), '_ricoman_downloads', true ) );
+	if ( ! $rows ) {
+		return '';
+	}
+	$out = '<div class="rm-prod-downloads"><h3 class="rm-shead">Downloads</h3><ul>';
+	foreach ( $rows as $r ) {
+		$ext = strtoupper( pathinfo( wp_parse_url( $r[1], PHP_URL_PATH ), PATHINFO_EXTENSION ) );
+		$out .= '<li><a href="' . esc_url( $r[1] ) . '" target="_blank" rel="noopener"><span class="dl-name">' . esc_html( $r[0] ) . '</span>' . ( $ext ? '<span class="dl-ext">' . esc_html( $ext ) . '</span>' : '' ) . '<span class="dl-arrow">↓</span></a></li>';
+	}
+	return $out . '</ul></div>';
+} );
+
 add_shortcode( 'ricoman_product_finishes', function () {
 	$raw = (string) get_post_meta( get_the_ID(), '_ricoman_finishes', true );
 	$items = array_filter( array_map( 'trim', preg_split( '/[\r\n,]+/', $raw ) ) );

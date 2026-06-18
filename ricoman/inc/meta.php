@@ -70,11 +70,13 @@ function ricoman_register_product_meta() {
 
 	// Extra product-only content fields (Product Builder).
 	$extra = array(
-		'_ricoman_tagline'  => 'sanitize_text_field',
-		'_ricoman_lead'     => 'sanitize_text_field',
-		'_ricoman_features' => 'sanitize_textarea_field',
-		'_ricoman_finishes' => 'sanitize_textarea_field',
-		'_ricoman_datasheet'=> 'esc_url_raw',
+		'_ricoman_tagline'     => 'sanitize_text_field',
+		'_ricoman_lead'        => 'sanitize_text_field',
+		'_ricoman_features'    => 'sanitize_textarea_field',
+		'_ricoman_finishes'    => 'sanitize_textarea_field',
+		'_ricoman_datasheet'   => 'esc_url_raw',
+		'_ricoman_extra_specs' => 'sanitize_textarea_field',
+		'_ricoman_downloads'   => 'sanitize_textarea_field',
 	);
 	foreach ( $extra as $key => $sanitize ) {
 		register_post_meta(
@@ -111,6 +113,35 @@ function ricoman_sanitize_variants( $value ) {
 	}
 	return implode( "\n", $clean );
 }
+
+/**
+ * Parse "Label | Value" lines into [ [label, value], ... ].
+ *
+ * @param string $raw Newline-delimited pairs.
+ * @return array<int,array{0:string,1:string}>
+ */
+function ricoman_parse_pairs( $raw ) {
+	$out = array();
+	foreach ( preg_split( '/\r\n|\r|\n/', (string) $raw ) as $line ) {
+		$line = trim( $line );
+		if ( '' === $line ) {
+			continue;
+		}
+		$parts = array_map( 'trim', explode( '|', $line, 2 ) );
+		if ( '' === $parts[0] ) {
+			continue;
+		}
+		$out[] = array( $parts[0], isset( $parts[1] ) ? $parts[1] : '' );
+	}
+	return $out;
+}
+
+/** Load the WordPress media library on the product editor (for Downloads). */
+add_action( 'admin_enqueue_scripts', function ( $hook ) {
+	if ( in_array( $hook, array( 'post.php', 'post-new.php' ), true ) && 'product' === get_post_type() ) {
+		wp_enqueue_media();
+	}
+} );
 
 /**
  * Parse the variants meta into structured rows.
@@ -183,6 +214,9 @@ function ricoman_render_product_metabox( $post ) {
 		.rmpb .sync{display:flex;gap:10px;align-items:center;background:#f6f7f9;border:1px solid var(--b);border-radius:8px;padding:12px;margin:4px 0 6px}
 		.rmpb .sync .dashicons{color:#1d4ed8}
 		#rmpb-sync-msg{font-size:12px}
+		.rmpb-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+		.rmpb-row input{flex:1}
+		.rmpb-del{color:#b32d2e;text-decoration:none;font-size:14px;cursor:pointer}
 	</style>
 	<div class="rmpb">
 
@@ -210,6 +244,20 @@ function ricoman_render_product_metabox( $post ) {
 		?>
 		</div>
 
+		<h3><?php esc_html_e( 'Custom spec rows', 'ricoman' ); ?></h3>
+		<div class="rmpb-rep" id="rmpb-xspec">
+		<?php
+		$xspecs = ricoman_parse_pairs( $m( '_ricoman_extra_specs' ) );
+		if ( ! $xspecs ) {
+			$xspecs = array( array( '', '' ) );
+		}
+		foreach ( $xspecs as $r ) {
+			echo '<div class="rmpb-row"><input type="text" name="rmpb_xspec_label[]" placeholder="Label (e.g. Driver)" value="' . esc_attr( $r[0] ) . '"><input type="text" name="rmpb_xspec_value[]" placeholder="Value (e.g. DALI dimmable)" value="' . esc_attr( $r[1] ) . '"><button type="button" class="button-link rmpb-del" title="Remove">✕</button></div>';
+		}
+		?>
+		</div>
+		<p><button type="button" class="button" id="rmpb-xspec-add">＋ <?php esc_html_e( 'Add spec row', 'ricoman' ); ?></button> <span class="hint"><?php esc_html_e( 'Extra rows appended to the spec table.', 'ricoman' ); ?></span></p>
+
 		<h3><?php esc_html_e( 'Key features', 'ricoman' ); ?></h3>
 		<div class="full"><textarea id="_ricoman_features" name="_ricoman_features" rows="4" placeholder="One feature per line&#10;Dot-free continuous run&#10;Bends to any radius&#10;Made to your exact length"><?php echo esc_textarea( $m( '_ricoman_features' ) ); ?></textarea><p class="hint"><?php esc_html_e( 'One per line — shown as a bullet list on the product page.', 'ricoman' ); ?></p></div>
 
@@ -220,6 +268,20 @@ function ricoman_render_product_metabox( $post ) {
 		<div class="full"><label for="_ricoman_variants"><?php esc_html_e( 'One per line: SKU | Description | Wattage | Lumens | CCT', 'ricoman' ); ?></label><textarea id="_ricoman_variants" name="_ricoman_variants" rows="5" placeholder="RM-DL-08 | 8W fixed downlight | 8W | 800lm | 3000/4000/6000K"><?php echo esc_textarea( $m( '_ricoman_variants' ) ); ?></textarea></div>
 
 		<div class="full"><label for="_ricoman_datasheet"><?php esc_html_e( 'Datasheet URL (optional — overrides the auto PDF)', 'ricoman' ); ?></label><input type="url" id="_ricoman_datasheet" name="_ricoman_datasheet" value="<?php echo esc_attr( $m( '_ricoman_datasheet' ) ); ?>" placeholder="https://ricobot.ricoman.com/api/public/products/CODE/datasheet.pdf"></div>
+
+		<h3><?php esc_html_e( 'Downloads', 'ricoman' ); ?></h3>
+		<div class="rmpb-rep" id="rmpb-dl">
+		<?php
+		$downloads = ricoman_parse_pairs( $m( '_ricoman_downloads' ) );
+		if ( ! $downloads ) {
+			$downloads = array( array( '', '' ) );
+		}
+		foreach ( $downloads as $r ) {
+			echo '<div class="rmpb-row"><input type="text" name="rmpb_dl_title[]" placeholder="Title (e.g. Installation guide)" value="' . esc_attr( $r[0] ) . '"><input type="text" class="rmpb-dl-url" name="rmpb_dl_url[]" placeholder="File URL" value="' . esc_attr( $r[1] ) . '"><button type="button" class="button rmpb-dl-pick">' . esc_html__( 'Choose file', 'ricoman' ) . '</button><button type="button" class="button-link rmpb-del" title="Remove">✕</button></div>';
+		}
+		?>
+		</div>
+		<p><button type="button" class="button" id="rmpb-dl-add">＋ <?php esc_html_e( 'Add download', 'ricoman' ); ?></button> <span class="hint"><?php esc_html_e( 'Datasheets, IES, BIM, guides, certificates — pick from the Media Library.', 'ricoman' ); ?></span></p>
 	</div>
 	<script>
 	( function () {
@@ -243,6 +305,49 @@ function ricoman_render_product_metabox( $post ) {
 				} );
 				msg.textContent = '✓ Filled ' + count + ' fields from RICOBOT. Remember to Update.';
 			} ).catch( function () { msg.textContent = '⚠ Request failed.'; } );
+		} );
+	} )();
+
+	/* Repeaters: add/remove rows + Media Library picker for downloads. */
+	( function () {
+		function addRow( repId, html ) {
+			var rep = document.getElementById( repId );
+			if ( ! rep ) { return; }
+			var div = document.createElement( 'div' );
+			div.className = 'rmpb-row';
+			div.innerHTML = html;
+			rep.appendChild( div );
+		}
+		var xa = document.getElementById( 'rmpb-xspec-add' );
+		if ( xa ) {
+			xa.addEventListener( 'click', function () {
+				addRow( 'rmpb-xspec', '<input type="text" name="rmpb_xspec_label[]" placeholder="Label"><input type="text" name="rmpb_xspec_value[]" placeholder="Value"><button type="button" class="button-link rmpb-del" title="Remove">✕</button>' );
+			} );
+		}
+		var da = document.getElementById( 'rmpb-dl-add' );
+		if ( da ) {
+			da.addEventListener( 'click', function () {
+				addRow( 'rmpb-dl', '<input type="text" name="rmpb_dl_title[]" placeholder="Title"><input type="text" class="rmpb-dl-url" name="rmpb_dl_url[]" placeholder="File URL"><button type="button" class="button rmpb-dl-pick">Choose file</button><button type="button" class="button-link rmpb-del" title="Remove">✕</button>' );
+			} );
+		}
+		document.addEventListener( 'click', function ( e ) {
+			if ( e.target.classList.contains( 'rmpb-del' ) ) {
+				e.preventDefault();
+				var row = e.target.closest( '.rmpb-row' );
+				if ( row ) { row.remove(); }
+			}
+			if ( e.target.classList.contains( 'rmpb-dl-pick' ) && window.wp && wp.media ) {
+				e.preventDefault();
+				var row = e.target.closest( '.rmpb-row' );
+				var frame = wp.media( { title: 'Select download', multiple: false } );
+				frame.on( 'select', function () {
+					var a = frame.state().get( 'selection' ).first().toJSON();
+					row.querySelector( '.rmpb-dl-url' ).value = a.url;
+					var t = row.querySelector( 'input[name="rmpb_dl_title[]"]' );
+					if ( t && ! t.value ) { t.value = a.title || a.filename || 'Download'; }
+				} );
+				frame.open();
+			}
 		} );
 	} )();
 	</script>
@@ -278,6 +383,36 @@ function ricoman_save_product_meta( $post_id ) {
 		if ( isset( $_POST[ $key ] ) ) {
 			update_post_meta( $post_id, $key, call_user_func( $fn, wp_unslash( $_POST[ $key ] ) ) );
 		}
+	}
+
+	// Custom spec rows -> "Label | Value" lines.
+	if ( isset( $_POST['rmpb_xspec_label'] ) ) {
+		$labels = (array) wp_unslash( $_POST['rmpb_xspec_label'] );
+		$values = isset( $_POST['rmpb_xspec_value'] ) ? (array) wp_unslash( $_POST['rmpb_xspec_value'] ) : array();
+		$rows   = array();
+		foreach ( $labels as $i => $lab ) {
+			$lab = sanitize_text_field( $lab );
+			$val = isset( $values[ $i ] ) ? sanitize_text_field( $values[ $i ] ) : '';
+			if ( '' !== $lab ) {
+				$rows[] = $lab . ' | ' . $val;
+			}
+		}
+		update_post_meta( $post_id, '_ricoman_extra_specs', implode( "\n", $rows ) );
+	}
+
+	// Downloads -> "Title | URL" lines.
+	if ( isset( $_POST['rmpb_dl_url'] ) ) {
+		$titles = isset( $_POST['rmpb_dl_title'] ) ? (array) wp_unslash( $_POST['rmpb_dl_title'] ) : array();
+		$urls   = (array) wp_unslash( $_POST['rmpb_dl_url'] );
+		$rows   = array();
+		foreach ( $urls as $i => $url ) {
+			$url   = esc_url_raw( $url );
+			$title = isset( $titles[ $i ] ) ? sanitize_text_field( $titles[ $i ] ) : '';
+			if ( '' !== $url ) {
+				$rows[] = ( '' !== $title ? $title : 'Download' ) . ' | ' . $url;
+			}
+		}
+		update_post_meta( $post_id, '_ricoman_downloads', implode( "\n", $rows ) );
 	}
 }
 add_action( 'save_post_product', 'ricoman_save_product_meta' );

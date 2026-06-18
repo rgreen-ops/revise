@@ -382,6 +382,17 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-play span{width:84px;height:84px;border-radius:50%;background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center;color:var(--ink);font-size:1.4rem;padding-left:5px}
 .rm-overlap{margin-top:-80px;position:relative;z-index:2;background:#fff;padding:clamp(28px,4vw,56px)}
 
+/* product downloads */
+.rm-prod-downloads{margin-top:clamp(24px,3vw,40px)}
+.rm-prod-downloads ul{list-style:none;padding:0;margin:1em 0 0}
+.rm-prod-downloads li{border-top:1px solid var(--line)}
+.rm-prod-downloads li:last-child{border-bottom:1px solid var(--line)}
+.rm-prod-downloads a{display:flex;align-items:center;gap:14px;padding:16px 4px;color:var(--ink);text-decoration:none;transition:.2s}
+.rm-prod-downloads a:hover{padding-left:10px;color:var(--accent)}
+.rm-prod-downloads .dl-name{font-family:Poppins;font-weight:600;flex:1}
+.rm-prod-downloads .dl-ext{font-family:Poppins;font-size:.6rem;letter-spacing:.1em;border:1px solid var(--line);border-radius:4px;padding:.3em .6em;color:var(--muted)}
+.rm-prod-downloads .dl-arrow{color:var(--accent);font-weight:700}
+
 /* product builder render */
 .rm-prod-tagline{font-size:1.2rem;color:var(--muted);margin:.2em 0 0}
 .rm-prod-lead{display:inline-flex;align-items:center;gap:.6em;font-family:Poppins;font-weight:600;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);margin:0}

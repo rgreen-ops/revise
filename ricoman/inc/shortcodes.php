@@ -46,6 +46,12 @@ function ricoman_sc_product_specs( $atts ) {
 		}
 		$rows .= '<tr><th scope="row">' . esc_html( $label ) . '</th><td>' . esc_html( $val ) . '</td></tr>';
 	}
+	// Append custom spec rows added in the Product Builder.
+	if ( function_exists( 'ricoman_parse_pairs' ) ) {
+		foreach ( ricoman_parse_pairs( (string) get_post_meta( $id, '_ricoman_extra_specs', true ) ) as $pair ) {
+			$rows .= '<tr><th scope="row">' . esc_html( $pair[0] ) . '</th><td>' . esc_html( $pair[1] ) . '</td></tr>';
+		}
+	}
 	if ( '' === $rows ) {
 		return '';
 	}
