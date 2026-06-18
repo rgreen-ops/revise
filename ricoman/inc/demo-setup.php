@@ -71,7 +71,7 @@ function ricoman_make_post( $type, $title, $slug, $content, $template = '' ) {
 }
 
 function ricoman_scaffold_site() {
-	if ( get_option( 'ricoman_scaffold_v3' ) ) {
+	if ( get_option( 'ricoman_scaffold_v4' ) ) {
 		return;
 	}
 
@@ -182,5 +182,5 @@ function ricoman_scaffold_site() {
 	}
 
 	flush_rewrite_rules( true );
-	update_option( 'ricoman_scaffold_v3', 1 );
+	update_option( 'ricoman_scaffold_v4', 1 );
 }

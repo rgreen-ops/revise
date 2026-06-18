@@ -2,41 +2,7 @@
 
 <!-- wp:group {"tagName":"main","layout":{"type":"default"}} -->
 <main class="wp-block-group">
-	<!-- wp:cover {"url":"/wp-content/themes/ricoman/assets/images/arch-line.jpg","dimRatio":60,"overlayColor":"ink","minHeight":52,"minHeightUnit":"vh","contentPosition":"bottom left","align":"full","textColor":"base"} -->
-	<div class="wp-block-cover alignfull has-base-color has-text-color has-custom-content-position is-position-bottom-left" style="min-height:52vh"><span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-60 has-background-dim"></span><img class="wp-block-cover__image-background" alt="" src="/wp-content/themes/ricoman/assets/images/arch-line.jpg" data-object-fit="cover"/><div class="wp-block-cover__inner-container">
-		<!-- wp:paragraph {"className":"rm-eyebrow"} --><p class="rm-eyebrow">Our Lighting Range</p><!-- /wp:paragraph -->
-		<!-- wp:query-title {"type":"archive","style":{"typography":{"fontWeight":"500","fontSize":"clamp(2.6rem, 6vw, 5rem)"}}} /-->
-	</div></div>
-	<!-- /wp:cover -->
-
-	<!-- wp:group {"align":"full","className":"rm-section","layout":{"type":"constrained"}} -->
-	<div class="wp-block-group alignfull rm-section">
-		<!-- wp:query {"queryId":20,"query":{"perPage":12,"pages":0,"offset":0,"postType":"product","order":"asc","orderBy":"title","inherit":true},"layout":{"type":"default"}} -->
-		<div class="wp-block-query">
-			<!-- wp:post-template {"className":"rm-loop","layout":{"type":"grid","columnCount":3}} -->
-				<!-- wp:group {"className":"rm-card","layout":{"type":"constrained"}} -->
-				<div class="wp-block-group rm-card">
-					<!-- wp:post-featured-image {"isLink":true,"aspectRatio":"4/3"} /-->
-					<!-- wp:post-terms {"term":"product_cat","className":"rm-eyebrow"} /-->
-					<!-- wp:post-title {"isLink":true,"level":3} /-->
-					<!-- wp:post-excerpt {"moreText":"","excerptLength":16} /-->
-				</div>
-				<!-- /wp:group -->
-			<!-- /wp:post-template -->
-
-			<!-- wp:query-no-results -->
-				<!-- wp:paragraph --><p>No products yet — add your first under <strong>Products → Add New</strong>.</p><!-- /wp:paragraph -->
-			<!-- /wp:query-no-results -->
-
-			<!-- wp:query-pagination {"layout":{"type":"flex","justifyContent":"space-between"},"style":{"spacing":{"margin":{"top":"var:preset|spacing|50"}}}} -->
-				<!-- wp:query-pagination-previous /-->
-				<!-- wp:query-pagination-numbers /-->
-				<!-- wp:query-pagination-next /-->
-			<!-- /wp:query-pagination -->
-		</div>
-		<!-- /wp:query -->
-	</div>
-	<!-- /wp:group -->
+	<!-- wp:pattern {"slug":"ricoman/products-archive"} /-->
 </main>
 <!-- /wp:group -->
 
