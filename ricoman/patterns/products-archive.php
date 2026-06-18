@@ -20,7 +20,7 @@ $cover   = function ( $url, $inner, $min, $pos, $dim ) {
 };
 // Product card: linked image + small label + title + spec line. No pricing.
 $pcard = function ( $url, $label, $title, $spec, $href ) {
-	$img = '<!-- wp:image {"linkDestination":"custom"} --><figure class="wp-block-image size-large"><a href="' . $href . '"><img src="' . $url . '" alt="' . esc_attr( $title ) . '"/></a></figure><!-- /wp:image -->';
+	$img = '<!-- wp:image {"linkDestination":"custom","sizeSlug":"large"} --><figure class="wp-block-image size-large"><a href="' . $href . '"><img src="' . $url . '" alt="' . esc_attr( $title ) . '"/></a></figure><!-- /wp:image -->';
 	return '<!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"rm-card","layout":{"type":"constrained"}} --><div class="wp-block-group rm-card">' . $img .
 		'<!-- wp:paragraph {"className":"rm-eyebrow","fontSize":"small"} --><p class="rm-eyebrow has-small-font-size">' . $label . '</p><!-- /wp:paragraph -->' .
 		'<!-- wp:heading {"level":3} --><h3 class="wp-block-heading"><a href="' . $href . '">' . $title . '</a></h3><!-- /wp:heading -->' .
