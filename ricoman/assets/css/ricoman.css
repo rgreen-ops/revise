@@ -662,3 +662,7 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .wp-block-cover .rm-eyebrow{color:rgba(255,255,255,.8)}
 /* video heroes get an extra black layer so headlines stay legible over motion */
 .wp-block-cover:has(> video.wp-block-cover__video-background)::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.32);pointer-events:none;z-index:1}
+
+/* configurator fallback (when RICOBOT can't resolve the code yet) */
+.rm-cfg-fbnote{font-size:.9rem;color:var(--muted);margin:0 0 16px;line-height:1.6}
+.rm-cfg-fallback .ricoman-spec-table{margin-bottom:18px}

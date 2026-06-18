@@ -98,7 +98,7 @@ function ricoman_set_featured_from_theme( $post_id, $file ) {
 }
 
 function ricoman_scaffold_site() {
-	if ( get_option( 'ricoman_scaffold_v23' ) ) {
+	if ( get_option( 'ricoman_scaffold_v24' ) ) {
 		return;
 	}
 
@@ -212,7 +212,7 @@ function ricoman_scaffold_site() {
 	);
 	$builder = array(
 		'flow-plus' => array( 'Seamless curves of light, made to order.', 'Made to order · ~6 day UK lead', "Dot-free continuous run\nBends to any radius\nMade to your exact length\nUp to 180 lm/W\nCRI 90+ colour rendering", 'Matt white, Matt black, Anodised silver', array( '_ricoman_lumens' => 'up to 180 lm/W', '_ricoman_cri' => '90+', '_ricoman_ip' => 'IP20', '_ricoman_warranty' => '5 years', '_ricoman_sku' => 'RM-FLOW-PLUS' ), "Driver | DALI dimmable\nControl | DALI / 1-10V\nMounting | Surface / suspended / recessed" ),
-		'estrella'  => array( 'A configurable architectural pendant.', 'Configurable · built to spec', "Choose form, finish & CCT\nCRI 90+ light quality\nDimmable (DALI / phase)\nBespoke sizes", 'Brushed brass, Matt black, Champagne, Matt white', array( '_ricoman_cri' => '90+', '_ricoman_cct' => '2700–4000K', '_ricoman_warranty' => '5 years', '_ricoman_sku' => 'RM-ESTRELLA' ), "Mounting | Pendant\nCable drop | Up to 3m\nDriver | Phase / DALI" ),
+		'estrella'  => array( 'A configurable architectural pendant.', 'Configurable · built to spec', "Choose form, finish & CCT\nCRI 90+ light quality\nDimmable (DALI / phase)\nBespoke sizes", 'Brushed brass, Matt black, Champagne, Matt white', array( '_ricoman_cri' => '90+', '_ricoman_cct' => '2700–4000K', '_ricoman_warranty' => '5 years', '_ricoman_sku' => 'R341101' ), "Mounting | Pendant\nCable drop | Up to 3m\nDriver | Phase / DALI" ),
 		'neptune'   => array( 'Fire-rated downlight with a clean trimless aperture.', 'In stock · next-day available', "90-minute fire rating\nIP65 front face\nSwitchable CCT\nTrimless bezel option", 'Matt white, Matt black', array( '_ricoman_wattage' => '8W', '_ricoman_lumens' => '900 lm', '_ricoman_cct' => '3000/4000/6000K', '_ricoman_ip' => 'IP65', '_ricoman_warranty' => '5 years', '_ricoman_sku' => 'RM-NEPTUNE' ), "Cut-out | 68mm\nDriver | Integral\nDimming | Mains / DALI" ),
 	);
 	foreach ( $products as $slug => $p ) {
@@ -281,5 +281,5 @@ function ricoman_scaffold_site() {
 	}
 
 	flush_rewrite_rules( true );
-	update_option( 'ricoman_scaffold_v23', 1 );
+	update_option( 'ricoman_scaffold_v24', 1 );
 }

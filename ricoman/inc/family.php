@@ -263,7 +263,10 @@ add_shortcode( 'ricoman_family', function ( $atts ) {
 		}
 
 		call( 'ricoman_rb_family', { family: family } ).then( function ( res ) {
-			if ( ! res.success ) { introEl.textContent = res.data || 'Range unavailable.'; return; }
+			if ( ! res.success || ! ( res.data && ( res.data.products || [] ).length ) ) {
+				introEl.innerHTML = 'The full range for this product is being set up. <a href="/contact/">Contact us</a> for the exact order codes and a quote.';
+				return;
+			}
 			facets = res.data.facets || []; products = res.data.products || [];
 			introEl.textContent = products.length + ' sizes &amp; variants — filter, then View to configure or download.';
 			filterEl.hidden = false;

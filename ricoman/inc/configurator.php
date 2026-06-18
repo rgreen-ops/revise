@@ -197,6 +197,28 @@ add_shortcode( 'ricoman_configurator_hero', function ( $atts ) {
 	$ajax    = esc_url( admin_url( 'admin-ajax.php' ) );
 	$enquire = esc_url( home_url( '/my-project/' ) );
 	$hide    = $pid ? (string) get_post_meta( $pid, '_ricoman_hide_options', true ) : '';
+
+	// Static fallback (shown if the live configurator can't resolve this code) —
+	// the product's own specification + an enquiry CTA, so the page never dead-ends.
+	$fb_rows = '';
+	if ( function_exists( 'ricoman_product_spec_fields' ) ) {
+		foreach ( ricoman_product_spec_fields() as $fk => $fl ) {
+			if ( '_ricoman_sku' === $fk ) {
+				continue;
+			}
+			$fv = (string) get_post_meta( $pid, $fk, true );
+			if ( '' !== $fv ) {
+				$fb_rows .= '<tr><th scope="row">' . esc_html( $fl ) . '</th><td>' . esc_html( $fv ) . '</td></tr>';
+			}
+		}
+	}
+	if ( function_exists( 'ricoman_parse_pairs' ) ) {
+		foreach ( ricoman_parse_pairs( (string) get_post_meta( $pid, '_ricoman_extra_specs', true ) ) as $pr2 ) {
+			$fb_rows .= '<tr><th scope="row">' . esc_html( $pr2[0] ) . '</th><td>' . esc_html( $pr2[1] ) . '</td></tr>';
+		}
+	}
+	$fb_spec       = $fb_rows ? '<table class="ricoman-spec-table"><tbody>' . $fb_rows . '</tbody></table>' : '';
+	$fallback_html = '<div class="rm-cfg-fallback" hidden><p class="rm-cfg-fbnote">Live configuration is being set up for this product. Here&rsquo;s the standard specification — contact us for the exact order code and a quote.</p>' . $fb_spec . '<div class="rm-cfg-acts"><a class="btn btn-solid" href="' . $enquire . '?sku=' . rawurlencode( $code ) . '">＋ Add to My Project</a> <a class="btn btn-line-d" href="' . esc_url( home_url( '/contact/' ) ) . '">Request a quote &rarr;</a></div></div>';
 	ob_start();
 	?>
 	<div class="rm-cfghero" data-code="<?php echo esc_attr( $code ); ?>" data-nonce="<?php echo esc_attr( $nonce ); ?>" data-ajax="<?php echo $ajax; ?>" data-enquire="<?php echo $enquire; ?>" data-hide="<?php echo esc_attr( $hide ); ?>">
@@ -216,6 +238,7 @@ add_shortcode( 'ricoman_configurator_hero', function ( $atts ) {
 			</div>
 			<div class="rm-cfg-acts"></div>
 			<div class="rm-cfg-dl"></div>
+			<?php echo $fallback_html; // phpcs:ignore WordPress.Security.EscapeOutput -- built from escaped parts above. ?>
 			<p class="rm-cfg-note">Order code, specification and downloads resolve live from RICOBOT for the exact configuration. Save builds to My Project and our team will follow up.</p>
 		</div>
 	</div>
@@ -229,7 +252,9 @@ add_shortcode( 'ricoman_configurator_hero', function ( $atts ) {
 		var actEl = root.querySelector( '.rm-cfg-acts' ), dlEl = root.querySelector( '.rm-cfg-dl' );
 		var imgEl = root.querySelector( '.rm-cfg-img' ), chipsEl = root.querySelector( '.rm-cfg-chips' ), codeOv = root.querySelector( '.rm-cfg-codeov' );
 		var thumbsEl = root.querySelector( '.rm-cfg-thumbs' ), gtabs = root.querySelectorAll( '.rm-cfg-gtabs button' );
+		var fbEl = root.querySelector( '.rm-cfg-fallback' );
 		var axes = [], sel = {}, gallery = [], gset = 'all';
+		function showFallback() { axesEl.innerHTML = ''; resEl.hidden = true; actEl.innerHTML = ''; dlEl.innerHTML = ''; if ( fbEl ) { fbEl.hidden = false; } }
 		function call( action, params ) { var b = new FormData(); b.append( 'action', action ); b.append( 'nonce', nonce ); Object.keys( params ).forEach( function ( k ) { if ( params[ k ] ) { b.append( k, params[ k ] ); } } ); return fetch( ajax, { method: 'POST', body: b } ).then( function ( r ) { return r.json(); } ); }
 		function esc( s ) { return String( s == null ? '' : s ).replace( /[&<>"]/g, function ( c ) { return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[ c ]; } ); }
 		function sku() { var parts = [ code ]; for ( var i = 0; i < axes.length; i++ ) { if ( ! sel[ i ] ) { return null; } parts.push( sel[ i ] ); } return parts.join( '/' ); }
@@ -262,7 +287,7 @@ add_shortcode( 'ricoman_configurator_hero', function ( $atts ) {
 		gtabs.forEach( function ( t ) { t.addEventListener( 'click', function () { gtabs.forEach( function ( x ) { x.classList.remove( 'on' ); } ); t.classList.add( 'on' ); gset = t.dataset.set; renderThumbs(); } ); } );
 		document.dispatchEvent( new CustomEvent( 'ricoman:product', { detail: { code: code } } ) );
 		call( 'ricoman_rb_config', { code: code } ).then( function ( res ) {
-			if ( ! res.success || ! res.data || ! res.data.options ) { axesEl.innerHTML = '<p class="rm-config-note">Configurator unavailable.</p>'; return; }
+			if ( ! res.success || ! res.data || ! res.data.options || ! res.data.options.length ) { showFallback(); return; }
 			axes = res.data.options;
 			axesEl.innerHTML = '';
 			axes.forEach( function ( axis, i ) {
@@ -275,7 +300,7 @@ add_shortcode( 'ricoman_configurator_hero', function ( $atts ) {
 				w.appendChild( o ); axesEl.appendChild( w );
 			} );
 			update();
-		} ).catch( function () { axesEl.innerHTML = '<p class="rm-config-note">Could not load options.</p>'; } );
+		} ).catch( function () { showFallback(); } );
 	} )();
 	</script>
 	<?php
