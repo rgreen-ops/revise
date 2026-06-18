@@ -98,7 +98,7 @@ function ricoman_set_featured_from_theme( $post_id, $file ) {
 }
 
 function ricoman_scaffold_site() {
-	if ( get_option( 'ricoman_scaffold_v6' ) ) {
+	if ( get_option( 'ricoman_scaffold_v7' ) ) {
 		return;
 	}
 
@@ -179,6 +179,8 @@ function ricoman_scaffold_site() {
 			wp_update_post( array( 'ID' => $pid, 'post_content' => $content, 'post_excerpt' => $p[3] ) );
 			wp_set_object_terms( $pid, $p[1], 'product_cat' );
 			ricoman_set_featured_from_theme( $pid, $p[2] );
+			// Demonstrate both product layouts: Neptune = Basic, others = Featured.
+			update_post_meta( $pid, '_wp_page_template', 'neptune' === $slug ? 'single-product-basic' : 'single-product-featured' );
 		}
 	}
 
@@ -214,5 +216,5 @@ function ricoman_scaffold_site() {
 	}
 
 	flush_rewrite_rules( true );
-	update_option( 'ricoman_scaffold_v6', 1 );
+	update_option( 'ricoman_scaffold_v7', 1 );
 }

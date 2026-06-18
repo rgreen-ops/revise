@@ -200,8 +200,13 @@
 			"postTypes": ["page"]
 		},
 		{
-			"name": "single-product-simple",
-			"title": "Product, Simple",
+			"name": "single-product-featured",
+			"title": "Product — Featured",
+			"postTypes": ["product"]
+		},
+		{
+			"name": "single-product-basic",
+			"title": "Product — Basic",
 			"postTypes": ["product"]
 		},
 		{
