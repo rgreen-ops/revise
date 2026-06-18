@@ -53,7 +53,7 @@ add_action( 'init', function () {
 		'<!-- wp:columns --><div class="wp-block-columns">' . $rcard( $u( 'arch-line.jpg' ), 'Linear Lighting', 'Continuous runs &amp; profile systems', '/products/' ) . $rcard( $u( 'ceiling.jpg' ), 'Downlights', 'Fire-rated, switchable CCT', '/products/' ) . $rcard( $u( 'pendant.jpg' ), 'Pendants', 'Architectural &amp; decorative', '/products/' ) . '</div><!-- /wp:columns -->' .
 		'<!-- wp:columns --><div class="wp-block-columns">' . $rcard( $u( 'retail.jpg' ), 'Track &amp; Spotlights', 'Retail &amp; gallery accent', '/products/' ) . $rcard( $u( 'office5.jpg' ), 'Biophilic Lighting', 'Human-centric, tunable', '/products/' ) . $rcard( $u( 'office3.jpg' ), 'Modular Recessed', 'Offices, schools, healthcare', '/products/' ) . '</div><!-- /wp:columns -->' ) );
 
-	$p['home-featured'] = array( 'Home · Featured (dark)', '<!-- wp:group {"align":"full","backgroundColor":"ink","textColor":"base","className":"rm-dark","style":{"spacing":{"padding":{"top":"var:preset|spacing|70","bottom":"var:preset|spacing|70","left":"var:preset|spacing|50","right":"var:preset|spacing|50"}}},"layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-dark has-base-color has-ink-background-color has-text-color has-background" style="padding-top:var(--wp--preset--spacing--70);padding-bottom:var(--wp--preset--spacing--70);padding-left:var(--wp--preset--spacing--50);padding-right:var(--wp--preset--spacing--50)"><!-- wp:columns {"verticalAlignment":"center"} --><div class="wp-block-columns are-vertically-aligned-center"><!-- wp:column {"verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center">' . $eyebrow( 'Featured · Linear' ) . $shead( 'Flow+ — seamless curves of light' ) . $para( 'A flexible linear system that bends to any architectural line, continuous and dot-free. Made to order in Manchester, to your exact geometry.' ) . $buttons( $btn( 'View Flow+', '/products/flow-plus/' ) . $btn( 'Design your run', '/flow-designer/' ) ) . '</div><!-- /wp:column --><!-- wp:column {"verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center">' . $image( $u( 'light-a.jpg' ) ) . '</div><!-- /wp:column --></div><!-- /wp:columns --></div><!-- /wp:group -->' );
+	$p['home-featured'] = array( 'Home · Featured (dark)', '<!-- wp:group {"align":"full","backgroundColor":"ink","textColor":"base","className":"rm-dark","style":{"spacing":{"padding":{"top":"var:preset|spacing|70","bottom":"var:preset|spacing|70","left":"var:preset|spacing|50","right":"var:preset|spacing|50"}}},"layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-dark has-base-color has-ink-background-color has-text-color has-background" style="padding-top:var(--wp--preset--spacing--70);padding-bottom:var(--wp--preset--spacing--70);padding-left:var(--wp--preset--spacing--50);padding-right:var(--wp--preset--spacing--50)"><!-- wp:columns {"verticalAlignment":"center"} --><div class="wp-block-columns are-vertically-aligned-center"><!-- wp:column {"verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center">' . $eyebrow( 'Featured · Linear' ) . $shead( 'Flow+ — seamless curves of light' ) . $para( 'A flexible linear system that bends to any architectural line, continuous and dot-free. Made to order in Manchester, to your exact geometry.' ) . $buttons( $btn( 'View Flow+', '/products/flow-plus/' ) . $btn( 'Design your run', '/flow-designer/' ) ) . '</div><!-- /wp:column --><!-- wp:column {"verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center">' . $image( $u( 'arch-line.jpg' ) ) . '</div><!-- /wp:column --></div><!-- /wp:columns --></div><!-- /wp:group -->' );
 
 	$p['home-projects'] = array( 'Home · Projects grid', $sec( $shead( 'Lighting that performs in the real world' ) .
 		'<!-- wp:columns --><div class="wp-block-columns">' . $ptile( $u( 'office1.jpg' ), 'Commercial Office · Leeds', 'Allianz HQ Fit-out', '/projects/allianz-hq/' ) . $ptile( $u( 'retail.jpg' ), 'Retail · Manchester', 'Flagship Store', '/projects/flagship-store/' ) . $ptile( $u( 'office6.jpg' ), 'Workplace', 'Studio HQ', '/projects/studio-hq/' ) . $ptile( $u( 'office2.jpg' ), 'Hospitality', 'Boutique Hotel', '/projects/boutique-hotel/' ) . '</div><!-- /wp:columns -->' .
@@ -69,17 +69,140 @@ add_action( 'init', function () {
 		'<!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">Send us your drawings and our in-house lighting designers will return a fully specified, costed scheme — usually within 3–5 days.</p><!-- /wp:paragraph -->' .
 		$buttons( $btn( 'Start a Project', '/lighting-design/' ) . $btn( 'Talk to the team', '/about/', false ), true ), 60, 'center center', 70 ) );
 
+	// ---- shared helpers for content pages ----
+	$bignum   = function ( $n, $l ) { return '<!-- wp:column --><div class="wp-block-column"><!-- wp:heading {"level":3,"className":"rm-statnum"} --><h3 class="wp-block-heading rm-statnum">' . $n . '</h3><!-- /wp:heading --><!-- wp:paragraph {"className":"rm-flabel"} --><p class="rm-flabel">' . $l . '</p><!-- /wp:paragraph --></div><!-- /wp:column -->'; };
+	$darkgroup = function ( $inner ) { return '<!-- wp:group {"align":"full","backgroundColor":"ink","textColor":"base","className":"rm-dark","style":{"spacing":{"padding":{"top":"var:preset|spacing|70","bottom":"var:preset|spacing|70","left":"var:preset|spacing|50","right":"var:preset|spacing|50"}}},"layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-dark has-base-color has-ink-background-color has-text-color has-background" style="padding-top:var(--wp--preset--spacing--70);padding-bottom:var(--wp--preset--spacing--70);padding-left:var(--wp--preset--spacing--50);padding-right:var(--wp--preset--spacing--50)">' . $inner . '</div><!-- /wp:group -->'; };
+	$twocol   = function ( $a, $b ) { return '<!-- wp:columns {"verticalAlignment":"center"} --><div class="wp-block-columns are-vertically-aligned-center"><!-- wp:column {"verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center">' . $a . '</div><!-- /wp:column --><!-- wp:column {"verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center">' . $b . '</div><!-- /wp:column --></div><!-- /wp:columns -->'; };
+	$checklist = function ( $items ) { $li = ''; foreach ( $items as $t ) { $li .= '<!-- wp:list-item --><li>' . $t . '</li><!-- /wp:list-item -->'; } return '<!-- wp:list {"className":"rm-flist"} --><ul class="wp-block-list rm-flist">' . $li . '</ul><!-- /wp:list -->'; };
+
+	/* ===== About ===== */
+	$p['about-hero'] = array( 'About · Hero', $cover( $u( 'rico-office.jpg' ), $eyebrow( 'About Ricoman' ) . '<!-- wp:heading {"level":1,"style":{"typography":{"fontWeight":"500","fontSize":"clamp(2.6rem, 6vw, 5rem)","lineHeight":"1"}}} --><h1 class="wp-block-heading" style="font-size:clamp(2.6rem, 6vw, 5rem);font-weight:500;line-height:1">British lighting, made with intent.</h1><!-- /wp:heading -->' . $para( 'A Manchester manufacturer of commercial interior LED lighting — designing, making and delivering schemes for the people who build great spaces.' ), 62, 'bottom left', 50 ) );
+	$p['about-intro'] = array( 'About · Who we are', $sec( $eyebrow( 'Who we are' ) . $shead( 'Lighting that works on spec, on time, on budget' ) . $para( 'Ricoman designs and manufactures commercial interior LED lighting from our own facility in Manchester. Because we&rsquo;re the manufacturer — not a reseller — we control quality, lead times and bespoke detail in-house: free scheme design, 2,000+ components stocked ready to build, an average six-day UK-made lead, strong local partnerships and a 5-year warranty.', true ) ) );
+	$p['about-stats'] = array( 'About · Stats', $sec( '<!-- wp:columns --><div class="wp-block-columns">' . $bignum( '1999', 'Our journey began' ) . $bignum( '535', 'Schemes designed in 2025' ) . $bignum( '2,000+', 'Components stocked' ) . $bignum( '20+', 'Countries supplied' ) . '</div><!-- /wp:columns -->', 'rm-statband' ) );
+	$p['about-values'] = array( 'About · Values', $sec( $eyebrow( 'What we stand for' ) . $shead( 'The way we like to work' ) . '<!-- wp:columns --><div class="wp-block-columns">' . $aud( '↳ 01', 'Curiosity', 'We question the status quo, asking how lighting can be smarter, greener and more human.' ) . $aud( '↳ 02', 'Growth', 'We grow through learning, sustainable practice and a drive to improve — investing in in-house manufacturing.' ) . $aud( '↳ 03', 'Community', 'We invest in the people and places around us, from our Manchester roots to the partners on every project.' ) . '</div><!-- /wp:columns -->' ) );
+	$p['about-contact'] = array( 'About · Contact (dark)', $darkgroup( $twocol( $eyebrow( 'Get in touch' ) . $shead( 'Talk to the team' ) . $para( 'Metroplex Business Park, 520 Broadway, M50 2UE, Manchester, UK' ) . $para( '<strong>0161 451 5913</strong><br>sales@ricoman.com' ) . $para( 'Mon–Thu 8:30–17:00 · Fri 8:30–16:00' ), $image( $u( 'rico-office.jpg' ) ) ) ) );
+
+	/* ===== Manufacturing ===== */
+	$p['mfg-hero'] = array( 'Manufacturing · Hero', $cover( $u( 'workshop.jpg' ), $eyebrow( 'Made in Britain' ) . '<!-- wp:heading {"level":1,"style":{"typography":{"fontWeight":"500","fontSize":"clamp(2.6rem, 6vw, 5rem)","lineHeight":"1"}}} --><h1 class="wp-block-heading" style="font-size:clamp(2.6rem, 6vw, 5rem);font-weight:500;line-height:1">Designed &amp; manufactured in Manchester.</h1><!-- /wp:heading -->' . $para( 'We design, assemble, test and finish our luminaires in our own UK facility — controlling quality, lead times and every bespoke detail in-house.' ), 64, 'bottom left', 50 ) );
+	$p['mfg-stats'] = array( 'Manufacturing · Stats', $sec( '<!-- wp:columns --><div class="wp-block-columns">' . $bignum( '15,000ft²', 'Production area, Manchester' ) . $bignum( '2,000+', 'Components ready to build' ) . $bignum( '~6 days', 'Average UK-made lead' ) . $bignum( '98%', 'On-time-in-full target' ) . '</div><!-- /wp:columns -->', 'rm-statband' ) );
+	$p['mfg-statement'] = array( 'Manufacturing · Statement', $sec( '<!-- wp:heading {"level":2,"style":{"typography":{"fontWeight":"500","fontSize":"clamp(1.9rem,5vw,4rem)","lineHeight":"1.08"}}} --><h2 class="wp-block-heading" style="font-size:clamp(1.9rem,5vw,4rem);font-weight:500;line-height:1.08">Vertical integration, end to end — we make to order, not to a catalogue.</h2><!-- /wp:heading -->' ) );
+	$p['mfg-split'] = array( 'Manufacturing · One roof', $sec( $twocol( $image( $u( 'rico-making.webp' ) ), $eyebrow( 'In-house, end to end' ) . $shead( 'One roof, full control' ) . $para( 'Design, electronics, assembly, finishing and testing all happen under one roof in Manchester — nothing outsourced to a supply chain we can&rsquo;t see. Shorter lead times, full traceability, and the ability to make a fitting to your exact geometry.', true ) ) ) );
+	$p['mfg-steps'] = array( 'Manufacturing · Process', $sec( $shead( 'How a Ricoman fitting is made' ) . '<!-- wp:columns --><div class="wp-block-columns">' . $aud( '01', 'Design &amp; tooling', 'CAD, photometric modelling and tooling, in-house.' ) . $aud( '02', 'Assembly', 'Boards, optics and housings hand-built to order.' ) . $aud( '03', 'Finishing', 'Powder-coat &amp; bespoke finishes to your spec.' ) . $aud( '04', 'Test &amp; despatch', 'Batch burn-in, then delivered UK-wide.' ) . '</div><!-- /wp:columns -->' ) );
+	$p['mfg-bespoke'] = array( 'Manufacturing · Bespoke (dark)', $darkgroup( $twocol( $eyebrow( 'Bespoke as standard' ) . $shead( 'If you can draw it, we can make it' ) . $para( 'Curved linear runs, custom lengths, special CCTs, brand-matched finishes — bespoke isn&rsquo;t a bolt-on, it&rsquo;s how the factory is built to work.' ) . $buttons( $btn( 'Talk to our designers →', '/lighting-design/' ) ), $image( $u( 'warehouse.jpg' ) ) ) ) );
+	$p['mfg-cta'] = array( 'Manufacturing · CTA', $cover( $u( 'workshop.jpg' ), '<!-- wp:heading {"textAlign":"center","level":2} --><h2 class="wp-block-heading has-text-align-center">Want to see it for yourself?</h2><!-- /wp:heading --><!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">Book a visit to the Manchester facility, or send us a project and let our team spec it end to end.</p><!-- /wp:paragraph -->' . $buttons( $btn( 'Book a visit', '/about/' ) . $btn( 'Start a project →', '/lighting-design/', false ), true ), 52, 'center center', 70 ) );
+
+	/* ===== Lighting Design ===== */
+	$p['lighting-hero'] = array( 'Lighting · Hero', $cover( $u( 'rico-office-render.webp' ), $eyebrow( 'Free Scheme Design' ) . '<!-- wp:heading {"level":1,"style":{"typography":{"fontWeight":"500","fontSize":"clamp(2.6rem, 6vw, 5rem)","lineHeight":"1"}}} --><h1 class="wp-block-heading" style="font-size:clamp(2.6rem, 6vw, 5rem);font-weight:500;line-height:1">Your scheme, fully designed — at no cost.</h1><!-- /wp:heading -->' . $para( 'Send us a drawing or a finishes schedule and our in-house lighting designers return a fully specified, photometric-backed and costed scheme. Usually within 3–5 days.' ), 64, 'bottom left', 50 ) );
+	$p['lighting-statement'] = array( 'Lighting · Statement', $sec( '<!-- wp:heading {"level":2,"style":{"typography":{"fontWeight":"500","fontSize":"clamp(1.9rem,5vw,4rem)","lineHeight":"1.08"}}} --><h2 class="wp-block-heading" style="font-size:clamp(1.9rem,5vw,4rem);font-weight:500;line-height:1.08">We don&rsquo;t just sell luminaires — we design the light, prove it works, and cost it before you commit a penny.</h2><!-- /wp:heading -->' ) );
+	$p['lighting-steps'] = array( 'Lighting · Process', $sec( $shead( 'Four steps from drawing to delivered scheme' ) . '<!-- wp:columns --><div class="wp-block-columns">' . $aud( '01', 'Send your drawings', 'A plan, RCP or sketch and a finishes schedule.' ) . $aud( '02', 'We design the light', 'A DIALux photometric study — lux, uniformity, UGR.' ) . $aud( '03', 'Costed scheme in 3–5 days', 'A specified luminaire schedule, layout and costing.' ) . $aud( '04', 'Made &amp; delivered', 'Approved, made to order in Manchester, to programme.' ) . '</div><!-- /wp:columns -->' ) );
+	$p['lighting-receive'] = array( 'Lighting · What you receive (dark)', $darkgroup( $twocol( $eyebrow( 'What you receive' ) . $shead( 'A scheme you can specify with confidence' ) . $checklist( array( '<strong>DIALux photometric study</strong> — lux, uniformity &amp; UGR', '<strong>Luminaire schedule</strong> — every fitting, finish &amp; quantity', '<strong>Reflected ceiling layout</strong> — positions for the contractor', '<strong>Itemised costing</strong> — with value-engineered options', '<strong>Data sheets &amp; BIM files</strong> — ready for your spec pack' ) ), $image( $u( 'office5.jpg' ) ) ) ) );
+	$p['lighting-cta'] = array( 'Lighting · CTA', $cover( $u( 'office1.jpg' ), '<!-- wp:heading {"textAlign":"center","level":2} --><h2 class="wp-block-heading has-text-align-center">Start your scheme</h2><!-- /wp:heading --><!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">Tell us about the project and share your drawings — a lighting designer will be in touch, costed scheme to follow.</p><!-- /wp:paragraph -->' . $buttons( $btn( 'Talk to the team', '/about/' ) . $btn( 'See the results →', '/projects/', false ), true ), 52, 'center center', 70 ) );
+
 	foreach ( $p as $slug => $data ) {
 		register_block_pattern( 'ricoman/' . $slug, array( 'title' => $data[0], 'categories' => array( 'ricoman-page' ), 'content' => $data[1] ) );
 	}
 }, 12 );
 
+/** Editable block stacks for the content pages. */
+function ricoman_about_blocks() {
+	return ricoman_stack( array( 'about-hero', 'about-intro', 'about-stats', 'about-values', 'about-contact' ) );
+}
+function ricoman_manufacturing_blocks() {
+	return ricoman_stack( array( 'mfg-hero', 'mfg-stats', 'mfg-statement', 'mfg-split', 'mfg-steps', 'mfg-bespoke', 'mfg-cta' ) );
+}
+function ricoman_lighting_blocks() {
+	return ricoman_stack( array( 'lighting-hero', 'lighting-statement', 'lighting-steps', 'lighting-receive', 'lighting-cta' ) );
+}
+function ricoman_stack( $slugs ) {
+	$out = '';
+	foreach ( $slugs as $s ) {
+		// Resolve to real block markup so the page is directly click-to-edit
+		// (not a read-only pattern reference). Falls back to a reference.
+		$out .= ( function_exists( 'ricoman_pattern_content' ) ? ricoman_pattern_content( 'ricoman/' . $s ) : '<!-- wp:pattern {"slug":"ricoman/' . $s . '"} /-->' ) . "\n";
+	}
+	return $out;
+}
+
 /** Homepage = the original design as a stack of editable blocks. */
 function ricoman_home_blocks() {
-	$stack = array( 'home-hero', 'home-facts', 'home-statement', 'home-range', 'home-featured', 'home-projects', 'home-britain', 'home-audience', 'home-cta' );
-	$out   = '';
-	foreach ( $stack as $slug ) {
-		$out .= '<!-- wp:pattern {"slug":"ricoman/' . $slug . '"} /-->' . "\n";
+	return ricoman_stack( array( 'home-hero', 'home-facts', 'home-statement', 'home-range', 'home-featured', 'home-projects', 'home-britain', 'home-audience', 'home-cta' ) );
+}
+
+/**
+ * Rich case-study body as native editable blocks (the "feature" project page).
+ * The single-project template supplies the featured-image hero + closing CTA;
+ * this is the editable post_content in between.
+ *
+ * @param array $pr [ title, image, sector, excerpt, products(assoc slug=>name) ].
+ */
+function ricoman_project_feature_content( $pr ) {
+	$u    = function ( $f ) { return esc_url( get_theme_file_uri( 'assets/images/' . $f ) ); };
+	$lead = esc_html( $pr[3] );
+
+	// --- Meta strip (dark band of label / value pairs) ---
+	$meta = array(
+		'Sector'   => $pr[2],
+		'Location' => 'Manchester, UK',
+		'Scope'    => 'Supply & free scheme design',
+		'Lighting' => 'UK-made to order',
+		'Warranty' => '5 years',
+	);
+	$mcols = '';
+	foreach ( $meta as $k => $v ) {
+		$mcols .= '<!-- wp:column --><div class="wp-block-column"><!-- wp:paragraph {"className":"rm-flabel"} --><p class="rm-flabel">' . esc_html( $k ) . '</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>' . esc_html( $v ) . '</p><!-- /wp:paragraph --></div><!-- /wp:column -->';
+	}
+	$metastrip = '<!-- wp:group {"align":"full","backgroundColor":"ink","textColor":"base","className":"rm-dark","style":{"spacing":{"padding":{"top":"var:preset|spacing|50","bottom":"var:preset|spacing|50","left":"var:preset|spacing|50","right":"var:preset|spacing|50"}}},"layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-dark has-base-color has-ink-background-color has-text-color has-background" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--50);padding-left:var(--wp--preset--spacing--50);padding-right:var(--wp--preset--spacing--50)"><!-- wp:columns --><div class="wp-block-columns">' . $mcols . '</div><!-- /wp:columns --></div><!-- /wp:group -->';
+
+	// --- Lead + body, with an "at a glance" facts box ---
+	$glance = '<!-- wp:group {"className":"rm-soft","style":{"spacing":{"padding":{"top":"var:preset|spacing|40","bottom":"var:preset|spacing|40","left":"var:preset|spacing|40","right":"var:preset|spacing|40"}}},"layout":{"type":"constrained"}} --><div class="wp-block-group rm-soft" style="padding-top:var(--wp--preset--spacing--40);padding-bottom:var(--wp--preset--spacing--40);padding-left:var(--wp--preset--spacing--40);padding-right:var(--wp--preset--spacing--40)"><!-- wp:paragraph {"className":"rm-flabel"} --><p class="rm-flabel">Project at a glance</p><!-- /wp:paragraph --><!-- wp:list --><ul class="wp-block-list"><!-- wp:list-item --><li><strong>Sector</strong> — ' . esc_html( $pr[2] ) . '</li><!-- /wp:list-item --><!-- wp:list-item --><li><strong>Location</strong> — Manchester</li><!-- /wp:list-item --><!-- wp:list-item --><li><strong>Avg. UGR</strong> — &lt;19</li><!-- /wp:list-item --><!-- wp:list-item --><li><strong>CRI</strong> — 90+</li><!-- /wp:list-item --><!-- wp:list-item --><li><strong>Energy vs. base</strong> — &minus;52%</li><!-- /wp:list-item --><!-- wp:list-item --><li><strong>Warranty</strong> — 5 years</li><!-- /wp:list-item --></ul><!-- /wp:list --><!-- wp:buttons --><div class="wp-block-buttons"><!-- wp:button {"className":"is-style-outline","width":100} --><div class="wp-block-button is-style-outline has-custom-width wp-block-button__width-100"><a class="wp-block-button__link wp-element-button" href="/products/">View products used →</a></div><!-- /wp:button --></div><!-- /wp:buttons --></div><!-- /wp:group -->';
+
+	$bodytext = '<!-- wp:paragraph {"style":{"typography":{"fontSize":"clamp(1.4rem,2.4vw,1.9rem)","lineHeight":"1.3","fontWeight":"500"}}} --><p style="font-size:clamp(1.4rem,2.4vw,1.9rem);line-height:1.3;font-weight:500">' . $lead . '</p><!-- /wp:paragraph -->' .
+		'<!-- wp:heading {"level":3} --><h3 class="wp-block-heading">The challenge</h3><!-- /wp:heading -->' .
+		'<!-- wp:paragraph --><p>The space needed light that did more than meet a lux level — low glare for comfort, a calm visual rhythm, and a ceiling that felt intentional rather than service-led. Programme mattered too: the floor had to stay usable through the fit-out.</p><!-- /wp:paragraph -->' .
+		'<!-- wp:heading {"level":3} --><h3 class="wp-block-heading">What we specified</h3><!-- /wp:heading -->' .
+		'<!-- wp:paragraph --><p>Our in-house team designed the scheme end to end — photometric study, luminaire schedule and a reflected ceiling layout — then made every fitting to order in Manchester to the exact geometry, delivered phased to suit the programme.</p><!-- /wp:paragraph -->';
+
+	$bodysection = '<!-- wp:group {"align":"full","className":"rm-section","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-section"><!-- wp:columns --><div class="wp-block-columns"><!-- wp:column {"width":"60%"} --><div class="wp-block-column" style="flex-basis:60%">' . $bodytext . '</div><!-- /wp:column --><!-- wp:column {"width":"40%"} --><div class="wp-block-column" style="flex-basis:40%">' . $glance . '</div><!-- /wp:column --></div><!-- /wp:columns --></div><!-- /wp:group -->';
+
+	// --- Quote ---
+	$quote = '<!-- wp:group {"align":"full","className":"rm-soft rm-section","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-soft rm-section"><!-- wp:heading {"textAlign":"center","level":2,"style":{"typography":{"fontWeight":"500","fontSize":"clamp(1.6rem,3.4vw,2.6rem)","lineHeight":"1.2"}}} --><h2 class="wp-block-heading has-text-align-center" style="font-size:clamp(1.6rem,3.4vw,2.6rem);font-weight:500;line-height:1.2">&ldquo;It feels calm, it feels considered — and it was made to our exact ceiling.&rdquo;</h2><!-- /wp:heading --><!-- wp:paragraph {"align":"center","className":"rm-eyebrow"} --><p class="has-text-align-center rm-eyebrow">— Project Architect</p><!-- /wp:paragraph --></div><!-- /wp:group -->';
+
+	// --- Gallery ---
+	$gallery = '<!-- wp:group {"align":"full","className":"rm-section","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-section"><!-- wp:gallery {"columns":2,"linkTo":"none","className":"rm-gallery"} --><figure class="wp-block-gallery has-nested-images columns-2 is-cropped rm-gallery"><!-- wp:image {"sizeSlug":"large"} --><figure class="wp-block-image size-large"><img src="' . $u( 'rico-breakout-lounge.jpg' ) . '" alt=""/></figure><!-- /wp:image --><!-- wp:image {"sizeSlug":"large"} --><figure class="wp-block-image size-large"><img src="' . $u( 'rico-product-boards.jpg' ) . '" alt=""/></figure><!-- /wp:image --></figure><!-- /wp:gallery --></div><!-- /wp:group -->';
+
+	// --- Products used ---
+	$cards = '';
+	if ( ! empty( $pr[4] ) ) {
+		$imgmap = array( 'flow-plus' => 'arch-line.jpg', 'estrella' => 'estrella-lounge.webp', 'neptune' => 'ceiling.jpg' );
+		foreach ( $pr[4] as $ps => $pn ) {
+			$im   = isset( $imgmap[ $ps ] ) ? $imgmap[ $ps ] : 'ceiling.jpg';
+			$href = '/products/' . $ps . '/';
+			$cards .= '<!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"rm-card","layout":{"type":"constrained"}} --><div class="wp-block-group rm-card"><!-- wp:image {"linkDestination":"custom"} --><figure class="wp-block-image size-large"><a href="' . $href . '"><img src="' . $u( $im ) . '" alt="' . esc_attr( $pn ) . '"/></a></figure><!-- /wp:image --><!-- wp:heading {"level":3} --><h3 class="wp-block-heading"><a href="' . $href . '">' . esc_html( $pn ) . '</a></h3><!-- /wp:heading --></div><!-- /wp:group --></div><!-- /wp:column -->';
+		}
+		$products = '<!-- wp:group {"align":"full","className":"rm-section","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-section"><!-- wp:paragraph {"className":"rm-eyebrow"} --><p class="rm-eyebrow">Products specified</p><!-- /wp:paragraph --><!-- wp:heading {"level":2,"className":"rm-shead"} --><h2 class="wp-block-heading rm-shead">What&rsquo;s in this scheme</h2><!-- /wp:heading --><!-- wp:columns --><div class="wp-block-columns">' . $cards . '</div><!-- /wp:columns --></div><!-- /wp:group -->';
+	} else {
+		$products = '';
+	}
+
+	return $metastrip . $bodysection . $quote . $gallery . $products;
+}
+
+/**
+ * Lighter case-study body for the "simple" project template (the template already
+ * renders title, excerpt and featured image).
+ *
+ * @param array $pr [ title, image, sector, excerpt, products(assoc slug=>name) ].
+ */
+function ricoman_project_simple_content( $pr ) {
+	$out  = '<!-- wp:paragraph --><p>Our in-house team designed and supplied the lighting for this ' . esc_html( strtolower( $pr[2] ) ) . ' scheme — a free photometric design, UK-made luminaires built to order in Manchester, and delivery to programme.</p><!-- /wp:paragraph -->';
+	$out .= '<!-- wp:paragraph --><p>Low-glare optics, high-CRI light and a 5-year warranty throughout, with value-engineered options kept on the table from the first drawing.</p><!-- /wp:paragraph -->';
+	if ( ! empty( $pr[4] ) ) {
+		$links = array();
+		foreach ( $pr[4] as $ps => $pn ) {
+			$links[] = '<a href="/products/' . $ps . '/">' . esc_html( $pn ) . '</a>';
+		}
+		$out .= '<!-- wp:heading {"level":3} --><h3 class="wp-block-heading">Products used</h3><!-- /wp:heading -->';
+		$out .= '<!-- wp:paragraph --><p>' . implode( ' · ', $links ) . '</p><!-- /wp:paragraph -->';
 	}
 	return $out;
 }

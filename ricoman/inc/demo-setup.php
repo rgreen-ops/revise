@@ -98,7 +98,7 @@ function ricoman_set_featured_from_theme( $post_id, $file ) {
 }
 
 function ricoman_scaffold_site() {
-	if ( get_option( 'ricoman_scaffold_v14' ) ) {
+	if ( get_option( 'ricoman_scaffold_v15' ) ) {
 		return;
 	}
 
@@ -131,15 +131,26 @@ function ricoman_scaffold_site() {
 		update_option( 'show_on_front', 'page' );
 		update_option( 'page_on_front', $home_id );
 	}
-	$pages = array(
-		'lighting-design' => array( 'Lighting Design', 'ricoman/page-lighting' ),
-		'manufacturing'   => array( 'Manufacturing', 'ricoman/page-manufacturing' ),
-		'about'           => array( 'About', 'ricoman/page-about' ),
-		'my-project'      => array( 'My Project', 'ricoman/page-my-project' ),
+	// About / Manufacturing / Lighting Design — native editable block stacks
+	// (recreated from the original previews as add/remove sections).
+	$native_pages = array(
+		'lighting-design' => array( 'Lighting Design', 'ricoman_lighting_blocks' ),
+		'manufacturing'   => array( 'Manufacturing', 'ricoman_manufacturing_blocks' ),
+		'about'           => array( 'About', 'ricoman_about_blocks' ),
 	);
-	foreach ( $pages as $slug => $info ) {
-		ricoman_upsert_page( $info[0], $slug, $info[1], 'page-plain' );
+	foreach ( $native_pages as $slug => $info ) {
+		$content = function_exists( $info[1] ) ? call_user_func( $info[1] ) : ricoman_pattern_content( 'ricoman/home' );
+		$existing = get_page_by_path( $slug );
+		if ( $existing && 'page' === $existing->post_type ) {
+			wp_update_post( array( 'ID' => $existing->ID, 'post_content' => $content ) );
+			update_post_meta( $existing->ID, '_wp_page_template', 'page-plain' );
+		} else {
+			ricoman_make_post( 'page', $info[0], $slug, $content, 'page-plain' );
+		}
 	}
+
+	// My Project — utility page (still a simple pattern).
+	ricoman_upsert_page( 'My Project', 'my-project', 'ricoman/page-my-project', 'page-plain' );
 
 	// Flow+ Designer — full-screen embedded customer tool.
 	$fd = ricoman_make_post( 'page', 'Flow+ Designer', 'flow-designer', '<!-- wp:paragraph --><p>Flow+ Designer.</p><!-- /wp:paragraph -->', 'page-flow-designer' );
@@ -232,24 +243,26 @@ function ricoman_scaffold_site() {
 		'campus-library'  => array( 'Campus Library', 'office5.jpg', 'Education', 'Comfortable, low-glare light for study and reading areas across a university library.', array( 'neptune' => 'Neptune' ) ),
 		'studio-hq'       => array( 'Studio HQ', 'office6.jpg', 'Workplace', 'A creative studio headquarters lit for focus and atmosphere in equal measure.', array() ),
 	);
+	// Show both project layouts: a few rich "feature" case studies, the rest "simple".
+	$feature_projects = array( 'allianz-hq', 'acoustic-ceiling', 'flagship-store', 'betfred-hq' );
 	foreach ( $projects as $slug => $pr ) {
-		$content  = '<!-- wp:paragraph {"style":{"typography":{"fontSize":"1.15rem"}}} --><p style="font-size:1.15rem">' . esc_html( $pr[3] ) . '</p><!-- /wp:paragraph -->';
-		if ( ! empty( $pr[4] ) ) {
-			$links = array();
-			foreach ( $pr[4] as $ps => $pn ) {
-				$links[] = '<a href="/products/' . $ps . '/">' . esc_html( $pn ) . '</a>';
-			}
-			$content .= '<!-- wp:heading {"level":3} --><h3 class="wp-block-heading">Products used</h3><!-- /wp:heading -->';
-			$content .= '<!-- wp:paragraph --><p>' . implode( ' · ', $links ) . '</p><!-- /wp:paragraph -->';
+		$is_feature = in_array( $slug, $feature_projects, true );
+		if ( $is_feature && function_exists( 'ricoman_project_feature_content' ) ) {
+			$content = ricoman_project_feature_content( $pr );
+		} elseif ( function_exists( 'ricoman_project_simple_content' ) ) {
+			$content = ricoman_project_simple_content( $pr );
+		} else {
+			$content = '<!-- wp:paragraph --><p>' . esc_html( $pr[3] ) . '</p><!-- /wp:paragraph -->';
 		}
 		$prid = ricoman_make_post( 'project', $pr[0], $slug, $content );
 		if ( $prid ) {
 			wp_update_post( array( 'ID' => $prid, 'post_content' => $content, 'post_excerpt' => $pr[3] ) );
 			wp_set_object_terms( $prid, $pr[2], 'application' );
 			ricoman_set_featured_from_theme( $prid, $pr[1] );
+			update_post_meta( $prid, '_wp_page_template', $is_feature ? 'single-project' : 'single-project-simple' );
 		}
 	}
 
 	flush_rewrite_rules( true );
-	update_option( 'ricoman_scaffold_v14', 1 );
+	update_option( 'ricoman_scaffold_v15', 1 );
 }

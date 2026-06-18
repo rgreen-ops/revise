@@ -3,57 +3,80 @@
  * Title: Products listing
  * Slug: ricoman/products-archive
  * Categories: ricoman, ricoman-pages
- * Description: Products range listing — hero, filter rail, category groups, applications, CTA.
+ * Description: Products range listing — native editable blocks (hero, category grids, applications, CTA).
  *
  * @package Ricoman
  */
-$img = function ( $f ) { return esc_url( get_theme_file_uri( 'assets/images/' . $f ) ); };
-?>
-<!-- wp:html -->
-<section class="phero">
-  <div class="bg" style="background-image:url(<?php echo $img( 'arch-line.jpg' ); ?>)"></div><div class="scrim"></div>
-  <div class="inner"><div class="wrap">
-    <span class="kick lt">Our Lighting Range</span>
-    <h1>Commercial luminaires, made to specify.</h1>
-    <p class="lede">Over 500 interior fittings across linear, downlights, pendants, track and modular ranges — held in UK stock and made to order in Manchester.</p>
-  </div></div>
-</section>
+$u       = function ( $f ) { return esc_url( get_theme_file_uri( 'assets/images/' . $f ) ); };
+$eyebrow = function ( $t ) { return '<!-- wp:paragraph {"className":"rm-eyebrow"} --><p class="rm-eyebrow">' . $t . '</p><!-- /wp:paragraph -->'; };
+$shead   = function ( $t ) { return '<!-- wp:heading {"level":2,"className":"rm-shead"} --><h2 class="wp-block-heading rm-shead">' . $t . '</h2><!-- /wp:heading -->'; };
+$para    = function ( $t ) { return '<!-- wp:paragraph {"textColor":"muted"} --><p class="has-muted-color has-text-color">' . $t . '</p><!-- /wp:paragraph -->'; };
+$btn     = function ( $label, $href, $light = true ) { return '<!-- wp:button {"className":"is-style-outline' . ( $light ? '-light' : '' ) . '"} --><div class="wp-block-button is-style-outline' . ( $light ? '-light' : '' ) . '"><a class="wp-block-button__link wp-element-button" href="' . $href . '">' . $label . '</a></div><!-- /wp:button -->'; };
+$buttons = function ( $inner, $center = false ) { return '<!-- wp:buttons' . ( $center ? ' {"layout":{"type":"flex","justifyContent":"center"}}' : '' ) . ' --><div class="wp-block-buttons' . ( $center ? ' is-content-justification-center' : '' ) . '">' . $inner . '</div><!-- /wp:buttons -->'; };
+$sec     = function ( $inner, $cls = '' ) { return '<!-- wp:group {"align":"full","className":"rm-section ' . $cls . '","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-section ' . $cls . '">' . $inner . '</div><!-- /wp:group -->'; };
+$cover   = function ( $url, $inner, $min, $pos, $dim ) {
+	$poscls = 'center center' === $pos ? '' : ' has-custom-content-position is-position-' . str_replace( ' ', '-', $pos );
+	return '<!-- wp:cover {"url":"' . $url . '","dimRatio":' . $dim . ',"overlayColor":"ink","minHeight":' . $min . ',"minHeightUnit":"vh","contentPosition":"' . $pos . '","align":"full","textColor":"base"} --><div class="wp-block-cover alignfull has-base-color has-text-color' . $poscls . '" style="min-height:' . $min . 'vh"><span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-' . $dim . ' has-background-dim"></span><img class="wp-block-cover__image-background" alt="" src="' . $url . '" data-object-fit="cover"/><div class="wp-block-cover__inner-container">' . $inner . '</div></div><!-- /wp:cover -->';
+};
+// Product card: linked image + small label + title + spec line. No pricing.
+$pcard = function ( $url, $label, $title, $spec, $href ) {
+	$img = '<!-- wp:image {"linkDestination":"custom"} --><figure class="wp-block-image size-large"><a href="' . $href . '"><img src="' . $url . '" alt="' . esc_attr( $title ) . '"/></a></figure><!-- /wp:image -->';
+	return '<!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"rm-card","layout":{"type":"constrained"}} --><div class="wp-block-group rm-card">' . $img .
+		'<!-- wp:paragraph {"className":"rm-eyebrow","fontSize":"small"} --><p class="rm-eyebrow has-small-font-size">' . $label . '</p><!-- /wp:paragraph -->' .
+		'<!-- wp:heading {"level":3} --><h3 class="wp-block-heading"><a href="' . $href . '">' . $title . '</a></h3><!-- /wp:heading -->' .
+		'<!-- wp:paragraph {"textColor":"muted","fontSize":"small"} --><p class="has-muted-color has-text-color has-small-font-size">' . $spec . '</p><!-- /wp:paragraph -->' .
+		'</div><!-- /wp:group --></div><!-- /wp:column -->';
+};
+// Application tile: cover with overlaid label, links to projects.
+$ptile = function ( $url, $title, $sub, $href ) {
+	return '<!-- wp:column --><div class="wp-block-column"><!-- wp:cover {"url":"' . $url . '","dimRatio":40,"overlayColor":"ink","minHeight":300,"contentPosition":"bottom left","isLink":true,"href":"' . $href . '"} --><div class="wp-block-cover has-custom-content-position is-position-bottom-left" style="min-height:300px"><span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-40 has-background-dim"></span><img class="wp-block-cover__image-background" alt="" src="' . $url . '" data-object-fit="cover"/><div class="wp-block-cover__inner-container"><!-- wp:heading {"level":3,"textColor":"base"} --><h3 class="wp-block-heading has-base-color has-text-color">' . $title . '</h3><!-- /wp:heading --><!-- wp:paragraph {"className":"rm-eyebrow","textColor":"base"} --><p class="rm-eyebrow has-base-color has-text-color">' . $sub . '</p><!-- /wp:paragraph --></div></div><!-- /wp:cover --></div><!-- /wp:column -->';
+};
 
-<div class="filter"><div class="wrap">
-  <span class="chip on">All ranges</span><span class="chip">Linear</span><span class="chip">Downlights</span><span class="chip">Pendants</span><span class="chip">Track &amp; Spot</span><span class="chip">Modular Recessed</span><span class="chip">Biophilic</span><span class="chip">Acoustic</span>
-  <span class="chip" style="margin-left:auto;border-color:var(--blue);color:var(--blue)">＋ Request a price</span>
-</div></div>
+echo $cover(
+	$u( 'arch-line.jpg' ),
+	$eyebrow( 'Our Lighting Range' ) .
+	'<!-- wp:heading {"level":1,"style":{"typography":{"fontWeight":"500","fontSize":"clamp(2.6rem, 6vw, 5rem)","lineHeight":"1"}}} --><h1 class="wp-block-heading" style="font-size:clamp(2.6rem, 6vw, 5rem);font-weight:500;line-height:1">Commercial luminaires, made to specify.</h1><!-- /wp:heading -->' .
+	$para( 'Over 500 interior fittings across linear, downlights, pendants, track and modular ranges — held in UK stock and made to order in Manchester.' ),
+	62,
+	'bottom left',
+	50
+);
 
-<section class="sec"><div class="wrap">
-  <div class="catrow"><h2>Linear Lighting</h2><span class="ct">Continuous runs &amp; profile systems</span></div>
-  <div class="pgrid">
-    <a class="pc" href="/products/flow-plus/"><div class="ph"><span class="badge blue">Featured</span><img src="<?php echo $img( 'arch-line.jpg' ); ?>" alt="Flow+"></div><div class="body"><small>Linear · Made to order</small><h3>Flow+</h3><div class="spec"><span>Up to 180 lm/W</span><span>CRI 90+</span><span>Bendable</span></div><div class="foot"><span class="price">Request a price</span><span class="ar">→</span></div></div></a>
-    <a class="pc" href="/products/"><div class="ph"><img src="<?php echo $img( 'ceiling.jpg' ); ?>" alt="Edge 35"></div><div class="body"><small>Linear · Recessed</small><h3>Edge 35</h3><div class="spec"><span>Trimless</span><span>CCT switch</span><span>IP20</span></div><div class="foot"><span class="price">Request a price</span><span class="ar">→</span></div></div></a>
-    <a class="pc" href="/products/"><div class="ph"><img src="<?php echo $img( 'office5.jpg' ); ?>" alt="Line Pro"></div><div class="body"><small>Linear · Suspended</small><h3>Line Pro</h3><div class="spec"><span>Up-/down-light</span><span>DALI</span><span>1.5m / 2.4m</span></div><div class="foot"><span class="price">Request a price</span><span class="ar">→</span></div></div></a>
-    <a class="pc" href="/products/"><div class="ph"><img src="<?php echo $img( 'rico-acoustic-corridor.jpg' ); ?>" alt="Astrawave"></div><div class="body"><small>Acoustic · Linear</small><h3>Astrawave</h3><div class="spec"><span>Sound-absorbing</span><span>UGR&lt;19</span><span>Bespoke</span></div><div class="foot"><span class="price">Request a price</span><span class="ar">→</span></div></div></a>
-  </div>
+echo $sec(
+	$eyebrow( 'Linear Lighting' ) . $shead( 'Continuous runs &amp; profile systems' ) .
+	'<!-- wp:columns --><div class="wp-block-columns">' .
+	$pcard( $u( 'arch-line.jpg' ), 'Linear · Made to order', 'Flow+', 'Up to 180 lm/W · CRI 90+ · Bendable', '/products/flow-plus/' ) .
+	$pcard( $u( 'ceiling.jpg' ), 'Linear · Recessed', 'Edge 35', 'Trimless · CCT switch · IP20', '/products/' ) .
+	$pcard( $u( 'office5.jpg' ), 'Linear · Suspended', 'Line Pro', 'Up-/down-light · DALI · 1.5m / 2.4m', '/products/' ) .
+	$pcard( $u( 'rico-acoustic-corridor.jpg' ), 'Acoustic · Linear', 'Astrawave', 'Sound-absorbing · UGR&lt;19 · Bespoke', '/products/' ) .
+	'</div><!-- /wp:columns -->'
+);
 
-  <div class="catrow"><h2>Downlights &amp; Pendants</h2><span class="ct">Fire-rated, decorative &amp; configurable</span></div>
-  <div class="pgrid">
-    <a class="pc" href="/products/neptune/"><div class="ph"><span class="badge blue">Featured</span><img src="<?php echo $img( 'ceiling.jpg' ); ?>" alt="Neptune"></div><div class="body"><small>Downlight · Fire-rated</small><h3>Neptune</h3><div class="spec"><span>90 min</span><span>IP65</span><span>Tri-CCT</span></div><div class="foot"><span class="price">Request a price</span><span class="ar">→</span></div></div></a>
-    <a class="pc" href="/products/estrella/"><div class="ph"><span class="badge blue">Configurable</span><img src="<?php echo $img( 'estrella-lounge.webp' ); ?>" alt="Estrella"></div><div class="body"><small>Pendant · Configurable</small><h3>Estrella</h3><div class="spec"><span>Build to spec</span><span>Finishes</span><span>CRI 90+</span></div><div class="foot"><span class="price">Configure →</span><span class="ar">→</span></div></div></a>
-    <a class="pc" href="/products/"><div class="ph"><img src="<?php echo $img( 'pendant.jpg' ); ?>" alt="Halo Ring"></div><div class="body"><small>Pendant · Architectural</small><h3>Halo Ring</h3><div class="spec"><span>Ø600–1200</span><span>Up/down</span><span>Bespoke</span></div><div class="foot"><span class="price">Request a price</span><span class="ar">→</span></div></div></a>
-    <a class="pc" href="/products/"><div class="ph"><img src="<?php echo $img( 'rico-z62.webp' ); ?>" alt="Z62"></div><div class="body"><small>Pendant · Decorative</small><h3>Z62</h3><div class="spec"><span>Warm 2700K</span><span>Dimmable</span><span>Brass / Black</span></div><div class="foot"><span class="price">Request a price</span><span class="ar">→</span></div></div></a>
-  </div>
-</div></section>
+echo $sec(
+	$eyebrow( 'Downlights &amp; Pendants' ) . $shead( 'Fire-rated, decorative &amp; configurable' ) .
+	'<!-- wp:columns --><div class="wp-block-columns">' .
+	$pcard( $u( 'ceiling.jpg' ), 'Downlight · Fire-rated', 'Neptune', '90 min · IP65 · Tri-CCT', '/products/neptune/' ) .
+	$pcard( $u( 'estrella-lounge.webp' ), 'Pendant · Configurable', 'Estrella', 'Build to spec · Finishes · CRI 90+', '/products/estrella/' ) .
+	$pcard( $u( 'pendant.jpg' ), 'Pendant · Architectural', 'Halo Ring', 'Ø600–1200 · Up/down · Bespoke', '/products/' ) .
+	$pcard( $u( 'rico-z62.webp' ), 'Pendant · Decorative', 'Z62', 'Warm 2700K · Dimmable · Brass / Black', '/products/' ) .
+	'</div><!-- /wp:columns -->'
+);
 
-<section class="sec apps"><div class="wrap">
-  <div class="shead"><div><span class="kick">Shop by application</span><h2>Find the right light for the space</h2></div><a class="lnk" href="/projects/">See it in projects →</a></div>
-  <div class="appgrid">
-    <a class="app" href="/projects/"><img src="<?php echo $img( 'office1.jpg' ); ?>" alt="Workplace"><div class="ov"><h3>Workplace</h3><small>Offices · UGR&lt;19</small></div></a>
-    <a class="app" href="/projects/"><img src="<?php echo $img( 'retail.jpg' ); ?>" alt="Retail"><div class="ov"><h3>Retail</h3><small>Accent · High CRI</small></div></a>
-    <a class="app" href="/projects/"><img src="<?php echo $img( 'office2.jpg' ); ?>" alt="Hospitality"><div class="ov"><h3>Hospitality</h3><small>Warm · Dimmable</small></div></a>
-  </div>
-</div></section>
+echo $sec(
+	$eyebrow( 'Shop by application' ) . $shead( 'Find the right light for the space' ) .
+	'<!-- wp:columns --><div class="wp-block-columns">' .
+	$ptile( $u( 'office1.jpg' ), 'Workplace', 'Offices · UGR&lt;19', '/projects/' ) .
+	$ptile( $u( 'retail.jpg' ), 'Retail', 'Accent · High CRI', '/projects/' ) .
+	$ptile( $u( 'office2.jpg' ), 'Hospitality', 'Warm · Dimmable', '/projects/' ) .
+	'</div><!-- /wp:columns -->'
+);
 
-<section class="cta"><div class="bg" style="background-image:url(<?php echo $img( 'office1.jpg' ); ?>)"></div><div class="scrim"></div><div class="inner"><div class="wrap col">
-  <h2>Can't find the exact fitting?</h2>
-  <p>Send us a finishes schedule or a drawing and our in-house team will spec the range, beam and finish — and return a costed list, usually within 3–5 days.</p>
-  <div class="acts"><a class="btn btn-line" href="/lighting-design/">Free Scheme Design</a><a class="btn btn-solid" style="background:#fff;color:var(--ink)" href="/about/">Talk to the team →</a></div>
-</div></div></section>
-<!-- /wp:html -->
+echo $cover(
+	$u( 'office1.jpg' ),
+	'<!-- wp:heading {"textAlign":"center","level":2} --><h2 class="wp-block-heading has-text-align-center">Can&rsquo;t find the exact fitting?</h2><!-- /wp:heading -->' .
+	'<!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">Send us a finishes schedule or a drawing and our in-house team will spec the range, beam and finish — and return a costed scheme, usually within 3–5 days.</p><!-- /wp:paragraph -->' .
+	$buttons( $btn( 'Free Scheme Design', '/lighting-design/' ) . $btn( 'Talk to the team →', '/about/', false ), true ),
+	52,
+	'center center',
+	70
+);

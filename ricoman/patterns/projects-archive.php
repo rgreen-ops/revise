@@ -3,42 +3,59 @@
  * Title: Projects listing
  * Slug: ricoman/projects-archive
  * Categories: ricoman, ricoman-pages
- * Description: Projects listing — hero, sector filter, case-study mosaic, CTA.
+ * Description: Projects listing — native editable blocks (hero, case-study grid, CTA).
  *
  * @package Ricoman
  */
-$img = function ( $f ) { return esc_url( get_theme_file_uri( 'assets/images/' . $f ) ); };
-?>
-<!-- wp:html -->
-<section class="phero">
-  <div class="bg" style="background-image:url(<?php echo $img( 'office1.jpg' ); ?>)"></div><div class="scrim"></div>
-  <div class="inner"><div class="wrap">
-    <span class="kick lt">Selected Work</span>
-    <h1>Light that performs in the real world.</h1>
-    <p class="lede">From workplace fit-outs to flagship retail, our luminaires are specified, delivered and installed across the UK.</p>
-  </div></div>
-</section>
+$u       = function ( $f ) { return esc_url( get_theme_file_uri( 'assets/images/' . $f ) ); };
+$eyebrow = function ( $t ) { return '<!-- wp:paragraph {"className":"rm-eyebrow"} --><p class="rm-eyebrow">' . $t . '</p><!-- /wp:paragraph -->'; };
+$shead   = function ( $t ) { return '<!-- wp:heading {"level":2,"className":"rm-shead"} --><h2 class="wp-block-heading rm-shead">' . $t . '</h2><!-- /wp:heading -->'; };
+$para    = function ( $t ) { return '<!-- wp:paragraph {"textColor":"muted"} --><p class="has-muted-color has-text-color">' . $t . '</p><!-- /wp:paragraph -->'; };
+$btn     = function ( $label, $href, $light = true ) { return '<!-- wp:button {"className":"is-style-outline' . ( $light ? '-light' : '' ) . '"} --><div class="wp-block-button is-style-outline' . ( $light ? '-light' : '' ) . '"><a class="wp-block-button__link wp-element-button" href="' . $href . '">' . $label . '</a></div><!-- /wp:button -->'; };
+$buttons = function ( $inner, $center = false ) { return '<!-- wp:buttons' . ( $center ? ' {"layout":{"type":"flex","justifyContent":"center"}}' : '' ) . ' --><div class="wp-block-buttons' . ( $center ? ' is-content-justification-center' : '' ) . '">' . $inner . '</div><!-- /wp:buttons -->'; };
+$sec     = function ( $inner, $cls = '' ) { return '<!-- wp:group {"align":"full","className":"rm-section ' . $cls . '","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-section ' . $cls . '">' . $inner . '</div><!-- /wp:group -->'; };
+$cover   = function ( $url, $inner, $min, $pos, $dim ) {
+	$poscls = 'center center' === $pos ? '' : ' has-custom-content-position is-position-' . str_replace( ' ', '-', $pos );
+	return '<!-- wp:cover {"url":"' . $url . '","dimRatio":' . $dim . ',"overlayColor":"ink","minHeight":' . $min . ',"minHeightUnit":"vh","contentPosition":"' . $pos . '","align":"full","textColor":"base"} --><div class="wp-block-cover alignfull has-base-color has-text-color' . $poscls . '" style="min-height:' . $min . 'vh"><span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-' . $dim . ' has-background-dim"></span><img class="wp-block-cover__image-background" alt="" src="' . $url . '" data-object-fit="cover"/><div class="wp-block-cover__inner-container">' . $inner . '</div></div><!-- /wp:cover -->';
+};
+// Project tile: cover with sector eyebrow + title, links to the case study.
+$tile = function ( $url, $sub, $title, $href, $min = 320 ) {
+	return '<!-- wp:column --><div class="wp-block-column"><!-- wp:cover {"url":"' . $url . '","dimRatio":40,"overlayColor":"ink","minHeight":' . $min . ',"contentPosition":"bottom left","isLink":true,"href":"' . $href . '"} --><div class="wp-block-cover has-custom-content-position is-position-bottom-left" style="min-height:' . $min . 'px"><span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-40 has-background-dim"></span><img class="wp-block-cover__image-background" alt="" src="' . $url . '" data-object-fit="cover"/><div class="wp-block-cover__inner-container"><!-- wp:paragraph {"className":"rm-eyebrow","textColor":"base"} --><p class="rm-eyebrow has-base-color has-text-color">' . $sub . '</p><!-- /wp:paragraph --><!-- wp:heading {"level":3,"textColor":"base"} --><h3 class="wp-block-heading has-base-color has-text-color">' . $title . '</h3><!-- /wp:heading --></div></div><!-- /wp:cover --></div><!-- /wp:column -->';
+};
 
-<div class="filter"><div class="wrap">
-  <span class="chip on">All sectors</span><span class="chip">Workplace</span><span class="chip">Retail</span><span class="chip">Hospitality</span><span class="chip">Healthcare</span><span class="chip">Education</span><span class="chip">Leisure</span>
-</div></div>
+echo $cover(
+	$u( 'office1.jpg' ),
+	$eyebrow( 'Selected Work' ) .
+	'<!-- wp:heading {"level":1,"style":{"typography":{"fontWeight":"500","fontSize":"clamp(2.6rem, 6vw, 5rem)","lineHeight":"1"}}} --><h1 class="wp-block-heading" style="font-size:clamp(2.6rem, 6vw, 5rem);font-weight:500;line-height:1">Light that performs in the real world.</h1><!-- /wp:heading -->' .
+	$para( 'From workplace fit-outs to flagship retail, our luminaires are specified, delivered and installed across the UK.' ),
+	62,
+	'bottom left',
+	50
+);
 
-<section class="sec tight"><div class="wrap">
-  <div class="mosaic">
-    <a class="pj big" href="/projects/acoustic-ceiling/"><span class="tagp">Case study</span><img src="<?php echo $img( 'rico-acoustic-corridor.jpg' ); ?>" alt="Acoustic linear ceiling"><div class="ov"><small>Commercial Office · Manchester</small><h3>Acoustic linear ceiling</h3></div></a>
-    <a class="pj wide" href="/projects/flagship-store/"><img src="<?php echo $img( 'retail.jpg' ); ?>" alt="Flagship store"><div class="ov"><small>Retail · Manchester</small><h3>Flagship Store</h3></div></a>
-    <a class="pj" href="/projects/breakout-lounge/"><span class="tagp">Case study</span><img src="<?php echo $img( 'rico-breakout-lounge.jpg' ); ?>" alt="Breakout lounge"><div class="ov"><small>Workplace · Amenity</small><h3>Breakout lounge</h3></div></a>
-    <a class="pj" href="/projects/boutique-hotel/"><img src="<?php echo $img( 'office2.jpg' ); ?>" alt="Boutique hotel"><div class="ov"><small>Hospitality</small><h3>Boutique Hotel</h3></div></a>
-    <a class="pj" href="/projects/betfred-hq/"><img src="<?php echo $img( 'rico-betfred7.webp' ); ?>" alt="Betfred HQ"><div class="ov"><small>Workplace · Warrington</small><h3>Betfred HQ</h3></div></a>
-    <a class="pj" href="/projects/kingsgate/"><img src="<?php echo $img( 'rico-kingsgate.png' ); ?>" alt="Kingsgate"><div class="ov"><small>Retail · London</small><h3>Kingsgate</h3></div></a>
-    <a class="pj wide" href="/projects/estrella-canteen/"><img src="<?php echo $img( 'estrella-canteen.jpg' ); ?>" alt="Estrella canteen"><div class="ov"><small>Hospitality · Staff dining</small><h3>Estrella Canteen</h3></div></a>
-    <a class="pj" href="/projects/campus-library/"><img src="<?php echo $img( 'office5.jpg' ); ?>" alt="Campus library"><div class="ov"><small>Education</small><h3>Campus Library</h3></div></a>
-  </div>
-</div></section>
+echo $sec(
+	'<!-- wp:columns --><div class="wp-block-columns">' .
+	$tile( $u( 'rico-acoustic-corridor.jpg' ), 'Commercial Office · Manchester', 'Acoustic linear ceiling', '/projects/acoustic-ceiling/', 420 ) .
+	$tile( $u( 'retail.jpg' ), 'Retail · Manchester', 'Flagship Store', '/projects/flagship-store/', 420 ) .
+	'</div><!-- /wp:columns -->' .
+	'<!-- wp:columns --><div class="wp-block-columns">' .
+	$tile( $u( 'rico-breakout-lounge.jpg' ), 'Workplace · Amenity', 'Breakout lounge', '/projects/breakout-lounge/' ) .
+	$tile( $u( 'office2.jpg' ), 'Hospitality', 'Boutique Hotel', '/projects/boutique-hotel/' ) .
+	$tile( $u( 'rico-betfred7.webp' ), 'Workplace · Warrington', 'Betfred HQ', '/projects/betfred-hq/' ) .
+	'</div><!-- /wp:columns -->' .
+	'<!-- wp:columns --><div class="wp-block-columns">' .
+	$tile( $u( 'rico-kingsgate.png' ), 'Retail · London', 'Kingsgate', '/projects/kingsgate/' ) .
+	$tile( $u( 'estrella-canteen.jpg' ), 'Hospitality · Staff dining', 'Estrella Canteen', '/projects/estrella-canteen/' ) .
+	$tile( $u( 'office5.jpg' ), 'Education', 'Campus Library', '/projects/campus-library/' ) .
+	'</div><!-- /wp:columns -->'
+);
 
-<section class="cta"><div class="bg" style="background-image:url(<?php echo $img( 'office6.jpg' ); ?>)"></div><div class="scrim"></div><div class="inner"><div class="wrap col">
-  <h2>Have a project on the board?</h2>
-  <p>Send us your drawings or a finishes schedule and our in-house lighting designers will return a fully specified, costed scheme — usually within 3–5 days.</p>
-  <div class="acts"><a class="btn btn-line" href="/lighting-design/">Start a Project</a><a class="btn btn-solid" style="background:#fff;color:var(--ink)" href="/about/">Talk to the design team →</a></div>
-</div></div></section>
-<!-- /wp:html -->
+echo $cover(
+	$u( 'office6.jpg' ),
+	'<!-- wp:heading {"textAlign":"center","level":2} --><h2 class="wp-block-heading has-text-align-center">Have a project on the board?</h2><!-- /wp:heading -->' .
+	'<!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">Send us your drawings or a finishes schedule and our in-house lighting designers will return a fully specified, costed scheme — usually within 3–5 days.</p><!-- /wp:paragraph -->' .
+	$buttons( $btn( 'Start a Project', '/lighting-design/' ) . $btn( 'Talk to the design team →', '/about/', false ), true ),
+	52,
+	'center center',
+	70
+);
