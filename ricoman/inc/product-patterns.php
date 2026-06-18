@@ -29,12 +29,17 @@ add_action( 'init', function () {
 	$p = array();
 
 	$p['product-hero'] = array( 'Product · Hero', '<!-- wp:cover {"useFeaturedImage":true,"dimRatio":50,"overlayColor":"ink","minHeight":70,"minHeightUnit":"vh","contentPosition":"bottom left","align":"full","textColor":"base"} -->
-<div class="wp-block-cover alignfull has-base-color has-text-color has-custom-content-position is-position-bottom-left" style="min-height:70vh"><span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-50 has-background-dim"></span><div class="wp-block-cover__inner-container"><!-- wp:post-terms {"term":"product_cat","className":"rm-eyebrow"} /--><!-- wp:post-title {"level":1,"style":{"typography":{"fontWeight":"500","fontSize":"clamp(2.4rem, 6vw, 5rem)","lineHeight":"1"}}} /-->' . $sc( 'ricoman_product_tagline' ) . '</div></div>
+<div class="wp-block-cover alignfull has-base-color has-text-color has-custom-content-position is-position-bottom-left" style="min-height:70vh"><span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-50 has-background-dim"></span><div class="wp-block-cover__inner-container"><!-- wp:shortcode -->[ricoman_breadcrumbs]<!-- /wp:shortcode --><!-- wp:post-terms {"term":"product_cat","className":"rm-eyebrow"} /--><!-- wp:post-title {"level":1,"style":{"typography":{"fontWeight":"500","fontSize":"clamp(2.4rem, 6vw, 5rem)","lineHeight":"1"}}} /-->' . $sc( 'ricoman_product_tagline' ) . '</div></div>
 <!-- /wp:cover -->' );
 
 	$p['product-gallery'] = array( 'Product · Gallery', $sec( $sc( 'ricoman_product_gallery' ) ) );
 
-	$p['product-configure'] = array( 'Product · Configurator', $sec( $sc( 'ricoman_configurator' ) ) );
+	$p['product-configure'] = array( 'Product · Configurator (single code)', $sec( $sc( 'ricoman_configurator' ) ) );
+
+	// Variant range — lists EVERY product/variant in the linked RICOBOT family,
+	// with live filter chips; pick one to configure. Family comes from the
+	// Product Builder ("RICOBOT family"), so a bare [ricoman_family] just works.
+	$p['product-range'] = array( 'Product · Variant range (whole family)', $sec( '<!-- wp:heading {"level":2,"className":"rm-shead"} --><h2 class="wp-block-heading rm-shead">Choose your variant</h2><!-- /wp:heading --><!-- wp:paragraph {"textColor":"muted"} --><p class="has-muted-color has-text-color">Filter the full range, then pick a code to configure — datasheet and project actions, no pricing.</p><!-- /wp:paragraph -->' . $sc( 'ricoman_family' ) ) );
 
 	$p['product-specs'] = array( 'Product · Specifications', $sec( $sc( 'ricoman_product_lead' ) . '<!-- wp:heading {"level":2,"className":"rm-shead"} --><h2 class="wp-block-heading rm-shead">Specifications</h2><!-- /wp:heading -->' . $sc( 'ricoman_product_specs' ) ) );
 
@@ -76,7 +81,7 @@ add_action( 'init', function () {
  * a starting point). Returns block markup referencing the product patterns.
  */
 function ricoman_default_product_blocks() {
-	$stack = array( 'product-hero', 'product-specs', 'product-configure', 'product-gallery', 'product-keyinfo', 'product-accessories', 'product-downloads', 'product-cta' );
+	$stack = array( 'product-hero', 'product-specs', 'product-range', 'product-gallery', 'product-keyinfo', 'product-accessories', 'product-downloads', 'product-cta' );
 	$out   = '';
 	foreach ( $stack as $slug ) {
 		$out .= '<!-- wp:pattern {"slug":"ricoman/' . $slug . '"} /-->' . "\n";

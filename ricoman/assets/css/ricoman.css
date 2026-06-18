@@ -434,6 +434,11 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-dark .rm-aud-card p{color:rgba(255,255,255,.7)}
 .wp-block-cover .rm-statnum{color:#fff}
 .wp-block-cover .rm-flabel{color:rgba(255,255,255,.7)}
+/* breadcrumbs sitting on a photo/dark hero stay light & legible */
+.wp-block-cover .ricoman-breadcrumbs,.wp-block-cover .ricoman-breadcrumbs a{color:rgba(255,255,255,.78)}
+.wp-block-cover .ricoman-breadcrumbs a:hover{color:#fff}
+.wp-block-cover .ricoman-breadcrumbs [aria-current="page"]{color:#fff}
+.wp-block-cover .ricoman-breadcrumbs .sep{color:rgba(255,255,255,.4)}
 .rm-shapecard img{aspect-ratio:1;object-fit:cover;width:100%;background:var(--soft)}
 .rm-shapecard h4{font-size:1.05rem;font-weight:600;margin:.6em 0 0}
 

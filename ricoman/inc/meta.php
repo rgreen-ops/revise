@@ -70,6 +70,7 @@ function ricoman_register_product_meta() {
 
 	// Extra product-only content fields (Product Builder).
 	$extra = array(
+		'_ricoman_family'      => 'sanitize_text_field',
 		'_ricoman_tagline'     => 'sanitize_text_field',
 		'_ricoman_lead'        => 'sanitize_text_field',
 		'_ricoman_features'    => 'sanitize_textarea_field',
@@ -223,10 +224,11 @@ function ricoman_render_product_metabox( $post ) {
 
 		<div class="sync">
 			<span class="dashicons dashicons-rest-api"></span>
-			<label for="rmpb-rb-product" style="margin:0;font-weight:600"><?php esc_html_e( 'RICOBOT product:', 'ricoman' ); ?></label>
-			<select id="rmpb-rb-product" data-current="<?php echo esc_attr( $m( '_ricoman_sku' ) ); ?>" style="max-width:300px" <?php disabled( ! $ready ); ?>><option value=""><?php echo $ready ? esc_html__( 'Loading…', 'ricoman' ) : esc_html__( '— not connected —', 'ricoman' ); ?></option></select>
+			<label for="rmpb-rb-family" style="margin:0;font-weight:600"><?php esc_html_e( 'RICOBOT family:', 'ricoman' ); ?></label>
+			<input type="hidden" id="_ricoman_family" name="_ricoman_family" value="<?php echo esc_attr( $m( '_ricoman_family' ) ); ?>">
+			<select id="rmpb-rb-family" data-current="<?php echo esc_attr( $m( '_ricoman_family' ) ); ?>" style="max-width:300px" <?php disabled( ! $ready ); ?>><option value=""><?php echo $ready ? esc_html__( 'Loading…', 'ricoman' ) : esc_html__( '— not connected —', 'ricoman' ); ?></option></select>
 			<button type="button" class="button" id="rmpb-sync" <?php disabled( ! $ready ); ?>><?php esc_html_e( 'Sync specs', 'ricoman' ); ?></button>
-			<span id="rmpb-sync-msg" class="hint"><?php echo $ready ? esc_html__( 'Pick a product (or type the Order code in SKU) then Sync.', 'ricoman' ) : esc_html__( 'Connect RICOBOT (Settings → RICOBOT) to enable.', 'ricoman' ); ?></span>
+			<span id="rmpb-sync-msg" class="hint"><?php echo $ready ? esc_html__( 'Pick the product family. The page lists every variant in it for the customer to filter & configure.', 'ricoman' ) : esc_html__( 'Connect RICOBOT (Settings → RICOBOT) to enable.', 'ricoman' ); ?></span>
 		</div>
 
 		<h3><?php esc_html_e( 'Overview', 'ricoman' ); ?></h3>
@@ -312,34 +314,29 @@ function ricoman_render_product_metabox( $post ) {
 			} ).catch( function () { msg.textContent = '⚠ Request failed.'; } );
 		} );
 
-		// Populate the "RICOBOT product" dropdown; selecting one links it + syncs.
-		var sel = document.getElementById( 'rmpb-rb-product' );
+		// Populate the "RICOBOT family" dropdown; the page then lists every variant.
+		var sel = document.getElementById( 'rmpb-rb-family' );
+		var famInput = document.getElementById( '_ricoman_family' );
 		if ( sel && ! sel.disabled ) {
 			var nonce = '<?php echo esc_js( wp_create_nonce( 'ricoman_rb_sync' ) ); ?>';
 			var lb = new FormData();
-			lb.append( 'action', 'ricoman_ricobot_list' );
+			lb.append( 'action', 'ricoman_ricobot_families' );
 			lb.append( 'nonce', nonce );
 			fetch( ajaxurl, { method: 'POST', body: lb } ).then( function ( r ) { return r.json(); } ).then( function ( res ) {
 				if ( ! res.success ) { sel.innerHTML = '<option value="">— ' + ( res.data || 'unavailable' ) + ' —</option>'; return; }
 				var cur = sel.getAttribute( 'data-current' ) || '';
-				var groups = {};
-				res.data.forEach( function ( p ) { var f = p.family || 'Other'; ( groups[ f ] = groups[ f ] || [] ).push( p ); } );
-				var html = '<option value="">— Link a RICOBOT product (' + res.data.length + ') —</option>';
-				Object.keys( groups ).sort().forEach( function ( f ) {
-					html += '<optgroup label="' + f + '">';
-					groups[ f ].forEach( function ( p ) {
-						html += '<option value="' + p.code + '"' + ( p.code === cur ? ' selected' : '' ) + '>' + ( p.name || p.code ) + ' (' + p.code + ')</option>';
-					} );
-					html += '</optgroup>';
+				var html = '<option value="">— Choose a family (' + res.data.length + ') —</option>';
+				res.data.forEach( function ( f ) {
+					var name = f.family || f;
+					html += '<option value="' + name + '"' + ( name === cur ? ' selected' : '' ) + '>' + name + ( f.count ? ' (' + f.count + ' variants)' : '' ) + '</option>';
 				} );
 				sel.innerHTML = html;
 			} ).catch( function () { sel.innerHTML = '<option value="">— could not load —</option>'; } );
 
 			sel.addEventListener( 'change', function () {
-				if ( ! sel.value ) { return; }
-				var skuEl = document.getElementById( '_ricoman_sku' );
-				if ( skuEl ) { skuEl.value = sel.value; }
-				btn.click();
+				if ( famInput ) { famInput.value = sel.value; }
+				var msg = document.getElementById( 'rmpb-sync-msg' );
+				if ( msg ) { msg.textContent = sel.value ? '✓ Linked to the ' + sel.value + ' family. Update to save — the page lists every variant.' : 'Pick the product family.'; }
 			} );
 		}
 	} )();
@@ -414,7 +411,7 @@ function ricoman_save_product_meta( $post_id ) {
 	if ( isset( $_POST['_ricoman_variants'] ) ) {
 		update_post_meta( $post_id, '_ricoman_variants', ricoman_sanitize_variants( wp_unslash( $_POST['_ricoman_variants'] ) ) );
 	}
-	$text = array( '_ricoman_tagline' => 'sanitize_text_field', '_ricoman_lead' => 'sanitize_text_field', '_ricoman_features' => 'sanitize_textarea_field', '_ricoman_finishes' => 'sanitize_textarea_field', '_ricoman_datasheet' => 'esc_url_raw', '_ricoman_hide_options' => 'sanitize_text_field' );
+	$text = array( '_ricoman_family' => 'sanitize_text_field', '_ricoman_tagline' => 'sanitize_text_field', '_ricoman_lead' => 'sanitize_text_field', '_ricoman_features' => 'sanitize_textarea_field', '_ricoman_finishes' => 'sanitize_textarea_field', '_ricoman_datasheet' => 'esc_url_raw', '_ricoman_hide_options' => 'sanitize_text_field' );
 	foreach ( $text as $key => $fn ) {
 		if ( isset( $_POST[ $key ] ) ) {
 			update_post_meta( $post_id, $key, call_user_func( $fn, wp_unslash( $_POST[ $key ] ) ) );

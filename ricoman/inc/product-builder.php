@@ -120,6 +120,73 @@ add_action( 'wp_ajax_ricoman_ricobot_list', function () {
 	wp_send_json_success( $out );
 } );
 
+/* ---- AJAX: distinct product families (for the Product Builder family picker) ---- */
+add_action( 'wp_ajax_ricoman_ricobot_families', function () {
+	check_ajax_referer( 'ricoman_rb_sync', 'nonce' );
+	if ( ! current_user_can( 'edit_posts' ) ) {
+		wp_send_json_error( 'Not allowed.' );
+	}
+	if ( ! function_exists( 'ricoman_ricobot_get' ) ) {
+		wp_send_json_error( 'RICOBOT client unavailable.' );
+	}
+
+	// 1) Dedicated families endpoint, if RICOBOT exposes one.
+	$fam = ricoman_ricobot_get( 'api/public/families' );
+	if ( ! is_wp_error( $fam ) ) {
+		$items = ( isset( $fam['families'] ) && is_array( $fam['families'] ) ) ? $fam['families'] : ( is_array( $fam ) ? $fam : array() );
+		$out   = array();
+		foreach ( $items as $f ) {
+			$name = is_array( $f ) ? ( isset( $f['family'] ) ? $f['family'] : ( isset( $f['name'] ) ? $f['name'] : '' ) ) : (string) $f;
+			if ( '' === $name ) {
+				continue;
+			}
+			$count = is_array( $f ) && isset( $f['count'] ) ? (int) $f['count'] : ( is_array( $f ) && isset( $f['productCount'] ) ? (int) $f['productCount'] : 0 );
+			$out[] = array( 'family' => (string) $name, 'count' => $count );
+		}
+		if ( $out ) {
+			usort( $out, function ( $a, $b ) { return strcasecmp( $a['family'], $b['family'] ); } );
+			wp_send_json_success( $out );
+		}
+	}
+
+	// 2) Fallback: derive distinct families (with counts) from the product catalogue.
+	$list  = array();
+	$page  = 1;
+	$guard = 0;
+	do {
+		$data = ricoman_ricobot_get( 'api/public/products?page=' . $page );
+		if ( is_wp_error( $data ) ) {
+			if ( 1 === $page ) {
+				wp_send_json_error( $data->get_error_message() );
+			}
+			break;
+		}
+		$items = ( isset( $data['products'] ) && is_array( $data['products'] ) ) ? $data['products'] : ( is_array( $data ) ? $data : array() );
+		$list  = array_merge( $list, $items );
+		$total = isset( $data['total'] ) ? (int) $data['total'] : count( $list );
+		$page++;
+		$guard++;
+	} while ( count( $items ) > 0 && count( $list ) < $total && $guard < 50 );
+
+	$counts = array();
+	foreach ( $list as $p ) {
+		$family = isset( $p['family'] ) ? trim( (string) $p['family'] ) : '';
+		if ( '' === $family ) {
+			continue;
+		}
+		$counts[ $family ] = isset( $counts[ $family ] ) ? $counts[ $family ] + 1 : 1;
+	}
+	if ( ! $counts ) {
+		wp_send_json_error( 'No families found.' );
+	}
+	$out = array();
+	foreach ( $counts as $name => $count ) {
+		$out[] = array( 'family' => $name, 'count' => $count );
+	}
+	usort( $out, function ( $a, $b ) { return strcasecmp( $a['family'], $b['family'] ); } );
+	wp_send_json_success( $out );
+} );
+
 /* ---- AJAX: sync from RICOBOT ---- */
 add_action( 'wp_ajax_ricoman_ricobot_sync', function () {
 	check_ajax_referer( 'ricoman_rb_sync', 'nonce' );

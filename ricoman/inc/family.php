@@ -89,6 +89,14 @@ function ricoman_rb_family_cb() {
 add_shortcode( 'ricoman_family', function ( $atts ) {
 	$atts   = shortcode_atts( array( 'family' => '' ), $atts, 'ricoman_family' );
 	$family = trim( (string) $atts['family'] );
+	// Fall back to the family linked to the current product in the Product Builder,
+	// so a bare [ricoman_family] on any product page lists that product's range.
+	if ( '' === $family ) {
+		$pid = get_the_ID();
+		if ( $pid ) {
+			$family = trim( (string) get_post_meta( $pid, '_ricoman_family', true ) );
+		}
+	}
 	if ( '' === $family ) {
 		return '';
 	}

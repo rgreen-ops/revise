@@ -98,7 +98,7 @@ function ricoman_set_featured_from_theme( $post_id, $file ) {
 }
 
 function ricoman_scaffold_site() {
-	if ( get_option( 'ricoman_scaffold_v15' ) ) {
+	if ( get_option( 'ricoman_scaffold_v16' ) ) {
 		return;
 	}
 
@@ -226,6 +226,9 @@ function ricoman_scaffold_site() {
 				if ( isset( $b[5] ) ) {
 					update_post_meta( $pid, '_ricoman_extra_specs', $b[5] );
 				}
+				// Link to the RICOBOT family (the product title is the family name);
+				// the Variant range block lists every variant once RICOBOT is connected.
+				update_post_meta( $pid, '_ricoman_family', $p[0] );
 			}
 		}
 	}
@@ -264,5 +267,5 @@ function ricoman_scaffold_site() {
 	}
 
 	flush_rewrite_rules( true );
-	update_option( 'ricoman_scaffold_v15', 1 );
+	update_option( 'ricoman_scaffold_v16', 1 );
 }
