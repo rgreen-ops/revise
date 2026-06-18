@@ -98,7 +98,7 @@ function ricoman_set_featured_from_theme( $post_id, $file ) {
 }
 
 function ricoman_scaffold_site() {
-	if ( get_option( 'ricoman_scaffold_v16' ) ) {
+	if ( get_option( 'ricoman_scaffold_v17' ) ) {
 		return;
 	}
 
@@ -137,6 +137,9 @@ function ricoman_scaffold_site() {
 		'lighting-design' => array( 'Lighting Design', 'ricoman_lighting_blocks' ),
 		'manufacturing'   => array( 'Manufacturing', 'ricoman_manufacturing_blocks' ),
 		'about'           => array( 'About', 'ricoman_about_blocks' ),
+		'downloads'       => array( 'Downloads', 'ricoman_downloads_blocks' ),
+		'customisation'   => array( 'Customisation', 'ricoman_customisation_blocks' ),
+		'contact'         => array( 'Contact', 'ricoman_contact_blocks' ),
 	);
 	foreach ( $native_pages as $slug => $info ) {
 		$content = function_exists( $info[1] ) ? call_user_func( $info[1] ) : ricoman_pattern_content( 'ricoman/home' );
@@ -267,5 +270,5 @@ function ricoman_scaffold_site() {
 	}
 
 	flush_rewrite_rules( true );
-	update_option( 'ricoman_scaffold_v16', 1 );
+	update_option( 'ricoman_scaffold_v17', 1 );
 }

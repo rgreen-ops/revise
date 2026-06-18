@@ -37,6 +37,8 @@ require_once get_theme_file_path( 'inc/configurator.php' );   // Live variant co
 require_once get_theme_file_path( 'inc/product-patterns.php' );// Product page blocks (Hero/Specs/Configurator/…).
 require_once get_theme_file_path( 'inc/family.php' );         // Family filter page (facets -> pick -> configure).
 require_once get_theme_file_path( 'inc/specs-live.php' );     // Configurator-aware Specification + Accessories blocks.
+require_once get_theme_file_path( 'inc/site-options.php' );   // Ricoman admin: mega menu, footer, tracking code.
+require_once get_theme_file_path( 'inc/header-footer.php' );  // [ricoman_header] / [ricoman_footer] renderers.
 require_once get_theme_file_path( 'inc/flow-patterns.php' );  // Flow+ page sections as editable blocks.
 require_once get_theme_file_path( 'inc/page-patterns.php' );  // Home/page sections as editable blocks.
 require_once get_theme_file_path( 'inc/my-project.php' );    // "My Project" specification list (Toolbox).
@@ -78,8 +80,14 @@ add_filter( 'body_class', function ( $classes ) {
 		$classes[] = 'rm-hero';
 	} elseif ( is_singular() || is_page() ) {
 		$post = get_post();
-		if ( $post && ( false !== strpos( $post->post_content, 'phero' ) || false !== strpos( $post->post_content, 'chero' ) || false !== strpos( $post->post_content, 'class="hero"' ) ) ) {
-			$classes[] = 'rm-hero';
+		if ( $post ) {
+			$c    = ltrim( $post->post_content );
+			$top  = substr( $c, 0, 400 );
+			// Bespoke hero classes, or a native full-bleed Cover as the opening block.
+			if ( false !== strpos( $post->post_content, 'phero' ) || false !== strpos( $post->post_content, 'chero' ) || false !== strpos( $post->post_content, 'class="hero"' )
+				|| 0 === strpos( $c, '<!-- wp:cover' ) || ( false !== strpos( $top, '<!-- wp:cover' ) && false !== strpos( $top, 'alignfull' ) ) ) {
+				$classes[] = 'rm-hero';
+			}
 		}
 	}
 	return $classes;
