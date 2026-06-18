@@ -25,14 +25,14 @@ $img = function ( $f ) { return esc_url( get_theme_file_uri( 'assets/images/' . 
 
 <section class="sec tight"><div class="wrap">
   <div class="mosaic">
-    <a class="pj big" href="/projects/"><span class="tagp">Case study</span><img src="<?php echo $img( 'rico-acoustic-corridor.jpg' ); ?>" alt="Acoustic linear ceiling"><div class="ov"><small>Commercial Office · Manchester</small><h3>Acoustic linear ceiling</h3></div></a>
-    <a class="pj wide" href="/projects/"><img src="<?php echo $img( 'retail.jpg' ); ?>" alt="Flagship store"><div class="ov"><small>Retail · Manchester</small><h3>Flagship Store</h3></div></a>
-    <a class="pj" href="/projects/"><span class="tagp">Case study</span><img src="<?php echo $img( 'rico-breakout-lounge.jpg' ); ?>" alt="Breakout lounge"><div class="ov"><small>Workplace · Amenity</small><h3>Breakout lounge</h3></div></a>
-    <a class="pj" href="/projects/"><img src="<?php echo $img( 'office2.jpg' ); ?>" alt="Boutique hotel"><div class="ov"><small>Hospitality</small><h3>Boutique Hotel</h3></div></a>
-    <a class="pj" href="/projects/"><img src="<?php echo $img( 'rico-betfred7.webp' ); ?>" alt="Betfred HQ"><div class="ov"><small>Workplace · Warrington</small><h3>Betfred HQ</h3></div></a>
-    <a class="pj" href="/projects/"><img src="<?php echo $img( 'rico-kingsgate.png' ); ?>" alt="Kingsgate"><div class="ov"><small>Retail · London</small><h3>Kingsgate</h3></div></a>
-    <a class="pj wide" href="/projects/"><img src="<?php echo $img( 'estrella-canteen.jpg' ); ?>" alt="Estrella canteen"><div class="ov"><small>Hospitality · Staff dining</small><h3>Estrella Canteen</h3></div></a>
-    <a class="pj" href="/projects/"><img src="<?php echo $img( 'office5.jpg' ); ?>" alt="Campus library"><div class="ov"><small>Education</small><h3>Campus Library</h3></div></a>
+    <a class="pj big" href="/projects/acoustic-ceiling/"><span class="tagp">Case study</span><img src="<?php echo $img( 'rico-acoustic-corridor.jpg' ); ?>" alt="Acoustic linear ceiling"><div class="ov"><small>Commercial Office · Manchester</small><h3>Acoustic linear ceiling</h3></div></a>
+    <a class="pj wide" href="/projects/flagship-store/"><img src="<?php echo $img( 'retail.jpg' ); ?>" alt="Flagship store"><div class="ov"><small>Retail · Manchester</small><h3>Flagship Store</h3></div></a>
+    <a class="pj" href="/projects/breakout-lounge/"><span class="tagp">Case study</span><img src="<?php echo $img( 'rico-breakout-lounge.jpg' ); ?>" alt="Breakout lounge"><div class="ov"><small>Workplace · Amenity</small><h3>Breakout lounge</h3></div></a>
+    <a class="pj" href="/projects/boutique-hotel/"><img src="<?php echo $img( 'office2.jpg' ); ?>" alt="Boutique hotel"><div class="ov"><small>Hospitality</small><h3>Boutique Hotel</h3></div></a>
+    <a class="pj" href="/projects/betfred-hq/"><img src="<?php echo $img( 'rico-betfred7.webp' ); ?>" alt="Betfred HQ"><div class="ov"><small>Workplace · Warrington</small><h3>Betfred HQ</h3></div></a>
+    <a class="pj" href="/projects/kingsgate/"><img src="<?php echo $img( 'rico-kingsgate.png' ); ?>" alt="Kingsgate"><div class="ov"><small>Retail · London</small><h3>Kingsgate</h3></div></a>
+    <a class="pj wide" href="/projects/estrella-canteen/"><img src="<?php echo $img( 'estrella-canteen.jpg' ); ?>" alt="Estrella canteen"><div class="ov"><small>Hospitality · Staff dining</small><h3>Estrella Canteen</h3></div></a>
+    <a class="pj" href="/projects/campus-library/"><img src="<?php echo $img( 'office5.jpg' ); ?>" alt="Campus library"><div class="ov"><small>Education</small><h3>Campus Library</h3></div></a>
   </div>
 </div></section>
 

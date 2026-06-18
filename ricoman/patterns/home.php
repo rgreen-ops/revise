@@ -55,7 +55,7 @@ $img = function ( $f ) { return esc_url( get_theme_file_uri( 'assets/images/' . 
     <span class="kick lt"><span class="n">03</span>Featured · Linear</span>
     <h2>Flow+ — seamless curves of light</h2>
     <p>A flexible linear system that bends to any architectural line, continuous and dot-free. Made to order in Manchester, to your exact geometry.</p>
-    <div class="acts"><a class="btn btn-line" href="/products/">View Flow+ →</a><a class="btn btn-line" href="/my-project/">＋ Add to My Project</a></div>
+    <div class="acts"><a class="btn btn-line" href="/products/flow-plus/">View Flow+ →</a><a class="btn btn-line" href="/my-project/">＋ Add to My Project</a></div>
   </div>
   <div class="img" style="background-image:url(<?php echo $img( 'light-a.jpg' ); ?>)"></div>
 </section>
@@ -66,10 +66,10 @@ $img = function ( $f ) { return esc_url( get_theme_file_uri( 'assets/images/' . 
     <a class="lnk" href="/projects/">All projects →</a>
   </div>
   <div class="grid">
-    <a class="pj big" href="/projects/"><img src="<?php echo $img( 'office1.jpg' ); ?>" alt="Workplace"><div class="ov"><small>Commercial Office · Leeds</small><h3>Allianz HQ Fit-out</h3></div></a>
-    <a class="pj wide" href="/projects/"><img src="<?php echo $img( 'retail.jpg' ); ?>" alt="Retail"><div class="ov"><small>Retail · Manchester</small><h3>Flagship Store</h3></div></a>
-    <a class="pj" href="/projects/"><img src="<?php echo $img( 'office6.jpg' ); ?>" alt="Workplace"><div class="ov"><small>Workplace</small><h3>Studio HQ</h3></div></a>
-    <a class="pj" href="/projects/"><img src="<?php echo $img( 'office2.jpg' ); ?>" alt="Hospitality"><div class="ov"><small>Hospitality</small><h3>Boutique Hotel</h3></div></a>
+    <a class="pj big" href="/projects/allianz-hq/"><img src="<?php echo $img( 'office1.jpg' ); ?>" alt="Workplace"><div class="ov"><small>Commercial Office · Leeds</small><h3>Allianz HQ Fit-out</h3></div></a>
+    <a class="pj wide" href="/projects/flagship-store/"><img src="<?php echo $img( 'retail.jpg' ); ?>" alt="Retail"><div class="ov"><small>Retail · Manchester</small><h3>Flagship Store</h3></div></a>
+    <a class="pj" href="/projects/studio-hq/"><img src="<?php echo $img( 'office6.jpg' ); ?>" alt="Workplace"><div class="ov"><small>Workplace</small><h3>Studio HQ</h3></div></a>
+    <a class="pj" href="/projects/boutique-hotel/"><img src="<?php echo $img( 'office2.jpg' ); ?>" alt="Hospitality"><div class="ov"><small>Hospitality</small><h3>Boutique Hotel</h3></div></a>
   </div>
 </div></section>
 

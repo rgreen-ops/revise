@@ -98,7 +98,7 @@ function ricoman_set_featured_from_theme( $post_id, $file ) {
 }
 
 function ricoman_scaffold_site() {
-	if ( get_option( 'ricoman_scaffold_v5' ) ) {
+	if ( get_option( 'ricoman_scaffold_v6' ) ) {
 		return;
 	}
 
@@ -182,38 +182,37 @@ function ricoman_scaffold_site() {
 		}
 	}
 
-	// ---- Projects (cross-linked back to products) ----
+	// ---- Projects: [ Title, image, sector, excerpt, products[] ] ----
 	$projects = array(
-		'allianz-hq'     => array(
-			'Allianz HQ Fit-out',
-			'office1.jpg',
-			'A commercial workplace fit-out lit with continuous linear runs and trimless downlights for a clean, low-glare ceiling.',
-			array( 'flow-plus' => 'Flow+', 'neptune' => 'Neptune' ),
-		),
-		'flagship-store' => array(
-			'Flagship Retail Store',
-			'retail.jpg',
-			'A retail flagship using accent and decorative pendants to bring warmth and focus to the merchandising.',
-			array( 'estrella' => 'Estrella' ),
-		),
+		'allianz-hq'      => array( 'Allianz HQ Fit-out', 'office1.jpg', 'Commercial Office', 'A commercial workplace fit-out lit with continuous linear runs and trimless downlights for a clean, low-glare ceiling.', array( 'flow-plus' => 'Flow+', 'neptune' => 'Neptune' ) ),
+		'flagship-store'  => array( 'Flagship Retail Store', 'retail.jpg', 'Retail', 'A retail flagship using accent and decorative pendants to bring warmth and focus to the merchandising.', array( 'estrella' => 'Estrella' ) ),
+		'acoustic-ceiling'=> array( 'Acoustic Linear Ceiling', 'rico-acoustic-corridor.jpg', 'Commercial Office', 'Sound-absorbing linear lighting integrated into an exposed-services ceiling for a calm, productive workspace.', array( 'flow-plus' => 'Flow+' ) ),
+		'breakout-lounge' => array( 'Breakout Lounge', 'rico-breakout-lounge.jpg', 'Workplace', 'Warm, layered light for an informal amenity space — comfortable, flattering and energy-efficient.', array() ),
+		'boutique-hotel'  => array( 'Boutique Hotel', 'office2.jpg', 'Hospitality', 'Decorative pendants and dimmable downlights creating a warm, welcoming hospitality scheme.', array( 'estrella' => 'Estrella' ) ),
+		'betfred-hq'      => array( 'Betfred HQ', 'rico-betfred7.webp', 'Workplace', 'A large headquarters fit-out delivered on programme with UK-made linear lighting throughout.', array( 'flow-plus' => 'Flow+' ) ),
+		'kingsgate'       => array( 'Kingsgate', 'rico-kingsgate.png', 'Retail', 'High-CRI accent lighting bringing focus and warmth to a flagship retail environment.', array() ),
+		'estrella-canteen'=> array( 'Estrella Canteen', 'estrella-canteen.jpg', 'Hospitality', 'Configurable Estrella pendants over a staff dining space, built to a bespoke layout.', array( 'estrella' => 'Estrella' ) ),
+		'campus-library'  => array( 'Campus Library', 'office5.jpg', 'Education', 'Comfortable, low-glare light for study and reading areas across a university library.', array( 'neptune' => 'Neptune' ) ),
+		'studio-hq'       => array( 'Studio HQ', 'office6.jpg', 'Workplace', 'A creative studio headquarters lit for focus and atmosphere in equal measure.', array() ),
 	);
 	foreach ( $projects as $slug => $pr ) {
-		$content  = '<!-- wp:image --><figure class="wp-block-image size-large"><img src="' . $img( $pr[1] ) . '" alt="' . esc_attr( $pr[0] ) . '"/></figure><!-- /wp:image -->';
-		$content .= '<!-- wp:paragraph --><p>' . esc_html( $pr[2] ) . '</p><!-- /wp:paragraph -->';
-		$content .= '<!-- wp:heading {"level":3} --><h3 class="wp-block-heading">Products used</h3><!-- /wp:heading -->';
-		$links    = array();
-		foreach ( $pr[3] as $ps => $pn ) {
-			$links[] = '<a href="/products/' . $ps . '/">' . esc_html( $pn ) . '</a>';
+		$content  = '<!-- wp:paragraph {"style":{"typography":{"fontSize":"1.15rem"}}} --><p style="font-size:1.15rem">' . esc_html( $pr[3] ) . '</p><!-- /wp:paragraph -->';
+		if ( ! empty( $pr[4] ) ) {
+			$links = array();
+			foreach ( $pr[4] as $ps => $pn ) {
+				$links[] = '<a href="/products/' . $ps . '/">' . esc_html( $pn ) . '</a>';
+			}
+			$content .= '<!-- wp:heading {"level":3} --><h3 class="wp-block-heading">Products used</h3><!-- /wp:heading -->';
+			$content .= '<!-- wp:paragraph --><p>' . implode( ' · ', $links ) . '</p><!-- /wp:paragraph -->';
 		}
-		$content .= '<!-- wp:paragraph --><p>' . implode( ' · ', $links ) . '</p><!-- /wp:paragraph -->';
-		$content .= '<!-- wp:buttons --><div class="wp-block-buttons"><!-- wp:button {"className":"is-style-outline"} --><div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="/projects/">All projects</a></div><!-- /wp:button --></div><!-- /wp:buttons -->';
-		$prid     = ricoman_make_post( 'project', $pr[0], $slug, $content );
+		$prid = ricoman_make_post( 'project', $pr[0], $slug, $content );
 		if ( $prid ) {
-			wp_update_post( array( 'ID' => $prid, 'post_content' => $content, 'post_excerpt' => $pr[2] ) );
+			wp_update_post( array( 'ID' => $prid, 'post_content' => $content, 'post_excerpt' => $pr[3] ) );
+			wp_set_object_terms( $prid, $pr[2], 'application' );
 			ricoman_set_featured_from_theme( $prid, $pr[1] );
 		}
 	}
 
 	flush_rewrite_rules( true );
-	update_option( 'ricoman_scaffold_v5', 1 );
+	update_option( 'ricoman_scaffold_v6', 1 );
 }
