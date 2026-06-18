@@ -39,7 +39,7 @@ add_action( 'init', function () {
 
 	$p = array();
 
-	$p['flow-hero'] = array( 'Flow · Hero', $cover( $u( 'bf-flow3.png' ),
+	$p['flow-hero'] = array( 'Flow · Hero', $cover( $u( 'bf-flow3.jpg' ),
 		$eyebrow( 'Linear Lighting — Flexible System' ) .
 		'<!-- wp:heading {"level":1,"style":{"typography":{"fontSize":"clamp(3rem, 8vw, 6rem)","fontWeight":"500","lineHeight":"1"}}} --><h1 class="wp-block-heading" style="font-size:clamp(3rem, 8vw, 6rem);font-weight:500;line-height:1">Flow+</h1><!-- /wp:heading -->' .
 		$para( 'A flexible linear system that bends to any architectural line — continuous, dot-free and made to order in Manchester.' ) .
@@ -58,7 +58,7 @@ add_action( 'init', function () {
 
 	$p['flow-feature-2'] = array( 'Flow · Feature (image right)', $sec( $cols(
 		'<!-- wp:column {"verticalAlignment":"center","style":{"spacing":{"padding":{"right":"var:preset|spacing|50"}}}} --><div class="wp-block-column is-vertically-aligned-center" style="padding-right:var(--wp--preset--spacing--50)">' . $eyebrow( '02 · Light Quality' ) . $shead( 'Calibrated for interiors' ) . $para( 'High-CRI light with tunable white, factory-calibrated so every metre matches — across a single run or an entire scheme.', true ) . $flist( array( 'CRI 90+ as standard', '2700K – 6500K tunable white', 'DALI &amp; phase dimming' ) ) . '</div><!-- /wp:column -->' .
-		'<!-- wp:column {"verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center">' . $image( $u( 'bf-flow3.png' ) ) . '</div><!-- /wp:column -->',
+		'<!-- wp:column {"verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center">' . $image( $u( 'bf-flow3.jpg' ) ) . '</div><!-- /wp:column -->',
 		'{"verticalAlignment":"center"}' ) ) );
 
 	$p['flow-manufacturing'] = array( 'Flow · Manufacturing (dark)', '<!-- wp:group {"align":"full","backgroundColor":"ink","textColor":"base","className":"rm-dark","style":{"spacing":{"padding":{"top":"var:preset|spacing|70","bottom":"var:preset|spacing|70","left":"var:preset|spacing|50","right":"var:preset|spacing|50"}}},"layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-dark has-base-color has-ink-background-color has-text-color has-background" style="padding-top:var(--wp--preset--spacing--70);padding-bottom:var(--wp--preset--spacing--70);padding-left:var(--wp--preset--spacing--50);padding-right:var(--wp--preset--spacing--50)">' . $cols(
@@ -78,7 +78,7 @@ add_action( 'init', function () {
 	$p['flow-team'] = array( 'Flow · Design team', $sec( $eyebrow( '06 · Lighting Design' ) . $shead( 'Our in-house design team, on your project' ) . $para( 'Our UK lighting designers work alongside architects, interior designers and contractors to take a scheme from concept to commissioning — free of charge.', true ) .
 		'<!-- wp:columns {"style":{"spacing":{"margin":{"top":"var:preset|spacing|40"}}}} --><div class="wp-block-columns" style="margin-top:var(--wp--preset--spacing--40)">' . $ncard( '01', 'Consult', 'We review drawings, finishes and the brief with your team.', 4 ) . $ncard( '02', 'Design', 'Relux &amp; DIALux calculations, lux levels and schedules.', 4 ) . $ncard( '03', 'Engineer', 'Photometry, BIM/Revit objects and bespoke detailing.', 4 ) . $ncard( '04', 'Manufacture', 'Made to order in Manchester with full QA testing.', 4 ) . $ncard( '05', 'Support', 'Delivery, on-site support and handover documentation.', 4 ) . '</div><!-- /wp:columns -->', 'rm-soft' ) );
 
-	$p['flow-specband'] = array( 'Flow · Spec band', $cover( $u( 'bf-flow3.png' ),
+	$p['flow-specband'] = array( 'Flow · Spec band', $cover( $u( 'bf-flow3.jpg' ),
 		'<!-- wp:columns -->' . '<div class="wp-block-columns">' . $bigstat( '1100 lm/m', 'Output' ) . $bigstat( '90+', 'CRI' ) . $bigstat( '2700–6500K', 'Tunable' ) . $bigstat( 'IP20–65', 'Rating' ) . $bigstat( '360°', 'Bend' ) . '</div><!-- /wp:columns -->', 40, 'center center', 75 ) );
 
 	$p['flow-mosaic'] = array( 'Flow · Image mosaic', $sec( '<!-- wp:gallery {"columns":3,"linkTo":"none"} --><figure class="wp-block-gallery has-nested-images columns-3 is-cropped">' . $image( $u( 'rico-office-render.webp' ) ) . $image( $u( 'rico-wave.png' ) ) . $image( $u( 'courier.jpg' ) ) . '</figure><!-- /wp:gallery -->' ) );
