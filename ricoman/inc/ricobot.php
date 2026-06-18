@@ -47,6 +47,50 @@ function ricoman_ricobot_ready() {
  * @param bool   $bypass_cache Skip the transient cache for this call.
  * @return array|WP_Error
  */
+/**
+ * If a URL is on the RICOBOT host, return a same-origin proxy URL so the browser
+ * can load it (the real URL may need the Bearer token / block hot-linking).
+ * Other URLs (e.g. your own Media Library uploads) are returned untouched.
+ */
+function ricoman_rb_proxy_url( $url ) {
+	$url  = (string) $url;
+	$base = (string) ricoman_ricobot_opt( 'url' );
+	$host = $base ? wp_parse_url( $base, PHP_URL_HOST ) : '';
+	if ( $url && $host && wp_parse_url( $url, PHP_URL_HOST ) === $host ) {
+		return admin_url( 'admin-ajax.php' ) . '?action=ricoman_rb_image&u=' . rawurlencode( $url );
+	}
+	return $url;
+}
+
+/** Server-side image proxy for RICOBOT assets (auth + host-restricted to stop SSRF). */
+function ricoman_rb_image_cb() {
+	$url  = isset( $_GET['u'] ) ? esc_url_raw( wp_unslash( $_GET['u'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
+	$base = (string) ricoman_ricobot_opt( 'url' );
+	$host = $base ? wp_parse_url( $base, PHP_URL_HOST ) : '';
+	if ( ! $url || ! $host || wp_parse_url( $url, PHP_URL_HOST ) !== $host ) {
+		status_header( 400 );
+		exit;
+	}
+	$args = array( 'timeout' => 20, 'headers' => array() );
+	$key  = ricoman_ricobot_opt( 'key' );
+	if ( $key ) {
+		$args['headers']['Authorization'] = 'Bearer ' . $key;
+		$args['headers']['X-API-Key']     = $key;
+	}
+	$resp = wp_remote_get( $url, $args );
+	if ( is_wp_error( $resp ) || 200 !== (int) wp_remote_retrieve_response_code( $resp ) ) {
+		status_header( 404 );
+		exit;
+	}
+	$ct = wp_remote_retrieve_header( $resp, 'content-type' );
+	header( 'Content-Type: ' . ( $ct ? $ct : 'image/png' ) );
+	header( 'Cache-Control: public, max-age=86400' );
+	echo wp_remote_retrieve_body( $resp ); // phpcs:ignore WordPress.Security.EscapeOutput -- binary image stream.
+	exit;
+}
+add_action( 'wp_ajax_ricoman_rb_image', 'ricoman_rb_image_cb' );
+add_action( 'wp_ajax_nopriv_ricoman_rb_image', 'ricoman_rb_image_cb' );
+
 function ricoman_ricobot_get( $path, $bypass_cache = false ) {
 	$base = untrailingslashit( (string) ricoman_ricobot_opt( 'url' ) );
 	if ( ! $base ) {

@@ -29,6 +29,14 @@ function ricoman_rb_family_cb() {
 	// 1) dedicated endpoint
 	$data = ricoman_ricobot_get( 'api/public/families/' . rawurlencode( $family ) );
 	if ( ! is_wp_error( $data ) && ! empty( $data['products'] ) ) {
+		if ( function_exists( 'ricoman_rb_proxy_url' ) ) {
+			foreach ( $data['products'] as &$pp ) {
+				if ( isset( $pp['heroUrl'] ) ) {
+					$pp['heroUrl'] = ricoman_rb_proxy_url( $pp['heroUrl'] );
+				}
+			}
+			unset( $pp );
+		}
 		wp_send_json_success( $data );
 	}
 
@@ -68,10 +76,12 @@ function ricoman_rb_family_cb() {
 	}
 	$products = array();
 	foreach ( $prods as $p ) {
+		$hero = isset( $p['heroUrl'] ) ? $p['heroUrl'] : ( isset( $p['image'] ) ? $p['image'] : '' );
 		$products[] = array(
 			'code'       => isset( $p['code'] ) ? $p['code'] : '',
 			'name'       => isset( $p['name'] ) ? $p['name'] : ( isset( $p['code'] ) ? $p['code'] : '' ),
 			'attributes' => isset( $p['attributes'] ) ? $p['attributes'] : array(),
+			'heroUrl'    => ( $hero && function_exists( 'ricoman_rb_proxy_url' ) ) ? ricoman_rb_proxy_url( $hero ) : $hero,
 		);
 	}
 	wp_send_json_success(

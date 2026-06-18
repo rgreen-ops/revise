@@ -40,6 +40,16 @@ function ricoman_rb_specs_cb() {
 	if ( is_wp_error( $data ) ) {
 		wp_send_json_error( $data->get_error_message() );
 	}
+	// Route RICOBOT image URLs through the same-origin proxy so the browser can load them.
+	$gallery = isset( $data['gallery'] ) && is_array( $data['gallery'] ) ? $data['gallery'] : array();
+	if ( function_exists( 'ricoman_rb_proxy_url' ) ) {
+		foreach ( $gallery as &$g ) {
+			if ( isset( $g['url'] ) ) {
+				$g['url'] = ricoman_rb_proxy_url( $g['url'] );
+			}
+		}
+		unset( $g );
+	}
 	wp_send_json_success(
 		array(
 			'name'          => isset( $data['name'] ) ? $data['name'] : $code,
@@ -47,8 +57,8 @@ function ricoman_rb_specs_cb() {
 			'accessories'   => isset( $data['accessories'] ) && is_array( $data['accessories'] ) ? $data['accessories'] : array(),
 			'documents'     => isset( $data['documents'] ) && is_array( $data['documents'] ) ? $data['documents'] : array(),
 			'photometric'   => isset( $data['photometric'] ) && is_array( $data['photometric'] ) ? $data['photometric'] : array(),
-			'gallery'       => isset( $data['gallery'] ) && is_array( $data['gallery'] ) ? $data['gallery'] : array(),
-			'heroUrl'       => isset( $data['heroUrl'] ) ? $data['heroUrl'] : '',
+			'gallery'       => $gallery,
+			'heroUrl'       => function_exists( 'ricoman_rb_proxy_url' ) && isset( $data['heroUrl'] ) ? ricoman_rb_proxy_url( $data['heroUrl'] ) : ( isset( $data['heroUrl'] ) ? $data['heroUrl'] : '' ),
 		)
 	);
 }
