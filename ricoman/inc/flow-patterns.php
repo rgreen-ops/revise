@@ -24,7 +24,7 @@ add_action( 'init', function () {
 	$para    = function ( $t, $muted = false ) { return '<!-- wp:paragraph' . ( $muted ? ' {"textColor":"muted"}' : '' ) . ' --><p' . ( $muted ? ' class="has-muted-color has-text-color"' : '' ) . '>' . $t . '</p><!-- /wp:paragraph -->'; };
 	$image   = function ( $url ) { return '<!-- wp:image {"sizeSlug":"large"} --><figure class="wp-block-image size-large"><img src="' . $url . '" alt=""/></figure><!-- /wp:image -->'; };
 	$btn     = function ( $label, $light = true ) { return '<!-- wp:button {"className":"is-style-outline' . ( $light ? '-light' : '' ) . '"} --><div class="wp-block-button is-style-outline' . ( $light ? '-light' : '' ) . '"><a class="wp-block-button__link wp-element-button" href="#">' . $label . '</a></div><!-- /wp:button -->'; };
-	$buttons = function ( $inner, $center = false ) { return '<!-- wp:buttons' . ( $center ? ' {"layout":{"type":"flex","justifyContent":"center"}}' : '' ) . ' --><div class="wp-block-buttons">' . $inner . '</div><!-- /wp:buttons -->'; };
+	$buttons = function ( $inner, $center = false ) { return '<!-- wp:buttons' . ( $center ? ' {"layout":{"type":"flex","justifyContent":"center"}}' : '' ) . ' --><div class="wp-block-buttons' . ( $center ? ' is-content-justification-center' : '' ) . '">' . $inner . '</div><!-- /wp:buttons -->'; };
 	$cover   = function ( $url, $inner, $min, $pos, $dim ) {
 		$poscls = 'center center' === $pos ? '' : ' has-custom-content-position is-position-' . str_replace( ' ', '-', $pos );
 		return '<!-- wp:cover {"url":"' . $url . '","dimRatio":' . $dim . ',"overlayColor":"ink","minHeight":' . $min . ',"minHeightUnit":"vh","contentPosition":"' . $pos . '","align":"full","textColor":"base"} --><div class="wp-block-cover alignfull has-base-color has-text-color' . $poscls . '" style="min-height:' . $min . 'vh"><span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-' . $dim . ' has-background-dim"></span><img class="wp-block-cover__image-background" alt="" src="' . $url . '" data-object-fit="cover"/><div class="wp-block-cover__inner-container">' . $inner . '</div></div><!-- /wp:cover -->';
@@ -43,7 +43,7 @@ add_action( 'init', function () {
 		$eyebrow( 'Linear Lighting — Flexible System' ) .
 		'<!-- wp:heading {"level":1,"style":{"typography":{"fontSize":"clamp(3rem, 8vw, 6rem)","fontWeight":"500","lineHeight":"1"}}} --><h1 class="wp-block-heading" style="font-size:clamp(3rem, 8vw, 6rem);font-weight:500;line-height:1">Flow+</h1><!-- /wp:heading -->' .
 		$para( 'A flexible linear system that bends to any architectural line — continuous, dot-free and made to order in Manchester.' ) .
-		$buttons( $btn( '＋ Add to My Project' ) . $btn( 'Datasheet ↓' ) ), 86, 'bottom left', 55 ) );
+		$buttons( $btn( '＋ Add to My Project' ) . $btn( 'Datasheet ↓' ) ), 86, 'bottom left', 60 ) );
 
 	$p['flow-facts'] = array( 'Flow · Facts band', $sec( $cols( $stat( 'Up to 1100 lm/m', 'Output' ) . $stat( '2700–6500K · CRI 90+', 'Colour' ) . $stat( '360° H &amp; V', 'Bend' ) . $stat( 'Bespoke', 'Lengths' ) . $stat( '5 years', 'Warranty' ) ), 'rm-facts' ) );
 
@@ -79,7 +79,7 @@ add_action( 'init', function () {
 		'<!-- wp:columns {"style":{"spacing":{"margin":{"top":"var:preset|spacing|40"}}}} --><div class="wp-block-columns" style="margin-top:var(--wp--preset--spacing--40)">' . $ncard( '01', 'Consult', 'We review drawings, finishes and the brief with your team.', 4 ) . $ncard( '02', 'Design', 'Relux &amp; DIALux calculations, lux levels and schedules.', 4 ) . $ncard( '03', 'Engineer', 'Photometry, BIM/Revit objects and bespoke detailing.', 4 ) . $ncard( '04', 'Manufacture', 'Made to order in Manchester with full QA testing.', 4 ) . $ncard( '05', 'Support', 'Delivery, on-site support and handover documentation.', 4 ) . '</div><!-- /wp:columns -->', 'rm-soft' ) );
 
 	$p['flow-specband'] = array( 'Flow · Spec band', $cover( $u( 'bf-flow3.jpg' ),
-		'<!-- wp:columns -->' . '<div class="wp-block-columns">' . $bigstat( '1100 lm/m', 'Output' ) . $bigstat( '90+', 'CRI' ) . $bigstat( '2700–6500K', 'Tunable' ) . $bigstat( 'IP20–65', 'Rating' ) . $bigstat( '360°', 'Bend' ) . '</div><!-- /wp:columns -->', 40, 'center center', 75 ) );
+		'<!-- wp:columns -->' . '<div class="wp-block-columns">' . $bigstat( '1100 lm/m', 'Output' ) . $bigstat( '90+', 'CRI' ) . $bigstat( '2700–6500K', 'Tunable' ) . $bigstat( 'IP20–65', 'Rating' ) . $bigstat( '360°', 'Bend' ) . '</div><!-- /wp:columns -->', 40, 'center center', 70 ) );
 
 	$p['flow-mosaic'] = array( 'Flow · Image mosaic', $sec( '<!-- wp:gallery {"columns":3,"linkTo":"none"} --><figure class="wp-block-gallery has-nested-images columns-3 is-cropped">' . $image( $u( 'rico-office-render.webp' ) ) . $image( $u( 'rico-wave.png' ) ) . $image( $u( 'courier.jpg' ) ) . '</figure><!-- /wp:gallery -->' ) );
 
