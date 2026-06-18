@@ -39,14 +39,14 @@ add_action( 'init', function () {
 
 	$p = array();
 
-	// Rolling banner — slides editable in Ricoman → Flow+ rolling banner.
-	$p['flow-hero'] = array( 'Flow · Hero (rolling banner)', '<!-- wp:group {"align":"full","className":"rm-banner-wrap","layout":{"type":"default"}} --><div class="wp-block-group alignfull rm-banner-wrap"><!-- wp:shortcode -->[ricoman_flow_banner]<!-- /wp:shortcode --></div><!-- /wp:group -->' );
-	// Static cover hero kept as an alternative.
-	$p['flow-hero-cover'] = array( 'Flow · Hero (static cover)', $cover( $u( 'bf-flow3.webp' ),
+	// Default Flow hero — cover with editable buttons (edit inline in the page).
+	$p['flow-hero'] = array( 'Flow · Hero', $cover( $u( 'bf-flow3.webp' ),
 		$eyebrow( 'Linear Lighting — Flexible System' ) .
 		'<!-- wp:heading {"level":1,"style":{"typography":{"fontSize":"clamp(3rem, 8vw, 6rem)","fontWeight":"500","lineHeight":"1"}}} --><h1 class="wp-block-heading" style="font-size:clamp(3rem, 8vw, 6rem);font-weight:500;line-height:1">Flow+</h1><!-- /wp:heading -->' .
 		$para( 'A flexible linear system that bends to any architectural line — continuous, dot-free and made to order in Manchester.' ) .
-		$buttons( '<!-- wp:button {"className":"is-style-outline-light"} --><div class="wp-block-button is-style-outline-light"><a class="wp-block-button__link wp-element-button" href="/flow-designer/">Design your run →</a></div><!-- /wp:button -->' . $btn( '＋ Add to My Project' ) . $btn( 'Datasheet ↓' ) ), 86, 'bottom left', 60 ) );
+		$buttons( '<!-- wp:button {"className":"is-style-outline-light"} --><div class="wp-block-button is-style-outline-light"><a class="wp-block-button__link wp-element-button" href="/flow-designer/">Design your run →</a></div><!-- /wp:button -->' . $btn( '＋ Add to My Project', '/my-project/' ) . $btn( 'Datasheet ↓', '#' ) ), 86, 'bottom left', 60 ) );
+	// Optional rolling banner — slides edited in Ricoman → Flow+ rolling banner.
+	$p['flow-banner'] = array( 'Flow · Rolling banner (admin-editable)', '<!-- wp:group {"align":"full","className":"rm-banner-wrap","layout":{"type":"default"}} --><div class="wp-block-group alignfull rm-banner-wrap"><!-- wp:shortcode -->[ricoman_flow_banner]<!-- /wp:shortcode --></div><!-- /wp:group -->' );
 
 	$p['flow-facts'] = array( 'Flow · Facts band', $sec( $cols( $stat( 'Up to 1100 lm/m', 'Output' ) . $stat( '2700–6500K · CRI 90+', 'Colour' ) . $stat( '360° H &amp; V', 'Bend' ) . $stat( 'Bespoke', 'Lengths' ) . $stat( '5 years', 'Warranty' ) ), 'rm-facts' ) );
 
