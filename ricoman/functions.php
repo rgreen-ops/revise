@@ -33,6 +33,7 @@ require_once get_theme_file_path( 'inc/datasheet.php' );     // Printable / PDF 
 require_once get_theme_file_path( 'inc/lead-capture.php' );  // Lead form + Sheets webhook.
 require_once get_theme_file_path( 'inc/shortcodes.php' );    // Product spec/variant/datasheet output.
 require_once get_theme_file_path( 'inc/my-project.php' );    // "My Project" specification list (Toolbox).
+require_once get_theme_file_path( 'inc/demo-setup.php' );    // One-time: create linked pages + pretty links.
 
 /**
  * Theme setup.
@@ -50,8 +51,9 @@ function ricoman_setup() {
 	add_theme_support( 'wp-block-styles' );
 	add_theme_support( 'align-wide' );
 
-	// Make the front-end style sheet available inside the block editor too.
-	add_editor_style( 'assets/css/shared.css' );
+	// Make the front-end style sheets available inside the block editor too, so
+	// templates/pages render in the editor exactly as they do on the live site.
+	add_editor_style( array( 'assets/css/fonts.css', 'assets/css/shared.css', 'assets/css/ricoman.css' ) );
 
 	// Translations.
 	load_theme_textdomain( 'ricoman', get_template_directory() . '/languages' );

@@ -195,6 +195,11 @@
 	},
 	"customTemplates": [
 		{
+			"name": "page-plain",
+			"title": "Page, Full-bleed (no title)",
+			"postTypes": ["page"]
+		},
+		{
 			"name": "single-product-simple",
 			"title": "Product, Simple",
 			"postTypes": ["product"]
