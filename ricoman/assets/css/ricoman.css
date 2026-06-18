@@ -719,3 +719,12 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-zz-body p{color:var(--muted);font-size:1.02rem;line-height:1.7;margin:0 0 1.2em;max-width:54ch}
 .rm-cta-buttons{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px}
 @media(max-width:780px){.rm-zz-row{grid-template-columns:1fr}.rm-zz-row.rev .rm-zz-media{order:0}}
+
+/* ACF-driven product page extras */
+.rm-spechtml{font-size:.98rem;line-height:1.7;color:var(--text);margin:8px 0 4px}
+.rm-spechtml strong{display:block;font-family:Poppins;font-size:.7rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:1.2em 0 .3em}
+.rm-spechtml p{margin:0 0 .6em}
+.rm-pp-code{font-family:Poppins;margin:.2em 0 1em}
+.rm-pp-code .rm-cfg-code{font-family:'JetBrains Mono',monospace;font-weight:600;color:#c4622e;font-size:1.05rem}
+.rm-pp-wrap{max-width:1640px;margin:0 auto;padding-inline:clamp(20px,4vw,72px)}
+.rm-pp-features{margin-top:.8em}
