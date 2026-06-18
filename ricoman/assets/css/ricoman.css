@@ -641,3 +641,15 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-cfg-dl a:hover{color:#c4622e}
 .rm-cfg-note{font-size:.82rem;color:var(--muted);margin-top:18px;line-height:1.6}
 @media(max-width:900px){.rm-cfghero{grid-template-columns:1fr}.rm-cfg-stage{position:static}}
+
+/* ===== Why specify {family} — data-driven selling points ===== */
+.rm-sp{background:var(--soft);padding-block:clamp(56px,8vw,120px)}
+.rm-sp-inner{max-width:1640px;margin:0 auto;padding-inline:clamp(20px,4vw,72px)}
+.rm-sp-kick{margin-bottom:clamp(28px,4vw,52px)}
+.rm-sp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}
+.rm-sp-card{background:var(--soft);padding:clamp(26px,3vw,44px)}
+.rm-sp-card .ic{color:#c4622e;display:block;margin-bottom:18px}
+.rm-sp-card h4{font-family:Poppins;font-size:1.2rem;font-weight:600;letter-spacing:-.01em;color:var(--ink);margin:0 0 .5em}
+.rm-sp-card p{color:var(--muted);font-size:.96rem;line-height:1.6;margin:0}
+@media(max-width:860px){.rm-sp-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.rm-sp-grid{grid-template-columns:1fr}}

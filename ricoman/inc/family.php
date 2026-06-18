@@ -274,3 +274,65 @@ add_shortcode( 'ricoman_family', function ( $atts ) {
 	<?php
 	return ob_get_clean();
 } );
+
+/* ---- Shortcode: "Why specify {family}" — selling points, data-driven ----
+ * Renders res.sellingPoints[] from GET /api/public/families/{slug} as a 3-col
+ * grid (1-col on mobile). Hidden entirely when the array is empty (not yet
+ * filled in for that family). Icons are Lucide names mapped to inline SVG. */
+add_shortcode( 'ricoman_selling_points', function ( $atts ) {
+	$atts   = shortcode_atts( array( 'family' => '' ), $atts, 'ricoman_selling_points' );
+	$family = trim( (string) $atts['family'] );
+	if ( '' === $family ) {
+		$pid = get_the_ID();
+		if ( $pid ) {
+			$family = trim( (string) get_post_meta( $pid, '_ricoman_family', true ) );
+		}
+	}
+	if ( '' === $family || ! function_exists( 'ricoman_ricobot_ready' ) || ! ricoman_ricobot_ready() ) {
+		return '';
+	}
+	$nonce = wp_create_nonce( 'ricoman_rb_front' );
+	$ajax  = esc_url( admin_url( 'admin-ajax.php' ) );
+	ob_start();
+	?>
+	<section class="rm-sp" data-family="<?php echo esc_attr( $family ); ?>" data-nonce="<?php echo esc_attr( $nonce ); ?>" data-ajax="<?php echo $ajax; ?>" hidden>
+		<div class="rm-sp-inner"><p class="rm-eyebrow rm-sp-kick"></p><div class="rm-sp-grid"></div></div>
+	</section>
+	<script>
+	( function () {
+		var root = document.currentScript.previousElementSibling;
+		var family = root.dataset.family, nonce = root.dataset.nonce, ajax = root.dataset.ajax;
+		var kick = root.querySelector( '.rm-sp-kick' ), grid = root.querySelector( '.rm-sp-grid' );
+		// Lucide icon paths (24x24, currentColor stroke).
+		var ICONS = {
+			sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>',
+			clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+			home: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+			shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+			activity: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
+			zap: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+			award: '<circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>',
+			leaf: '<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/>',
+			settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+			wrench: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+			lightbulb: '<path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>',
+			ruler: '<path d="M21.3 8.7 8.7 21.3a1 1 0 0 1-1.4 0l-4.6-4.6a1 1 0 0 1 0-1.4L15.3 2.7a1 1 0 0 1 1.4 0l4.6 4.6a1 1 0 0 1 0 1.4Z"/><path d="m7.5 10.5 2 2M10.5 7.5l2 2M13.5 4.5l2 2M4.5 13.5l2 2"/>'
+		};
+		function esc( s ) { return String( s == null ? '' : s ).replace( /[&<>"]/g, function ( c ) { return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[ c ]; } ); }
+		function svg( name ) { var p = ICONS[ name ] || ICONS.lightbulb; return '<svg class="ic" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>'; }
+		var b = new FormData(); b.append( 'action', 'ricoman_rb_family' ); b.append( 'nonce', nonce ); b.append( 'family', family );
+		fetch( ajax, { method: 'POST', body: b } ).then( function ( r ) { return r.json(); } ).then( function ( res ) {
+			if ( ! res.success ) { return; }
+			var pts = ( res.data && res.data.sellingPoints ) || [];
+			if ( ! pts.length ) { return; } // empty = not filled in yet -> stay hidden
+			kick.textContent = 'Why specify ' + ( res.data.family || family );
+			grid.innerHTML = pts.map( function ( pt ) {
+				return '<div class="rm-sp-card">' + svg( pt.icon ) + '<h4>' + esc( pt.title ) + '</h4><p>' + esc( pt.body ) + '</p></div>';
+			} ).join( '' );
+			root.hidden = false;
+		} ).catch( function () {} );
+	} )();
+	</script>
+	<?php
+	return ob_get_clean();
+} );

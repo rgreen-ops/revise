@@ -98,7 +98,7 @@ function ricoman_set_featured_from_theme( $post_id, $file ) {
 }
 
 function ricoman_scaffold_site() {
-	if ( get_option( 'ricoman_scaffold_v20' ) ) {
+	if ( get_option( 'ricoman_scaffold_v21' ) ) {
 		return;
 	}
 
@@ -285,5 +285,5 @@ function ricoman_scaffold_site() {
 	}
 
 	flush_rewrite_rules( true );
-	update_option( 'ricoman_scaffold_v20', 1 );
+	update_option( 'ricoman_scaffold_v21', 1 );
 }

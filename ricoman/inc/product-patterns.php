@@ -49,13 +49,9 @@ add_action( 'init', function () {
 	// Live specification — updates to the exact variant the customer configures.
 	$p['product-specs-live'] = array( 'Product · Specification (live, follows configurator)', $sec( $sc( 'ricoman_specs_live' ) ) );
 
-	// Selling points — 6 editable cards ("Why specify…"), matching the preview.
-	$why = function ( $icon, $h, $p ) { return '<!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"rm-aud-card","layout":{"type":"constrained"}} --><div class="wp-block-group rm-aud-card"><!-- wp:paragraph {"className":"rm-whyicon"} --><p class="rm-whyicon">' . $icon . '</p><!-- /wp:paragraph --><!-- wp:heading {"level":3} --><h3 class="wp-block-heading">' . $h . '</h3><!-- /wp:heading --><!-- wp:paragraph {"textColor":"muted"} --><p class="has-muted-color has-text-color">' . $p . '</p><!-- /wp:paragraph --></div><!-- /wp:group --></div><!-- /wp:column -->'; };
-	$p['product-why'] = array( 'Product · Why specify (selling points)', $sec(
-		'<!-- wp:paragraph {"className":"rm-eyebrow"} --><p class="rm-eyebrow">Why specify this product</p><!-- /wp:paragraph --><!-- wp:heading {"level":2,"className":"rm-shead"} --><h2 class="wp-block-heading rm-shead">Built to specify with confidence</h2><!-- /wp:heading -->' .
-		'<!-- wp:columns --><div class="wp-block-columns">' . $why( '◐', 'Low-glare optics', 'UGR&lt;19 microprismatic and louvre options for screen-based and workplace environments.' ) . $why( '✸', 'CRI 90 light quality', 'High colour rendering across 3000K and 4000K, calibrated so every metre of a run matches.' ) . $why( '⌂', 'Made in Britain', 'Engineered, assembled and tested in Manchester — built to order, not to a catalogue.' ) . '</div><!-- /wp:columns -->' .
-		'<!-- wp:columns --><div class="wp-block-columns">' . $why( '⛉', '5-year warranty', 'Long-life LED modules and drivers backed by a five-year warranty as standard.' ) . $why( '〰', 'True continuous runs', 'Joint-free diffusion through straight lines, L-shapes and rectangular frames.' ) . $why( '⚡', 'Emergency &amp; up-light', 'Integral 3hr self-test emergency and indirect up-light options built into the profile.' ) . '</div><!-- /wp:columns -->'
-	) );
+	// Selling points — "Why specify {family}", driven live from the RICOBOT family
+	// endpoint (sellingPoints[]). Hides itself when Richard hasn't filled them in.
+	$p['product-why'] = array( 'Product · Why specify (live selling points)', $sc( 'ricoman_selling_points' ) );
 
 	$p['product-keyinfo'] = array( 'Product · Key info', $sec( $sc( 'ricoman_product_features' ) . $sc( 'ricoman_product_finishes' ) ) );
 
