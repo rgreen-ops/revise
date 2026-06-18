@@ -47,6 +47,8 @@ function ricoman_rb_specs_cb() {
 			'accessories'   => isset( $data['accessories'] ) && is_array( $data['accessories'] ) ? $data['accessories'] : array(),
 			'documents'     => isset( $data['documents'] ) && is_array( $data['documents'] ) ? $data['documents'] : array(),
 			'photometric'   => isset( $data['photometric'] ) && is_array( $data['photometric'] ) ? $data['photometric'] : array(),
+			'gallery'       => isset( $data['gallery'] ) && is_array( $data['gallery'] ) ? $data['gallery'] : array(),
+			'heroUrl'       => isset( $data['heroUrl'] ) ? $data['heroUrl'] : '',
 		)
 	);
 }
