@@ -79,6 +79,33 @@ function ricoman_ricobot_map( $d ) {
 	return array_filter( $out, function ( $v ) { return '' !== $v; } );
 }
 
+/* ---- AJAX: list RICOBOT products (for the link dropdown) ---- */
+add_action( 'wp_ajax_ricoman_ricobot_list', function () {
+	check_ajax_referer( 'ricoman_rb_sync', 'nonce' );
+	if ( ! current_user_can( 'edit_posts' ) ) {
+		wp_send_json_error( 'Not allowed.' );
+	}
+	if ( ! function_exists( 'ricoman_ricobot_products' ) ) {
+		wp_send_json_error( 'RICOBOT client unavailable.' );
+	}
+	$data = ricoman_ricobot_products();
+	if ( is_wp_error( $data ) ) {
+		wp_send_json_error( $data->get_error_message() );
+	}
+	$list = ( isset( $data['products'] ) && is_array( $data['products'] ) ) ? $data['products'] : ( is_array( $data ) ? $data : array() );
+	$out  = array();
+	foreach ( $list as $p ) {
+		$code = isset( $p['code'] ) ? $p['code'] : ( isset( $p['sku'] ) ? $p['sku'] : '' );
+		if ( '' === $code ) {
+			continue;
+		}
+		$name   = isset( $p['name'] ) ? $p['name'] : $code;
+		$family = isset( $p['family'] ) ? $p['family'] : '';
+		$out[]  = array( 'code' => (string) $code, 'name' => (string) $name, 'family' => (string) $family );
+	}
+	wp_send_json_success( $out );
+} );
+
 /* ---- AJAX: sync from RICOBOT ---- */
 add_action( 'wp_ajax_ricoman_ricobot_sync', function () {
 	check_ajax_referer( 'ricoman_rb_sync', 'nonce' );

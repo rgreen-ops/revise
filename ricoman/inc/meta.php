@@ -222,8 +222,10 @@ function ricoman_render_product_metabox( $post ) {
 
 		<div class="sync">
 			<span class="dashicons dashicons-rest-api"></span>
-			<button type="button" class="button" id="rmpb-sync" <?php disabled( ! $ready ); ?>><?php esc_html_e( 'Sync specs from RICOBOT', 'ricoman' ); ?></button>
-			<span id="rmpb-sync-msg" class="hint"><?php echo $ready ? esc_html__( 'Fills the spec fields below from the Order code.', 'ricoman' ) : esc_html__( 'Connect RICOBOT (Settings → RICOBOT) to enable.', 'ricoman' ); ?></span>
+			<label for="rmpb-rb-product" style="margin:0;font-weight:600"><?php esc_html_e( 'RICOBOT product:', 'ricoman' ); ?></label>
+			<select id="rmpb-rb-product" data-current="<?php echo esc_attr( $m( '_ricoman_sku' ) ); ?>" style="max-width:300px" <?php disabled( ! $ready ); ?>><option value=""><?php echo $ready ? esc_html__( 'Loading…', 'ricoman' ) : esc_html__( '— not connected —', 'ricoman' ); ?></option></select>
+			<button type="button" class="button" id="rmpb-sync" <?php disabled( ! $ready ); ?>><?php esc_html_e( 'Sync specs', 'ricoman' ); ?></button>
+			<span id="rmpb-sync-msg" class="hint"><?php echo $ready ? esc_html__( 'Pick a product (or type the Order code in SKU) then Sync.', 'ricoman' ) : esc_html__( 'Connect RICOBOT (Settings → RICOBOT) to enable.', 'ricoman' ); ?></span>
 		</div>
 
 		<h3><?php esc_html_e( 'Overview', 'ricoman' ); ?></h3>
@@ -306,6 +308,32 @@ function ricoman_render_product_metabox( $post ) {
 				msg.textContent = '✓ Filled ' + count + ' fields from RICOBOT. Remember to Update.';
 			} ).catch( function () { msg.textContent = '⚠ Request failed.'; } );
 		} );
+
+		// Populate the "RICOBOT product" dropdown; selecting one links it + syncs.
+		var sel = document.getElementById( 'rmpb-rb-product' );
+		if ( sel && ! sel.disabled ) {
+			var nonce = '<?php echo esc_js( wp_create_nonce( 'ricoman_rb_sync' ) ); ?>';
+			var lb = new FormData();
+			lb.append( 'action', 'ricoman_ricobot_list' );
+			lb.append( 'nonce', nonce );
+			fetch( ajaxurl, { method: 'POST', body: lb } ).then( function ( r ) { return r.json(); } ).then( function ( res ) {
+				if ( ! res.success ) { sel.innerHTML = '<option value="">— ' + ( res.data || 'unavailable' ) + ' —</option>'; return; }
+				var cur = sel.getAttribute( 'data-current' ) || '';
+				var html = '<option value="">— Link a RICOBOT product —</option>';
+				res.data.forEach( function ( p ) {
+					var label = ( p.name || p.code ) + ' (' + p.code + ')';
+					html += '<option value="' + p.code + '"' + ( p.code === cur ? ' selected' : '' ) + '>' + label + '</option>';
+				} );
+				sel.innerHTML = html;
+			} ).catch( function () { sel.innerHTML = '<option value="">— could not load —</option>'; } );
+
+			sel.addEventListener( 'change', function () {
+				if ( ! sel.value ) { return; }
+				var skuEl = document.getElementById( '_ricoman_sku' );
+				if ( skuEl ) { skuEl.value = sel.value; }
+				btn.click();
+			} );
+		}
 	} )();
 
 	/* Repeaters: add/remove rows + Media Library picker for downloads. */
