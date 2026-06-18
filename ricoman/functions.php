@@ -36,6 +36,7 @@ require_once get_theme_file_path( 'inc/product-builder.php' );// Product Builder
 require_once get_theme_file_path( 'inc/configurator.php' );   // Live variant configurator (RICOBOT price/options).
 require_once get_theme_file_path( 'inc/product-patterns.php' );// Product page blocks (Hero/Specs/Configurator/…).
 require_once get_theme_file_path( 'inc/family.php' );         // Family filter page (facets -> pick -> configure).
+require_once get_theme_file_path( 'inc/specs-live.php' );     // Configurator-aware Specification + Accessories blocks.
 require_once get_theme_file_path( 'inc/flow-patterns.php' );  // Flow+ page sections as editable blocks.
 require_once get_theme_file_path( 'inc/page-patterns.php' );  // Home/page sections as editable blocks.
 require_once get_theme_file_path( 'inc/my-project.php' );    // "My Project" specification list (Toolbox).

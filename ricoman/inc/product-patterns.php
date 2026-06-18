@@ -41,11 +41,17 @@ add_action( 'init', function () {
 	// Product Builder ("RICOBOT family"), so a bare [ricoman_family] just works.
 	$p['product-range'] = array( 'Product · Variant range (whole family)', $sec( '<!-- wp:heading {"level":2,"className":"rm-shead"} --><h2 class="wp-block-heading rm-shead">Choose your variant</h2><!-- /wp:heading --><!-- wp:paragraph {"textColor":"muted"} --><p class="has-muted-color has-text-color">Filter the full range, then pick a code to configure — datasheet and project actions, no pricing.</p><!-- /wp:paragraph -->' . $sc( 'ricoman_family' ) ) );
 
-	$p['product-specs'] = array( 'Product · Specifications', $sec( $sc( 'ricoman_product_lead' ) . '<!-- wp:heading {"level":2,"className":"rm-shead"} --><h2 class="wp-block-heading rm-shead">Specifications</h2><!-- /wp:heading -->' . $sc( 'ricoman_product_specs' ) ) );
+	$p['product-specs'] = array( 'Product · Specifications (static)', $sec( $sc( 'ricoman_product_lead' ) . '<!-- wp:heading {"level":2,"className":"rm-shead"} --><h2 class="wp-block-heading rm-shead">Specifications</h2><!-- /wp:heading -->' . $sc( 'ricoman_product_specs' ) ) );
+
+	// Live specification — updates to the exact variant the customer configures.
+	$p['product-specs-live'] = array( 'Product · Specification (live, follows configurator)', $sec( $sc( 'ricoman_specs_live' ) ) );
 
 	$p['product-keyinfo'] = array( 'Product · Key info', $sec( $sc( 'ricoman_product_features' ) . $sc( 'ricoman_product_finishes' ) ) );
 
-	$p['product-accessories'] = array( 'Product · Accessories', $sec( $sc( 'ricoman_product_accessories' ) ) );
+	$p['product-accessories'] = array( 'Product · Accessories (static)', $sec( $sc( 'ricoman_product_accessories' ) ) );
+
+	// Live accessories — follow the chosen product.
+	$p['product-accessories-live'] = array( 'Product · Accessories (live)', $sec( $sc( 'ricoman_accessories_live' ) ) );
 
 	$p['product-downloads'] = array( 'Product · Downloads', $sec( $sc( 'ricoman_product_downloads' ) ) );
 
@@ -81,7 +87,7 @@ add_action( 'init', function () {
  * a starting point). Returns block markup referencing the product patterns.
  */
 function ricoman_default_product_blocks() {
-	$stack = array( 'product-hero', 'product-specs', 'product-range', 'product-gallery', 'product-keyinfo', 'product-accessories', 'product-downloads', 'product-cta' );
+	$stack = array( 'product-hero', 'product-range', 'product-specs-live', 'product-gallery', 'product-keyinfo', 'product-accessories-live', 'product-downloads', 'product-cta' );
 	$out   = '';
 	foreach ( $stack as $slug ) {
 		$out .= '<!-- wp:pattern {"slug":"ricoman/' . $slug . '"} /-->' . "\n";

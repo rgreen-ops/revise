@@ -97,7 +97,7 @@ add_action( 'init', function () {
 
 /** Flow+ product page = the original design as a stack of editable blocks. */
 function ricoman_flow_product_blocks() {
-	$stack = array( 'flow-hero', 'flow-facts', 'flow-statement', 'flow-feature-1', 'flow-feature-2', 'flow-manufacturing', 'flow-custom', 'flow-opportunities', 'flow-team', 'flow-specband', 'product-range', 'product-specs', 'flow-mosaic', 'flow-quote', 'flow-cta' );
+	$stack = array( 'flow-hero', 'flow-facts', 'flow-statement', 'flow-feature-1', 'flow-feature-2', 'flow-manufacturing', 'flow-custom', 'flow-opportunities', 'flow-team', 'flow-specband', 'product-range', 'product-specs-live', 'flow-mosaic', 'flow-quote', 'flow-cta' );
 	$out   = '';
 	foreach ( $stack as $slug ) {
 		$out .= '<!-- wp:pattern {"slug":"ricoman/' . $slug . '"} /-->' . "\n";

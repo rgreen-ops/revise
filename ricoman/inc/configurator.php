@@ -114,6 +114,8 @@ add_shortcode( 'ricoman_configurator', function ( $atts ) {
 		function renderResult() {
 			var sku = buildSku();
 			skuEl.textContent = sku ? sku : '';
+			// Tell the live Specification / Accessories blocks which variant is built.
+			document.dispatchEvent( new CustomEvent( 'ricoman:variant', { detail: { code: code, sku: sku || '' } } ) );
 			if ( ! sku ) { resEl.hidden = true; return; }
 			resEl.hidden = false;
 			statusEl.textContent = '';
@@ -156,6 +158,8 @@ add_shortcode( 'ricoman_configurator', function ( $atts ) {
 			renderResult();
 		}
 
+		// Announce the bound product so live Specification / Accessories blocks load it.
+		document.dispatchEvent( new CustomEvent( 'ricoman:product', { detail: { code: code } } ) );
 		call( 'ricoman_rb_config', { code: code } ).then( function ( res ) {
 			if ( ! res.success ) { axesEl.innerHTML = '<p class="rm-config-note">Configurator unavailable.</p>'; return; }
 			axes = ( res.data && res.data.options ) ? res.data.options : [];

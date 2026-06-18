@@ -171,6 +171,8 @@ add_shortcode( 'ricoman_family', function ( $atts ) {
 
 		/* inline configurator for the chosen product (no pricing) */
 		function loadConfigurator( p ) {
+			// Tell live Specification / Accessories blocks which product was chosen.
+			document.dispatchEvent( new CustomEvent( 'ricoman:product', { detail: { code: p.code, name: p.name || '' } } ) );
 			configureEl.innerHTML = '<div class="rm-config"><h3 class="rm-shead">Build a variant — ' + p.code + '</h3><div class="rm-config-axes"><p class="rm-config-loading">Loading options…</p></div><div class="rm-config-result" hidden><div class="rm-config-sku"></div><div class="rm-config-status rm-config-note"></div><div class="rm-config-actions"></div></div></div>';
 			configureEl.scrollIntoView( { behavior: 'smooth', block: 'start' } );
 			var axesEl = configureEl.querySelector( '.rm-config-axes' );
@@ -181,7 +183,9 @@ add_shortcode( 'ricoman_family', function ( $atts ) {
 			var axes = [], sel = {};
 			function build() { var parts = [ p.code ]; for ( var i = 0; i < axes.length; i++ ) { if ( ! sel[ i ] ) { return null; } parts.push( sel[ i ] ); } return parts.join( '/' ); }
 			function result() {
-				var sku = build(); skuEl.textContent = sku || ''; if ( ! sku ) { resEl.hidden = true; return; } resEl.hidden = false; statusEl.textContent = '';
+				var sku = build(); skuEl.textContent = sku || '';
+				document.dispatchEvent( new CustomEvent( 'ricoman:variant', { detail: { code: p.code, sku: sku || '' } } ) );
+				if ( ! sku ) { resEl.hidden = true; return; } resEl.hidden = false; statusEl.textContent = '';
 				actEl.innerHTML = '<a class="btn btn-solid" href="' + enquire + '?sku=' + encodeURIComponent( sku ) + '">Add to My Project</a> <a class="btn btn-line-d" href="' + enquire + '?sku=' + encodeURIComponent( sku ) + '">Request a quote</a>';
 				call( 'ricoman_rb_price', { sku: sku } ).then( function ( res ) {
 					if ( ! res.success ) { return; } var d = res.data, s = d.status;

@@ -419,6 +419,8 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-gtab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
 .rm-gpane{display:none;grid-template-columns:repeat(2,1fr);gap:10px}
 .rm-gpane.on{display:grid}
+.rm-specs-section{font-size:1.05rem!important;margin-top:1.6em}
+.rm-specs-for{font-size:.8rem;color:var(--muted);font-family:Poppins;letter-spacing:.04em;margin:0 0 1em}
 .rm-accessories{margin-top:clamp(28px,4vw,48px)}
 .rm-acc-table{width:100%;border-collapse:collapse;margin-top:1em;font-size:.9rem}
 .rm-acc-table td{border-top:1px solid var(--line);padding:9px 12px}
