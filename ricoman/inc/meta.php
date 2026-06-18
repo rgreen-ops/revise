@@ -67,6 +67,30 @@ function ricoman_register_product_meta() {
 			},
 		)
 	);
+
+	// Extra product-only content fields (Product Builder).
+	$extra = array(
+		'_ricoman_tagline'  => 'sanitize_text_field',
+		'_ricoman_lead'     => 'sanitize_text_field',
+		'_ricoman_features' => 'sanitize_textarea_field',
+		'_ricoman_finishes' => 'sanitize_textarea_field',
+		'_ricoman_datasheet'=> 'esc_url_raw',
+	);
+	foreach ( $extra as $key => $sanitize ) {
+		register_post_meta(
+			'product',
+			$key,
+			array(
+				'type'              => 'string',
+				'single'            => true,
+				'show_in_rest'      => true,
+				'sanitize_callback' => $sanitize,
+				'auth_callback'     => function () {
+					return current_user_can( 'edit_posts' );
+				},
+			)
+		);
+	}
 }
 add_action( 'init', 'ricoman_register_product_meta' );
 
@@ -128,7 +152,7 @@ function ricoman_get_variants( $post_id ) {
 function ricoman_add_product_metabox() {
 	add_meta_box(
 		'ricoman_product_details',
-		__( 'Product details & variants', 'ricoman' ),
+		'💡 ' . __( 'Product Builder', 'ricoman' ),
 		'ricoman_render_product_metabox',
 		'product',
 		'normal',
@@ -144,24 +168,85 @@ add_action( 'add_meta_boxes', 'ricoman_add_product_metabox' );
  */
 function ricoman_render_product_metabox( $post ) {
 	wp_nonce_field( 'ricoman_save_product', 'ricoman_product_nonce' );
-	echo '<style>.ricoman-meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.ricoman-meta-grid label{display:block;font-weight:600;margin-bottom:4px}.ricoman-meta-grid input{width:100%}.ricoman-meta-full{margin-top:14px}.ricoman-meta-full textarea{width:100%}</style>';
-	echo '<div class="ricoman-meta-grid">';
-	foreach ( ricoman_product_spec_fields() as $key => $label ) {
-		$val = esc_attr( (string) get_post_meta( $post->ID, $key, true ) );
-		printf(
-			'<div><label for="%1$s">%2$s</label><input type="text" id="%1$s" name="%1$s" value="%3$s" /></div>',
-			esc_attr( $key ),
-			esc_html( $label ),
-			$val
-		);
-	}
-	echo '</div>';
+	$m = function ( $k ) use ( $post ) { return (string) get_post_meta( $post->ID, $k, true ); };
+	$ready = function_exists( 'ricoman_ricobot_ready' ) && ricoman_ricobot_ready();
+	?>
+	<style>
+		.rmpb{--b:#e3e3e1}
+		.rmpb h3{margin:22px 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#777}
+		.rmpb h3:first-child{margin-top:4px}
+		.rmpb .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+		.rmpb label{display:block;font-weight:600;margin-bottom:4px;font-size:13px}
+		.rmpb input,.rmpb textarea{width:100%}
+		.rmpb .full{margin-top:12px}
+		.rmpb .hint{color:#777;font-size:12px;margin:4px 0 0}
+		.rmpb .sync{display:flex;gap:10px;align-items:center;background:#f6f7f9;border:1px solid var(--b);border-radius:8px;padding:12px;margin:4px 0 6px}
+		.rmpb .sync .dashicons{color:#1d4ed8}
+		#rmpb-sync-msg{font-size:12px}
+	</style>
+	<div class="rmpb">
 
-	$variants = esc_textarea( (string) get_post_meta( $post->ID, '_ricoman_variants', true ) );
-	echo '<div class="ricoman-meta-full">';
-	echo '<label for="_ricoman_variants" style="font-weight:600;display:block;margin-bottom:4px">' . esc_html__( 'Variants — one per line: SKU | Description | Wattage | Lumens | CCT', 'ricoman' ) . '</label>';
-	echo '<textarea id="_ricoman_variants" name="_ricoman_variants" rows="6" placeholder="RM-DL-08 | 8W fixed downlight | 8W | 800lm | 3000/4000/6000K">' . $variants . '</textarea>';
-	echo '</div>';
+		<div class="sync">
+			<span class="dashicons dashicons-rest-api"></span>
+			<button type="button" class="button" id="rmpb-sync" <?php disabled( ! $ready ); ?>><?php esc_html_e( 'Sync specs from RICOBOT', 'ricoman' ); ?></button>
+			<span id="rmpb-sync-msg" class="hint"><?php echo $ready ? esc_html__( 'Fills the spec fields below from the Order code.', 'ricoman' ) : esc_html__( 'Connect RICOBOT (Settings → RICOBOT) to enable.', 'ricoman' ); ?></span>
+		</div>
+
+		<h3><?php esc_html_e( 'Overview', 'ricoman' ); ?></h3>
+		<div class="full"><label for="_ricoman_tagline"><?php esc_html_e( 'Tagline (one line under the title)', 'ricoman' ); ?></label><input type="text" id="_ricoman_tagline" name="_ricoman_tagline" value="<?php echo esc_attr( $m( '_ricoman_tagline' ) ); ?>" placeholder="Seamless curves of light, made to order"></div>
+		<div class="full"><label for="_ricoman_lead"><?php esc_html_e( 'Availability / lead-time line', 'ricoman' ); ?></label><input type="text" id="_ricoman_lead" name="_ricoman_lead" value="<?php echo esc_attr( $m( '_ricoman_lead' ) ); ?>" placeholder="Made to order · ~6 day UK lead"></div>
+
+		<h3><?php esc_html_e( 'Specifications', 'ricoman' ); ?></h3>
+		<div class="grid">
+		<?php
+		foreach ( ricoman_product_spec_fields() as $key => $label ) {
+			printf(
+				'<div><label for="%1$s">%2$s</label><input type="text" id="%1$s" name="%1$s" value="%3$s" /></div>',
+				esc_attr( $key ),
+				esc_html( $label ),
+				esc_attr( $m( $key ) )
+			);
+		}
+		?>
+		</div>
+
+		<h3><?php esc_html_e( 'Key features', 'ricoman' ); ?></h3>
+		<div class="full"><textarea id="_ricoman_features" name="_ricoman_features" rows="4" placeholder="One feature per line&#10;Dot-free continuous run&#10;Bends to any radius&#10;Made to your exact length"><?php echo esc_textarea( $m( '_ricoman_features' ) ); ?></textarea><p class="hint"><?php esc_html_e( 'One per line — shown as a bullet list on the product page.', 'ricoman' ); ?></p></div>
+
+		<h3><?php esc_html_e( 'Finishes', 'ricoman' ); ?></h3>
+		<div class="full"><textarea id="_ricoman_finishes" name="_ricoman_finishes" rows="2" placeholder="Matt white, Matt black, Brushed brass, Anodised silver"><?php echo esc_textarea( $m( '_ricoman_finishes' ) ); ?></textarea><p class="hint"><?php esc_html_e( 'Comma or line separated — shown as finish chips.', 'ricoman' ); ?></p></div>
+
+		<h3><?php esc_html_e( 'Variants', 'ricoman' ); ?></h3>
+		<div class="full"><label for="_ricoman_variants"><?php esc_html_e( 'One per line: SKU | Description | Wattage | Lumens | CCT', 'ricoman' ); ?></label><textarea id="_ricoman_variants" name="_ricoman_variants" rows="5" placeholder="RM-DL-08 | 8W fixed downlight | 8W | 800lm | 3000/4000/6000K"><?php echo esc_textarea( $m( '_ricoman_variants' ) ); ?></textarea></div>
+
+		<div class="full"><label for="_ricoman_datasheet"><?php esc_html_e( 'Datasheet URL (optional — overrides the auto PDF)', 'ricoman' ); ?></label><input type="url" id="_ricoman_datasheet" name="_ricoman_datasheet" value="<?php echo esc_attr( $m( '_ricoman_datasheet' ) ); ?>" placeholder="https://ricobot.ricoman.com/api/public/products/CODE/datasheet.pdf"></div>
+	</div>
+	<script>
+	( function () {
+		var btn = document.getElementById( 'rmpb-sync' );
+		if ( ! btn ) { return; }
+		btn.addEventListener( 'click', function () {
+			var sku = ( document.getElementById( '_ricoman_sku' ) || {} ).value || '';
+			var msg = document.getElementById( 'rmpb-sync-msg' );
+			if ( ! sku ) { msg.textContent = 'Enter an Order code / SKU first.'; return; }
+			msg.textContent = 'Fetching from RICOBOT…';
+			var body = new FormData();
+			body.append( 'action', 'ricoman_ricobot_sync' );
+			body.append( 'nonce', '<?php echo esc_js( wp_create_nonce( 'ricoman_rb_sync' ) ); ?>' );
+			body.append( 'sku', sku );
+			fetch( ajaxurl, { method: 'POST', body: body } ).then( function ( r ) { return r.json(); } ).then( function ( res ) {
+				if ( ! res.success ) { msg.textContent = '⚠ ' + ( res.data || 'Could not fetch.' ); return; }
+				var count = 0;
+				Object.keys( res.data ).forEach( function ( k ) {
+					var el = document.getElementById( k );
+					if ( el && res.data[ k ] ) { el.value = res.data[ k ]; count++; }
+				} );
+				msg.textContent = '✓ Filled ' + count + ' fields from RICOBOT. Remember to Update.';
+			} ).catch( function () { msg.textContent = '⚠ Request failed.'; } );
+		} );
+	} )();
+	</script>
+	<?php
 }
 
 /**
@@ -187,6 +272,12 @@ function ricoman_save_product_meta( $post_id ) {
 	}
 	if ( isset( $_POST['_ricoman_variants'] ) ) {
 		update_post_meta( $post_id, '_ricoman_variants', ricoman_sanitize_variants( wp_unslash( $_POST['_ricoman_variants'] ) ) );
+	}
+	$text = array( '_ricoman_tagline' => 'sanitize_text_field', '_ricoman_lead' => 'sanitize_text_field', '_ricoman_features' => 'sanitize_textarea_field', '_ricoman_finishes' => 'sanitize_textarea_field', '_ricoman_datasheet' => 'esc_url_raw' );
+	foreach ( $text as $key => $fn ) {
+		if ( isset( $_POST[ $key ] ) ) {
+			update_post_meta( $post_id, $key, call_user_func( $fn, wp_unslash( $_POST[ $key ] ) ) );
+		}
 	}
 }
 add_action( 'save_post_product', 'ricoman_save_product_meta' );

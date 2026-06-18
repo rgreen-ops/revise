@@ -98,7 +98,7 @@ function ricoman_set_featured_from_theme( $post_id, $file ) {
 }
 
 function ricoman_scaffold_site() {
-	if ( get_option( 'ricoman_scaffold_v7' ) ) {
+	if ( get_option( 'ricoman_scaffold_v8' ) ) {
 		return;
 	}
 
@@ -168,6 +168,11 @@ function ricoman_scaffold_site() {
 			'Allianz HQ fit-out',
 		),
 	);
+	$builder = array(
+		'flow-plus' => array( 'Seamless curves of light, made to order.', 'Made to order · ~6 day UK lead', "Dot-free continuous run\nBends to any radius\nMade to your exact length\nUp to 180 lm/W\nCRI 90+ colour rendering", 'Matt white, Matt black, Anodised silver', array( '_ricoman_lumens' => 'up to 180 lm/W', '_ricoman_cri' => '90+', '_ricoman_ip' => 'IP20', '_ricoman_warranty' => '5 years', '_ricoman_sku' => 'RM-FLOW-PLUS' ) ),
+		'estrella'  => array( 'A configurable architectural pendant.', 'Configurable · built to spec', "Choose form, finish & CCT\nCRI 90+ light quality\nDimmable (DALI / phase)\nBespoke sizes", 'Brushed brass, Matt black, Champagne, Matt white', array( '_ricoman_cri' => '90+', '_ricoman_cct' => '2700–4000K', '_ricoman_warranty' => '5 years', '_ricoman_sku' => 'RM-ESTRELLA' ) ),
+		'neptune'   => array( 'Fire-rated downlight with a clean trimless aperture.', 'In stock · next-day available', "90-minute fire rating\nIP65 front face\nSwitchable CCT\nTrimless bezel option", 'Matt white, Matt black', array( '_ricoman_wattage' => '8W', '_ricoman_lumens' => '900 lm', '_ricoman_cct' => '3000/4000/6000K', '_ricoman_ip' => 'IP65', '_ricoman_warranty' => '5 years', '_ricoman_sku' => 'RM-NEPTUNE' ) ),
+	);
 	foreach ( $products as $slug => $p ) {
 		$content  = '<!-- wp:paragraph {"className":"rm-eyebrow"} --><p class="rm-eyebrow">' . esc_html( $p[1] ) . '</p><!-- /wp:paragraph -->';
 		$content .= '<!-- wp:paragraph {"style":{"typography":{"fontSize":"1.15rem"}}} --><p style="font-size:1.15rem">' . esc_html( $p[3] ) . '</p><!-- /wp:paragraph -->';
@@ -181,6 +186,17 @@ function ricoman_scaffold_site() {
 			ricoman_set_featured_from_theme( $pid, $p[2] );
 			// Demonstrate both product layouts: Neptune = Basic, others = Featured.
 			update_post_meta( $pid, '_wp_page_template', 'neptune' === $slug ? 'single-product-basic' : 'single-product-featured' );
+			// Seed Product Builder fields.
+			if ( isset( $builder[ $slug ] ) ) {
+				$b = $builder[ $slug ];
+				update_post_meta( $pid, '_ricoman_tagline', $b[0] );
+				update_post_meta( $pid, '_ricoman_lead', $b[1] );
+				update_post_meta( $pid, '_ricoman_features', $b[2] );
+				update_post_meta( $pid, '_ricoman_finishes', $b[3] );
+				foreach ( $b[4] as $mk => $mv ) {
+					update_post_meta( $pid, $mk, $mv );
+				}
+			}
 		}
 	}
 
@@ -216,5 +232,5 @@ function ricoman_scaffold_site() {
 	}
 
 	flush_rewrite_rules( true );
-	update_option( 'ricoman_scaffold_v7', 1 );
+	update_option( 'ricoman_scaffold_v8', 1 );
 }

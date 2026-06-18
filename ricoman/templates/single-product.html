@@ -6,7 +6,7 @@
 	<div class="wp-block-cover alignfull has-base-color has-text-color has-custom-content-position is-position-bottom-left" style="min-height:74vh"><span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-50 has-background-dim"></span><div class="wp-block-cover__inner-container">
 		<!-- wp:post-terms {"term":"product_cat","className":"rm-eyebrow"} /-->
 		<!-- wp:post-title {"level":1,"style":{"typography":{"fontWeight":"500","fontSize":"clamp(2.4rem, 6vw, 5rem)","lineHeight":"1"}}} /-->
-		<!-- wp:post-excerpt {"showMoreOnNewLine":false,"excerptLength":28,"style":{"typography":{"fontSize":"1.15rem"}}} /-->
+		<!-- wp:shortcode -->[ricoman_product_tagline]<!-- /wp:shortcode -->
 	</div></div>
 	<!-- /wp:cover -->
 
@@ -16,13 +16,16 @@
 		<div class="wp-block-columns">
 			<!-- wp:column {"width":"58%"} -->
 			<div class="wp-block-column" style="flex-basis:58%">
+				<!-- wp:shortcode -->[ricoman_product_lead]<!-- /wp:shortcode -->
 				<!-- wp:post-content {"layout":{"type":"constrained"}} /-->
+				<!-- wp:shortcode -->[ricoman_product_features]<!-- /wp:shortcode -->
 			</div>
 			<!-- /wp:column -->
 			<!-- wp:column {"width":"42%"} -->
 			<div class="wp-block-column" style="flex-basis:42%">
 				<!-- wp:heading {"level":2,"className":"rm-shead","fontSize":"large"} --><h2 class="wp-block-heading rm-shead has-large-font-size">Specifications</h2><!-- /wp:heading -->
 				<!-- wp:shortcode -->[ricoman_product_specs]<!-- /wp:shortcode -->
+				<!-- wp:shortcode -->[ricoman_product_finishes]<!-- /wp:shortcode -->
 				<!-- wp:buttons {"style":{"spacing":{"margin":{"top":"var:preset|spacing|40"}}}} --><div class="wp-block-buttons" style="margin-top:var(--wp--preset--spacing--40)">
 					<!-- wp:shortcode -->[ricoman_add_to_project]<!-- /wp:shortcode -->
 					<!-- wp:shortcode -->[ricoman_datasheet_button]<!-- /wp:shortcode -->

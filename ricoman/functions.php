@@ -32,6 +32,7 @@ require_once get_theme_file_path( 'inc/ricobot.php' );       // RICOBOT API sett
 require_once get_theme_file_path( 'inc/datasheet.php' );     // Printable / PDF datasheets.
 require_once get_theme_file_path( 'inc/lead-capture.php' );  // Lead form + Sheets webhook.
 require_once get_theme_file_path( 'inc/shortcodes.php' );    // Product spec/variant/datasheet output.
+require_once get_theme_file_path( 'inc/product-builder.php' );// Product Builder: RICOBOT sync + field shortcodes.
 require_once get_theme_file_path( 'inc/my-project.php' );    // "My Project" specification list (Toolbox).
 require_once get_theme_file_path( 'inc/demo-setup.php' );    // One-time: create linked pages + pretty links.
 require_once get_theme_file_path( 'inc/pattern-library.php' );// 25+ ready-made section patterns.
