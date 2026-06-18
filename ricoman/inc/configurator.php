@@ -78,11 +78,11 @@ add_shortcode( 'ricoman_configurator', function ( $atts ) {
 	ob_start();
 	?>
 	<h2 class="wp-block-heading rm-shead has-large-font-size">Configure</h2>
-	<div class="rm-config" data-code="<?php echo esc_attr( $code ); ?>" data-nonce="<?php echo esc_attr( $nonce ); ?>" data-ajax="<?php echo $ajax; ?>" data-enquire="<?php echo $enquire; ?>">
+	<div class="rm-config" data-code="<?php echo esc_attr( $code ); ?>" data-nonce="<?php echo esc_attr( $nonce ); ?>" data-ajax="<?php echo $ajax; ?>" data-enquire="<?php echo $enquire; ?>" data-hide="<?php echo esc_attr( (string) get_post_meta( $pid, '_ricoman_hide_options', true ) ); ?>">
 		<div class="rm-config-axes"><p class="rm-config-loading">Loading configurator…</p></div>
 		<div class="rm-config-result" hidden>
 			<div class="rm-config-sku"></div>
-			<div class="rm-config-price"></div>
+			<div class="rm-config-status rm-config-note"></div>
 			<div class="rm-config-actions"></div>
 		</div>
 	</div>
@@ -92,9 +92,10 @@ add_shortcode( 'ricoman_configurator', function ( $atts ) {
 		var axesEl = root.querySelector( '.rm-config-axes' );
 		var resEl = root.querySelector( '.rm-config-result' );
 		var skuEl = root.querySelector( '.rm-config-sku' );
-		var priceEl = root.querySelector( '.rm-config-price' );
+		var statusEl = root.querySelector( '.rm-config-status' );
 		var actEl = root.querySelector( '.rm-config-actions' );
 		var code = root.dataset.code, nonce = root.dataset.nonce, ajax = root.dataset.ajax, enquire = root.dataset.enquire;
+		var hide = ( root.dataset.hide || '' ).toUpperCase().split( /[\s,]+/ ).filter( Boolean );
 		var axes = [], selected = {};
 
 		function call( action, params ) {
@@ -108,45 +109,41 @@ add_shortcode( 'ricoman_configurator', function ( $atts ) {
 			for ( var i = 0; i < axes.length; i++ ) { if ( ! selected[ i ] ) { return null; } parts.push( selected[ i ] ); }
 			return parts.join( '/' );
 		}
-		function money( n, c ) { return ( c || '£' ) + Number( n ).toLocaleString( 'en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 } ); }
 
+		// No prices on the website — resolve only the SKU, datasheet and validity.
 		function renderResult() {
 			var sku = buildSku();
 			skuEl.textContent = sku ? sku : '';
 			if ( ! sku ) { resEl.hidden = true; return; }
 			resEl.hidden = false;
-			priceEl.innerHTML = '<span class="rm-config-spin">Checking price…</span>';
-			actEl.innerHTML = '';
+			statusEl.textContent = '';
+			actEl.innerHTML = '<a class="btn btn-solid" href="' + enquire + '?sku=' + encodeURIComponent( sku ) + '">Add to My Project</a> <a class="btn btn-line-d" href="' + enquire + '?sku=' + encodeURIComponent( sku ) + '">Request a quote</a>';
 			call( 'ricoman_rb_price', { sku: sku } ).then( function ( res ) {
-				if ( ! res.success ) { priceEl.textContent = 'Price unavailable.'; return; }
+				if ( ! res.success ) { return; }
 				var d = res.data, s = d.status;
-				if ( s === 'priced' ) {
-					priceEl.innerHTML = '<strong class="rm-bigprice">' + money( d.price, d.currency ) + '</strong>' + ( d.discontinued ? ' <em>(discontinued)</em>' : '' );
-					actEl.innerHTML = ( d.datasheetUrl ? '<a class="btn btn-line-d" target="_blank" rel="noopener" href="' + d.datasheetUrl + '">Datasheet (PDF)</a> ' : '' ) + '<a class="btn btn-solid" href="' + enquire + '?sku=' + encodeURIComponent( sku ) + '">Add to My Project</a>';
-				} else if ( s === 'poa' ) {
-					priceEl.innerHTML = '<strong class="rm-bigprice">Price on application</strong><span class="rm-config-note">' + ( d.reason || '' ) + '</span>';
-					actEl.innerHTML = '<a class="btn btn-solid" href="' + enquire + '?sku=' + encodeURIComponent( sku ) + '">Request a quote</a>';
-				} else if ( s === 'qty-dependent' ) {
-					priceEl.innerHTML = '<strong class="rm-bigprice">from ' + money( d.qty1Price, d.currency ) + '</strong><span class="rm-config-note">Price depends on quantity / length.</span>';
-					actEl.innerHTML = '<a class="btn btn-solid" href="' + enquire + '?sku=' + encodeURIComponent( sku ) + '">Get a quote</a>';
+				if ( s === 'priced' || s === 'poa' || s === 'qty-dependent' ) {
+					if ( d.datasheetUrl ) {
+						actEl.insertAdjacentHTML( 'afterbegin', '<a class="btn btn-line-d" target="_blank" rel="noopener" href="' + d.datasheetUrl + '">Datasheet (PDF)</a> ' );
+					}
 				} else if ( s === 'configurator-partial' ) {
-					priceEl.innerHTML = '<span class="rm-config-note">Select all options to see the price.</span>';
+					statusEl.textContent = 'Select all options.';
 				} else {
-					priceEl.innerHTML = '<span class="rm-config-note">This combination isn\'t available — please enquire.</span>';
-					actEl.innerHTML = '<a class="btn btn-line-d" href="' + enquire + '">Enquire</a>';
+					statusEl.textContent = 'This combination isn\'t available — please enquire.';
 				}
-			} ).catch( function () { priceEl.textContent = 'Price check failed.'; } );
+			} ).catch( function () {} );
 		}
 
 		function renderAxes() {
 			axesEl.innerHTML = '';
+			var visible = 0;
 			axes.forEach( function ( axis, i ) {
+				var choices = ( axis.choices || [] ).filter( function ( ch ) { return hide.indexOf( String( ch.code ).toUpperCase() ) === -1; } );
+				if ( ! choices.length ) { return; } // hidden entirely
 				var wrap = document.createElement( 'div' ); wrap.className = 'rm-axis';
-				var h = document.createElement( 'div' ); h.className = 'rm-axis-label'; h.textContent = axis.label || axis.name || ( 'Option ' + ( i + 1 ) ); wrap.appendChild( h );
+				var h = document.createElement( 'div' ); h.className = 'rm-axis-label'; h.textContent = ( axis.label || axis.name || ( 'Option ' + ( i + 1 ) ) ) + ( axis.optional ? '' : '' ); wrap.appendChild( h );
 				var opts = document.createElement( 'div' ); opts.className = 'rm-axis-choices';
-				( axis.choices || [] ).forEach( function ( ch ) {
+				choices.forEach( function ( ch ) {
 					var b = document.createElement( 'button' ); b.type = 'button'; b.className = 'rm-choice'; b.textContent = ch.label || ch.code;
-					if ( ch.priceAddition ) { b.title = '+ ' + money( ch.priceAddition ); }
 					if ( ch.isDefault ) { b.classList.add( 'on' ); selected[ i ] = ch.code; }
 					b.addEventListener( 'click', function () {
 						opts.querySelectorAll( '.rm-choice' ).forEach( function ( x ) { x.classList.remove( 'on' ); } );
@@ -154,7 +151,7 @@ add_shortcode( 'ricoman_configurator', function ( $atts ) {
 					} );
 					opts.appendChild( b );
 				} );
-				wrap.appendChild( opts ); axesEl.appendChild( wrap );
+				wrap.appendChild( opts ); axesEl.appendChild( wrap ); visible++;
 			} );
 			renderResult();
 		}

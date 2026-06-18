@@ -1,46 +1,8 @@
 <!-- wp:template-part {"slug":"header","tagName":"header"} /-->
 
-<!-- wp:group {"tagName":"main","style":{"spacing":{"padding":{"top":"var:preset|spacing|50","bottom":"var:preset|spacing|60"}}},"layout":{"type":"constrained"}} -->
-<main class="wp-block-group" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--60)">
-	<!-- wp:shortcode -->[ricoman_breadcrumbs]<!-- /wp:shortcode -->
-
-	<!-- wp:columns {"align":"wide","verticalAlignment":"top","style":{"spacing":{"blockGap":{"top":"var:preset|spacing|50","left":"var:preset|spacing|60"}}}} -->
-	<div class="wp-block-columns alignwide are-vertically-aligned-top">
-		<!-- wp:column {"verticalAlignment":"top","width":"48%"} -->
-		<div class="wp-block-column is-vertically-aligned-top" style="flex-basis:48%">
-			<!-- wp:post-featured-image {"style":{"border":{"radius":"16px"}}} /-->
-		</div>
-		<!-- /wp:column -->
-
-		<!-- wp:column {"verticalAlignment":"top"} -->
-		<div class="wp-block-column is-vertically-aligned-top">
-			<!-- wp:post-terms {"term":"product_cat","textColor":"primary","style":{"typography":{"fontWeight":"700","textTransform":"uppercase","letterSpacing":"0.08em","fontSize":"0.8rem"}}} /-->
-			<!-- wp:post-title {"level":1,"style":{"spacing":{"margin":{"top":"0.4rem"}}}} /-->
-			<!-- wp:post-excerpt {"showMoreOnNewLine":false,"textColor":"muted","style":{"typography":{"fontSize":"1.1rem"}}} /-->
-
-			<!-- wp:heading {"level":2,"fontSize":"large","style":{"spacing":{"margin":{"top":"var:preset|spacing|40","bottom":"var:preset|spacing|20"}}}} -->
-			<h2 class="wp-block-heading has-large-font-size" style="margin-top:var(--wp--preset--spacing--40);margin-bottom:var(--wp--preset--spacing--20)">Specifications</h2>
-			<!-- /wp:heading -->
-			<!-- wp:shortcode -->[ricoman_product_specs]<!-- /wp:shortcode -->
-
-			<!-- wp:group {"layout":{"type":"flex","flexWrap":"wrap"},"style":{"spacing":{"blockGap":"0.75rem"}}} -->
-			<div class="wp-block-group">
-				<!-- wp:shortcode -->[ricoman_add_to_project]<!-- /wp:shortcode -->
-				<!-- wp:shortcode -->[ricoman_datasheet_button]<!-- /wp:shortcode -->
-			</div>
-			<!-- /wp:group -->
-		</div>
-		<!-- /wp:column -->
-	</div>
-	<!-- /wp:columns -->
-
-	<!-- wp:group {"style":{"spacing":{"margin":{"top":"var:preset|spacing|50"}}},"layout":{"type":"constrained"}} -->
-	<div class="wp-block-group" style="margin-top:var(--wp--preset--spacing--50)">
-		<!-- wp:post-content {"layout":{"type":"constrained"}} /-->
-		<!-- wp:shortcode -->[ricoman_product_features]<!-- /wp:shortcode -->
-		<!-- wp:shortcode -->[ricoman_product_downloads]<!-- /wp:shortcode -->
-	</div>
-	<!-- /wp:group -->
+<!-- wp:group {"tagName":"main","layout":{"type":"default"}} -->
+<main class="wp-block-group">
+	<!-- wp:post-content {"layout":{"type":"default"}} /-->
 </main>
 <!-- /wp:group -->
 

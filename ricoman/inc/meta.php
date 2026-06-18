@@ -74,9 +74,10 @@ function ricoman_register_product_meta() {
 		'_ricoman_lead'        => 'sanitize_text_field',
 		'_ricoman_features'    => 'sanitize_textarea_field',
 		'_ricoman_finishes'    => 'sanitize_textarea_field',
-		'_ricoman_datasheet'   => 'esc_url_raw',
-		'_ricoman_extra_specs' => 'sanitize_textarea_field',
-		'_ricoman_downloads'   => 'sanitize_textarea_field',
+		'_ricoman_datasheet'    => 'esc_url_raw',
+		'_ricoman_extra_specs'  => 'sanitize_textarea_field',
+		'_ricoman_downloads'    => 'sanitize_textarea_field',
+		'_ricoman_hide_options' => 'sanitize_text_field',
 	);
 	foreach ( $extra as $key => $sanitize ) {
 		register_post_meta(
@@ -246,6 +247,8 @@ function ricoman_render_product_metabox( $post ) {
 		?>
 		</div>
 
+		<div class="full"><label for="_ricoman_hide_options"><?php esc_html_e( 'Hide configurator options (codes, comma-separated)', 'ricoman' ); ?></label><input type="text" id="_ricoman_hide_options" name="_ricoman_hide_options" value="<?php echo esc_attr( $m( '_ricoman_hide_options' ) ); ?>" placeholder="IP54, RGBW, IP67"><p class="hint"><?php esc_html_e( 'Option codes entered here are removed from the live configurator for this product (whole axis hidden if it empties).', 'ricoman' ); ?></p></div>
+
 		<h3><?php esc_html_e( 'Custom spec rows', 'ricoman' ); ?></h3>
 		<div class="rmpb-rep" id="rmpb-xspec">
 		<?php
@@ -411,7 +414,7 @@ function ricoman_save_product_meta( $post_id ) {
 	if ( isset( $_POST['_ricoman_variants'] ) ) {
 		update_post_meta( $post_id, '_ricoman_variants', ricoman_sanitize_variants( wp_unslash( $_POST['_ricoman_variants'] ) ) );
 	}
-	$text = array( '_ricoman_tagline' => 'sanitize_text_field', '_ricoman_lead' => 'sanitize_text_field', '_ricoman_features' => 'sanitize_textarea_field', '_ricoman_finishes' => 'sanitize_textarea_field', '_ricoman_datasheet' => 'esc_url_raw' );
+	$text = array( '_ricoman_tagline' => 'sanitize_text_field', '_ricoman_lead' => 'sanitize_text_field', '_ricoman_features' => 'sanitize_textarea_field', '_ricoman_finishes' => 'sanitize_textarea_field', '_ricoman_datasheet' => 'esc_url_raw', '_ricoman_hide_options' => 'sanitize_text_field' );
 	foreach ( $text as $key => $fn ) {
 		if ( isset( $_POST[ $key ] ) ) {
 			update_post_meta( $post_id, $key, call_user_func( $fn, wp_unslash( $_POST[ $key ] ) ) );

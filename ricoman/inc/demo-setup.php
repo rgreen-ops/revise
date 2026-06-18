@@ -98,7 +98,7 @@ function ricoman_set_featured_from_theme( $post_id, $file ) {
 }
 
 function ricoman_scaffold_site() {
-	if ( get_option( 'ricoman_scaffold_v11' ) ) {
+	if ( get_option( 'ricoman_scaffold_v12' ) ) {
 		return;
 	}
 
@@ -180,13 +180,8 @@ function ricoman_scaffold_site() {
 		'neptune'   => array( 'Fire-rated downlight with a clean trimless aperture.', 'In stock · next-day available', "90-minute fire rating\nIP65 front face\nSwitchable CCT\nTrimless bezel option", 'Matt white, Matt black', array( '_ricoman_wattage' => '8W', '_ricoman_lumens' => '900 lm', '_ricoman_cct' => '3000/4000/6000K', '_ricoman_ip' => 'IP65', '_ricoman_warranty' => '5 years', '_ricoman_sku' => 'RM-NEPTUNE' ), "Cut-out | 68mm\nDriver | Integral\nDimming | Mains / DALI" ),
 	);
 	foreach ( $products as $slug => $p ) {
-		$content  = '<!-- wp:paragraph {"style":{"typography":{"fontSize":"1.15rem"}}} --><p style="font-size:1.15rem">' . esc_html( $p[3] ) . '</p><!-- /wp:paragraph -->';
-		$content .= '<!-- wp:heading {"level":3} --><h3 class="wp-block-heading">Seen in</h3><!-- /wp:heading -->';
-		$content .= '<!-- wp:paragraph --><p>See ' . esc_html( $p[0] ) . ' in <a href="/projects/' . $p[4] . '/">' . esc_html( $p[5] ) . '</a>.</p><!-- /wp:paragraph -->';
-		if ( 'flow-plus' === $slug ) {
-			$content .= '<!-- wp:buttons --><div class="wp-block-buttons"><!-- wp:button {"className":"is-style-outline"} --><div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="/flow-designer/">Design your Flow+ run →</a></div><!-- /wp:button --></div><!-- /wp:buttons -->';
-		}
-		$content .= '<!-- wp:buttons --><div class="wp-block-buttons"><!-- wp:button {"className":"is-style-outline"} --><div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="/my-project/">Add to My Project</a></div><!-- /wp:button --><!-- wp:button {"className":"is-style-outline"} --><div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="/products/">All products</a></div><!-- /wp:button --></div><!-- /wp:buttons -->';
+		// Product pages are built from the product blocks (Hero/Specs/Configurator/…).
+		$content = function_exists( 'ricoman_default_product_blocks' ) ? ricoman_default_product_blocks() : '';
 		$pid      = ricoman_make_post( 'product', $p[0], $slug, $content );
 		if ( $pid ) {
 			wp_update_post( array( 'ID' => $pid, 'post_content' => $content, 'post_excerpt' => $p[3] ) );
@@ -244,5 +239,5 @@ function ricoman_scaffold_site() {
 	}
 
 	flush_rewrite_rules( true );
-	update_option( 'ricoman_scaffold_v11', 1 );
+	update_option( 'ricoman_scaffold_v12', 1 );
 }

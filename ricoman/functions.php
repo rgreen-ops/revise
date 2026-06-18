@@ -34,6 +34,7 @@ require_once get_theme_file_path( 'inc/lead-capture.php' );  // Lead form + Shee
 require_once get_theme_file_path( 'inc/shortcodes.php' );    // Product spec/variant/datasheet output.
 require_once get_theme_file_path( 'inc/product-builder.php' );// Product Builder: RICOBOT sync + field shortcodes.
 require_once get_theme_file_path( 'inc/configurator.php' );   // Live variant configurator (RICOBOT price/options).
+require_once get_theme_file_path( 'inc/product-patterns.php' );// Product page blocks (Hero/Specs/Configurator/…).
 require_once get_theme_file_path( 'inc/my-project.php' );    // "My Project" specification list (Toolbox).
 require_once get_theme_file_path( 'inc/demo-setup.php' );    // One-time: create linked pages + pretty links.
 require_once get_theme_file_path( 'inc/pattern-library.php' );// 25+ ready-made section patterns.

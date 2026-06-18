@@ -168,6 +168,72 @@ add_shortcode( 'ricoman_product_features', function () {
 	return $out . '</ul></div>';
 } );
 
+/* ---- helper: fetch a product's RICOBOT detail (cached) ---- */
+function ricoman_product_detail( $pid = 0 ) {
+	$pid  = $pid ? $pid : get_the_ID();
+	$code = $pid ? (string) get_post_meta( $pid, '_ricoman_sku', true ) : '';
+	if ( '' === $code || ! function_exists( 'ricoman_ricobot_ready' ) || ! ricoman_ricobot_ready() ) {
+		return array();
+	}
+	$data = ricoman_ricobot_get( 'api/public/products/' . rawurlencode( $code ) );
+	return is_wp_error( $data ) ? array() : (array) $data;
+}
+
+/* ---- Product gallery (studio / in-situ tabs; falls back to featured image) ---- */
+add_shortcode( 'ricoman_product_gallery', function () {
+	$pid    = get_the_ID();
+	$detail = ricoman_product_detail( $pid );
+	$shots  = ( isset( $detail['gallery'] ) && is_array( $detail['gallery'] ) ) ? $detail['gallery'] : array();
+	if ( ! $shots ) {
+		$thumb = get_the_post_thumbnail( $pid, 'large', array( 'class' => 'rm-gallery-solo' ) );
+		return $thumb ? '<div class="rm-gallery">' . $thumb . '</div>' : '';
+	}
+	$tabs = array();
+	foreach ( $shots as $s ) {
+		$type = isset( $s['type'] ) ? $s['type'] : 'studio';
+		$url  = isset( $s['url'] ) ? $s['url'] : '';
+		if ( $url ) {
+			$tabs[ $type ][] = $url;
+		}
+	}
+	$labels = array( 'studio' => 'Studio', 'insitu' => 'In situ', 'dimension' => 'Dimensions', 'diagram' => 'Diagrams' );
+	$out    = '<div class="rm-gallery"><div class="rm-gallery-tabs">';
+	$first  = true;
+	foreach ( $tabs as $type => $imgs ) {
+		$out  .= '<button type="button" class="rm-gtab' . ( $first ? ' on' : '' ) . '" data-tab="' . esc_attr( $type ) . '">' . esc_html( isset( $labels[ $type ] ) ? $labels[ $type ] : ucfirst( $type ) ) . ' (' . count( $imgs ) . ')</button>';
+		$first = false;
+	}
+	$out  .= '</div>';
+	$first = true;
+	foreach ( $tabs as $type => $imgs ) {
+		$out .= '<div class="rm-gpane' . ( $first ? ' on' : '' ) . '" data-pane="' . esc_attr( $type ) . '">';
+		foreach ( $imgs as $url ) {
+			$out .= '<img src="' . esc_url( $url ) . '" alt="" loading="lazy">';
+		}
+		$out  .= '</div>';
+		$first = false;
+	}
+	$out .= '<script>(function(g){g.querySelectorAll(".rm-gtab").forEach(function(b){b.addEventListener("click",function(){g.querySelectorAll(".rm-gtab,.rm-gpane").forEach(function(x){x.classList.remove("on")});b.classList.add("on");var p=g.querySelector(\'[data-pane="\'+b.dataset.tab+\'"]\');if(p){p.classList.add("on");}})})})(document.currentScript.parentNode);</script>';
+	return $out . '</div>';
+} );
+
+/* ---- Compatible accessories (live from RICOBOT) ---- */
+add_shortcode( 'ricoman_product_accessories', function () {
+	$detail = ricoman_product_detail();
+	$acc    = ( isset( $detail['accessories'] ) && is_array( $detail['accessories'] ) ) ? $detail['accessories'] : array();
+	if ( ! $acc ) {
+		return '';
+	}
+	// No pricing on the website — code + name only.
+	$out = '<div class="rm-accessories"><h3 class="rm-shead">Compatible accessories (' . count( $acc ) . ')</h3><ul>';
+	foreach ( $acc as $a ) {
+		$code = isset( $a['code'] ) ? $a['code'] : '';
+		$name = isset( $a['name'] ) ? $a['name'] : $code;
+		$out .= '<li><span class="acc-code">' . esc_html( $code ) . '</span><span class="acc-name">' . esc_html( $name ) . '</span></li>';
+	}
+	return $out . '</ul></div>';
+} );
+
 add_shortcode( 'ricoman_product_downloads', function () {
 	if ( ! function_exists( 'ricoman_parse_pairs' ) ) {
 		return '';
