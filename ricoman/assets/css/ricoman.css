@@ -653,3 +653,12 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-sp-card p{color:var(--muted);font-size:.96rem;line-height:1.6;margin:0}
 @media(max-width:860px){.rm-sp-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.rm-sp-grid{grid-template-columns:1fr}}
+
+/* ===== Hero legibility: light text + gradient scrim on full-bleed covers ===== */
+.wp-block-cover.alignfull > .wp-block-cover__inner-container{position:relative;z-index:2}
+.wp-block-cover.alignfull::after{content:"";position:absolute;left:0;right:0;bottom:0;height:60%;background:linear-gradient(180deg,transparent,rgba(0,0,0,.55));pointer-events:none;z-index:1}
+/* muted/grey paragraphs sitting on a dark cover must read light, not grey */
+.wp-block-cover .has-muted-color{color:rgba(255,255,255,.86)!important}
+.wp-block-cover .rm-eyebrow{color:rgba(255,255,255,.8)}
+/* video heroes get an extra black layer so headlines stay legible over motion */
+.wp-block-cover:has(> video.wp-block-cover__video-background)::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.32);pointer-events:none;z-index:1}

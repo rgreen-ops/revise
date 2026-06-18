@@ -52,7 +52,7 @@ add_action( 'init', function () {
 		$para( 'We&rsquo;re a British manufacturer obsessed with getting light right — designing and making commercial luminaires in Manchester for the architects, designers and specifiers who shape great spaces. On spec, on time, on budget.' ) .
 		$buttons( $btn( 'Explore Products', '/products/' ) . $btn( 'Free Scheme Design', '/lighting-design/' ) );
 	// Image hero kept as an alternative pattern; video hero is the default.
-	$p['home-hero'] = array( 'Home · Hero (video)', $vcover( $vid_banner, $hero_inner, 90, 'bottom left', 50 ) );
+	$p['home-hero'] = array( 'Home · Hero (video)', $vcover( $vid_banner, $hero_inner, 90, 'bottom left', 60 ) );
 	$p['home-hero-image'] = array( 'Home · Hero (image)', $cover( $u( 'warm-int.webp' ), $hero_inner, 90, 'bottom left', 50 ) );
 	$p['home-film'] = array( 'Home · Brand film', $sec( $eyebrow( 'Watch · Made in Britain' ) . $shead( 'See how we make light' ) . '<!-- wp:video {"className":"rm-filmvid"} --><figure class="wp-block-video rm-filmvid"><video controls playsinline poster="' . $u( 'workshop.webp' ) . '" src="' . $vid_story . '"></video></figure><!-- /wp:video -->' ) );
 

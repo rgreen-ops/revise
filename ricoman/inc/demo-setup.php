@@ -98,7 +98,7 @@ function ricoman_set_featured_from_theme( $post_id, $file ) {
 }
 
 function ricoman_scaffold_site() {
-	if ( get_option( 'ricoman_scaffold_v22' ) ) {
+	if ( get_option( 'ricoman_scaffold_v23' ) ) {
 		return;
 	}
 
@@ -216,13 +216,9 @@ function ricoman_scaffold_site() {
 		'neptune'   => array( 'Fire-rated downlight with a clean trimless aperture.', 'In stock · next-day available', "90-minute fire rating\nIP65 front face\nSwitchable CCT\nTrimless bezel option", 'Matt white, Matt black', array( '_ricoman_wattage' => '8W', '_ricoman_lumens' => '900 lm', '_ricoman_cct' => '3000/4000/6000K', '_ricoman_ip' => 'IP65', '_ricoman_warranty' => '5 years', '_ricoman_sku' => 'RM-NEPTUNE' ), "Cut-out | 68mm\nDriver | Integral\nDimming | Mains / DALI" ),
 	);
 	foreach ( $products as $slug => $p ) {
-		// Product pages are built from editable blocks. Flow+ uses its full
-		// recreated section stack; the rest use the default product stack.
-		if ( 'flow-plus' === $slug && function_exists( 'ricoman_flow_product_blocks' ) ) {
-			$content = ricoman_flow_product_blocks();
-		} else {
-			$content = function_exists( 'ricoman_default_product_blocks' ) ? ricoman_default_product_blocks() : '';
-		}
+		// Every product page uses the configurator-preview layout (split hero,
+		// facts, features, why-specify, variant table, gallery, related, CTA).
+		$content  = function_exists( 'ricoman_default_product_blocks' ) ? ricoman_default_product_blocks() : '';
 		$pid      = ricoman_make_post( 'product', $p[0], $slug, $content );
 		if ( $pid ) {
 			wp_update_post( array( 'ID' => $pid, 'post_content' => $content, 'post_excerpt' => $p[3] ) );
@@ -285,5 +281,5 @@ function ricoman_scaffold_site() {
 	}
 
 	flush_rewrite_rules( true );
-	update_option( 'ricoman_scaffold_v22', 1 );
+	update_option( 'ricoman_scaffold_v23', 1 );
 }
