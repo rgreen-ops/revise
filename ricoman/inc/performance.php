@@ -45,7 +45,7 @@ add_filter( 'render_block', function ( $content, $block ) {
 		return $content;
 	}
 	$name = isset( $block['blockName'] ) ? $block['blockName'] : '';
-	if ( in_array( $name, array( 'core/cover', 'core/image', 'core/post-featured-image' ), true ) && false !== strpos( $content, '<img' ) ) {
+	if ( in_array( $name, array( 'core/cover', 'core/post-featured-image' ), true ) && false !== strpos( $content, '<img' ) ) {
 		$content = str_replace( ' loading="lazy"', '', $content );
 		$content = preg_replace( '/<img (?![^>]*fetchpriority)/', '<img fetchpriority="high" decoding="async" ', $content, 1 );
 		$done    = true;

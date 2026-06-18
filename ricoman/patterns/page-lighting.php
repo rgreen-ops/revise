@@ -43,10 +43,10 @@ $img = function ( $f ) { return esc_url( get_theme_file_uri( 'assets/images/' . 
       <li><b>Data sheets &amp; BIM files</b> — ready for your spec pack</li>
     </ul>
   </div>
-  <div class="img" style="background-image:url(<?php echo $img( 'office5.jpg' ); ?>)"></div>
+  <div class="img" style="background-image:url(<?php echo $img( 'office5.webp' ); ?>)"></div>
 </section>
 
-<section class="cta"><div class="bg" style="background-image:url(<?php echo $img( 'office1.jpg' ); ?>)"></div><div class="scrim"></div><div class="inner"><div class="wrap col">
+<section class="cta"><div class="bg" style="background-image:url(<?php echo $img( 'office1.webp' ); ?>)"></div><div class="scrim"></div><div class="inner"><div class="wrap col">
   <h2>Start your scheme</h2>
   <p>Tell us about the project and share your drawings — one of our lighting designers will be in touch, with your costed scheme to follow.</p>
   <div class="acts"><a class="btn btn-line" href="/about/">Talk to the team</a><a class="btn btn-solid" style="background:#fff;color:var(--ink)" href="/projects/">See the results →</a></div>

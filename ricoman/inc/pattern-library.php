@@ -41,7 +41,7 @@ add_action( 'init', function () {
 	$lib = array();
 
 	/* Heroes */
-	$lib['hero-image'] = array( 'Hero — image', $cover( $u( 'warm-int.jpg' ),
+	$lib['hero-image'] = array( 'Hero — image', $cover( $u( 'warm-int.webp' ),
 		$eyebrow( 'Eyebrow label' ) .
 		'<!-- wp:heading {"level":1,"style":{"typography":{"fontSize":"clamp(2.6rem, 6vw, 5rem)","fontWeight":"500","lineHeight":"1"}}} --><h1 class="wp-block-heading" style="font-size:clamp(2.6rem, 6vw, 5rem);font-weight:500;line-height:1">A bold headline for this page.</h1><!-- /wp:heading -->' .
 		$para( 'One supporting sentence that sets up the section beneath.' ) .
@@ -50,7 +50,7 @@ add_action( 'init', function () {
 	$lib['hero-split'] = array( 'Hero — split', '<!-- wp:columns {"align":"full","verticalAlignment":"center","style":{"spacing":{"blockGap":{"left":"0"}}}} -->
 <div class="wp-block-columns alignfull are-vertically-aligned-center"><!-- wp:column {"verticalAlignment":"center","style":{"spacing":{"padding":{"left":"var:preset|spacing|60","right":"var:preset|spacing|60","top":"var:preset|spacing|60","bottom":"var:preset|spacing|60"}}}} -->
 <div class="wp-block-column is-vertically-aligned-center" style="padding-top:var(--wp--preset--spacing--60);padding-right:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60);padding-left:var(--wp--preset--spacing--60)">' . $eyebrow( 'Eyebrow' ) . $shead( 'Split hero with text and image.' ) . $para( 'A short intro paragraph explaining the value in a sentence or two.', true ) . $buttons( $btn( 'Call to action', false ) ) . '</div><!-- /wp:column -->
-<!-- wp:column {"verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center">' . $img_block( $u( 'office5.jpg' ) ) . '</div><!-- /wp:column --></div>
+<!-- wp:column {"verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center">' . $img_block( $u( 'office5.webp' ) ) . '</div><!-- /wp:column --></div>
 <!-- /wp:columns -->' );
 
 	$lib['hero-centered'] = array( 'Hero — centered', $section( '<!-- wp:group {"layout":{"type":"constrained","contentSize":"760px"},"style":{"spacing":{"padding":{"top":"var:preset|spacing|60","bottom":"var:preset|spacing|60"}}}} --><div class="wp-block-group" style="padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)"><!-- wp:paragraph {"align":"center","className":"rm-eyebrow"} --><p class="has-text-align-center rm-eyebrow">Eyebrow</p><!-- /wp:paragraph --><!-- wp:heading {"textAlign":"center","level":1,"style":{"typography":{"fontWeight":"500","fontSize":"clamp(2.4rem,5vw,4.4rem)"}}} --><h1 class="wp-block-heading has-text-align-center" style="font-size:clamp(2.4rem,5vw,4.4rem);font-weight:500">A centered, type-led hero.</h1><!-- /wp:heading --><!-- wp:paragraph {"align":"center","textColor":"muted"} --><p class="has-text-align-center has-muted-color has-text-color">Clean and minimal — ideal for campaign and landing pages.</p><!-- /wp:paragraph -->' . $buttons( $btn( 'Get started', false ), true ) . '</div><!-- /wp:group -->' ) );
@@ -70,15 +70,15 @@ add_action( 'init', function () {
 <!-- /wp:columns -->' );
 
 	$lib['feature-dark'] = array( 'Feature — dark (image right)', '<!-- wp:group {"align":"full","backgroundColor":"ink","textColor":"base","className":"rm-dark","style":{"spacing":{"padding":{"top":"var:preset|spacing|70","bottom":"var:preset|spacing|70","left":"var:preset|spacing|50","right":"var:preset|spacing|50"}}},"layout":{"type":"constrained"}} -->
-<div class="wp-block-group alignfull rm-dark has-base-color has-ink-background-color has-text-color has-background" style="padding-top:var(--wp--preset--spacing--70);padding-bottom:var(--wp--preset--spacing--70);padding-left:var(--wp--preset--spacing--50);padding-right:var(--wp--preset--spacing--50)"><!-- wp:columns {"verticalAlignment":"center"} --><div class="wp-block-columns are-vertically-aligned-center"><!-- wp:column {"verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center">' . $eyebrow( 'Eyebrow' ) . $shead( 'A dark feature section.' ) . $para( 'Dark sections add rhythm and contrast between light content blocks.' ) . $buttons( $btn( 'Call to action' ) ) . '</div><!-- /wp:column --><!-- wp:column {"verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center">' . $img_block( $u( 'workshop.jpg' ) ) . '</div><!-- /wp:column --></div><!-- /wp:columns --></div>
+<div class="wp-block-group alignfull rm-dark has-base-color has-ink-background-color has-text-color has-background" style="padding-top:var(--wp--preset--spacing--70);padding-bottom:var(--wp--preset--spacing--70);padding-left:var(--wp--preset--spacing--50);padding-right:var(--wp--preset--spacing--50)"><!-- wp:columns {"verticalAlignment":"center"} --><div class="wp-block-columns are-vertically-aligned-center"><!-- wp:column {"verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center">' . $eyebrow( 'Eyebrow' ) . $shead( 'A dark feature section.' ) . $para( 'Dark sections add rhythm and contrast between light content blocks.' ) . $buttons( $btn( 'Call to action' ) ) . '</div><!-- /wp:column --><!-- wp:column {"verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center">' . $img_block( $u( 'workshop.webp' ) ) . '</div><!-- /wp:column --></div><!-- /wp:columns --></div>
 <!-- /wp:group -->' );
 
 	/* Media */
 	$lib['gallery'] = array( 'Gallery — grid', $section( $shead( 'A few highlights' ) . '<!-- wp:gallery {"columns":3,"linkTo":"none"} -->
-<figure class="wp-block-gallery has-nested-images columns-3 is-cropped">' . $img_block( $u( 'office1.jpg' ) ) . $img_block( $u( 'office2.jpg' ) ) . $img_block( $u( 'retail.jpg' ) ) . $img_block( $u( 'office5.jpg' ) ) . $img_block( $u( 'office6.jpg' ) ) . $img_block( $u( 'pendant.jpg' ) ) . '</figure>
+<figure class="wp-block-gallery has-nested-images columns-3 is-cropped">' . $img_block( $u( 'office1.webp' ) ) . $img_block( $u( 'office2.webp' ) ) . $img_block( $u( 'retail.webp' ) ) . $img_block( $u( 'office5.webp' ) ) . $img_block( $u( 'office6.webp' ) ) . $img_block( $u( 'pendant.webp' ) ) . '</figure>
 <!-- /wp:gallery -->' ) );
 
-	$lib['image-full'] = array( 'Full-bleed image', '<!-- wp:image {"align":"full","sizeSlug":"large"} --><figure class="wp-block-image alignfull size-large"><img src="' . $u( 'arch-line.jpg' ) . '" alt=""/></figure><!-- /wp:image -->' );
+	$lib['image-full'] = array( 'Full-bleed image', '<!-- wp:image {"align":"full","sizeSlug":"large"} --><figure class="wp-block-image alignfull size-large"><img src="' . $u( 'arch-line.webp' ) . '" alt=""/></figure><!-- /wp:image -->' );
 
 	$lib['logos'] = array( 'Logo strip', $section( '<!-- wp:paragraph {"align":"center","className":"rm-eyebrow"} --><p class="has-text-align-center rm-eyebrow">Trusted by teams across the UK</p><!-- /wp:paragraph --><!-- wp:paragraph {"align":"center","style":{"typography":{"fontWeight":"700","letterSpacing":"0.1em","fontSize":"1.05rem"}},"textColor":"muted"} --><p class="has-text-align-center has-muted-color has-text-color" style="font-size:1.05rem;font-weight:700;letter-spacing:0.1em">ALLIANZ&nbsp;&nbsp;·&nbsp;&nbsp;BETFRED&nbsp;&nbsp;·&nbsp;&nbsp;KINGSGATE&nbsp;&nbsp;·&nbsp;&nbsp;NHS&nbsp;&nbsp;·&nbsp;&nbsp;SAVILLS&nbsp;&nbsp;·&nbsp;&nbsp;JLL</p><!-- /wp:paragraph -->' ) );
 
@@ -87,7 +87,7 @@ add_action( 'init', function () {
 
 	$member = function ( $img, $name, $role ) { return '<!-- wp:column --><div class="wp-block-column">' . $img . '<!-- wp:heading {"level":4} --><h4 class="wp-block-heading">' . $name . '</h4><!-- /wp:heading --><!-- wp:paragraph {"textColor":"muted","fontSize":"small"} --><p class="has-muted-color has-text-color has-small-font-size">' . $role . '</p><!-- /wp:paragraph --></div><!-- /wp:column -->'; };
 	$lib['team'] = array( 'Team grid', $section( $shead( 'People behind the work' ) . '<!-- wp:columns -->
-<div class="wp-block-columns">' . $member( $img_block( $u( 'office3.jpg' ) ), 'Full Name', 'Job title' ) . $member( $img_block( $u( 'office6.jpg' ) ), 'Full Name', 'Job title' ) . $member( $img_block( $u( 'office2.jpg' ) ), 'Full Name', 'Job title' ) . $member( $img_block( $u( 'office1.jpg' ) ), 'Full Name', 'Job title' ) . '</div>
+<div class="wp-block-columns">' . $member( $img_block( $u( 'office3.webp' ) ), 'Full Name', 'Job title' ) . $member( $img_block( $u( 'office6.webp' ) ), 'Full Name', 'Job title' ) . $member( $img_block( $u( 'office2.webp' ) ), 'Full Name', 'Job title' ) . $member( $img_block( $u( 'office1.webp' ) ), 'Full Name', 'Job title' ) . '</div>
 <!-- /wp:columns -->' ) );
 
 	/* Process / cards */
@@ -108,7 +108,7 @@ add_action( 'init', function () {
 <!-- /wp:columns -->' ) );
 
 	/* CTAs */
-	$lib['cta-band'] = array( 'CTA — image band', $cover( $u( 'office1.jpg' ),
+	$lib['cta-band'] = array( 'CTA — image band', $cover( $u( 'office1.webp' ),
 		'<!-- wp:heading {"textAlign":"center","level":2} --><h2 class="wp-block-heading has-text-align-center">A strong closing call to action.</h2><!-- /wp:heading -->' .
 		'<!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">One sentence of supporting copy to nudge the click.</p><!-- /wp:paragraph -->' .
 		$buttons( $btn( 'Primary' ) . $btn( 'Secondary', false ), true ), 52, 'center center', 70 ) );

@@ -11,7 +11,7 @@ $img = function ( $f ) { return esc_url( get_theme_file_uri( 'assets/images/' . 
 ?>
 <!-- wp:html -->
 <section class="phero">
-  <div class="bg" style="background-image:url(<?php echo $img( 'workshop.jpg' ); ?>)"></div><div class="scrim"></div>
+  <div class="bg" style="background-image:url(<?php echo $img( 'workshop.webp' ); ?>)"></div><div class="scrim"></div>
   <div class="inner"><div class="wrap">
     <span class="kick lt">Made in Britain</span>
     <h1>Designed &amp; manufactured in Manchester.</h1>
@@ -56,10 +56,10 @@ $img = function ( $f ) { return esc_url( get_theme_file_uri( 'assets/images/' . 
     <p>Curved linear runs, custom lengths, special CCTs, brand-matched finishes — bespoke isn't a bolt-on, it's how the factory is built to work.</p>
     <a class="btn btn-line" href="/lighting-design/">Talk to our designers →</a>
   </div>
-  <div class="img" style="background-image:url(<?php echo $img( 'warehouse.jpg' ); ?>)"></div>
+  <div class="img" style="background-image:url(<?php echo $img( 'warehouse.webp' ); ?>)"></div>
 </section>
 
-<section class="cta"><div class="bg" style="background-image:url(<?php echo $img( 'workshop.jpg' ); ?>)"></div><div class="scrim"></div><div class="inner"><div class="wrap col">
+<section class="cta"><div class="bg" style="background-image:url(<?php echo $img( 'workshop.webp' ); ?>)"></div><div class="scrim"></div><div class="inner"><div class="wrap col">
   <h2>Want to see it for yourself?</h2>
   <p>Book a visit to the Manchester facility, or send us a project and let our team spec it end to end — designed, made and delivered in Britain.</p>
   <div class="acts"><a class="btn btn-line" href="/about/">Book a visit</a><a class="btn btn-solid" style="background:#fff;color:var(--ink)" href="/lighting-design/">Start a project →</a></div>

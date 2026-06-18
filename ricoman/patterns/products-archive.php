@@ -33,7 +33,7 @@ $ptile = function ( $url, $title, $sub, $href ) {
 };
 
 echo $cover(
-	$u( 'arch-line.jpg' ),
+	$u( 'arch-line.webp' ),
 	$eyebrow( 'Our Lighting Range' ) .
 	'<!-- wp:heading {"level":1,"style":{"typography":{"fontWeight":"500","fontSize":"clamp(2.6rem, 6vw, 5rem)","lineHeight":"1"}}} --><h1 class="wp-block-heading" style="font-size:clamp(2.6rem, 6vw, 5rem);font-weight:500;line-height:1">Commercial luminaires, made to specify.</h1><!-- /wp:heading -->' .
 	$para( 'Over 500 interior fittings across linear, downlights, pendants, track and modular ranges — held in UK stock and made to order in Manchester.' ),
@@ -45,19 +45,19 @@ echo $cover(
 echo $sec(
 	$eyebrow( 'Linear Lighting' ) . $shead( 'Continuous runs &amp; profile systems' ) .
 	'<!-- wp:columns --><div class="wp-block-columns">' .
-	$pcard( $u( 'arch-line.jpg' ), 'Linear · Made to order', 'Flow+', 'Up to 180 lm/W · CRI 90+ · Bendable', '/products/flow-plus/' ) .
-	$pcard( $u( 'ceiling.jpg' ), 'Linear · Recessed', 'Edge 35', 'Trimless · CCT switch · IP20', '/products/' ) .
-	$pcard( $u( 'office5.jpg' ), 'Linear · Suspended', 'Line Pro', 'Up-/down-light · DALI · 1.5m / 2.4m', '/products/' ) .
-	$pcard( $u( 'rico-acoustic-corridor.jpg' ), 'Acoustic · Linear', 'Astrawave', 'Sound-absorbing · UGR&lt;19 · Bespoke', '/products/' ) .
+	$pcard( $u( 'arch-line.webp' ), 'Linear · Made to order', 'Flow+', 'Up to 180 lm/W · CRI 90+ · Bendable', '/products/flow-plus/' ) .
+	$pcard( $u( 'ceiling.webp' ), 'Linear · Recessed', 'Edge 35', 'Trimless · CCT switch · IP20', '/products/' ) .
+	$pcard( $u( 'office5.webp' ), 'Linear · Suspended', 'Line Pro', 'Up-/down-light · DALI · 1.5m / 2.4m', '/products/' ) .
+	$pcard( $u( 'rico-acoustic-corridor.webp' ), 'Acoustic · Linear', 'Astrawave', 'Sound-absorbing · UGR&lt;19 · Bespoke', '/products/' ) .
 	'</div><!-- /wp:columns -->'
 );
 
 echo $sec(
 	$eyebrow( 'Downlights &amp; Pendants' ) . $shead( 'Fire-rated, decorative &amp; configurable' ) .
 	'<!-- wp:columns --><div class="wp-block-columns">' .
-	$pcard( $u( 'ceiling.jpg' ), 'Downlight · Fire-rated', 'Neptune', '90 min · IP65 · Tri-CCT', '/products/neptune/' ) .
+	$pcard( $u( 'ceiling.webp' ), 'Downlight · Fire-rated', 'Neptune', '90 min · IP65 · Tri-CCT', '/products/neptune/' ) .
 	$pcard( $u( 'estrella-lounge.webp' ), 'Pendant · Configurable', 'Estrella', 'Build to spec · Finishes · CRI 90+', '/products/estrella/' ) .
-	$pcard( $u( 'pendant.jpg' ), 'Pendant · Architectural', 'Halo Ring', 'Ø600–1200 · Up/down · Bespoke', '/products/' ) .
+	$pcard( $u( 'pendant.webp' ), 'Pendant · Architectural', 'Halo Ring', 'Ø600–1200 · Up/down · Bespoke', '/products/' ) .
 	$pcard( $u( 'rico-z62.webp' ), 'Pendant · Decorative', 'Z62', 'Warm 2700K · Dimmable · Brass / Black', '/products/' ) .
 	'</div><!-- /wp:columns -->'
 );
@@ -65,14 +65,14 @@ echo $sec(
 echo $sec(
 	$eyebrow( 'Shop by application' ) . $shead( 'Find the right light for the space' ) .
 	'<!-- wp:columns --><div class="wp-block-columns">' .
-	$ptile( $u( 'office1.jpg' ), 'Workplace', 'Offices · UGR&lt;19', '/projects/' ) .
-	$ptile( $u( 'retail.jpg' ), 'Retail', 'Accent · High CRI', '/projects/' ) .
-	$ptile( $u( 'office2.jpg' ), 'Hospitality', 'Warm · Dimmable', '/projects/' ) .
+	$ptile( $u( 'office1.webp' ), 'Workplace', 'Offices · UGR&lt;19', '/projects/' ) .
+	$ptile( $u( 'retail.webp' ), 'Retail', 'Accent · High CRI', '/projects/' ) .
+	$ptile( $u( 'office2.webp' ), 'Hospitality', 'Warm · Dimmable', '/projects/' ) .
 	'</div><!-- /wp:columns -->'
 );
 
 echo $cover(
-	$u( 'office1.jpg' ),
+	$u( 'office1.webp' ),
 	'<!-- wp:heading {"textAlign":"center","level":2} --><h2 class="wp-block-heading has-text-align-center">Can&rsquo;t find the exact fitting?</h2><!-- /wp:heading -->' .
 	'<!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">Send us a finishes schedule or a drawing and our in-house team will spec the range, beam and finish — and return a costed scheme, usually within 3–5 days.</p><!-- /wp:paragraph -->' .
 	$buttons( $btn( 'Free Scheme Design', '/lighting-design/' ) . $btn( 'Talk to the team →', '/about/', false ), true ),

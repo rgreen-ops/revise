@@ -11,7 +11,7 @@ $img = function ( $f ) { return esc_url( get_theme_file_uri( 'assets/images/' . 
 ?>
 <!-- wp:html -->
 <section class="phero">
-  <div class="bg" style="background-image:url(<?php echo $img( 'rico-office.jpg' ); ?>)"></div><div class="scrim"></div>
+  <div class="bg" style="background-image:url(<?php echo $img( 'rico-office.webp' ); ?>)"></div><div class="scrim"></div>
   <div class="inner"><div class="wrap">
     <span class="kick lt">About Ricoman</span>
     <h1>British lighting, made with intent.</h1>
@@ -51,7 +51,7 @@ $img = function ( $f ) { return esc_url( get_theme_file_uri( 'assets/images/' . 
       <div class="cblock"><h4>Hours</h4><p>Mon–Thu 8:30–17:00 · Fri 8:30–16:00</p></div>
     </div>
     <div style="align-self:center">
-      <img src="<?php echo $img( 'rico-office.jpg' ); ?>" alt="Ricoman Manchester" style="width:100%;border:1px solid rgba(255,255,255,.14)">
+      <img src="<?php echo $img( 'rico-office.webp' ); ?>" alt="Ricoman Manchester" style="width:100%;border:1px solid rgba(255,255,255,.14)">
     </div>
   </div>
 </div></section>

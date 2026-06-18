@@ -98,7 +98,7 @@ function ricoman_set_featured_from_theme( $post_id, $file ) {
 }
 
 function ricoman_scaffold_site() {
-	if ( get_option( 'ricoman_scaffold_v17' ) ) {
+	if ( get_option( 'ricoman_scaffold_v18' ) ) {
 		return;
 	}
 
@@ -152,6 +152,21 @@ function ricoman_scaffold_site() {
 		}
 	}
 
+	// Secondary / legal pages (Sustainability, Warranty, policies, Site Map…).
+	if ( function_exists( 'ricoman_info_pages' ) ) {
+		foreach ( ricoman_info_pages() as $info_slug => $info ) {
+			$info_content = ricoman_info_blocks( $info[0], $info[1], $info[2], $info[3] );
+			$info_title   = html_entity_decode( wp_strip_all_tags( $info[1] ) );
+			$info_exist   = get_page_by_path( $info_slug );
+			if ( $info_exist && 'page' === $info_exist->post_type ) {
+				wp_update_post( array( 'ID' => $info_exist->ID, 'post_content' => $info_content ) );
+				update_post_meta( $info_exist->ID, '_wp_page_template', 'page-plain' );
+			} else {
+				ricoman_make_post( 'page', $info_title, $info_slug, $info_content, 'page-plain' );
+			}
+		}
+	}
+
 	// My Project — utility page (still a simple pattern).
 	ricoman_upsert_page( 'My Project', 'my-project', 'ricoman/page-my-project', 'page-plain' );
 
@@ -173,7 +188,7 @@ function ricoman_scaffold_site() {
 		'flow-plus' => array(
 			'Flow+',
 			'Linear Lighting',
-			'ceiling.jpg',
+			'ceiling.webp',
 			'A flexible linear system that bends to any architectural line — continuous, dot-free and made to order in Manchester to your exact geometry.',
 			'allianz-hq',
 			'Allianz HQ fit-out',
@@ -238,16 +253,16 @@ function ricoman_scaffold_site() {
 
 	// ---- Projects: [ Title, image, sector, excerpt, products[] ] ----
 	$projects = array(
-		'allianz-hq'      => array( 'Allianz HQ Fit-out', 'office1.jpg', 'Commercial Office', 'A commercial workplace fit-out lit with continuous linear runs and trimless downlights for a clean, low-glare ceiling.', array( 'flow-plus' => 'Flow+', 'neptune' => 'Neptune' ) ),
-		'flagship-store'  => array( 'Flagship Retail Store', 'retail.jpg', 'Retail', 'A retail flagship using accent and decorative pendants to bring warmth and focus to the merchandising.', array( 'estrella' => 'Estrella' ) ),
-		'acoustic-ceiling'=> array( 'Acoustic Linear Ceiling', 'rico-acoustic-corridor.jpg', 'Commercial Office', 'Sound-absorbing linear lighting integrated into an exposed-services ceiling for a calm, productive workspace.', array( 'flow-plus' => 'Flow+' ) ),
-		'breakout-lounge' => array( 'Breakout Lounge', 'rico-breakout-lounge.jpg', 'Workplace', 'Warm, layered light for an informal amenity space — comfortable, flattering and energy-efficient.', array() ),
-		'boutique-hotel'  => array( 'Boutique Hotel', 'office2.jpg', 'Hospitality', 'Decorative pendants and dimmable downlights creating a warm, welcoming hospitality scheme.', array( 'estrella' => 'Estrella' ) ),
+		'allianz-hq'      => array( 'Allianz HQ Fit-out', 'office1.webp', 'Commercial Office', 'A commercial workplace fit-out lit with continuous linear runs and trimless downlights for a clean, low-glare ceiling.', array( 'flow-plus' => 'Flow+', 'neptune' => 'Neptune' ) ),
+		'flagship-store'  => array( 'Flagship Retail Store', 'retail.webp', 'Retail', 'A retail flagship using accent and decorative pendants to bring warmth and focus to the merchandising.', array( 'estrella' => 'Estrella' ) ),
+		'acoustic-ceiling'=> array( 'Acoustic Linear Ceiling', 'rico-acoustic-corridor.webp', 'Commercial Office', 'Sound-absorbing linear lighting integrated into an exposed-services ceiling for a calm, productive workspace.', array( 'flow-plus' => 'Flow+' ) ),
+		'breakout-lounge' => array( 'Breakout Lounge', 'rico-breakout-lounge.webp', 'Workplace', 'Warm, layered light for an informal amenity space — comfortable, flattering and energy-efficient.', array() ),
+		'boutique-hotel'  => array( 'Boutique Hotel', 'office2.webp', 'Hospitality', 'Decorative pendants and dimmable downlights creating a warm, welcoming hospitality scheme.', array( 'estrella' => 'Estrella' ) ),
 		'betfred-hq'      => array( 'Betfred HQ', 'rico-betfred7.webp', 'Workplace', 'A large headquarters fit-out delivered on programme with UK-made linear lighting throughout.', array( 'flow-plus' => 'Flow+' ) ),
-		'kingsgate'       => array( 'Kingsgate', 'rico-kingsgate.jpg', 'Retail', 'High-CRI accent lighting bringing focus and warmth to a flagship retail environment.', array() ),
-		'estrella-canteen'=> array( 'Estrella Canteen', 'estrella-canteen.jpg', 'Hospitality', 'Configurable Estrella pendants over a staff dining space, built to a bespoke layout.', array( 'estrella' => 'Estrella' ) ),
-		'campus-library'  => array( 'Campus Library', 'office5.jpg', 'Education', 'Comfortable, low-glare light for study and reading areas across a university library.', array( 'neptune' => 'Neptune' ) ),
-		'studio-hq'       => array( 'Studio HQ', 'office6.jpg', 'Workplace', 'A creative studio headquarters lit for focus and atmosphere in equal measure.', array() ),
+		'kingsgate'       => array( 'Kingsgate', 'rico-kingsgate.webp', 'Retail', 'High-CRI accent lighting bringing focus and warmth to a flagship retail environment.', array() ),
+		'estrella-canteen'=> array( 'Estrella Canteen', 'estrella-canteen.webp', 'Hospitality', 'Configurable Estrella pendants over a staff dining space, built to a bespoke layout.', array( 'estrella' => 'Estrella' ) ),
+		'campus-library'  => array( 'Campus Library', 'office5.webp', 'Education', 'Comfortable, low-glare light for study and reading areas across a university library.', array( 'neptune' => 'Neptune' ) ),
+		'studio-hq'       => array( 'Studio HQ', 'office6.webp', 'Workplace', 'A creative studio headquarters lit for focus and atmosphere in equal measure.', array() ),
 	);
 	// Show both project layouts: a few rich "feature" case studies, the rest "simple".
 	$feature_projects = array( 'allianz-hq', 'acoustic-ceiling', 'flagship-store', 'betfred-hq' );
@@ -270,5 +285,5 @@ function ricoman_scaffold_site() {
 	}
 
 	flush_rewrite_rules( true );
-	update_option( 'ricoman_scaffold_v17', 1 );
+	update_option( 'ricoman_scaffold_v18', 1 );
 }

@@ -24,7 +24,7 @@ $tile = function ( $url, $sub, $title, $href, $min = 320 ) {
 };
 
 echo $cover(
-	$u( 'office1.jpg' ),
+	$u( 'office1.webp' ),
 	$eyebrow( 'Selected Work' ) .
 	'<!-- wp:heading {"level":1,"style":{"typography":{"fontWeight":"500","fontSize":"clamp(2.6rem, 6vw, 5rem)","lineHeight":"1"}}} --><h1 class="wp-block-heading" style="font-size:clamp(2.6rem, 6vw, 5rem);font-weight:500;line-height:1">Light that performs in the real world.</h1><!-- /wp:heading -->' .
 	$para( 'From workplace fit-outs to flagship retail, our luminaires are specified, delivered and installed across the UK.' ),
@@ -35,23 +35,23 @@ echo $cover(
 
 echo $sec(
 	'<!-- wp:columns --><div class="wp-block-columns">' .
-	$tile( $u( 'rico-acoustic-corridor.jpg' ), 'Commercial Office · Manchester', 'Acoustic linear ceiling', '/projects/acoustic-ceiling/', 420 ) .
-	$tile( $u( 'retail.jpg' ), 'Retail · Manchester', 'Flagship Store', '/projects/flagship-store/', 420 ) .
+	$tile( $u( 'rico-acoustic-corridor.webp' ), 'Commercial Office · Manchester', 'Acoustic linear ceiling', '/projects/acoustic-ceiling/', 420 ) .
+	$tile( $u( 'retail.webp' ), 'Retail · Manchester', 'Flagship Store', '/projects/flagship-store/', 420 ) .
 	'</div><!-- /wp:columns -->' .
 	'<!-- wp:columns --><div class="wp-block-columns">' .
-	$tile( $u( 'rico-breakout-lounge.jpg' ), 'Workplace · Amenity', 'Breakout lounge', '/projects/breakout-lounge/' ) .
-	$tile( $u( 'office2.jpg' ), 'Hospitality', 'Boutique Hotel', '/projects/boutique-hotel/' ) .
+	$tile( $u( 'rico-breakout-lounge.webp' ), 'Workplace · Amenity', 'Breakout lounge', '/projects/breakout-lounge/' ) .
+	$tile( $u( 'office2.webp' ), 'Hospitality', 'Boutique Hotel', '/projects/boutique-hotel/' ) .
 	$tile( $u( 'rico-betfred7.webp' ), 'Workplace · Warrington', 'Betfred HQ', '/projects/betfred-hq/' ) .
 	'</div><!-- /wp:columns -->' .
 	'<!-- wp:columns --><div class="wp-block-columns">' .
-	$tile( $u( 'rico-kingsgate.jpg' ), 'Retail · London', 'Kingsgate', '/projects/kingsgate/' ) .
-	$tile( $u( 'estrella-canteen.jpg' ), 'Hospitality · Staff dining', 'Estrella Canteen', '/projects/estrella-canteen/' ) .
-	$tile( $u( 'office5.jpg' ), 'Education', 'Campus Library', '/projects/campus-library/' ) .
+	$tile( $u( 'rico-kingsgate.webp' ), 'Retail · London', 'Kingsgate', '/projects/kingsgate/' ) .
+	$tile( $u( 'estrella-canteen.webp' ), 'Hospitality · Staff dining', 'Estrella Canteen', '/projects/estrella-canteen/' ) .
+	$tile( $u( 'office5.webp' ), 'Education', 'Campus Library', '/projects/campus-library/' ) .
 	'</div><!-- /wp:columns -->'
 );
 
 echo $cover(
-	$u( 'office6.jpg' ),
+	$u( 'office6.webp' ),
 	'<!-- wp:heading {"textAlign":"center","level":2} --><h2 class="wp-block-heading has-text-align-center">Have a project on the board?</h2><!-- /wp:heading -->' .
 	'<!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">Send us your drawings or a finishes schedule and our in-house lighting designers will return a fully specified, costed scheme — usually within 3–5 days.</p><!-- /wp:paragraph -->' .
 	$buttons( $btn( 'Start a Project', '/lighting-design/' ) . $btn( 'Talk to the design team →', '/about/', false ), true ),
