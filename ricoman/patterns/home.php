@@ -55,7 +55,7 @@ $img = function ( $f ) { return esc_url( get_theme_file_uri( 'assets/images/' . 
     <span class="kick lt"><span class="n">03</span>Featured · Linear</span>
     <h2>Flow+ — seamless curves of light</h2>
     <p>A flexible linear system that bends to any architectural line, continuous and dot-free. Made to order in Manchester, to your exact geometry.</p>
-    <div class="acts"><a class="btn btn-line" href="/products/flow-plus/">View Flow+ →</a><a class="btn btn-line" href="/my-project/">＋ Add to My Project</a></div>
+    <div class="acts"><a class="btn btn-line" href="/products/flow-plus/">View Flow+ →</a><a class="btn btn-line" href="/flow-designer/">Design your run</a></div>
   </div>
   <div class="img" style="background-image:url(<?php echo $img( 'light-a.jpg' ); ?>)"></div>
 </section>

@@ -98,7 +98,7 @@ function ricoman_set_featured_from_theme( $post_id, $file ) {
 }
 
 function ricoman_scaffold_site() {
-	if ( get_option( 'ricoman_scaffold_v9' ) ) {
+	if ( get_option( 'ricoman_scaffold_v10' ) ) {
 		return;
 	}
 
@@ -132,6 +132,12 @@ function ricoman_scaffold_site() {
 	);
 	foreach ( $pages as $slug => $info ) {
 		ricoman_upsert_page( $info[0], $slug, $info[1], 'page-plain' );
+	}
+
+	// Flow+ Designer — full-screen embedded customer tool.
+	$fd = ricoman_make_post( 'page', 'Flow+ Designer', 'flow-designer', '<!-- wp:paragraph --><p>Flow+ Designer.</p><!-- /wp:paragraph -->', 'page-flow-designer' );
+	if ( $fd ) {
+		update_post_meta( $fd, '_wp_page_template', 'page-flow-designer' );
 	}
 
 	// ---- Product categories ----
@@ -178,6 +184,9 @@ function ricoman_scaffold_site() {
 		$content .= '<!-- wp:paragraph {"style":{"typography":{"fontSize":"1.15rem"}}} --><p style="font-size:1.15rem">' . esc_html( $p[3] ) . '</p><!-- /wp:paragraph -->';
 		$content .= '<!-- wp:heading {"level":3} --><h3 class="wp-block-heading">Seen in</h3><!-- /wp:heading -->';
 		$content .= '<!-- wp:paragraph --><p>See ' . esc_html( $p[0] ) . ' in <a href="/projects/' . $p[4] . '/">' . esc_html( $p[5] ) . '</a>.</p><!-- /wp:paragraph -->';
+		if ( 'flow-plus' === $slug ) {
+			$content .= '<!-- wp:buttons --><div class="wp-block-buttons"><!-- wp:button {"className":"is-style-outline"} --><div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="/flow-designer/">Design your Flow+ run →</a></div><!-- /wp:button --></div><!-- /wp:buttons -->';
+		}
 		$content .= '<!-- wp:buttons --><div class="wp-block-buttons"><!-- wp:button {"className":"is-style-outline"} --><div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="/my-project/">Add to My Project</a></div><!-- /wp:button --><!-- wp:button {"className":"is-style-outline"} --><div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="/products/">All products</a></div><!-- /wp:button --></div><!-- /wp:buttons -->';
 		$pid      = ricoman_make_post( 'product', $p[0], $slug, $content );
 		if ( $pid ) {
@@ -235,5 +244,5 @@ function ricoman_scaffold_site() {
 	}
 
 	flush_rewrite_rules( true );
-	update_option( 'ricoman_scaffold_v9', 1 );
+	update_option( 'ricoman_scaffold_v10', 1 );
 }

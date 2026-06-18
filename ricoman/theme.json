@@ -200,6 +200,11 @@
 			"postTypes": ["page"]
 		},
 		{
+			"name": "page-flow-designer",
+			"title": "Flow+ Designer (full screen tool)",
+			"postTypes": ["page"]
+		},
+		{
 			"name": "single-product-featured",
 			"title": "Product — Featured",
 			"postTypes": ["product"]
