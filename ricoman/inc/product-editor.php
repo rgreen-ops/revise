@@ -159,6 +159,28 @@ add_action( 'admin_menu', function () {
 	);
 } );
 
+/**
+ * Make the visual builder the default screen when editing a product. The native
+ * WordPress editor stays reachable via the "All fields" link (?classic=1).
+ */
+add_action( 'load-post.php', function () {
+	if ( empty( $_GET['post'] ) ) {
+		return;
+	}
+	if ( isset( $_GET['action'] ) && 'edit' !== $_GET['action'] ) {
+		return;
+	}
+	if ( isset( $_GET['classic'] ) ) {
+		return; // escape hatch to the classic editor.
+	}
+	$pid = (int) $_GET['post'];
+	if ( 'product' !== get_post_type( $pid ) || ! current_user_can( 'edit_post', $pid ) ) {
+		return;
+	}
+	wp_safe_redirect( admin_url( 'admin.php?page=ricoman-product-editor&product=' . $pid ) );
+	exit;
+} );
+
 /** Row action on the product list. */
 add_filter( 'post_row_actions', function ( $actions, $post ) {
 	if ( 'product' === $post->post_type && current_user_can( 'edit_post', $post->ID ) ) {
@@ -449,6 +471,7 @@ function ricoman_product_editor_render() {
 			</div>
 			<button class="rmpe-btn rmpe-btn-ghost" id="rmpe-wide" title="<?php esc_attr_e( 'Hide panels for a wider preview', 'ricoman' ); ?>"><span class="dashicons dashicons-editor-expand"></span></button>
 			<?php if ( ! $is_tpl ) : ?>
+				<a class="rmpe-btn rmpe-btn-ghost" href="<?php echo esc_url( admin_url( 'post.php?post=' . $pid . '&action=edit&classic=1' ) ); ?>"><?php esc_html_e( 'All fields', 'ricoman' ); ?></a>
 				<button class="rmpe-btn rmpe-btn-ghost" id="rmpe-reset"><?php esc_html_e( 'Reset', 'ricoman' ); ?></button>
 			<?php endif; ?>
 			<a class="rmpe-btn rmpe-btn-ghost" id="rmpe-view" target="_blank" href="<?php echo esc_url( get_permalink( $pid ) ); ?>"><?php esc_html_e( 'View live', 'ricoman' ); ?></a>
