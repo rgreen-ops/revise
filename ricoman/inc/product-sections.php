@@ -85,13 +85,23 @@ function ricoman_section_block_render( $key ) {
 		$pid = (int) $_REQUEST['post_id'];
 	}
 	$labels = ricoman_section_defs();
+	// Placeholders are ONLY for the block-editor preview (admin / REST block
+	// renderer). On the live front end (and the builder's WYSIWYG preview) an
+	// empty section must render nothing, never a "no content" note.
+	$editor_ctx = is_admin() || ( defined( 'REST_REQUEST' ) && REST_REQUEST );
 	if ( ! $pid || 'product' !== get_post_type( $pid ) || ! function_exists( 'ricoman_pf_sections' ) ) {
+		if ( ! $editor_ctx ) {
+			return '';
+		}
 		return '<div class="rm-block-ph" style="padding:22px;border:1px dashed #c9ccd1;border-radius:10px;color:#6b7280;font:14px/1.5 system-ui,sans-serif">'
 			. esc_html( isset( $labels[ $key ] ) ? $labels[ $key ] : $key ) . ' — ' . esc_html__( 'shows on the live product page.', 'ricoman' ) . '</div>';
 	}
 	$s    = ricoman_pf_sections( $pid );
 	$html = isset( $s[ $key ] ) ? $s[ $key ] : '';
 	if ( '' === trim( (string) $html ) ) {
+		if ( ! $editor_ctx ) {
+			return '';
+		}
 		return '<div class="rm-block-ph" style="padding:16px;border:1px dashed #c9ccd1;border-radius:10px;color:#9096a0;font:13px/1.5 system-ui,sans-serif">'
 			. esc_html( isset( $labels[ $key ] ) ? $labels[ $key ] : $key ) . ' — ' . esc_html__( 'no content for this product yet.', 'ricoman' ) . '</div>';
 	}
