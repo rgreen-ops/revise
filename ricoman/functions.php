@@ -228,3 +228,20 @@ function ricoman_register_block_styles() {
 	);
 }
 add_action( 'init', 'ricoman_register_block_styles' );
+
+/**
+ * Safety net for theme shortcodes used inside block patterns / FSE templates.
+ *
+ * In some block-template render paths (archives, pattern blocks rendered outside
+ * the_content) the core/shortcode block can leak its raw text instead of being
+ * processed — e.g. "[ricoman_projects_grid count="12"]" printing literally on
+ * /projects/. If a rendered block's output still contains one of the theme's own
+ * [ricoman_*] tags, run it through do_shortcode so it always renders. The strpos
+ * guard keeps this near-free for the vast majority of blocks that don't use one.
+ */
+add_filter( 'render_block', function ( $html, $block ) {
+	if ( is_string( $html ) && false !== strpos( $html, '[ricoman_' ) ) {
+		$html = do_shortcode( $html );
+	}
+	return $html;
+}, 20, 2 );
