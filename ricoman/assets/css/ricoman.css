@@ -922,12 +922,14 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .single-product .wp-site-blocks > *:first-child,
 .single-product .rm-pp-crumbwrap:first-child{margin-block-start:0}
 .single-product .rm-pp-crumbwrap{padding-top:clamp(8px,1.2vw,14px)!important}
+/* Halve the section spacing on product pages (hero -> specs etc. was too big) */
+.single-product .rm-section{padding-block:clamp(28px,4.5vw,72px)}
 /* No white sliver between content and the footer (default block gap) */
 .wp-site-blocks>footer{margin-block-start:0}
 .wp-site-blocks>main{margin-block-end:0}
 /* Configure / order-codes table (from variant-product posts) */
 .rm-vptable-wrap{overflow-x:auto;margin-top:8px}
-.rm-vptable{width:100%;border-collapse:collapse;font-size:.82rem}
+.rm-vptable{width:100%;border-collapse:collapse;font-size:.76rem}
 .rm-vptable th{font-family:Poppins;font-size:.64rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--ink);text-align:left;padding:0 12px 9px;border-bottom:1px solid var(--ink)}
 .rm-vptable td{padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:middle;color:var(--text)}
 .rm-vptable .vt-thumb{width:64px}
