@@ -138,6 +138,22 @@
 		vtApply( vp );
 	} );
 
+	/* ---- Projects category filter chips ---- */
+	document.addEventListener( 'click', function ( e ) {
+		var c = e.target.closest( '.rm-projchip' ); if ( ! c ) { return; }
+		var bar = c.closest( '.rm-projfilters' ); if ( ! bar ) { return; }
+		var grid = bar.nextElementSibling;
+		while ( grid && ! grid.classList.contains( 'rm-projgrid' ) ) { grid = grid.nextElementSibling; }
+		if ( ! grid ) { return; }
+		bar.querySelectorAll( '.rm-projchip' ).forEach( function ( x ) { x.classList.remove( 'on' ); } );
+		c.classList.add( 'on' );
+		var cat = c.getAttribute( 'data-cat' );
+		grid.querySelectorAll( '.rm-projcard' ).forEach( function ( card ) {
+			var cats = ( card.getAttribute( 'data-cats' ) || '' ).split( ' ' );
+			card.style.display = ( ! cat || cats.indexOf( cat ) > -1 ) ? '' : 'none';
+		} );
+	} );
+
 	/* ---- Variant spec popup ---- */
 	function openVariant( row ) {
 		var vp = row.closest( '.rm-vp' ); if ( ! vp ) { return; }

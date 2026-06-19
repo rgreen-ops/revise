@@ -303,13 +303,28 @@ add_shortcode( 'ricoman_projects_grid', function ( $atts ) {
 	if ( ! $q->have_posts() ) {
 		return '<p class="rm-config-note">Projects will appear here once published.</p>';
 	}
-	$out = '<div class="rm-projgrid">';
+	$tax = taxonomy_exists( 'project-cat' ) ? 'project-cat' : 'application';
+
+	// Category facet chips (only sectors that actually have projects).
+	$chips = '';
+	$terms = get_terms( array( 'taxonomy' => $tax, 'hide_empty' => true ) );
+	if ( ! is_wp_error( $terms ) && $terms ) {
+		$chips = '<div class="rm-projfilters"><button type="button" class="rm-projchip on" data-cat="">All</button>';
+		foreach ( $terms as $t ) {
+			$chips .= '<button type="button" class="rm-projchip" data-cat="' . esc_attr( $t->slug ) . '">' . esc_html( $t->name ) . '</button>';
+		}
+		$chips .= '</div>';
+	}
+
+	$out = $chips . '<div class="rm-projgrid">';
 	while ( $q->have_posts() ) {
 		$q->the_post();
 		$img    = function_exists( 'ricoman_project_img' ) ? ricoman_project_img( get_the_ID() ) : get_the_post_thumbnail_url( get_the_ID(), 'large' );
 		$sector = ricoman_first_term_name( get_the_ID(), array( 'project-cat', 'application' ) );
+		$slugs  = wp_get_post_terms( get_the_ID(), $tax, array( 'fields' => 'slugs' ) );
+		$cats   = ( ! is_wp_error( $slugs ) && $slugs ) ? implode( ' ', $slugs ) : '';
 		$style  = $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '';
-		$out   .= '<a class="rm-projcard" href="' . esc_url( get_permalink() ) . '"' . $style . '><span class="rm-projcard-ov">'
+		$out   .= '<a class="rm-projcard" data-cats="' . esc_attr( $cats ) . '" href="' . esc_url( get_permalink() ) . '"' . $style . '><span class="rm-projcard-ov">'
 			. ( $sector ? '<span class="rm-eyebrow">' . esc_html( $sector ) . '</span>' : '' )
 			. '<span class="rm-projcard-t">' . esc_html( get_the_title() ) . '</span></span></a>';
 	}
