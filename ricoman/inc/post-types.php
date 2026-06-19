@@ -233,13 +233,13 @@ function ricoman_register_variant_axes() {
 		}
 		register_taxonomy(
 			$slug,
-			array( 'product', 'variant-product' ),
+			array( 'variant-product' ), // per-variant specs; keeps the product editor uncluttered.
 			array(
 				'labels'       => array( 'name' => $label, 'singular_name' => $label, 'menu_name' => $label ),
 				'hierarchical' => false,
 				'public'       => false,
 				'show_ui'      => true,
-				'show_in_menu' => false, // keep the admin menu uncluttered; edit via the post.
+				'show_in_menu' => false, // managed via the Spec Axes hub.
 				'show_in_rest' => true,
 				'rewrite'      => false,
 				'query_var'    => false,
