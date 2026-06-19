@@ -247,7 +247,7 @@ add_shortcode( 'ricoman_projects_grid', function ( $atts ) {
 	$out = '<div class="rm-projgrid">';
 	while ( $q->have_posts() ) {
 		$q->the_post();
-		$img    = get_the_post_thumbnail_url( get_the_ID(), 'large' );
+		$img    = function_exists( 'ricoman_project_img' ) ? ricoman_project_img( get_the_ID() ) : get_the_post_thumbnail_url( get_the_ID(), 'large' );
 		$sector = ricoman_first_term_name( get_the_ID(), array( 'project-cat', 'application' ) );
 		$style  = $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '';
 		$out   .= '<a class="rm-projcard" href="' . esc_url( get_permalink() ) . '"' . $style . '><span class="rm-projcard-ov">'

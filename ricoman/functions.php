@@ -38,6 +38,7 @@ require_once get_theme_file_path( 'inc/product-fields.php' ); // Structured prod
 require_once get_theme_file_path( 'inc/acf-product.php' );    // Render existing ACF products (empty content) in the new design.
 require_once get_theme_file_path( 'inc/acf-pages.php' );      // Render migrated ACF content pages natively (no Elementor).
 require_once get_theme_file_path( 'inc/news.php' );           // News master listing + single article.
+require_once get_theme_file_path( 'inc/projects.php' );       // Project single (short/long) from ACF.
 require_once get_theme_file_path( 'inc/product-filter.php' ); // Category archive grid + faceted filters (lumens/watts/features).
 require_once get_theme_file_path( 'inc/configurator.php' );   // Live variant configurator (RICOBOT price/options).
 require_once get_theme_file_path( 'inc/product-patterns.php' );// Product page blocks (Hero/Specs/Configurator/…).

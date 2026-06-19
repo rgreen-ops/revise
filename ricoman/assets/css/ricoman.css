@@ -921,3 +921,12 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-news-hero img{width:100%;height:auto;border-radius:10px}
 .rm-news-body{font-size:1.05rem;line-height:1.8}
 .rm-news-body img{max-width:100%;height:auto;border-radius:8px}
+
+/* ===== Project single ===== */
+.rm-proj-single{max-width:960px}
+.rm-proj-meta{display:flex;flex-wrap:wrap;gap:14px 40px;padding:18px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:0 0 1.6em}
+.rm-proj-meta .rm-flabel{display:block;font-family:Poppins;font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:4px}
+.rm-proj-body{font-size:1.05rem;line-height:1.8;margin:0 0 1.6em}
+.rm-proj-body img,.rm-proj-single .rm-apage-wysiwyg img{max-width:100%;height:auto;border-radius:8px}
+.rm-proj-quote{border-left:3px solid var(--accent);margin:1.8em 0;padding:.4em 0 .4em 24px;font-family:Poppins;font-weight:500;font-size:clamp(1.2rem,2.4vw,1.6rem);line-height:1.4;color:var(--ink)}
+.rm-proj-quote cite{display:block;font-style:normal;font-size:.85rem;font-weight:600;color:var(--muted);margin-top:.8em}
