@@ -268,21 +268,26 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 	$maxlm = $maxlm > 0 ? (int) ( ceil( $maxlm / 500 ) * 500 ) : 0;
 	$maxw  = $maxw > 0 ? (int) ( ceil( $maxw / 5 ) * 5 ) : 0;
 
-	// Feature tick-boxes (always include the headline three if present anywhere).
+	// Feature tick-boxes (skip junk numeric/single-char labels).
 	ksort( $allfeat );
 	$ticks = '';
 	foreach ( array_keys( $allfeat ) as $f ) {
+		if ( ! preg_match( '/[a-z]{2,}/i', (string) $f ) ) {
+			continue;
+		}
 		$slug   = sanitize_title( $f );
 		$ticks .= '<label class="rm-ftick"><input type="checkbox" value="' . esc_attr( $slug ) . '"> ' . esc_html( $f ) . '</label>';
 	}
 
 	$crumb = do_shortcode( '[ricoman_breadcrumbs]' );
 
-	// Sliders (single-thumb: min light output, max power).
-	$lmslider = $maxlm ? '<div class="rm-frange"><label>Min. light output <b class="rm-lm-val">0</b> lm</label>'
-		. '<input type="range" class="rm-lm" min="0" max="' . $maxlm . '" step="100" value="0"></div>' : '';
-	$wslider  = $maxw ? '<div class="rm-frange"><label>Max. power <b class="rm-w-val">' . $maxw . '</b> W</label>'
-		. '<input type="range" class="rm-w" min="0" max="' . $maxw . '" step="1" value="' . $maxw . '"></div>' : '';
+	// Dual-range (min + max) sliders for light output and power.
+	$lmslider = $maxlm ? '<div class="rm-frange rm-dual"><label>Light output <b class="rm-lm-lo">0</b> – <b class="rm-lm-hi">' . $maxlm . '</b> lm</label>'
+		. '<div class="rm-dual-track"><input type="range" class="rm-lm-min" min="0" max="' . $maxlm . '" step="100" value="0">'
+		. '<input type="range" class="rm-lm-max" min="0" max="' . $maxlm . '" step="100" value="' . $maxlm . '"></div></div>' : '';
+	$wslider  = $maxw ? '<div class="rm-frange rm-dual"><label>Power <b class="rm-w-lo">0</b> – <b class="rm-w-hi">' . $maxw . '</b> W</label>'
+		. '<div class="rm-dual-track"><input type="range" class="rm-w-min" min="0" max="' . $maxw . '" step="1" value="0">'
+		. '<input type="range" class="rm-w-max" min="0" max="' . $maxw . '" step="1" value="' . $maxw . '"></div></div>' : '';
 
 	$out  = '<div class="rm-pp-wrap rm-catarch">';
 	$out .= '<div class="rm-pp-crumb">' . $crumb . '</div>';
@@ -302,30 +307,44 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 	$out .= <<<'JS'
 <script>(function(){
  var w=document.currentScript.previousElementSibling;if(!w)return;
- var grid=w.querySelector('.rm-fgrid'),cards=[].slice.call(w.querySelectorAll('.rm-fcard'));
- var lm=w.querySelector('.rm-lm'),pw=w.querySelector('.rm-w');
- var lmv=w.querySelector('.rm-lm-val'),wv=w.querySelector('.rm-w-val');
+ var cards=[].slice.call(w.querySelectorAll('.rm-fcard'));
+ var lmMin=w.querySelector('.rm-lm-min'),lmMax=w.querySelector('.rm-lm-max');
+ var wMin=w.querySelector('.rm-w-min'),wMax=w.querySelector('.rm-w-max');
+ var lmLo=w.querySelector('.rm-lm-lo'),lmHi=w.querySelector('.rm-lm-hi');
+ var wLo=w.querySelector('.rm-w-lo'),wHi=w.querySelector('.rm-w-hi');
  var count=w.querySelector('.rm-fcount b'),none=w.querySelector('.rm-fnone');
  function ticks(){return [].slice.call(w.querySelectorAll('.rm-ftick input:checked')).map(function(i){return i.value;});}
+ function pair(min,max,gap){
+  if(!min||!max)return;
+  min.addEventListener('input',function(){if(+min.value>+max.value-gap)min.value=Math.max(+min.min,+max.value-gap);apply();});
+  max.addEventListener('input',function(){if(+max.value<+min.value+gap)max.value=Math.min(+max.max,+min.value+gap);apply();});
+ }
  function apply(){
-  var minLm=lm?+lm.value:0,maxW=pw?+pw.value:1e9,want=ticks(),shown=0;
-  if(lmv&&lm)lmv.textContent=(+lm.value).toLocaleString();
-  if(wv&&pw)wv.textContent=pw.value;
+  var loLm=lmMin?+lmMin.value:0, hiLm=lmMax?+lmMax.value:1e9;
+  var loW =wMin?+wMin.value:0,  hiW =wMax?+wMax.value:1e9;
+  var lmFull=!lmMin||(loLm<=+lmMin.min&&hiLm>=+lmMax.max);
+  var wFull =!wMin ||(loW <=+wMin.min &&hiW >=+wMax.max);
+  if(lmLo)lmLo.textContent=loLm.toLocaleString();
+  if(lmHi)lmHi.textContent=hiLm.toLocaleString();
+  if(wLo)wLo.textContent=loW;
+  if(wHi)wHi.textContent=hiW;
+  var want=ticks(),shown=0;
   cards.forEach(function(c){
    var clm=+c.dataset.lm||0,cw=+c.dataset.w||0,cf=(c.dataset.feat||'').split(' ');
    var ok=true;
-   if(minLm>0&&clm>0&&clm<minLm)ok=false;
-   if(pw&&maxW<(+pw.max)&&cw>0&&cw>maxW)ok=false;
+   if(!lmFull&&clm>0&&(clm<loLm||clm>hiLm))ok=false;
+   if(!wFull &&cw>0&&(cw<loW ||cw>hiW ))ok=false;
    want.forEach(function(f){if(cf.indexOf(f)<0)ok=false;});
    c.hidden=!ok;if(ok)shown++;
   });
   if(count)count.textContent=shown;
   if(none)none.hidden=shown>0;
  }
- [lm,pw].forEach(function(el){if(el)el.addEventListener('input',apply);});
+ pair(lmMin,lmMax,100);pair(wMin,wMax,1);
  w.querySelectorAll('.rm-ftick input').forEach(function(i){i.addEventListener('change',apply);});
  w.querySelectorAll('.rm-fclear').forEach(function(b){b.addEventListener('click',function(){
-  if(lm)lm.value=0;if(pw)pw.value=pw.max;
+  if(lmMin)lmMin.value=lmMin.min;if(lmMax)lmMax.value=lmMax.max;
+  if(wMin)wMin.value=wMin.min;if(wMax)wMax.value=wMax.max;
   w.querySelectorAll('.rm-ftick input').forEach(function(i){i.checked=false;});apply();
  });});
  apply();

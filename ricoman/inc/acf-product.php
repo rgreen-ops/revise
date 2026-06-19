@@ -937,7 +937,7 @@ function ricoman_pf_variant_table( $pid ) {
 		foreach ( $filterable as $label => $vals ) {
 			$rowattr .= ' data-f-' . $slugify( $label ) . '="' . esc_attr( isset( $v['pairs'][ $label ] ) ? $v['pairs'][ $label ] : '' ) . '"';
 		}
-		$rows .= '<tr class="vt-row' . ( $i >= 20 ? ' rm-vt-hide' : '' ) . '" data-vt="' . $i . '"' . $rowattr . ' tabindex="0"><td class="vt-thumb">' . $thumb . '</td>'
+		$rows .= '<tr class="vt-row' . ( $i >= 10 ? ' rm-vt-hide' : '' ) . '" data-vt="' . $i . '"' . $rowattr . ' tabindex="0"><td class="vt-thumb">' . $thumb . '</td>'
 			. '<td class="vt-code">' . esc_html( $v['code'] ) . '</td>'
 			. '<td class="vt-desc">' . esc_html( $v['desc'] ) . '</td>';
 		foreach ( $cols as $label ) {
@@ -965,8 +965,8 @@ function ricoman_pf_variant_table( $pid ) {
 	}
 
 	$total    = count( $variants );
-	$showmore = $total > 20
-		? '<div class="rm-vt-morewrap"><button type="button" class="rm-vt-morebtn" data-step="20">Show more <span class="rm-vt-morecount">(' . ( $total - 20 ) . ' more)</span></button></div>'
+	$showmore = $total > 10
+		? '<div class="rm-vt-morewrap"><button type="button" class="rm-vt-morebtn" data-step="10">Show more <span class="rm-vt-morecount">(' . ( $total - 10 ) . ' more)</span></button></div>'
 		: '';
 
 	return '<div class="rm-vp">'
