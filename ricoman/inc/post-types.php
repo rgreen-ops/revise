@@ -191,6 +191,65 @@ function ricoman_register_taxonomies() {
 add_action( 'init', 'ricoman_register_taxonomies' );
 
 /**
+ * Register the variant "axis" taxonomies the old data model used (wattage,
+ * colour temperature, colour, beam angle, IP rating, dimming, size, …). The
+ * variant order codes carry their specs as terms in these taxonomies. The old
+ * plugin registered them; our theme must too, otherwise the migrated terms are
+ * invisible (wp_get_post_terms can't read an unregistered taxonomy) and specs
+ * like Wattage never appear. Attached to products and variant products.
+ */
+function ricoman_variant_axis_taxonomies() {
+	return array(
+		'wattage'            => __( 'Wattage', 'ricoman' ),
+		'temperature'        => __( 'Colour Temperature', 'ricoman' ),
+		'color'              => __( 'Colour', 'ricoman' ),
+		'beam-angle'         => __( 'Beam Angle', 'ricoman' ),
+		'iprating'           => __( 'IP Rating', 'ricoman' ),
+		'size'               => __( 'Size', 'ricoman' ),
+		'dimming'            => __( 'Dimming', 'ricoman' ),
+		'lighting-direction' => __( 'Lighting Direction', 'ricoman' ),
+		'emergency'          => __( 'Emergency', 'ricoman' ),
+		'glare-control'      => __( 'Glare Control', 'ricoman' ),
+		'microwave'          => __( 'Microwave', 'ricoman' ),
+		'pir'                => __( 'PIR', 'ricoman' ),
+		'reflector'          => __( 'Reflector', 'ricoman' ),
+		'reflector-finish'   => __( 'Reflector Finish', 'ricoman' ),
+		'reflector-colour'   => __( 'Reflector Colour', 'ricoman' ),
+		'bezel-finish'       => __( 'Bezel Finish', 'ricoman' ),
+		'diffuser-material'  => __( 'Diffuser Material', 'ricoman' ),
+		'application-area'   => __( 'Application Area', 'ricoman' ),
+		'legend-required'    => __( 'Legend Required', 'ricoman' ),
+		'fitting-type'       => __( 'Fitting Type', 'ricoman' ),
+		'lamp-type'          => __( 'Lamp Type', 'ricoman' ),
+		'module'             => __( 'Module', 'ricoman' ),
+		'model'              => __( 'Model', 'ricoman' ),
+	);
+}
+
+function ricoman_register_variant_axes() {
+	foreach ( ricoman_variant_axis_taxonomies() as $slug => $label ) {
+		if ( taxonomy_exists( $slug ) ) {
+			continue;
+		}
+		register_taxonomy(
+			$slug,
+			array( 'product', 'variant-product' ),
+			array(
+				'labels'       => array( 'name' => $label, 'singular_name' => $label, 'menu_name' => $label ),
+				'hierarchical' => false,
+				'public'       => false,
+				'show_ui'      => true,
+				'show_in_menu' => false, // keep the admin menu uncluttered; edit via the post.
+				'show_in_rest' => true,
+				'rewrite'      => false,
+				'query_var'    => false,
+			)
+		);
+	}
+}
+add_action( 'init', 'ricoman_register_variant_axes' );
+
+/**
  * Flush rewrite rules once on theme activation so the new CPT permalinks work.
  * (Switching themes fires this; admins can also just re-save Permalinks.)
  */

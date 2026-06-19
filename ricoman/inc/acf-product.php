@@ -506,7 +506,7 @@ function ricoman_variant_lumens( $vid ) {
 			return (string) $v;
 		}
 	}
-	foreach ( array( 'lumen', 'lumens', 'lumen-output', 'lumen_output', 'wattage', 'watt' ) as $tax ) {
+	foreach ( array( 'lumen', 'lumens', 'lumen-output', 'lumen_output' ) as $tax ) {
 		if ( taxonomy_exists( $tax ) ) {
 			$terms = wp_get_post_terms( $vid, $tax, array( 'fields' => 'names' ) );
 			if ( ! is_wp_error( $terms ) && $terms ) {
@@ -517,46 +517,104 @@ function ricoman_variant_lumens( $vid ) {
 	return '';
 }
 
-/** The full variant spec columns (meta key => label), in display order. No pricing. */
-function ricoman_variant_spec_columns() {
+/**
+ * The full variant spec set, in display order: each entry [source, key, label]
+ * where source is 'meta' (a variant meta field) or 'tax' (a variant axis
+ * taxonomy). Duplicate labels (e.g. IP from meta ip_rating or the iprating
+ * taxonomy) are de-duplicated at render — first non-empty wins. No pricing.
+ */
+function ricoman_variant_spec_defs() {
 	return array(
-		'lumens'                 => 'Lumens',
-		'efficacy'               => 'Efficacy',
-		'cri'                    => 'CRI',
-		'beam_angle'             => 'Beam Angle',
-		'ip_rating'              => 'IP',
-		'ik_rating'              => 'IK',
-		'ugr'                    => 'UGR',
-		'voltage_range'          => 'Voltage',
-		'power_factor'           => 'Power Factor',
-		'inrush_current'         => 'Inrush',
-		'running_current'        => 'Running Current',
-		'operating_temperatures' => 'Operating Temp',
-		'operating_hours'        => 'Operating Hours',
-		'colour_finish'          => 'Colour Finish',
-		'colour_deviation'       => 'Colour Deviation',
-		'macadam_ellipse'        => 'MacAdam',
-		'l70_b50'                => 'L70 B50',
-		'l80_b50'                => 'L80 B50',
-		'l90_b50'                => 'L90 B50',
-		'optics'                 => 'Optics',
-		'leds'                   => 'LEDs',
-		'dimensions'             => 'Dimensions (mm)',
-		'unit_weight'            => 'Weight',
-		'construction_material'  => 'Construction',
-		'diffuser_type'          => 'Diffuser',
-		'luminaire_fixing'       => 'Fixing',
-		'applications'           => 'Applications',
-		'warranty'               => 'Warranty',
-		'certifications'         => 'Certifications',
+		array( 'meta', 'lumens', 'Lumens' ),
+		array( 'tax', 'wattage', 'Wattage' ),
+		array( 'meta', 'efficacy', 'Efficacy' ),
+		array( 'meta', 'cri', 'CRI' ),
+		array( 'tax', 'temperature', 'Colour Temp' ),
+		array( 'tax', 'color', 'Colour' ),
+		array( 'meta', 'colour_finish', 'Colour Finish' ),
+		array( 'meta', 'beam_angle', 'Beam Angle' ),
+		array( 'tax', 'beam-angle', 'Beam Angle' ),
+		array( 'meta', 'ip_rating', 'IP' ),
+		array( 'tax', 'iprating', 'IP' ),
+		array( 'meta', 'ik_rating', 'IK' ),
+		array( 'meta', 'ugr', 'UGR' ),
+		array( 'meta', 'voltage_range', 'Voltage' ),
+		array( 'meta', 'power_factor', 'Power Factor' ),
+		array( 'tax', 'dimming', 'Dimming' ),
+		array( 'meta', 'inrush_current', 'Inrush' ),
+		array( 'meta', 'running_current', 'Running Current' ),
+		array( 'meta', 'operating_temperatures', 'Operating Temp' ),
+		array( 'meta', 'operating_hours', 'Operating Hours' ),
+		array( 'tax', 'size', 'Size' ),
+		array( 'meta', 'dimensions', 'Dimensions (mm)' ),
+		array( 'meta', 'unit_weight', 'Weight' ),
+		array( 'meta', 'optics', 'Optics' ),
+		array( 'meta', 'leds', 'LEDs' ),
+		array( 'meta', 'construction_material', 'Construction' ),
+		array( 'meta', 'diffuser_type', 'Diffuser' ),
+		array( 'tax', 'diffuser-material', 'Diffuser Material' ),
+		array( 'meta', 'luminaire_fixing', 'Fixing' ),
+		array( 'tax', 'fitting-type', 'Fitting Type' ),
+		array( 'tax', 'lamp-type', 'Lamp Type' ),
+		array( 'tax', 'lighting-direction', 'Lighting Direction' ),
+		array( 'tax', 'emergency', 'Emergency' ),
+		array( 'tax', 'pir', 'PIR' ),
+		array( 'tax', 'microwave', 'Microwave' ),
+		array( 'tax', 'glare-control', 'Glare Control' ),
+		array( 'tax', 'reflector', 'Reflector' ),
+		array( 'tax', 'reflector-finish', 'Reflector Finish' ),
+		array( 'tax', 'reflector-colour', 'Reflector Colour' ),
+		array( 'tax', 'bezel-finish', 'Bezel Finish' ),
+		array( 'meta', 'l70_b50', 'L70 B50' ),
+		array( 'meta', 'l80_b50', 'L80 B50' ),
+		array( 'meta', 'l90_b50', 'L90 B50' ),
+		array( 'meta', 'macadam_ellipse', 'MacAdam' ),
+		array( 'meta', 'colour_deviation', 'Colour Deviation' ),
+		array( 'meta', 'applications', 'Applications' ),
+		array( 'tax', 'application-area', 'Application Area' ),
+		array( 'meta', 'warranty', 'Warranty' ),
+		array( 'meta', 'certifications', 'Certifications' ),
 	);
+}
+
+/** Resolve one variant spec value, from a meta field or an axis taxonomy. */
+function ricoman_variant_spec_value( $vid, $source, $key ) {
+	if ( 'tax' === $source ) {
+		if ( ! taxonomy_exists( $key ) ) {
+			return '';
+		}
+		$terms = wp_get_post_terms( $vid, $key, array( 'fields' => 'names' ) );
+		return ( ! is_wp_error( $terms ) && $terms ) ? implode( ', ', $terms ) : '';
+	}
+	if ( 'lumens' === $key ) {
+		return ricoman_variant_lumens( $vid );
+	}
+	$v = ricoman_pf_get( $vid, $key );
+	return is_scalar( $v ) ? trim( (string) $v ) : '';
+}
+
+/** A variant's full spec set as label => value (only non-empty), de-duplicated. */
+function ricoman_variant_spec_pairs( $vid ) {
+	$out = array();
+	foreach ( ricoman_variant_spec_defs() as $def ) {
+		list( $source, $key, $label ) = $def;
+		if ( isset( $out[ $label ] ) ) {
+			continue; // already filled from an earlier source for this label.
+		}
+		$val = ricoman_variant_spec_value( $vid, $source, $key );
+		if ( '' !== $val ) {
+			$out[ $label ] = $val;
+		}
+	}
+	return $out;
 }
 
 /**
  * Configure / order-codes table, built from the linked `variant-product` posts
  * (ACF `parent_product` == this product). Shows every spec column that actually
- * has data across the variants (Lumens, Voltage, Wattage, IP, CRI, …), like the
- * old site's Configure Your Product table — horizontally scrollable. No pricing.
+ * has data across the variants — meta fields AND axis taxonomies (Lumens,
+ * Wattage, Colour Temp, IP, CRI, Beam Angle, …) — horizontally scrollable, like
+ * the old site's Configure Your Product table. No pricing.
  */
 function ricoman_pf_variant_table( $pid ) {
 	if ( ! post_type_exists( 'variant-product' ) ) {
@@ -575,9 +633,16 @@ function ricoman_pf_variant_table( $pid ) {
 		return '';
 	}
 	$datasheet = ricoman_pf_fileurl( ricoman_pf_get( $pid, 'download_family_datasheet' ) );
-	$specs     = ricoman_variant_spec_columns();
 
-	// Pass 1: gather each variant's data and note which spec columns have values.
+	// Column order = unique spec labels in definition order.
+	$order = array();
+	foreach ( ricoman_variant_spec_defs() as $def ) {
+		if ( ! in_array( $def[2], $order, true ) ) {
+			$order[] = $def[2];
+		}
+	}
+
+	// Pass 1: gather each variant + note which columns have any value.
 	$variants = array();
 	$has_col  = array();
 	while ( $q->have_posts() ) {
@@ -595,14 +660,9 @@ function ricoman_pf_variant_table( $pid ) {
 		if ( ! $img ) {
 			$img = ricoman_pf_imgurl( ricoman_pf_get( $vid, 'product_gallery_image' ) );
 		}
-		$vals = array();
-		foreach ( $specs as $key => $label ) {
-			$v = ( 'lumens' === $key ) ? ricoman_variant_lumens( $vid ) : ricoman_pf_get( $vid, $key );
-			$v = is_scalar( $v ) ? trim( (string) $v ) : '';
-			$vals[ $key ] = $v;
-			if ( '' !== $v ) {
-				$has_col[ $key ] = true;
-			}
+		$pairs = ricoman_variant_spec_pairs( $vid ); // label => value (non-empty).
+		foreach ( $pairs as $label => $val ) {
+			$has_col[ $label ] = true;
 		}
 		$variants[] = array(
 			'code'  => (string) $code,
@@ -610,16 +670,15 @@ function ricoman_pf_variant_table( $pid ) {
 			'img'   => $img,
 			'ldt'   => ricoman_pf_fileurl( ricoman_pf_get( $vid, 'download_led' ) ),
 			'ds'    => function_exists( 'ricoman_variant_datasheet_url' ) ? ricoman_variant_datasheet_url( $vid, $pid ) : $datasheet,
-			'vals'  => $vals,
+			'pairs' => $pairs,
 		);
 	}
 	wp_reset_postdata();
 
-	// Only render columns that have at least one value.
 	$cols = array();
-	foreach ( $specs as $key => $label ) {
-		if ( ! empty( $has_col[ $key ] ) ) {
-			$cols[ $key ] = $label;
+	foreach ( $order as $label ) {
+		if ( ! empty( $has_col[ $label ] ) ) {
+			$cols[] = $label;
 		}
 	}
 
@@ -636,8 +695,8 @@ function ricoman_pf_variant_table( $pid ) {
 		$rows .= '<tr class="vt-row" data-vt="' . $i . '" tabindex="0"><td class="vt-thumb">' . $thumb . '</td>'
 			. '<td class="vt-code">' . esc_html( $v['code'] ) . '</td>'
 			. '<td class="vt-desc">' . esc_html( $v['desc'] ) . '</td>';
-		foreach ( $cols as $key => $label ) {
-			$cell = isset( $v['vals'][ $key ] ) && '' !== $v['vals'][ $key ] ? $v['vals'][ $key ] : '–';
+		foreach ( $cols as $label ) {
+			$cell = isset( $v['pairs'][ $label ] ) ? $v['pairs'][ $label ] : '–';
 			$rows .= '<td class="vt-spec">' . esc_html( $cell ) . '</td>';
 		}
 		$rows .= '<td class="vt-dl">' . ( $v['ldt'] ? '<a href="' . esc_url( $v['ldt'] ) . '" target="_blank" rel="noopener" aria-label="LDT file">LDT ↓</a>' : '—' ) . '</td>'
@@ -645,11 +704,8 @@ function ricoman_pf_variant_table( $pid ) {
 
 		// Per-variant detail "datasheet" panel (shown in a modal on row click).
 		$dl = '';
-		foreach ( $specs as $key => $label ) {
-			$val = isset( $v['vals'][ $key ] ) ? $v['vals'][ $key ] : '';
-			if ( '' !== $val ) {
-				$dl .= '<div class="vt-d-row"><dt>' . esc_html( $label ) . '</dt><dd>' . esc_html( $val ) . '</dd></div>';
-			}
+		foreach ( $v['pairs'] as $label => $val ) {
+			$dl .= '<div class="vt-d-row"><dt>' . esc_html( $label ) . '</dt><dd>' . esc_html( $val ) . '</dd></div>';
 		}
 		$dimg = $v['img'] ? '<div class="vt-d-img"><img src="' . esc_url( $v['img'] ) . '" alt="' . esc_attr( $v['code'] ) . '"></div>' : '';
 		$acts = '<div class="vt-d-acts">'
