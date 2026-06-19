@@ -52,6 +52,21 @@ add_shortcode( 'ricoman_section_cta', function () {
 	return ricoman_section_render( 'cta' );
 } );
 
+/** One section as a core/shortcode block. */
+function ricoman_section_block( $tag ) {
+	return "<!-- wp:shortcode -->\n[$tag]\n<!-- /wp:shortcode -->\n";
+}
+
+/** The default product layout, as editable section blocks (in order). */
+function ricoman_product_layout_blocks() {
+	return ricoman_section_block( 'ricoman_section_hero' )
+		. ricoman_section_block( 'ricoman_section_specs' )
+		. ricoman_section_block( 'ricoman_section_configure' )
+		. ricoman_section_block( 'ricoman_section_accessories' )
+		. ricoman_section_block( 'ricoman_section_related' )
+		. ricoman_section_block( 'ricoman_section_cta' );
+}
+
 /**
  * Register the section blocks + the full "Product page" pattern.
  *
@@ -71,9 +86,7 @@ add_action( 'init', function () {
 		)
 	);
 
-	$sc = function ( $tag ) {
-		return "<!-- wp:shortcode -->\n[$tag]\n<!-- /wp:shortcode -->\n";
-	};
+	$sc = 'ricoman_section_block';
 
 	$sections = array(
 		'hero'        => __( 'Product: Hero (gallery + panel)', 'ricoman' ),
@@ -102,29 +115,66 @@ add_action( 'init', function () {
 			'title'      => __( 'Ricoman: Product page (full layout)', 'ricoman' ),
 			'categories' => array( 'ricoman-product' ),
 			'postTypes'  => array( 'product' ),
-			'content'    => $sc( 'ricoman_section_hero' )
-				. $sc( 'ricoman_section_specs' )
-				. $sc( 'ricoman_section_configure' )
-				. $sc( 'ricoman_section_accessories' )
-				. $sc( 'ricoman_section_related' )
-				. $sc( 'ricoman_section_cta' ),
+			'content'    => ricoman_product_layout_blocks(),
 		)
 	);
 } );
 
 /**
- * Offer the layout as a one-click starting point: on an empty product, show a
- * notice in the editor explaining how to take control of the layout. (Products
- * with no content keep auto-rendering, so this is purely opt-in.)
+ * Per-product layout control. A side meta box on every product editor lets the
+ * admin convert THAT product (and only that product) from the automatic layout
+ * to editable section blocks — one click — so they can rearrange the sections
+ * and drop their own patterns between them for that product alone. Other
+ * products are untouched and keep auto-rendering.
  */
-add_action( 'admin_notices', function () {
-	$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
-	if ( ! $screen || 'product' !== $screen->post_type || 'post' !== $screen->base ) {
+add_action( 'add_meta_boxes_product', function ( $post ) {
+	add_meta_box(
+		'ricoman_product_layout',
+		__( 'Page layout', 'ricoman' ),
+		'ricoman_product_layout_box',
+		'product',
+		'side',
+		'high'
+	);
+} );
+
+function ricoman_product_layout_box( $post ) {
+	$has_blocks = '' !== trim( wp_strip_all_tags( (string) $post->post_content ) );
+	wp_nonce_field( 'ricoman_product_layout', 'ricoman_product_layout_nonce' );
+	if ( $has_blocks ) {
+		echo '<p><strong>' . esc_html__( '✓ Editable layout', 'ricoman' ) . '</strong></p>';
+		echo '<p class="description">' . esc_html__( 'This product is built from editable section blocks. Rearrange them in the editor, or drop your own patterns between sections — changes apply to this product only.', 'ricoman' ) . '</p>';
+		echo '<p class="description">' . esc_html__( 'To return to the automatic layout, delete all blocks and update.', 'ricoman' ) . '</p>';
 		return;
 	}
-	echo '<div class="notice notice-info"><p><strong>Ricoman product layout:</strong> '
-		. 'this product renders its sections automatically. To rearrange them or drop '
-		. 'patterns between sections, add the <em>“Ricoman: Product page (full layout)”</em> '
-		. 'pattern (➕ &rarr; Patterns &rarr; “Ricoman: Product page”), then move the section '
-		. 'blocks or insert your own patterns into the gaps.</p></div>';
-} );
+	echo '<p class="description">' . esc_html__( 'This product renders its sections automatically.', 'ricoman' ) . '</p>';
+	echo '<p><label><input type="checkbox" name="ricoman_make_editable" value="1"> <strong>' . esc_html__( 'Make this layout editable', 'ricoman' ) . '</strong></label></p>';
+	echo '<p class="description">' . esc_html__( 'Fills the editor with the default sections (Hero, Specification, Configure, Accessories, You may also like, CTA) as separate blocks so you can reorder them and add patterns. Save, then reload the editor.', 'ricoman' ) . '</p>';
+}
+
+add_action( 'save_post_product', function ( $post_id, $post ) {
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	if ( empty( $_POST['ricoman_product_layout_nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['ricoman_product_layout_nonce'] ), 'ricoman_product_layout' ) ) {
+		return;
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) || empty( $_POST['ricoman_make_editable'] ) ) {
+		return;
+	}
+	// Only seed when the product is still on the automatic (empty) layout, so we
+	// never overwrite content the admin has already built.
+	if ( '' !== trim( wp_strip_all_tags( (string) $post->post_content ) ) ) {
+		return;
+	}
+	static $busy = false;
+	if ( $busy ) {
+		return;
+	}
+	$busy = true;
+	wp_update_post( array(
+		'ID'           => $post_id,
+		'post_content' => ricoman_product_layout_blocks(),
+	) );
+	$busy = false;
+}, 10, 2 );
