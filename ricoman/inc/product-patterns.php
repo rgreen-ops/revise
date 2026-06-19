@@ -44,7 +44,7 @@ add_action( 'init', function () {
 	$p = array();
 
 	$p['product-hero'] = array( 'Product · Hero', '<!-- wp:cover {"useFeaturedImage":true,"dimRatio":50,"overlayColor":"ink","minHeight":70,"minHeightUnit":"vh","contentPosition":"bottom left","align":"full","textColor":"base"} -->
-<div class="wp-block-cover alignfull has-base-color has-text-color has-custom-content-position is-position-bottom-left" style="min-height:70vh"><span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-50 has-background-dim"></span><div class="wp-block-cover__inner-container"><!-- wp:shortcode -->[ricoman_breadcrumbs]<!-- /wp:shortcode --><!-- wp:post-terms {"term":"product_cat","className":"rm-eyebrow"} /--><!-- wp:post-title {"level":1,"style":{"typography":{"fontWeight":"500","fontSize":"clamp(2.4rem, 6vw, 5rem)","lineHeight":"1"}}} /-->' . $sc( 'ricoman_product_tagline' ) . '</div></div>
+<div class="wp-block-cover alignfull has-base-color has-text-color has-custom-content-position is-position-bottom-left" style="min-height:70vh"><span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-50 has-background-dim"></span><div class="wp-block-cover__inner-container"><!-- wp:shortcode -->[ricoman_breadcrumbs]<!-- /wp:shortcode --><!-- wp:post-terms {"term":"product-cat","className":"rm-eyebrow"} /--><!-- wp:post-title {"level":1,"style":{"typography":{"fontWeight":"500","fontSize":"clamp(2.4rem, 6vw, 5rem)","lineHeight":"1"}}} /-->' . $sc( 'ricoman_product_tagline' ) . '</div></div>
 <!-- /wp:cover -->' );
 
 	// Split hero — live gallery preview + configurator (matches the preview).

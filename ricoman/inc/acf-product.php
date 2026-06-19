@@ -281,7 +281,7 @@ add_shortcode( 'ricoman_product_page', function () {
 	$subname = ricoman_pf_get( $pid, 'product_subname' );
 	$sortd   = ricoman_pf_get( $pid, 'product_sort_description' );
 	$code    = ricoman_pf_get( $pid, 'product_code' );
-	$terms   = get_the_term_list( $pid, 'product_cat', '', ' · ' );
+	$terms   = get_the_term_list( $pid, 'product-cat', '', ' · ' );
 	$hero    = get_the_post_thumbnail_url( $pid, 'large' );
 
 	// Variants (swatches) + gallery (thumbs).

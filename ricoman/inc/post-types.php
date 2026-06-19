@@ -93,8 +93,11 @@ add_action( 'init', 'ricoman_register_post_types' );
 function ricoman_register_taxonomies() {
 
 	// Product category (Downlights, Panels, Track, etc.).
+	// NB: the live ricoman.com data model uses these exact (hyphenated) taxonomy
+	// names, so the theme registers them verbatim — otherwise migrated products
+	// have categories/sectors that nothing can display.
 	register_taxonomy(
-		'product_cat',
+		'product-cat',
 		'product',
 		array(
 			'labels'            => array(
@@ -106,14 +109,14 @@ function ricoman_register_taxonomies() {
 			'public'            => true,
 			'show_admin_column' => true,
 			'show_in_rest'      => true,
-			'rewrite'           => array( 'slug' => 'product-category' ),
+			'rewrite'           => array( 'slug' => 'product-category', 'with_front' => false ),
 		)
 	);
 
-	// Application / sector (Retail, Office, Hospitality, Healthcare…).
+	// Application / sector for products (Retail, Office, Hospitality, Healthcare…).
 	register_taxonomy(
-		'application',
-		array( 'product', 'project' ),
+		'applycation-type',
+		'product',
 		array(
 			'labels'            => array(
 				'name'          => __( 'Applications', 'ricoman' ),
@@ -124,7 +127,25 @@ function ricoman_register_taxonomies() {
 			'public'            => true,
 			'show_admin_column' => true,
 			'show_in_rest'      => true,
-			'rewrite'           => array( 'slug' => 'application' ),
+			'rewrite'           => array( 'slug' => 'application', 'with_front' => false ),
+		)
+	);
+
+	// Project / sector category (used by projects, and shared onto products).
+	register_taxonomy(
+		'project-cat',
+		array( 'project', 'product' ),
+		array(
+			'labels'            => array(
+				'name'          => __( 'Project Categories', 'ricoman' ),
+				'singular_name' => __( 'Project Category', 'ricoman' ),
+				'menu_name'     => __( 'Sectors', 'ricoman' ),
+			),
+			'hierarchical'      => true,
+			'public'            => true,
+			'show_admin_column' => true,
+			'show_in_rest'      => true,
+			'rewrite'           => array( 'slug' => 'sector', 'with_front' => false ),
 		)
 	);
 }
@@ -162,8 +183,7 @@ add_shortcode( 'ricoman_projects_grid', function ( $atts ) {
 	while ( $q->have_posts() ) {
 		$q->the_post();
 		$img    = get_the_post_thumbnail_url( get_the_ID(), 'large' );
-		$terms  = get_the_terms( get_the_ID(), 'application' );
-		$sector = ( $terms && ! is_wp_error( $terms ) ) ? $terms[0]->name : '';
+		$sector = ricoman_first_term_name( get_the_ID(), array( 'project-cat', 'application' ) );
 		$style  = $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '';
 		$out   .= '<a class="rm-projcard" href="' . esc_url( get_permalink() ) . '"' . $style . '><span class="rm-projcard-ov">'
 			. ( $sector ? '<span class="rm-eyebrow">' . esc_html( $sector ) . '</span>' : '' )
@@ -189,9 +209,8 @@ add_shortcode( 'ricoman_products_grid', function ( $atts ) {
 	$out = '<div class="rm-projgrid rm-prodgrid">';
 	while ( $q->have_posts() ) {
 		$q->the_post();
-		$img    = get_the_post_thumbnail_url( get_the_ID(), 'large' );
-		$terms  = get_the_terms( get_the_ID(), 'product_cat' );
-		$cat    = ( $terms && ! is_wp_error( $terms ) ) ? $terms[0]->name : '';
+		$img    = ricoman_product_img( get_the_ID() );
+		$cat    = ricoman_first_term_name( get_the_ID(), array( 'product-cat', 'product_cat' ) );
 		$style  = $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '';
 		$out   .= '<a class="rm-projcard" href="' . esc_url( get_permalink() ) . '"' . $style . '><span class="rm-projcard-ov">'
 			. ( $cat ? '<span class="rm-eyebrow">' . esc_html( $cat ) . '</span>' : '' )
@@ -199,4 +218,97 @@ add_shortcode( 'ricoman_products_grid', function ( $atts ) {
 	}
 	wp_reset_postdata();
 	return $out . '</div>';
+} );
+
+/** First term name found across a list of taxonomies (for migrated + demo data). */
+function ricoman_first_term_name( $pid, $taxes ) {
+	foreach ( (array) $taxes as $tax ) {
+		if ( ! taxonomy_exists( $tax ) ) {
+			continue;
+		}
+		$terms = get_the_terms( $pid, $tax );
+		if ( $terms && ! is_wp_error( $terms ) ) {
+			return $terms[0]->name;
+		}
+	}
+	return '';
+}
+
+/** Display image for a product: featured image, else first ACF gallery image. */
+function ricoman_product_img( $pid ) {
+	$img = get_the_post_thumbnail_url( $pid, 'large' );
+	if ( $img ) {
+		return $img;
+	}
+	// Real ricoman.com products keep images in the ACF gallery, not the thumbnail.
+	if ( function_exists( 'ricoman_pf_get' ) && function_exists( 'ricoman_pf_imgurl' ) ) {
+		$g = ricoman_pf_get( $pid, 'product_gallery_image' );
+		if ( is_array( $g ) && ! empty( $g ) ) {
+			$u = ricoman_pf_imgurl( reset( $g ) );
+			if ( $u ) {
+				return $u;
+			}
+		} elseif ( $g ) {
+			$u = ricoman_pf_imgurl( $g );
+			if ( $u ) {
+				return $u;
+			}
+		}
+	}
+	return '';
+}
+
+/**
+ * The real product catalogue: category tiles + a grid of products per category,
+ * built from the live data model (product-cat). Powers the /products/ archive so
+ * every migrated product is reachable. [ricoman_catalogue per_cat="8"]
+ */
+add_shortcode( 'ricoman_catalogue', function ( $atts ) {
+	$atts  = shortcode_atts( array( 'per_cat' => 8 ), $atts, 'ricoman_catalogue' );
+	$tax   = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
+	$terms = get_terms( array( 'taxonomy' => $tax, 'hide_empty' => true ) );
+
+	// No categorised products yet — fall back to a flat grid of everything.
+	if ( is_wp_error( $terms ) || empty( $terms ) ) {
+		return do_shortcode( '[ricoman_products_grid count="60"]' );
+	}
+
+	// Category quick-nav.
+	$out = '<div class="rm-catnav">';
+	foreach ( $terms as $t ) {
+		$out .= '<a class="rm-catnav-item" href="' . esc_url( get_term_link( $t ) ) . '">'
+			. esc_html( $t->name ) . ' <span>' . (int) $t->count . '</span></a>';
+	}
+	$out .= '</div>';
+
+	// A row of products per category.
+	foreach ( $terms as $t ) {
+		$q = new WP_Query( array(
+			'post_type'      => 'product',
+			'post_status'    => 'publish',
+			'posts_per_page' => (int) $atts['per_cat'],
+			'orderby'        => 'title',
+			'order'          => 'ASC',
+			'no_found_rows'  => true,
+			'tax_query'      => array( array( 'taxonomy' => $tax, 'terms' => $t->term_id ) ),
+		) );
+		if ( ! $q->have_posts() ) {
+			continue;
+		}
+		$out .= '<section class="rm-catsec"><div class="rm-catsec-head"><h2 class="rm-shead">' . esc_html( $t->name ) . '</h2>'
+			. '<a class="rm-catsec-all" href="' . esc_url( get_term_link( $t ) ) . '">View all ' . (int) $t->count . ' →</a></div>'
+			. '<div class="rm-projgrid rm-prodgrid">';
+		while ( $q->have_posts() ) {
+			$q->the_post();
+			$img   = ricoman_product_img( get_the_ID() );
+			$sub   = function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( get_the_ID(), 'product_subname' ) : '';
+			$style = $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '';
+			$out  .= '<a class="rm-projcard" href="' . esc_url( get_permalink() ) . '"' . $style . '><span class="rm-projcard-ov">'
+				. ( $sub ? '<span class="rm-eyebrow">' . esc_html( $sub ) . '</span>' : '' )
+				. '<span class="rm-projcard-t">' . esc_html( get_the_title() ) . '</span></span></a>';
+		}
+		$out .= '</div></section>';
+		wp_reset_postdata();
+	}
+	return $out;
 } );

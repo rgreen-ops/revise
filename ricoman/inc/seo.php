@@ -295,7 +295,7 @@ function ricoman_breadcrumb_trail() {
 		),
 	);
 
-	if ( is_singular( 'product' ) || is_post_type_archive( 'product' ) || is_tax( 'product_cat' ) ) {
+	if ( is_singular( 'product' ) || is_post_type_archive( 'product' ) || is_tax( 'product-cat' ) ) {
 		$archive = get_post_type_archive_link( 'product' );
 		if ( $archive ) {
 			$trail[] = array(
@@ -315,7 +315,7 @@ function ricoman_breadcrumb_trail() {
 
 	if ( is_singular() ) {
 		if ( is_singular( 'product' ) ) {
-			$terms = get_the_terms( get_queried_object_id(), 'product_cat' );
+			$terms = get_the_terms( get_queried_object_id(), 'product-cat' );
 			if ( $terms && ! is_wp_error( $terms ) ) {
 				$term    = $terms[0];
 				$trail[] = array(

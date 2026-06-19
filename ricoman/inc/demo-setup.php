@@ -177,8 +177,8 @@ function ricoman_scaffold_site() {
 
 	// ---- Product categories ----
 	foreach ( array( 'Linear Lighting', 'Pendants', 'Downlights' ) as $cat ) {
-		if ( ! term_exists( $cat, 'product_cat' ) ) {
-			wp_insert_term( $cat, 'product_cat' );
+		if ( ! term_exists( $cat, 'product-cat' ) ) {
+			wp_insert_term( $cat, 'product-cat' );
 		}
 	}
 
@@ -228,7 +228,7 @@ function ricoman_scaffold_site() {
 		$pid = ricoman_make_post( 'product', $p[0], $slug, $content );
 		if ( $pid ) {
 			wp_update_post( array( 'ID' => $pid, 'post_excerpt' => $p[3] ) );
-			wp_set_object_terms( $pid, $p[1], 'product_cat' );
+			wp_set_object_terms( $pid, $p[1], 'product-cat' );
 			ricoman_set_featured_from_theme( $pid, $p[2] );
 			// Demonstrate both product layouts: Neptune = Basic, others = Featured.
 			update_post_meta( $pid, '_wp_page_template', 'neptune' === $slug ? 'single-product-basic' : 'single-product-featured' );
@@ -282,7 +282,7 @@ function ricoman_scaffold_site() {
 		$prid = ricoman_make_post( 'project', $pr[0], $slug, $content );
 		if ( $prid ) {
 			wp_update_post( array( 'ID' => $prid, 'post_excerpt' => $pr[3] ) );
-			wp_set_object_terms( $prid, $pr[2], 'application' );
+			wp_set_object_terms( $prid, $pr[2], 'project-cat' );
 			ricoman_set_featured_from_theme( $prid, $pr[1] );
 			update_post_meta( $prid, '_wp_page_template', $is_feature ? 'single-project' : 'single-project-simple' );
 		}

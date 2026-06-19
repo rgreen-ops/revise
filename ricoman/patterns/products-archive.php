@@ -42,34 +42,9 @@ echo $cover(
 	55
 );
 
-echo $sec(
-	$eyebrow( 'Linear Lighting' ) . $shead( 'Continuous runs &amp; profile systems' ) .
-	'<!-- wp:columns --><div class="wp-block-columns">' .
-	$pcard( $u( 'arch-line.webp' ), 'Linear · Made to order', 'Flow+', 'Up to 180 lm/W · CRI 90+ · Bendable', '/products/flow-plus/' ) .
-	$pcard( $u( 'ceiling.webp' ), 'Linear · Recessed', 'Edge 35', 'Trimless · CCT switch · IP20', '/products/' ) .
-	$pcard( $u( 'office5.webp' ), 'Linear · Suspended', 'Line Pro', 'Up-/down-light · DALI · 1.5m / 2.4m', '/products/' ) .
-	$pcard( $u( 'rico-acoustic-corridor.webp' ), 'Acoustic · Linear', 'Astrawave', 'Sound-absorbing · UGR&lt;19 · Bespoke', '/products/' ) .
-	'</div><!-- /wp:columns -->'
-);
-
-echo $sec(
-	$eyebrow( 'Downlights &amp; Pendants' ) . $shead( 'Fire-rated, decorative &amp; configurable' ) .
-	'<!-- wp:columns --><div class="wp-block-columns">' .
-	$pcard( $u( 'ceiling.webp' ), 'Downlight · Fire-rated', 'Neptune', '90 min · IP65 · Tri-CCT', '/products/neptune/' ) .
-	$pcard( $u( 'estrella-lounge.webp' ), 'Pendant · Configurable', 'Estrella', 'Build to spec · Finishes · CRI 90+', '/products/estrella/' ) .
-	$pcard( $u( 'pendant.webp' ), 'Pendant · Architectural', 'Halo Ring', 'Ø600–1200 · Up/down · Bespoke', '/products/' ) .
-	$pcard( $u( 'rico-z62.webp' ), 'Pendant · Decorative', 'Z62', 'Warm 2700K · Dimmable · Brass / Black', '/products/' ) .
-	'</div><!-- /wp:columns -->'
-);
-
-echo $sec(
-	$eyebrow( 'Shop by application' ) . $shead( 'Find the right light for the space' ) .
-	'<!-- wp:columns --><div class="wp-block-columns">' .
-	$ptile( $u( 'office1.webp' ), 'Workplace', 'Offices · UGR&lt;19', '/projects/' ) .
-	$ptile( $u( 'retail.webp' ), 'Retail', 'Accent · High CRI', '/projects/' ) .
-	$ptile( $u( 'office2.webp' ), 'Hospitality', 'Warm · Dimmable', '/projects/' ) .
-	'</div><!-- /wp:columns -->'
-);
+// The live catalogue — real product categories + products from the database
+// (falls back to a flat product grid if nothing is categorised yet).
+echo $sec( '<!-- wp:shortcode -->[ricoman_catalogue per_cat="8"]<!-- /wp:shortcode -->' );
 
 echo $cover(
 	$u( 'office1.webp' ),

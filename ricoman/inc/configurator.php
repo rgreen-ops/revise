@@ -181,7 +181,7 @@ add_shortcode( 'ricoman_configurator_hero', function ( $atts ) {
 	$code    = $pid ? (string) get_post_meta( $pid, '_ricoman_sku', true ) : '';
 	$title   = $pid ? get_the_title( $pid ) : '';
 	$tagline = $pid ? (string) get_post_meta( $pid, '_ricoman_tagline', true ) : '';
-	$terms   = $pid ? get_the_term_list( $pid, 'product_cat', '', ' · ' ) : '';
+	$terms   = $pid ? get_the_term_list( $pid, 'product-cat', '', ' · ' ) : '';
 	$hero    = $pid ? get_the_post_thumbnail_url( $pid, 'large' ) : '';
 	if ( '' === $code || ! function_exists( 'ricoman_ricobot_ready' ) || ! ricoman_ricobot_ready() ) {
 		// RICOBOT not connected: render a clean cover hero so the page still looks right.

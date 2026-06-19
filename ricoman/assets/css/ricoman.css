@@ -756,3 +756,15 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-hdr-dark .rm-hdr-title{max-width:20ch}
 .rm-hdr-dark .rm-eyebrow{color:rgba(255,255,255,.6)}
 .rm-hdr-dark .wp-block-buttons{margin-top:1.3em}
+
+/* Product catalogue (real data) — category quick-nav + per-category rows */
+.rm-catnav{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 clamp(28px,4vw,48px)}
+.rm-catnav-item{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border:1px solid var(--line);border-radius:999px;font-family:Poppins;font-size:.82rem;font-weight:500;color:var(--ink);text-decoration:none;transition:background .2s,color .2s,border-color .2s}
+.rm-catnav-item:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
+.rm-catnav-item span{font-size:.7rem;color:var(--muted)}
+.rm-catnav-item:hover span{color:rgba(255,255,255,.6)}
+.rm-catsec{margin:0 0 clamp(40px,5vw,72px)}
+.rm-catsec-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin:0 0 18px;flex-wrap:wrap}
+.rm-catsec-head .rm-shead{margin:0}
+.rm-catsec-all{font-family:Poppins;font-size:.82rem;font-weight:500;color:var(--accent);text-decoration:none;white-space:nowrap}
+.rm-catsec-all:hover{color:var(--ink)}
