@@ -398,6 +398,22 @@ function ricoman_pf_render_endpoint( $d, $pid ) {
 	return $out;
 }
 
+/** Dimension diagram images (ACF `dimension_diagrams` repeater, sub-field `picture`). */
+function ricoman_pf_dimension_diagrams( $pid ) {
+	$imgs = array();
+	$v    = ricoman_pf_get( $pid, 'dimension_diagrams' );
+	if ( is_array( $v ) ) {
+		foreach ( $v as $row ) {
+			$pic = is_array( $row ) ? ( isset( $row['picture'] ) ? $row['picture'] : ( isset( $row['image'] ) ? $row['image'] : '' ) ) : $row;
+			$u   = ricoman_pf_imgurl( $pic );
+			if ( $u ) {
+				$imgs[] = $u;
+			}
+		}
+	}
+	return $imgs;
+}
+
 /** Colour/size variants (Product Variation By Color): name + main image + icon. */
 function ricoman_pf_color_variants( $pid ) {
 	$rows = array();
@@ -559,12 +575,23 @@ add_shortcode( 'ricoman_product_page', function () {
 	$highlights = $paras ? ricoman_pf_highlights( $paras, 4 ) : ricoman_pf_highlights( $kfraw, 4 );
 	$feat_full  = ricoman_pf_features_list( $kfraw );
 
-	// Optional Dimensions field for its own accordion.
-	$dims = (string) ricoman_pf_get( $pid, 'product_dimension' );
-	if ( '' === $dims ) {
-		$dims = (string) ricoman_pf_get( $pid, 'dimensions' );
+	// Dimensions accordion — diagram images (ACF dimension_diagrams) + any text.
+	$dimimgs = ricoman_pf_dimension_diagrams( $pid );
+	$dims    = '';
+	if ( $dimimgs ) {
+		$dims = '<div class="rm-dimgrid">';
+		foreach ( $dimimgs as $du ) {
+			$dims .= '<img src="' . esc_url( $du ) . '" alt="' . esc_attr( $title . ' dimensions' ) . '" loading="lazy">';
+		}
+		$dims .= '</div>';
 	}
-	$dims    = $dims ? '<div class="rm-spechtml">' . wp_kses_post( wpautop( $dims ) ) . '</div>' : '';
+	$dimtext = (string) ricoman_pf_get( $pid, 'product_dimension' );
+	if ( '' === $dimtext ) {
+		$dimtext = (string) ricoman_pf_get( $pid, 'dimensions' );
+	}
+	if ( '' !== $dimtext ) {
+		$dims .= '<div class="rm-spechtml">' . wp_kses_post( wpautop( $dimtext ) ) . '</div>';
+	}
 	$has_fam = '' !== (string) ricoman_pf_get( $pid, '_ricoman_family' );
 
 	$jump = '<p class="rm-pp-jump">' . ( $spec ? '<a href="#specification">Specification</a>' : '' )

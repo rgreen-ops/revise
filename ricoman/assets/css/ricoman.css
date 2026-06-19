@@ -864,3 +864,6 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-rel-t{display:block;font-family:Poppins;font-weight:600;font-size:1.05rem}
 .rm-rel-s{display:block;color:var(--muted);font-size:.85rem;margin-top:2px}
 @media(max-width:720px){.rm-relgrid{grid-template-columns:1fr 1fr}}
+/* Dimension diagrams */
+.rm-dimgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
+.rm-dimgrid img{width:100%;height:auto;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px}
