@@ -115,10 +115,11 @@ add_action( 'wp', function () {
 	}
 	$pid   = get_queried_object_id();
 	$draft = get_transient( ricoman_pe_draft_key( $pid ) );
+	$fallback = function_exists( 'ricoman_pe_resolve_layout' ) ? ricoman_pe_resolve_layout( $pid ) : ricoman_pe_get_layout( $pid );
 	$GLOBALS['rm_pe_preview'] = array(
 		'pid'    => $pid,
 		'fields' => ( is_array( $draft ) && ! empty( $draft['fields'] ) ) ? $draft['fields'] : array(),
-		'layout' => ( is_array( $draft ) && ! empty( $draft['layout'] ) ) ? $draft['layout'] : ricoman_pe_get_layout( $pid ),
+		'layout' => ( is_array( $draft ) && ! empty( $draft['layout'] ) ) ? $draft['layout'] : $fallback,
 	);
 } );
 
@@ -136,7 +137,10 @@ add_filter( 'the_content', function ( $content ) {
 	if ( empty( $GLOBALS['rm_pe_preview'] ) || ! in_the_loop() || ! is_main_query() ) {
 		return $content;
 	}
-	return ricoman_pe_build_content( $GLOBALS['rm_pe_preview']['layout'] );
+	$pid = (int) $GLOBALS['rm_pe_preview']['pid'];
+	return function_exists( 'ricoman_pe_render_layout' )
+		? ricoman_pe_render_layout( $pid, $GLOBALS['rm_pe_preview']['layout'] )
+		: ricoman_pe_build_content( $GLOBALS['rm_pe_preview']['layout'] );
 }, 8 );
 
 /* ------------------------------------------------------------------- routing */
@@ -186,16 +190,83 @@ add_action( 'wp_ajax_ricoman_pe_draft', function () {
 	wp_send_json_success();
 } );
 
+/**
+ * Render a single pattern (or a product section) as a standalone HTML document
+ * with the theme's front-end CSS, for the visual picker's thumbnail iframes.
+ * Output is non-interactive (pointer-events disabled) and same-origin.
+ */
+add_action( 'wp_ajax_ricoman_pe_thumb', function () {
+	if ( ! current_user_can( 'edit_posts' ) || ! check_ajax_referer( 'ricoman_pe_thumb', 'nonce', false ) ) {
+		wp_die( '', '', array( 'response' => 403 ) );
+	}
+	$pid  = isset( $_GET['product'] ) ? absint( $_GET['product'] ) : 0;
+	$kind = isset( $_GET['kind'] ) ? sanitize_key( $_GET['kind'] ) : '';
+	$name = isset( $_GET['name'] ) ? sanitize_text_field( wp_unslash( $_GET['name'] ) ) : '';
+	$body = '';
+
+	if ( 'section' === $kind && $pid ) {
+		if ( $GLOBALS['post'] = get_post( $pid ) ) { // phpcs:ignore
+			setup_postdata( $GLOBALS['post'] );
+		}
+		$s    = function_exists( 'ricoman_pf_sections' ) ? ricoman_pf_sections( $pid ) : array();
+		$body = isset( $s[ $name ] ) ? $s[ $name ] : '';
+		wp_reset_postdata();
+	} elseif ( 'pattern' === $kind && class_exists( 'WP_Block_Patterns_Registry' ) ) {
+		$reg = WP_Block_Patterns_Registry::get_instance();
+		if ( $reg->is_registered( $name ) ) {
+			if ( $pid && ( $GLOBALS['post'] = get_post( $pid ) ) ) { // phpcs:ignore
+				setup_postdata( $GLOBALS['post'] );
+			}
+			$p    = $reg->get_registered( $name );
+			$body = do_shortcode( do_blocks( isset( $p['content'] ) ? $p['content'] : '' ) );
+			wp_reset_postdata();
+		}
+	}
+
+	$links = '';
+	foreach ( array( 'assets/css/fonts.css', 'assets/css/shared.css', 'assets/css/ricoman.css' ) as $c ) {
+		$links .= '<link rel="stylesheet" href="' . esc_url( get_theme_file_uri( $c ) ) . '">';
+	}
+	header( 'Content-Type: text/html; charset=utf-8' );
+	header( 'X-Robots-Tag: noindex' );
+	echo '<!doctype html><html lang="en"><head><meta charset="utf-8">' . $links // phpcs:ignore
+		. '<style>html,body{margin:0;padding:0;background:#fff;pointer-events:none;width:1280px;overflow:hidden}.rm-lightbox{display:none!important}</style></head><body>'
+		. $body . '</body></html>';
+	exit;
+} );
+
 /* -------------------------------------------------------------------- screen */
 
 function ricoman_product_editor_render() {
-	$pid = isset( $_GET['product'] ) ? absint( $_GET['product'] ) : 0;
-	if ( ! $pid || 'product' !== get_post_type( $pid ) || ! current_user_can( 'edit_post', $pid ) ) {
-		echo '<div class="wrap"><h1>' . esc_html__( 'Product Page Editor', 'ricoman' ) . '</h1><p>' . esc_html__( 'Open this from a product (Products → row → Page Editor).', 'ricoman' ) . '</p></div>';
-		return;
+	$tpl    = isset( $_GET['template'] ) ? absint( $_GET['template'] ) : 0;
+	$is_tpl = $tpl && 'rm_ptemplate' === get_post_type( $tpl );
+
+	if ( $is_tpl ) {
+		if ( ! current_user_can( 'edit_post', $tpl ) ) {
+			wp_die( esc_html__( 'Permission denied.', 'ricoman' ) );
+		}
+		// A representative product to preview the template against.
+		$sample = get_posts( array( 'post_type' => 'product', 'posts_per_page' => 1, 'fields' => 'ids', 'meta_query' => array( array( 'key' => '_ricoman_template', 'value' => $tpl ) ) ) );
+		if ( ! $sample ) {
+			$sample = get_posts( array( 'post_type' => 'product', 'posts_per_page' => 1, 'fields' => 'ids' ) );
+		}
+		$pid = $sample ? (int) $sample[0] : 0;
+		if ( ! $pid ) {
+			echo '<div class="wrap"><h1>' . esc_html__( 'Product Templates', 'ricoman' ) . '</h1><p>' . esc_html__( 'Add at least one product first — templates preview against a real product.', 'ricoman' ) . '</p></div>';
+			return;
+		}
+		$layout    = array_values( ricoman_template_layout( $tpl ) );
+		$headTitle = get_the_title( $tpl ) . ' — ' . __( 'template', 'ricoman' );
+	} else {
+		$pid = isset( $_GET['product'] ) ? absint( $_GET['product'] ) : 0;
+		if ( ! $pid || 'product' !== get_post_type( $pid ) || ! current_user_can( 'edit_post', $pid ) ) {
+			echo '<div class="wrap"><h1>' . esc_html__( 'Product Page Editor', 'ricoman' ) . '</h1><p>' . esc_html__( 'Open this from a product (Products → row → Page Editor).', 'ricoman' ) . '</p></div>';
+			return;
+		}
+		$layout    = array_values( function_exists( 'ricoman_pe_resolve_layout' ) ? ricoman_pe_resolve_layout( $pid ) : ricoman_pe_get_layout( $pid ) );
+		$headTitle = get_the_title( $pid );
 	}
 
-	$layout   = array_values( ricoman_pe_get_layout( $pid ) );
 	$patterns = ricoman_pe_patterns();
 	$labels   = ricoman_section_defs();
 	$fielddef = ricoman_pe_fields();
@@ -217,8 +288,11 @@ function ricoman_product_editor_render() {
 
 	$boot = array(
 		'pid'      => $pid,
+		'isTpl'    => $is_tpl,
+		'tpl'      => $tpl,
 		'ajax'     => admin_url( 'admin-ajax.php' ),
 		'nonce'    => wp_create_nonce( 'ricoman_pe_' . $pid ),
+		'tnonce'   => wp_create_nonce( 'ricoman_pe_thumb' ),
 		'preview'  => $preview,
 		'layout'   => $layout,
 		'sections' => $labels,
@@ -274,7 +348,28 @@ function ricoman_product_editor_render() {
 		.rmpe-card.drag-over{border-color:#004899;border-style:dashed}
 		.rmpe-card.dragging{opacity:.4}
 		.rmpe-add{margin:6px 12px 16px;display:flex}
-		.rmpe-add select{width:100%;padding:9px;border-radius:9px;border:1px dashed #b9bdc4;background:#fafafb;color:#50575e;font-weight:600}
+		.rmpe-addbtn{width:100%;padding:11px;border-radius:10px;border:1px dashed #98a6c4;background:#f3f7ff;color:#004899;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+		.rmpe-addbtn:hover{background:#e8f0ff}
+		/* visual picker modal */
+		.rmpe-modal{position:fixed;inset:0;background:rgba(20,22,28,.55);z-index:100000;display:flex;align-items:center;justify-content:center;padding:3vh 3vw}
+		.rmpe-modal[hidden]{display:none}
+		.rmpe-modal-box{background:#fff;border-radius:16px;width:1100px;max-width:100%;height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.4)}
+		.rmpe-modal-head{display:flex;align-items:center;gap:14px;padding:16px 20px;border-bottom:1px solid #ececed}
+		.rmpe-modal-head strong{font-size:16px}
+		.rmpe-modal-head input{flex:1;border:1px solid #d5d8dd;border-radius:8px;padding:9px 12px;font-size:14px}
+		.rmpe-modal-x{border:0;background:none;font-size:26px;line-height:1;cursor:pointer;color:#646970}
+		.rmpe-modal-cats{display:flex;gap:8px;flex-wrap:wrap;padding:12px 20px;border-bottom:1px solid #f0f0f3;overflow-x:auto}
+		.rmpe-chip{border:1px solid #d5d8dd;background:#fff;border-radius:999px;padding:6px 13px;font-size:12px;font-weight:600;color:#50575e;cursor:pointer;white-space:nowrap}
+		.rmpe-chip.on{background:#004899;border-color:#004899;color:#fff}
+		.rmpe-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;padding:18px 20px;overflow-y:auto;align-content:start}
+		.rmpe-tile{border:1px solid #e3e3e8;border-radius:11px;overflow:hidden;cursor:pointer;background:#fff;transition:border-color .12s,box-shadow .12s,transform .12s}
+		.rmpe-tile:hover{border-color:#004899;box-shadow:0 6px 18px rgba(0,0,0,.12);transform:translateY(-2px)}
+		.rmpe-thumb{position:relative;height:120px;background:#f3f4f6;overflow:hidden;border-bottom:1px solid #ececed}
+		.rmpe-thumb iframe{position:absolute;top:0;left:0;width:1280px;height:900px;border:0;transform-origin:0 0;pointer-events:none}
+		.rmpe-thumb.sec{display:flex;align-items:center;justify-content:center;background:#eef3fb}
+		.rmpe-thumb.sec .dashicons{font-size:40px;width:40px;height:40px;color:#004899;opacity:.7}
+		.rmpe-tile .lbl{padding:9px 11px;font-size:12px;font-weight:600;color:#1d2327;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+		.rmpe-tile .cat{display:block;font-size:10px;color:#8a8f98;font-weight:500;text-transform:uppercase;letter-spacing:.04em}
 		/* preview */
 		.rmpe-stage{flex:1;min-width:0;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:22px}
 		.rmpe-frame{background:#fff;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.12);overflow:hidden;width:100%;max-width:100%;height:calc(100vh - 32px - 54px - 44px);transition:max-width .25s ease}
@@ -305,7 +400,7 @@ function ricoman_product_editor_render() {
 	<div class="rmpe">
 		<div class="rmpe-top">
 			<button class="rmpe-btn rmpe-btn-ghost" id="rmpe-exit">&larr; <?php esc_html_e( 'Exit', 'ricoman' ); ?></button>
-			<div class="rmpe-title"><?php echo esc_html( get_the_title( $pid ) ); ?> <small>· <?php esc_html_e( 'Product page', 'ricoman' ); ?></small></div>
+			<div class="rmpe-title"><?php echo esc_html( $headTitle ); ?> <small>· <?php echo $is_tpl ? esc_html__( 'Template', 'ricoman' ) : esc_html__( 'Product page', 'ricoman' ); ?></small></div>
 			<span class="rmpe-saved" id="rmpe-saved"><?php esc_html_e( 'Saved', 'ricoman' ); ?></span>
 			<div class="rmpe-dev" id="rmpe-dev">
 				<button data-d="desktop" class="on" title="Desktop"><span class="dashicons dashicons-desktop"></span></button>
@@ -321,7 +416,7 @@ function ricoman_product_editor_render() {
 				<h3><?php esc_html_e( 'Sections', 'ricoman' ); ?></h3>
 				<ul class="rmpe-list" id="rmpe-list"></ul>
 				<div class="rmpe-add">
-					<select id="rmpe-add"></select>
+					<button type="button" class="rmpe-addbtn" id="rmpe-add"><span class="dashicons dashicons-plus-alt2"></span> <?php esc_html_e( 'Add section or pattern', 'ricoman' ); ?></button>
 				</div>
 			</div>
 
@@ -337,9 +432,22 @@ function ricoman_product_editor_render() {
 			</div>
 		</div>
 
+		<div class="rmpe-modal" id="rmpe-modal" hidden>
+			<div class="rmpe-modal-box">
+				<div class="rmpe-modal-head">
+					<strong><?php esc_html_e( 'Add to page', 'ricoman' ); ?></strong>
+					<input type="search" id="rmpe-search" placeholder="<?php esc_attr_e( 'Search…', 'ricoman' ); ?>">
+					<button type="button" class="rmpe-modal-x" id="rmpe-modal-x" aria-label="Close">&times;</button>
+				</div>
+				<div class="rmpe-modal-cats" id="rmpe-cats"></div>
+				<div class="rmpe-grid" id="rmpe-grid"></div>
+			</div>
+		</div>
+
 		<form id="rmpe-saveform" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:none">
 			<input type="hidden" name="action" value="ricoman_save_product_page">
 			<input type="hidden" name="product" value="<?php echo esc_attr( $pid ); ?>">
+			<input type="hidden" name="template" value="<?php echo esc_attr( $tpl ); ?>">
 			<input type="hidden" name="_wpnonce" value="<?php echo esc_attr( wp_create_nonce( 'ricoman_save_product_page_' . $pid ) ); ?>">
 			<input type="hidden" name="layout_json" id="rmpe-save-layout">
 			<input type="hidden" name="fields_json" id="rmpe-save-fields">
@@ -442,29 +550,65 @@ function ricoman_product_editor_render() {
 			renderList(); renderSettings(); pushDraft();
 		} );
 
-		/* ---- add picker ---- */
-		function renderAdd() {
-			var sel = $( 'rmpe-add' );
-			var used = state.layout.filter( function ( i ) { return i.type === 'section'; } ).map( function ( i ) { return i.key; } );
-			var s = '<option value="">+ ' + B.i18n.addBlock + '…</option>';
-			s += '<optgroup label="Sections">';
-			Object.keys( B.sections ).forEach( function ( k ) {
-				if ( used.indexOf( k ) === -1 ) { s += '<option value="sec:' + k + '">' + B.sections[ k ] + '</option>'; }
+		/* ---- visual add picker ---- */
+		function renderAdd() {} // grid is built when the modal opens.
+		var modal = $( 'rmpe-modal' ), grid = $( 'rmpe-grid' ), cats = $( 'rmpe-cats' ), search = $( 'rmpe-search' ), activeCat = 'All';
+		function patCat( title ) { var i = title.indexOf( '·' ); return i > -1 ? title.slice( 0, i ).trim() : 'Other'; }
+		function buildCats() {
+			var set = { 'All': 1, 'Sections': 1 };
+			Object.keys( B.patterns ).forEach( function ( n ) { set[ patCat( B.patterns[ n ] ) ] = 1; } );
+			cats.innerHTML = '';
+			Object.keys( set ).forEach( function ( c ) {
+				var b = document.createElement( 'button' );
+				b.className = 'rmpe-chip' + ( c === activeCat ? ' on' : '' ); b.textContent = c; b.dataset.c = c;
+				cats.appendChild( b );
 			} );
-			s += '</optgroup><optgroup label="Patterns">';
-			Object.keys( B.patterns ).forEach( function ( n ) {
-				s += '<option value="pat:' + n.replace( /"/g, '&quot;' ) + '">' + B.patterns[ n ] + '</option>';
-			} );
-			s += '</optgroup>';
-			sel.innerHTML = s;
 		}
-		$( 'rmpe-add' ).addEventListener( 'change', function () {
-			var v = this.value; if ( ! v ) { return; }
+		function thumbUrl( kind, name ) {
+			return B.ajax + '?action=ricoman_pe_thumb&nonce=' + B.tnonce + '&product=' + B.pid + '&kind=' + kind + '&name=' + encodeURIComponent( name );
+		}
+		function tile( kind, name, label, cat, icon ) {
+			var t = document.createElement( 'div' ); t.className = 'rmpe-tile'; t.dataset.kind = kind; t.dataset.name = name;
+			var thumb = ( kind === 'section' )
+				? '<div class="rmpe-thumb sec"><span class="dashicons dashicons-' + ( icon || 'block-default' ) + '"></span></div>'
+				: '<div class="rmpe-thumb"><iframe loading="lazy" scrolling="no" src="' + thumbUrl( kind, name ) + '" onload="this.style.transform=\'scale(\'+(this.parentNode.clientWidth/1280)+\')\'"></iframe></div>';
+			t.innerHTML = thumb + '<div class="lbl"><span class="cat">' + cat + '</span>' + label + '</div>';
+			return t;
+		}
+		function buildGrid() {
+			grid.innerHTML = '';
+			var q = ( search.value || '' ).toLowerCase();
+			var used = state.layout.filter( function ( i ) { return i.type === 'section'; } ).map( function ( i ) { return i.key; } );
+			if ( activeCat === 'All' || activeCat === 'Sections' ) {
+				Object.keys( B.sections ).forEach( function ( k ) {
+					if ( used.indexOf( k ) > -1 ) { return; }
+					var label = B.sections[ k ]; if ( q && label.toLowerCase().indexOf( q ) < 0 ) { return; }
+					grid.appendChild( tile( 'section', k, label, 'Section', B.icons[ k ] ) );
+				} );
+			}
+			if ( activeCat !== 'Sections' ) {
+				Object.keys( B.patterns ).forEach( function ( n ) {
+					var label = B.patterns[ n ], cat = patCat( label );
+					if ( activeCat !== 'All' && cat !== activeCat ) { return; }
+					if ( q && label.toLowerCase().indexOf( q ) < 0 ) { return; }
+					grid.appendChild( tile( 'pattern', n, label.replace( /^[^·]*·\s*/, '' ), cat ) );
+				} );
+			}
+		}
+		function openModal() { buildCats(); buildGrid(); modal.hidden = false; }
+		function closeModal() { modal.hidden = true; }
+		$( 'rmpe-add' ).addEventListener( 'click', openModal );
+		$( 'rmpe-modal-x' ).addEventListener( 'click', closeModal );
+		modal.addEventListener( 'click', function ( e ) { if ( e.target === modal ) { closeModal(); } } );
+		document.addEventListener( 'keydown', function ( e ) { if ( e.key === 'Escape' && ! modal.hidden ) { closeModal(); } } );
+		cats.addEventListener( 'click', function ( e ) { var b = e.target.closest( '.rmpe-chip' ); if ( ! b ) { return; } activeCat = b.dataset.c; buildCats(); buildGrid(); } );
+		search.addEventListener( 'input', buildGrid );
+		grid.addEventListener( 'click', function ( e ) {
+			var t = e.target.closest( '.rmpe-tile' ); if ( ! t ) { return; }
 			var at = ( state.sel >= 0 ? state.sel + 1 : state.layout.length );
-			if ( v.indexOf( 'sec:' ) === 0 ) { state.layout.splice( at, 0, { type: 'section', key: v.slice( 4 ), on: true } ); }
-			else if ( v.indexOf( 'pat:' ) === 0 ) { state.layout.splice( at, 0, { type: 'pattern', name: v.slice( 4 ) } ); }
-			state.sel = at; this.value = '';
-			renderList(); renderAdd(); renderSettings(); pushDraft();
+			if ( t.dataset.kind === 'section' ) { state.layout.splice( at, 0, { type: 'section', key: t.dataset.name, on: true } ); }
+			else { state.layout.splice( at, 0, { type: 'pattern', name: t.dataset.name } ); }
+			state.sel = at; closeModal(); renderList(); renderSettings(); pushDraft();
 		} );
 
 		/* ---- right settings ---- */
@@ -473,7 +617,7 @@ function ricoman_product_editor_render() {
 			var it = state.layout[ state.sel ];
 			if ( ! it ) { box.innerHTML = '<div class="rmpe-empty">Select a section to edit it.</div>'; return; }
 			var html = '';
-			if ( it.type === 'section' && it.key === 'hero' ) {
+			if ( it.type === 'section' && it.key === 'hero' && ! B.isTpl ) {
 				html += '<p class="ttl">' + B.i18n.details + '</p><p class="hint">Shown in the hero section.</p>';
 				html += field( 'title', 'Title', false );
 				Object.keys( B.fields ).forEach( function ( k ) {
@@ -549,6 +693,26 @@ add_action( 'admin_post_ricoman_save_product_page', function () {
 		wp_die( esc_html__( 'Permission denied.', 'ricoman' ) );
 	}
 
+	$layout = array();
+	if ( isset( $_POST['layout_json'] ) ) {
+		$d = json_decode( wp_unslash( $_POST['layout_json'] ), true );
+		if ( is_array( $d ) ) {
+			$layout = $d;
+		}
+	}
+	if ( ! $layout ) {
+		$layout = ricoman_pe_default_layout();
+	}
+
+	// Template mode: save the layout to the template, not the product.
+	$tpl = isset( $_POST['template'] ) ? absint( $_POST['template'] ) : 0;
+	if ( $tpl && 'rm_ptemplate' === get_post_type( $tpl ) && current_user_can( 'edit_post', $tpl ) ) {
+		update_post_meta( $tpl, '_ricoman_layout', wp_json_encode( array_values( $layout ) ) );
+		delete_transient( ricoman_pe_draft_key( $pid ) );
+		wp_safe_redirect( admin_url( 'admin.php?page=ricoman-product-editor&template=' . $tpl . '&saved=1' ) );
+		exit;
+	}
+
 	// Fields.
 	$fields = array();
 	if ( isset( $_POST['fields_json'] ) ) {
@@ -570,18 +734,9 @@ add_action( 'admin_post_ricoman_save_product_page', function () {
 		}
 	}
 
-	// Layout -> meta + compiled content.
-	$layout = array();
-	if ( isset( $_POST['layout_json'] ) ) {
-		$d = json_decode( wp_unslash( $_POST['layout_json'] ), true );
-		if ( is_array( $d ) ) {
-			$layout = $d;
-		}
-	}
-	if ( ! $layout ) {
-		$layout = ricoman_pe_default_layout();
-	}
+	// Layout -> meta + compiled content ($layout already parsed above).
 	update_post_meta( $pid, '_ricoman_layout', wp_json_encode( array_values( $layout ) ) );
+	update_post_meta( $pid, '_ricoman_custom', 1 ); // this product now overrides its template.
 
 	wp_update_post( array(
 		'ID'           => $pid,

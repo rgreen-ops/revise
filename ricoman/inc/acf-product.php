@@ -37,6 +37,11 @@ add_filter( 'acf/settings/save_json', function ( $path ) {
 
 /** ACF-aware field getter — get_field() when ACF is active, else raw meta. */
 function ricoman_pf_get( $pid, $key, $default = '' ) {
+	// Live builder preview: use the unsaved draft field values.
+	if ( isset( $GLOBALS['rm_pe_preview'] ) && (int) $GLOBALS['rm_pe_preview']['pid'] === (int) $pid
+		&& isset( $GLOBALS['rm_pe_preview']['fields'][ $key ] ) && '' !== $GLOBALS['rm_pe_preview']['fields'][ $key ] ) {
+		return $GLOBALS['rm_pe_preview']['fields'][ $key ];
+	}
 	if ( function_exists( 'get_field' ) ) {
 		$v = get_field( $key, $pid );
 		if ( null !== $v && '' !== $v ) {
@@ -848,8 +853,16 @@ add_filter( 'the_content', function ( $content ) {
 	if ( is_admin() || ! is_singular( 'product' ) || ! in_the_loop() || ! is_main_query() ) {
 		return $content;
 	}
+	if ( ! empty( $GLOBALS['rm_pe_preview'] ) ) {
+		return $content; // the builder preview filter already rendered the page.
+	}
 	if ( '' !== trim( wp_strip_all_tags( (string) $content ) ) ) {
 		return $content; // has real (block) content — leave it.
+	}
+	// A product following a template / with custom layout renders that layout.
+	$pid = get_the_ID();
+	if ( function_exists( 'ricoman_pe_has_managed_layout' ) && ricoman_pe_has_managed_layout( $pid ) ) {
+		return ricoman_pe_render_layout( $pid );
 	}
 	return do_shortcode( '[ricoman_product_page]' );
 }, 9 );
