@@ -96,14 +96,15 @@ add_shortcode( 'ricoman_header', function () {
 	// Critical mega-menu CSS inlined so the correct layout shows even if an old
 	// cached stylesheet is still being served (overrides with !important).
 	$crit = '<style id="rm-mega-crit">'
-		. '.rm-mega-col ul{display:flex!important;flex-direction:column!important;gap:.66em!important}'
-		. '.rm-mega-col ul.rm-mega-coll{gap:1.05em!important}'
+		. '.rm-mega-head{font-size:1.25rem!important}'
+		. '.rm-mega-col ul{display:flex!important;flex-direction:column!important;gap:.62em!important}'
+		. '.rm-mega-col ul.rm-mega-coll{gap:1em!important}'
 		. '.rm-mega-col li{margin:0!important;line-height:1.35!important}'
-		. '.rm-mega-col ul a{font-size:1rem!important;font-weight:300!important;line-height:1.35!important;display:block!important;padding:0!important}'
+		. '.rm-mega-col ul a{font-size:.9rem!important;font-weight:300!important;line-height:1.35!important;display:block!important;padding:0!important}'
 		. '.rm-mega-col ul.rm-mega-coll a{display:flex!important;flex-direction:column!important;gap:2px!important}'
 		. '.rm-mega-name{font-weight:500!important}'
-		. '.rm-mega-sub{font-size:.82rem!important;font-weight:300!important}'
-		. '.rm-mega-col h4{font-size:1.08rem!important;margin:0 0 1em!important}'
+		. '.rm-mega-sub{font-size:.76rem!important;font-weight:300!important}'
+		. '.rm-mega-col h4{font-size:.95rem!important;margin:0 0 .9em!important}'
 		. '</style>';
 
 	return $crit . '<header class="site ricoman-site-header"><div class="wrap nav">'
