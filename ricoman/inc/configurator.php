@@ -68,6 +68,11 @@ add_action( 'wp_ajax_nopriv_ricoman_rb_price', 'ricoman_rb_price_cb' );
 add_shortcode( 'ricoman_configurator', function ( $atts ) {
 	$atts = shortcode_atts( array( 'id' => 0 ), $atts, 'ricoman_configurator' );
 	$pid  = $atts['id'] ? (int) $atts['id'] : get_the_ID();
+	// Configurator retired: show the filterable variants section instead.
+	if ( function_exists( 'ricoman_pf_variant_table' ) ) {
+		$vtab = ricoman_pf_variant_table( $pid );
+		return $vtab ? '<div class="rm-section" id="variants"><div class="rm-pp-wrap"><h2 class="rm-shead">Configure Your Product</h2>' . $vtab . '</div></div>' : '';
+	}
 	$code = $pid ? (string) get_post_meta( $pid, '_ricoman_sku', true ) : '';
 	if ( '' === $code || ! function_exists( 'ricoman_ricobot_ready' ) || ! ricoman_ricobot_ready() ) {
 		return ''; // Nothing to configure / not connected.
@@ -183,16 +188,18 @@ add_shortcode( 'ricoman_configurator_hero', function ( $atts ) {
 	$tagline = $pid ? (string) get_post_meta( $pid, '_ricoman_tagline', true ) : '';
 	$terms   = $pid ? get_the_term_list( $pid, 'product-cat', '', ' · ' ) : '';
 	$hero    = $pid ? get_the_post_thumbnail_url( $pid, 'large' ) : '';
-	if ( '' === $code || ! function_exists( 'ricoman_ricobot_ready' ) || ! ricoman_ricobot_ready() ) {
-		// RICOBOT not connected: render a clean cover hero so the page still looks right.
-		$ov = '<p class="rm-eyebrow has-base-color has-text-color">' . wp_kses_post( $terms ) . '</p>';
-		$ov .= '<h1 class="wp-block-heading" style="font-weight:500;font-size:clamp(2.4rem,6vw,5rem);line-height:1">' . esc_html( $title ) . '</h1>';
-		if ( $tagline ) {
-			$ov .= '<p class="has-base-color has-text-color">' . esc_html( $tagline ) . '</p>';
-		}
-		$bg = $hero ? $hero : esc_url( get_theme_file_uri( 'assets/images/ceiling.webp' ) );
-		return '<div class="wp-block-cover alignfull has-base-color has-text-color has-custom-content-position is-position-bottom-left" style="min-height:70vh"><span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-50 has-background-dim"></span><img class="wp-block-cover__image-background" alt="' . esc_attr( $title ) . '" src="' . $bg . '" data-object-fit="cover" fetchpriority="high"/><div class="wp-block-cover__inner-container">' . $ov . '</div></div>';
+	// The live RICOBOT configurator is retired on feature pages — render a clean
+	// cover hero, then a filterable variants section below.
+	$ov  = '<p class="rm-eyebrow has-base-color has-text-color">' . wp_kses_post( $terms ) . '</p>';
+	$ov .= '<h1 class="wp-block-heading" style="font-weight:500;font-size:clamp(2.4rem,6vw,5rem);line-height:1">' . esc_html( $title ) . '</h1>';
+	if ( $tagline ) {
+		$ov .= '<p class="has-base-color has-text-color">' . esc_html( $tagline ) . '</p>';
 	}
+	$bg    = $hero ? $hero : esc_url( get_theme_file_uri( 'assets/images/ceiling.webp' ) );
+	$cover = '<div class="wp-block-cover alignfull has-base-color has-text-color has-custom-content-position is-position-bottom-left" style="min-height:70vh"><span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-50 has-background-dim"></span><img class="wp-block-cover__image-background" alt="' . esc_attr( $title ) . '" src="' . $bg . '" data-object-fit="cover" fetchpriority="high"/><div class="wp-block-cover__inner-container">' . $ov . '</div></div>';
+	$vtab  = function_exists( 'ricoman_pf_variant_table' ) ? ricoman_pf_variant_table( $pid ) : '';
+	$vsec  = $vtab ? '<div class="rm-section" id="variants"><div class="rm-pp-wrap"><h2 class="rm-shead">Configure Your Product</h2>' . $vtab . '</div></div>' : '';
+	return $cover . $vsec;
 	$nonce   = wp_create_nonce( 'ricoman_rb_front' );
 	$ajax    = esc_url( admin_url( 'admin-ajax.php' ) );
 	$enquire = esc_url( home_url( '/my-project/' ) );
