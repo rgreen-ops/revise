@@ -398,6 +398,68 @@ function ricoman_pf_render_endpoint( $d, $pid ) {
 	return $out;
 }
 
+/** Colour/size variants (Product Variation By Color): name + main image + icon. */
+function ricoman_pf_color_variants( $pid ) {
+	$rows = array();
+	foreach ( array( 'product_variation_by_color', 'variation_by_color', 'product_color_variation', 'get_swatch_product_data', 'color_variant', 'product_variant_color', 'show_swatch_product_data' ) as $fname ) {
+		$v = ricoman_pf_get( $pid, $fname );
+		if ( ! is_array( $v ) || ! $v ) {
+			continue;
+		}
+		foreach ( $v as $row ) {
+			if ( ! is_array( $row ) ) {
+				continue;
+			}
+			$name = '';
+			$main = '';
+			$icon = '';
+			foreach ( $row as $k => $val ) {
+				$lk = strtolower( (string) $k );
+				if ( false !== strpos( $lk, 'icon' ) ) {
+					$icon = ricoman_pf_imgurl( $val );
+				} elseif ( false !== strpos( $lk, 'main' ) || false !== strpos( $lk, 'image' ) ) {
+					$main = ricoman_pf_imgurl( $val );
+				} elseif ( false !== strpos( $lk, 'name' ) && is_scalar( $val ) ) {
+					$name = (string) $val;
+				}
+			}
+			if ( $name || $main || $icon ) {
+				$rows[] = array( 'name' => $name, 'main' => $main, 'icon' => $icon );
+			}
+		}
+		if ( $rows ) {
+			return $rows;
+		}
+	}
+	return $rows;
+}
+
+/** Paragraph Info Section -> array of marketing highlight strings. */
+function ricoman_pf_paragraphs( $pid ) {
+	foreach ( array( 'paragraph_info_section', 'get_paragraph_info_section', 'paragraph_section', 'product_paragraph_info', 'product_image_video_paragraph' ) as $fname ) {
+		$v = ricoman_pf_get( $pid, $fname );
+		if ( ! is_array( $v ) || ! $v ) {
+			continue;
+		}
+		$out = array();
+		foreach ( $v as $row ) {
+			if ( is_array( $row ) ) {
+				foreach ( $row as $k => $val ) {
+					if ( false !== strpos( strtolower( (string) $k ), 'content' ) && is_scalar( $val ) && '' !== trim( (string) $val ) ) {
+						$out[] = trim( (string) $val );
+					}
+				}
+			} elseif ( is_scalar( $row ) && '' !== trim( (string) $row ) ) {
+				$out[] = trim( (string) $row );
+			}
+		}
+		if ( $out ) {
+			return $out;
+		}
+	}
+	return array();
+}
+
 add_shortcode( 'ricoman_product_page', function () {
 	$pid = get_the_ID();
 	if ( ! $pid ) {
@@ -417,30 +479,22 @@ add_shortcode( 'ricoman_product_page', function () {
 	$terms   = get_the_term_list( $pid, 'product-cat', '', ' · ' );
 	$hero    = get_the_post_thumbnail_url( $pid, 'large' );
 
-	// Variants (swatches) + gallery (thumbs).
-	$variants = ricoman_pf_get( $pid, 'show_variant', array() );
-	$vrows    = array();
-	if ( is_array( $variants ) ) {
-		foreach ( $variants as $v ) {
-			$r = ricoman_pf_variant_row( $v );
-			if ( $r ) {
-				$vrows[] = $r;
-			}
-		}
-	}
+	// Colour/size variants (Product Variation By Color) — these drive the swatches
+	// AND the image switching (click Ø600 / Black -> main image updates).
+	$cvars   = ricoman_pf_color_variants( $pid );
 	$gallery = ricoman_pf_gallery( $pid );
 	if ( ! $hero ) {
-		$hero = ( $vrows && $vrows[0][1] ) ? $vrows[0][1] : ( $gallery ? $gallery[0] : esc_url( get_theme_file_uri( 'assets/images/ceiling.webp' ) ) );
+		$hero = ( $cvars && $cvars[0]['main'] ) ? $cvars[0]['main'] : ( $gallery ? $gallery[0] : esc_url( get_theme_file_uri( 'assets/images/ceiling.webp' ) ) );
+	} elseif ( $cvars && $cvars[0]['main'] ) {
+		$hero = $cvars[0]['main'];
 	}
 
-	// Swatches.
+	// Swatches with per-variant image (icon shown, main image swapped on click).
 	$sw = '';
-	foreach ( $vrows as $i => $r ) {
-		if ( '' === $r[1] && '' === $r[2] ) {
-			continue;
-		}
-		$style = ( $r[2] && '#' === substr( $r[2], 0, 1 ) ) ? 'background:' . esc_attr( $r[2] ) : ( $r[2] ? 'background-image:url(' . esc_url( $r[2] ) . ')' : '' );
-		$sw   .= '<button type="button" class="rm-cv-sw' . ( 0 === $i ? ' on' : '' ) . '" data-img="' . esc_url( $r[1] ) . '" style="' . $style . '" aria-label="' . esc_attr( $r[0] ) . '"><span>' . esc_html( $r[0] ) . '</span></button>';
+	foreach ( $cvars as $i => $cv ) {
+		$icon  = $cv['icon'] ? $cv['icon'] : $cv['main'];
+		$style = $icon ? 'background-image:url(' . esc_url( $icon ) . ')' : '';
+		$sw   .= '<button type="button" class="rm-cv-sw' . ( 0 === $i ? ' on' : '' ) . '" data-img="' . esc_url( $cv['main'] ) . '" style="' . $style . '" aria-label="' . esc_attr( $cv['name'] ) . '"><span>' . esc_html( $cv['name'] ) . '</span></button>';
 	}
 	$thumbs = '';
 	foreach ( $gallery as $j => $g ) {
@@ -497,9 +551,12 @@ add_shortcode( 'ricoman_product_page', function () {
 
 	$crumb = do_shortcode( '[ricoman_breadcrumbs]' );
 
-	// Hero highlights (check-icon) + full feature list (for the accordion).
+	// Hero highlights — prefer the Paragraph Info Section (rich "Title: desc"
+	// items); fall back to the first key features. Full key features go in the
+	// Features accordion.
 	$kfraw      = ricoman_pf_get( $pid, 'key_features' );
-	$highlights = ricoman_pf_highlights( $kfraw, 4 );
+	$paras      = ricoman_pf_paragraphs( $pid );
+	$highlights = $paras ? ricoman_pf_highlights( $paras, 4 ) : ricoman_pf_highlights( $kfraw, 4 );
 	$feat_full  = ricoman_pf_features_list( $kfraw );
 
 	// Optional Dimensions field for its own accordion.
@@ -533,8 +590,8 @@ add_shortcode( 'ricoman_product_page', function () {
 		. $jump
 		. '</div></div></div>';
 
-	// ---- Accordions: Specification / Dimensions / Features / Downloads ----
-	$acc  = ricoman_pf_acc( 'Specification', $spec, true );
+	// ---- Accordions: Specification / Dimensions / Features / Downloads (closed) ----
+	$acc  = ricoman_pf_acc( 'Specification', $spec, false );
 	$acc .= ricoman_pf_acc( 'Dimensions', $dims );
 	$acc .= ricoman_pf_acc( 'Features', $feat_full );
 	$acc .= ricoman_pf_acc( 'Downloads and Resources', $dl ? '<ul class="rm-acc-dl">' . $dl . '</ul>' : '' );
