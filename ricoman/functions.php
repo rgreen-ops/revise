@@ -21,6 +21,7 @@ if ( ! defined( 'RICOMAN_VERSION' ) ) {
  * Load feature modules. Each file is self-contained and hooks itself in.
  */
 require_once get_theme_file_path( 'inc/post-types.php' );    // Products, Projects, Leads.
+require_once get_theme_file_path( 'inc/acf-fields.php' );     // Original ricoman.com ACF field groups (editing + repeater reads).
 require_once get_theme_file_path( 'inc/meta.php' );          // Product specs & variants.
 require_once get_theme_file_path( 'inc/performance.php' );   // Speed: fonts, bloat removal, prefetch.
 require_once get_theme_file_path( 'inc/images.php' );        // Auto web-ready images (AVIF/WebP, alt text).

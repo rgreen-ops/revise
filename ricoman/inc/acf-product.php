@@ -476,6 +476,75 @@ function ricoman_pf_paragraphs( $pid ) {
 	return array();
 }
 
+/** Resolve an ACF file value (ID / array / URL) to a URL. */
+function ricoman_pf_fileurl( $v ) {
+	if ( is_numeric( $v ) ) {
+		return wp_get_attachment_url( (int) $v );
+	}
+	if ( is_array( $v ) ) {
+		return isset( $v['url'] ) ? $v['url'] : '';
+	}
+	return is_string( $v ) ? $v : '';
+}
+
+/**
+ * Configure / order-codes table, built from the linked `variant-product` posts
+ * (ACF `parent_product` == this product). This is the staging-data equivalent of
+ * the old site's Configure Your Product table.
+ */
+function ricoman_pf_variant_table( $pid ) {
+	if ( ! post_type_exists( 'variant-product' ) ) {
+		return '';
+	}
+	$q = new WP_Query( array(
+		'post_type'      => 'variant-product',
+		'post_status'    => 'publish',
+		'posts_per_page' => -1,
+		'no_found_rows'  => true,
+		'orderby'        => 'menu_order title',
+		'order'          => 'ASC',
+		'meta_query'     => array( array( 'key' => 'parent_product', 'value' => (string) $pid ) ),
+	) );
+	if ( ! $q->have_posts() ) {
+		return '';
+	}
+	$datasheet = ricoman_pf_fileurl( ricoman_pf_get( $pid, 'download_family_datasheet' ) );
+	$rows      = '';
+	while ( $q->have_posts() ) {
+		$q->the_post();
+		$vid  = get_the_ID();
+		$code = ricoman_pf_get( $vid, 'part_code' );
+		if ( '' === (string) $code ) {
+			$code = ricoman_pf_get( $vid, 'order_code' );
+		}
+		$desc = ricoman_pf_get( $vid, 'product_sort_description' );
+		if ( '' === trim( (string) $desc ) ) {
+			$desc = get_the_title();
+		}
+		$lm   = ricoman_pf_get( $vid, 'lumens' );
+		$dim  = ricoman_pf_get( $vid, 'dimensions' );
+		$ldt  = ricoman_pf_fileurl( ricoman_pf_get( $vid, 'download_led' ) );
+		$img  = ricoman_pf_imgurl( ricoman_pf_get( $vid, 'product_main_image' ) );
+		if ( ! $img ) {
+			$img = ricoman_pf_imgurl( ricoman_pf_get( $vid, 'product_gallery_image' ) );
+		}
+		$thumb = $img ? '<img src="' . esc_url( $img ) . '" alt="" loading="lazy">' : '';
+		$rows .= '<tr>'
+			. '<td class="vt-thumb">' . $thumb . '</td>'
+			. '<td class="vt-code">' . esc_html( $code ) . '</td>'
+			. '<td class="vt-desc">' . esc_html( wp_strip_all_tags( (string) $desc ) ) . '</td>'
+			. '<td class="vt-lm">' . esc_html( $lm ) . '</td>'
+			. '<td class="vt-dim">' . esc_html( $dim ) . '</td>'
+			. '<td class="vt-dl">' . ( $ldt ? '<a href="' . esc_url( $ldt ) . '" target="_blank" rel="noopener" aria-label="LDT file">LDT ↓</a>' : '—' ) . '</td>'
+			. '<td class="vt-dl">' . ( $datasheet ? '<a href="' . esc_url( $datasheet ) . '" target="_blank" rel="noopener" aria-label="Datasheet">Datasheet ↓</a>' : '—' ) . '</td>'
+			. '</tr>';
+	}
+	wp_reset_postdata();
+	return '<div class="rm-vptable-wrap"><table class="rm-vptable"><thead><tr>'
+		. '<th></th><th>Part Code</th><th>Description</th><th>Lumens</th><th>Dimensions</th><th>LDT</th><th>Datasheet</th>'
+		. '</tr></thead><tbody>' . $rows . '</tbody></table></div>';
+}
+
 add_shortcode( 'ricoman_product_page', function () {
 	$pid = get_the_ID();
 	if ( ! $pid ) {
@@ -624,9 +693,13 @@ add_shortcode( 'ricoman_product_page', function () {
 	$acc .= ricoman_pf_acc( 'Downloads and Resources', $dl ? '<ul class="rm-acc-dl">' . $dl . '</ul>' : '' );
 	$acc_sec = $acc ? '<div class="rm-section" id="specification"><div class="rm-pp-wrap"><div class="rm-accs">' . $acc . '</div></div></div>' : '';
 
-	// ---- Configure Your Product (RICOBOT live variant table) ----
-	$var_sec = $has_fam
-		? '<div class="rm-section" id="variants"><div class="rm-pp-wrap"><h2 class="rm-shead">Configure Your Product</h2>' . do_shortcode( '[ricoman_family]' ) . '</div></div>'
+	// ---- Configure Your Product ----
+	// Prefer the linked variant-product rows (migrated staging data); fall back to
+	// the RICOBOT family table when the product is linked to a RICOBOT family.
+	$vtable    = ricoman_pf_variant_table( $pid );
+	$var_inner = $vtable ? $vtable : ( $has_fam ? do_shortcode( '[ricoman_family]' ) : '' );
+	$var_sec   = $var_inner
+		? '<div class="rm-section" id="variants"><div class="rm-pp-wrap"><h2 class="rm-shead">Configure Your Product</h2>' . $var_inner . '</div></div>'
 		: '';
 
 	// ---- Accessories (RICOBOT live, when available) ----

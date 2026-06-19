@@ -84,6 +84,26 @@ function ricoman_register_post_types() {
 			'show_in_rest'  => false,
 		)
 	);
+
+	// --- Variant products (the order-code rows for the Configure table) -----
+	// Each is linked to its parent product via the ACF `parent_product` field.
+	register_post_type(
+		'variant-product',
+		array(
+			'labels'        => array(
+				'name'          => __( 'Variant Products', 'ricoman' ),
+				'singular_name' => __( 'Variant Product', 'ricoman' ),
+				'menu_name'     => __( 'Variant Products', 'ricoman' ),
+			),
+			'public'        => false,
+			'show_ui'       => true,
+			'menu_icon'     => 'dashicons-screenoptions',
+			'menu_position' => 23,
+			'rewrite'       => false,
+			'supports'      => array( 'title', 'custom-fields' ),
+			'show_in_rest'  => false,
+		)
+	);
 }
 add_action( 'init', 'ricoman_register_post_types' );
 
