@@ -897,6 +897,12 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-vptable .vt-code{font-family:Poppins;font-weight:600;color:var(--accent);white-space:nowrap}
 .rm-vptable .vt-desc{min-width:200px}
 .rm-vptable .vt-spec{white-space:nowrap;color:var(--ink)}
+/* Keep the thumbnail + order code visible while scrolling the wide spec table */
+.rm-vptable .vt-thumb,.rm-vptable thead th:first-child{position:sticky;left:0;background:#fff;z-index:2}
+.rm-vptable .vt-code,.rm-vptable thead th:nth-child(2){position:sticky;left:64px;background:#fff;z-index:2}
+.rm-vptable thead th:first-child,.rm-vptable thead th:nth-child(2){z-index:3}
+.rm-vptable .vt-row:hover .vt-thumb,.rm-vptable .vt-row:hover .vt-code{background:#f5f7fb}
+@media(max-width:600px){.rm-vptable .vt-thumb,.rm-vptable thead th:first-child{position:static}.rm-vptable .vt-code,.rm-vptable thead th:nth-child(2){left:0}}
 .rm-vptable th{white-space:nowrap}
 .rm-vptable .vt-dl a{color:var(--ink);text-decoration:none;font-weight:600;white-space:nowrap}
 .rm-vptable .vt-dl a:hover{color:var(--accent)}
