@@ -530,10 +530,10 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-mega-col ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.66em}
 .rm-mega-col ul.rm-mega-coll{gap:1.05em}
 .rm-mega-col li{margin:0;line-height:1.35}
-.rm-mega-col ul a{font-family:Poppins;font-size:1rem;font-weight:500;line-height:1.35;letter-spacing:0;text-transform:none;color:#4a4a4a!important;display:block;padding:0}
+.rm-mega-col ul a{font-family:Poppins;font-size:1rem;font-weight:300;line-height:1.35;letter-spacing:0;text-transform:none;color:#4a4a4a!important;display:block;padding:0}
 .rm-mega-col ul a:hover{color:var(--ink)!important}
 .rm-mega-col ul.rm-mega-coll a{display:flex;flex-direction:column;gap:2px}
-.rm-mega-name{font-weight:600;color:var(--ink)!important}
+.rm-mega-name{font-weight:500;color:var(--ink)!important}
 .rm-mega-sub{font-size:.78rem;color:#9a9a9a!important}
 .rm-mega-cards{display:flex;flex-direction:column;gap:14px}
 .rm-mega-card{position:relative;display:flex;flex-direction:column;justify-content:flex-end;min-height:130px;border-radius:12px;overflow:hidden;background:#2a2a2a center/cover no-repeat;padding:16px 18px;color:#fff!important;text-transform:none;letter-spacing:0}

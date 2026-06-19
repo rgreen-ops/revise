@@ -99,9 +99,10 @@ add_shortcode( 'ricoman_header', function () {
 		. '.rm-mega-col ul{display:flex!important;flex-direction:column!important;gap:.66em!important}'
 		. '.rm-mega-col ul.rm-mega-coll{gap:1.05em!important}'
 		. '.rm-mega-col li{margin:0!important;line-height:1.35!important}'
-		. '.rm-mega-col ul a{font-size:1rem!important;line-height:1.35!important;display:block!important;padding:0!important}'
+		. '.rm-mega-col ul a{font-size:1rem!important;font-weight:300!important;line-height:1.35!important;display:block!important;padding:0!important}'
 		. '.rm-mega-col ul.rm-mega-coll a{display:flex!important;flex-direction:column!important;gap:2px!important}'
-		. '.rm-mega-sub{font-size:.82rem!important}'
+		. '.rm-mega-name{font-weight:500!important}'
+		. '.rm-mega-sub{font-size:.82rem!important;font-weight:300!important}'
 		. '.rm-mega-col h4{font-size:1.08rem!important;margin:0 0 1em!important}'
 		. '</style>';
 
