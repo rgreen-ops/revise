@@ -13,11 +13,30 @@
 
 ## Current focus (Step 1)
 Make **every** page on staging **pixel-for-pixel identical** to current ricoman.com
-— every link, image, page, template. Method:
-- Build a list of every page/template.
-- Work through them one by one.
+— every link, image, page, template. **DECISION (confirmed): rebuild every page
+natively in OUR theme (Ricoman).** No Elementor (too slow), no old `ricomanled`
+theme, RICOBOT parked — render from the migrated ACF database. Method:
+- Build a list of every page/template (below).
+- Work through them one by one in our theme.
 - Richard signs off each **template** (e.g. news master, news article, product
   page, product category) only when it's confirmed pixel-for-pixel.
+- Reference for pixel matching = the live ricoman.com pages (screenshots from
+  Richard + live HTML), since the old theme renders via Elementor/ACF.
+
+## Template sign-off checklist (Step 1) — status
+GLOBAL: [ ] Header / mega-menu  [ ] Footer
+[ ] Home  [ ] Product category (product-cat)  [ ] Family category page
+[ ] Product single (simple)  [ ] Product single (Flow/Astrowave)
+[ ] Product single (Fire-rated)  [ ] News master (listing)  [ ] News article
+[ ] Project listing  [ ] Project single (short)  [ ] Project single (long)
+[ ] About  [ ] Contact  [ ] Casambi  [ ] Sustainability  [ ] Human Centric
+[ ] Antimicrobial  [ ] Fire Safety  [ ] I-Joist Ceilings  [ ] Made in Britain
+[ ] Custom Lighting  [ ] Lighting Design (leadgen)  [ ] Trade  [ ] Downloads
+[ ] Catalogue  [ ] Our Showroom  [ ] Our Vision  [ ] Where To Buy
+[ ] Stock & Availability  [ ] Our Services  [ ] UAE Exports  [ ] UK Manufacturer
+[ ] Thank You  [ ] Dashboard  [ ] Create Project  [ ] Login / Registration
+[ ] Site map  [ ] Legal (Privacy, Cookie, Terms, Email Notice, Slavery, Warranty)
+
 
 ## Key facts established
 - Old products store everything in **ACF**; post types: `product`, `project`,
