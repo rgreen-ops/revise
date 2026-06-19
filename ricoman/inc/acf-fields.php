@@ -43,3 +43,13 @@ function ricoman_register_legacy_acf_fields() {
 		}
 	}
 }
+
+/**
+ * Now the original ACF product fields are back, hide the theme's own product
+ * metaboxes ("Product Builder" + "Product page content") so the editor matches
+ * the familiar, simpler back-end instead of showing two editing systems at once.
+ */
+add_action( 'add_meta_boxes', function () {
+	remove_meta_box( 'ricoman_product_details', 'product', 'normal' ); // Product Builder.
+	remove_meta_box( 'ricoman_pf', 'product', 'normal' );              // Structured content.
+}, 99 );
