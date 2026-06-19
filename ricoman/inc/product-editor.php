@@ -430,7 +430,7 @@ function ricoman_product_editor_render() {
 		.rmpe{--ink:#15171e;--muted:#697086;--faint:#9aa1b1;--line:#e7e9f0;--line-2:#eef0f5;--surface:#fff;--rail:#fbfbfd;--accent:#004899;--accent-2:#013d82;--tint:#eef3fc;--tint-2:#f4f8ff;
 			--r-sm:8px;--r:11px;--r-lg:16px;--sh-sm:0 1px 2px rgba(16,24,40,.06);--sh:0 1px 3px rgba(16,24,40,.09);--sh-lift:0 12px 30px -10px rgba(16,24,40,.22);--sh-frame:0 36px 70px -28px rgba(16,24,40,.42)}
 		#wpcontent{padding-left:0}#wpbody-content{padding-bottom:0}#wpfooter{display:none}
-		.rmpe{position:fixed;top:32px;left:160px;right:0;bottom:0;display:flex;flex-direction:column;background:radial-gradient(120% 120% at 50% 0,#f6f8fc 0,#e8ebf2 100%);font:13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;color:var(--ink);z-index:9;-webkit-font-smoothing:antialiased}
+		.rmpe{position:fixed;top:32px;left:160px;right:0;bottom:0;display:flex;flex-direction:column;background:radial-gradient(120% 120% at 50% 0,#f6f8fc 0,#e8ebf2 100%);font:13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;color:var(--ink);z-index:9990;-webkit-font-smoothing:antialiased}
 		.folded .rmpe{left:36px}
 		@media(max-width:782px){.rmpe{left:0;top:46px}}
 		.rmpe *{box-sizing:border-box}
@@ -755,21 +755,13 @@ function ricoman_product_editor_render() {
 					grid.appendChild( tile( 'pattern', n, label.replace( /^[^·]*·\s*/, '' ), cat ) );
 				} );
 			}
-			// Lazy-load preview iframes only as they scroll into view (keeps it fast).
-			if ( 'IntersectionObserver' in window ) {
-				var io = new IntersectionObserver( function ( entries ) {
-					entries.forEach( function ( en ) {
-						if ( en.isIntersecting ) {
-							var f = en.target;
-							if ( f.dataset.src ) { f.src = f.dataset.src; f.removeAttribute( 'data-src' ); }
-							io.unobserve( f );
-						}
-					} );
-				}, { root: grid, rootMargin: '400px' } );
-				grid.querySelectorAll( 'iframe[data-src]' ).forEach( function ( f ) { io.observe( f ); } );
-			} else {
-				grid.querySelectorAll( 'iframe[data-src]' ).forEach( function ( f ) { f.src = f.dataset.src; } );
-			}
+			// Load preview iframes progressively (staggered) so the picker stays fast
+			// but every thumbnail reliably renders.
+			grid.querySelectorAll( 'iframe[data-src]' ).forEach( function ( f, i ) {
+				setTimeout( function () {
+					if ( f.dataset.src ) { f.src = f.dataset.src; f.removeAttribute( 'data-src' ); }
+				}, i * 70 );
+			} );
 		}
 		function openModal() { buildCats(); buildGrid(); modal.hidden = false; }
 		function closeModal() { modal.hidden = true; }
