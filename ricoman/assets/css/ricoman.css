@@ -296,7 +296,9 @@ footer.site,.ricoman-site-footer{background:var(--ink);color:rgba(255,255,255,.6
 .fgrid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:clamp(30px,4vw,60px)}
 footer.site .brand,.ricoman-site-footer .brand{color:#fff;font-size:1.4rem;letter-spacing:.28em;margin-bottom:1.2em}
 footer.site p{font-size:.92rem;margin:0 0 .4em;color:rgba(255,255,255,.62)}
-footer.site h4{font-family:Poppins;text-transform:uppercase;letter-spacing:.16em;font-size:.68rem;color:#fff;font-weight:600;margin:0 0 1.2em}
+footer.site h4{font-family:Poppins;text-transform:none;letter-spacing:-.01em;font-size:1.12rem;color:#fff;font-weight:600;margin:2.2em 0 1em}
+footer.site .rm-foot-col h4:first-child{margin-top:0}
+footer.site .rm-foot-brandcol .brand+h4{margin-top:.2em}
 footer.site ul{list-style:none;margin:0;padding:0;font-size:.92rem}
 footer.site li{margin:.55em 0}
 footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
@@ -874,14 +876,27 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-acc-dl li{padding:10px 0;border-bottom:1px solid var(--line)}
 .rm-acc-dl a{color:var(--ink);text-decoration:none;font-weight:500}
 .rm-acc-dl a:hover{color:var(--accent)}
-/* You may also like */
-.rm-relgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-top:24px}
-@media(max-width:1100px){.rm-relgrid{grid-template-columns:repeat(3,1fr)}}
-.rm-rel-card{display:block;text-decoration:none;color:var(--ink)}
-.rm-rel-img{display:block;aspect-ratio:1/1;background:#e4e4e4 center/cover no-repeat;border-radius:10px;margin-bottom:12px}
-.rm-rel-t{display:block;font-family:Poppins;font-weight:600;font-size:1.05rem}
-.rm-rel-s{display:block;color:var(--muted);font-size:.85rem;margin-top:2px}
-@media(max-width:720px){.rm-relgrid{grid-template-columns:1fr 1fr}}
+/* You may also like / Accessories — carousels */
+.rm-relhead{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px}
+.rm-relttl{font-family:Poppins;font-weight:600;font-size:clamp(1.2rem,2vw,1.6rem);letter-spacing:-.01em;color:var(--ink);margin:0}
+.rm-relnav{display:flex;gap:10px;flex:0 0 auto}
+.rm-relarrow{width:42px;height:42px;border:1px solid var(--line);background:#fff;border-radius:50%;cursor:pointer;font-size:1.1rem;color:var(--ink);display:flex;align-items:center;justify-content:center;transition:.15s}
+.rm-relarrow:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
+.rm-relslider{display:grid;grid-auto-flow:column;grid-auto-columns:calc((100% - 4*24px)/5);gap:24px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;padding-bottom:6px;scrollbar-width:none}
+.rm-relslider::-webkit-scrollbar{display:none}
+.rm-relc{scroll-snap-align:start;display:flex;flex-direction:column;text-decoration:none;color:var(--ink);background:#f1f1f2;border-radius:16px;padding:22px 20px 26px}
+.rm-relc-img{width:100%;aspect-ratio:1/1;background:center/contain no-repeat;margin-bottom:18px}
+.rm-relc-t{font-family:Poppins;font-weight:600;font-size:1.05rem;text-align:center}
+.rm-relc-s{color:var(--muted);font-size:.85rem;text-align:center;margin-top:4px}
+.rm-relc-btn{margin-top:auto;align-self:center;display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:9px 18px;font-family:Poppins;font-size:.82rem;font-weight:600;background:#fff;margin-top:18px;transition:.15s}
+.rm-relc:hover .rm-relc-btn{background:var(--ink);color:#fff;border-color:var(--ink)}
+/* Plain variant (accessories) — no card background, text link */
+.rm-relslider--plain .rm-relc{background:transparent;padding:0 8px}
+.rm-relslider--plain .rm-relc-img{background-color:#fff}
+.rm-relslider--plain .rm-relc-btn{border:0;background:none;padding:0;text-decoration:underline;text-underline-offset:4px;margin-top:14px}
+.rm-relslider--plain .rm-relc:hover .rm-relc-btn{background:none;color:var(--accent)}
+@media(max-width:1100px){.rm-relslider{grid-auto-columns:calc((100% - 2*24px)/3)}}
+@media(max-width:680px){.rm-relslider{grid-auto-columns:calc((100% - 24px)/2)}}
 /* Dimension diagrams */
 .rm-dimgrid{display:flex;flex-wrap:wrap;gap:18px;justify-content:center;align-items:flex-start}
 /* Dimension diagrams are small line drawings — never upscale them (that's what

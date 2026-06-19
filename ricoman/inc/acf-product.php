@@ -124,15 +124,33 @@ function ricoman_pf_highlights( $kf, $max = 4 ) {
 	return '<ul class="rm-hi">' . $li . '</ul>';
 }
 
+/** A product card for the related / accessories carousels. */
+function ricoman_pf_relcard( $href, $img, $title, $sub = '', $plain = false, $btn = 'View Product' ) {
+	return '<a class="rm-relc' . ( $plain ? ' rm-relc--plain' : '' ) . '" href="' . esc_url( $href ) . '">'
+		. '<span class="rm-relc-img"' . ( $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '' ) . '></span>'
+		. '<span class="rm-relc-t">' . esc_html( $title ) . '</span>'
+		. ( $sub ? '<span class="rm-relc-s">' . esc_html( $sub ) . '</span>' : '' )
+		. '<span class="rm-relc-btn">' . esc_html( $btn ) . ' <span aria-hidden="true">&rarr;</span></span></a>';
+}
+
+/** A titled horizontal carousel (prev/next arrows) of product cards. */
+function ricoman_pf_carousel( $title, $cards, $plain = false ) {
+	if ( '' === trim( (string) $cards ) ) {
+		return '';
+	}
+	return '<div class="rm-relhead"><h2 class="rm-relttl">' . esc_html( $title ) . '</h2>'
+		. '<div class="rm-relnav"><button type="button" class="rm-relarrow" data-rel="prev" aria-label="Previous">&larr;</button>'
+		. '<button type="button" class="rm-relarrow" data-rel="next" aria-label="Next">&rarr;</button></div></div>'
+		. '<div class="rm-relslider' . ( $plain ? ' rm-relslider--plain' : '' ) . '">' . $cards . '</div>';
+}
+
 /**
- * Accessory products to show on a product page — products flagged
- * `is_accessories_product`, preferring the same category, else any. Rendered as
- * a card grid. The Accessories section is a toggleable block in the builder, so
- * it can be removed per product.
+ * Accessory products — every product flagged `is_accessories_product`, as a
+ * carousel. The Accessories section is a toggleable block in the builder.
  */
-function ricoman_pf_accessories( $pid, $max = 10 ) {
-	$yes  = array( '1', 'yes', 'Yes', 'YES', 'true', 'on' );
-	$base = array(
+function ricoman_pf_accessories( $pid, $max = 24 ) {
+	$yes = array( '1', 'yes', 'Yes', 'YES', 'true', 'on' );
+	$q   = new WP_Query( array(
 		'post_type'      => 'product',
 		'post_status'    => 'publish',
 		'posts_per_page' => $max,
@@ -141,36 +159,23 @@ function ricoman_pf_accessories( $pid, $max = 10 ) {
 		'orderby'        => 'title',
 		'order'          => 'ASC',
 		'meta_query'     => array( array( 'key' => 'is_accessories_product', 'value' => $yes, 'compare' => 'IN' ) ),
-	);
-	$tax   = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
-	$terms = wp_get_post_terms( $pid, $tax, array( 'fields' => 'ids' ) );
-	$q     = null;
-	if ( ! is_wp_error( $terms ) && $terms ) {
-		$a              = $base;
-		$a['tax_query'] = array( array( 'taxonomy' => $tax, 'terms' => $terms ) );
-		$q              = new WP_Query( $a );
-	}
-	if ( ! $q || ! $q->have_posts() ) {
-		$q = new WP_Query( $base );
-	}
+	) );
 	if ( ! $q->have_posts() ) {
 		return '';
 	}
 	$cards = '';
 	while ( $q->have_posts() ) {
 		$q->the_post();
-		$img  = function_exists( 'ricoman_product_img' ) ? ricoman_product_img( get_the_ID() ) : get_the_post_thumbnail_url( get_the_ID(), 'large' );
-		$sub  = ricoman_pf_get( get_the_ID(), 'product_subname' );
-		$cards .= '<a class="rm-rel-card" href="' . esc_url( get_permalink() ) . '"><span class="rm-rel-img"' . ( $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '' ) . '></span>'
-			. '<span class="rm-rel-t">' . esc_html( get_the_title() ) . '</span>'
-			. ( $sub ? '<span class="rm-rel-s">' . esc_html( $sub ) . '</span>' : '' ) . '</a>';
+		$img    = function_exists( 'ricoman_product_img' ) ? ricoman_product_img( get_the_ID() ) : get_the_post_thumbnail_url( get_the_ID(), 'large' );
+		$sub    = ricoman_pf_get( get_the_ID(), 'product_subname' );
+		$cards .= ricoman_pf_relcard( get_permalink(), $img, get_the_title(), $sub, true, 'View More' );
 	}
 	wp_reset_postdata();
-	return '<div class="rm-relgrid">' . $cards . '</div>';
+	return ricoman_pf_carousel( 'Accessories', $cards, true );
 }
 
-/** "You may also like" grid — other products in the same category. */
-function ricoman_pf_related( $pid, $max = 5 ) {
+/** "You may also like" — carousel of other products in the same category. */
+function ricoman_pf_related( $pid, $max = 12 ) {
 	$tax   = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
 	$terms = wp_get_post_terms( $pid, $tax, array( 'fields' => 'ids' ) );
 	if ( is_wp_error( $terms ) || ! $terms ) {
@@ -192,13 +197,10 @@ function ricoman_pf_related( $pid, $max = 5 ) {
 	while ( $q->have_posts() ) {
 		$q->the_post();
 		$img    = function_exists( 'ricoman_product_img' ) ? ricoman_product_img( get_the_ID() ) : get_the_post_thumbnail_url( get_the_ID(), 'large' );
-		$sub    = ricoman_pf_get( get_the_ID(), 'product_subname' );
-		$cards .= '<a class="rm-rel-card" href="' . esc_url( get_permalink() ) . '"><span class="rm-rel-img"' . ( $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '' ) . '></span>'
-			. '<span class="rm-rel-t">' . esc_html( get_the_title() ) . '</span>'
-			. ( $sub ? '<span class="rm-rel-s">' . esc_html( $sub ) . '</span>' : '' ) . '</a>';
+		$cards .= ricoman_pf_relcard( get_permalink(), $img, get_the_title(), '', false, 'View Product' );
 	}
 	wp_reset_postdata();
-	return '<div class="rm-section"><div class="rm-pp-wrap"><h2 class="rm-shead">You may also like</h2><div class="rm-relgrid">' . $cards . '</div></div></div>';
+	return '<div class="rm-section"><div class="rm-pp-wrap">' . ricoman_pf_carousel( 'You may also like', $cards, false ) . '</div></div>';
 }
 
 /**
@@ -1101,7 +1103,7 @@ function ricoman_pf_sections( $pid ) {
 	// ---- Accessories — accessory products (toggle/remove per product in builder) ----
 	$acc_grid  = ricoman_pf_accessories( $pid );
 	if ( $acc_grid ) {
-		$acc_block = '<div class="rm-section"><div class="rm-pp-wrap"><h2 class="rm-shead">Accessories</h2>' . $acc_grid . '</div></div>';
+		$acc_block = '<div class="rm-section"><div class="rm-pp-wrap">' . $acc_grid . '</div></div>';
 	} else {
 		$acc_live  = do_shortcode( '[ricoman_accessories_live]' );
 		$acc_block = ( $acc_live && false === strpos( $acc_live, 'rm-config-note' ) )

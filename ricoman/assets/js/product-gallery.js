@@ -72,6 +72,18 @@
 		} );
 	} );
 
+	/* ---- Related / Accessories carousel arrows ---- */
+	document.addEventListener( 'click', function ( e ) {
+		var a = e.target.closest( '.rm-relarrow' );
+		if ( ! a ) { return; }
+		var head = a.closest( '.rm-relhead' );
+		var slider = head && head.nextElementSibling;
+		if ( ! slider || ! slider.classList || ! slider.classList.contains( 'rm-relslider' ) ) { return; }
+		var first = slider.firstElementChild;
+		var step = first ? ( first.getBoundingClientRect().width + 24 ) * 2 : 600;
+		slider.scrollBy( { left: ( a.getAttribute( 'data-rel' ) === 'prev' ? -step : step ), behavior: 'smooth' } );
+	} );
+
 	/* ---- Variant spec popup ---- */
 	function openVariant( row ) {
 		var vp = row.closest( '.rm-vp' ); if ( ! vp ) { return; }
