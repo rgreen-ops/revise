@@ -394,7 +394,7 @@ function ricoman_pf_render_endpoint( $d, $pid ) {
 		}
 	}
 
-	$out .= '<script>(function(){var w=document.currentScript.previousElementSibling;if(!w)return;var im=w.querySelector(".rm-cfg-img");function bind(sel){w.querySelectorAll(sel).forEach(function(b){b.addEventListener("click",function(){if(b.dataset.img&&im){im.src=b.dataset.img;}var p=b.parentNode;p.querySelectorAll(sel).forEach(function(x){x.classList.remove("on");});b.classList.add("on");});});}bind(".rm-cv-sw");bind(".rm-cfg-thumb");w.querySelectorAll(".rm-gtab").forEach(function(t){t.addEventListener("click",function(){w.querySelectorAll(".rm-gtab").forEach(function(x){x.classList.remove("on");});t.classList.add("on");var tab=t.dataset.tab;w.querySelectorAll(".rm-gthumbs .rm-cfg-thumb").forEach(function(th){th.style.display=(tab==="all"||th.dataset.tab===tab)?"":"none";});});});})();</script>';
+	$out .= '<script>(function(){var w=document.currentScript.previousElementSibling;if(!w)return;var im=w.querySelector(".rm-cfg-img");function bind(sel){w.querySelectorAll(sel).forEach(function(b){b.addEventListener("click",function(){if(b.dataset.img&&im){im.src=b.dataset.img;}var p=b.parentNode;p.querySelectorAll(sel).forEach(function(x){x.classList.remove("on");});b.classList.add("on");});});}bind(".rm-cv-sw");bind(".rm-cfg-thumb");w.querySelectorAll(".rm-gtab").forEach(function(t){t.addEventListener("click",function(){if(t.disabled)return;w.querySelectorAll(".rm-gtab").forEach(function(x){x.classList.remove("on");});t.classList.add("on");var tab=t.dataset.tab;w.querySelectorAll(".rm-gthumbs .rm-cfg-thumb").forEach(function(th){th.style.display=(tab==="all"||th.dataset.tab===tab)?"":"none";});});});var lb=w.querySelector(".rm-lightbox"),lbi=lb?lb.querySelector(".rm-lightbox-img"):null;if(lb&&lbi&&im){im.addEventListener("click",function(){lbi.src=im.src;lb.hidden=false;document.body.style.overflow="hidden";});function cl(){lb.hidden=true;document.body.style.overflow="";}lb.addEventListener("click",function(e){if(e.target===lb||e.target.classList.contains("rm-lightbox-x"))cl();});document.addEventListener("keydown",function(e){if(e.key==="Escape")cl();});}})();</script>';
 	return $out;
 }
 
@@ -607,21 +607,19 @@ function ricoman_pf_gallery_block( $pid, $title, $code, $sw_html ) {
 		$thumbs .= $thumb( $u, 'insitu', false );
 	}
 
-	$tabs = '<button type="button" class="rm-gtab on" data-tab="all">All</button>';
-	if ( $studio ) {
-		$tabs .= '<button type="button" class="rm-gtab" data-tab="studio">Studio</button>';
-	}
-	if ( $insitu ) {
-		$tabs .= '<button type="button" class="rm-gtab" data-tab="insitu">In-situ</button>';
-	}
+	// Always show the All / Studio / In-situ buttons; grey out any with no images.
+	$tabs = '<button type="button" class="rm-gtab on" data-tab="all">All</button>'
+		. '<button type="button" class="rm-gtab' . ( $studio ? '' : ' rm-gtab--off' ) . '" data-tab="studio"' . ( $studio ? '' : ' disabled' ) . '>Studio</button>'
+		. '<button type="button" class="rm-gtab' . ( $insitu ? '' : ' rm-gtab--off' ) . '" data-tab="insitu"' . ( $insitu ? '' : ' disabled' ) . '>In-situ</button>';
 
 	return '<div class="rm-cfg-stage rm-pdp-gallery">'
-		. '<div class="rm-cfg-viz"><img class="rm-cfg-img" src="' . esc_url( $main ) . '" alt="' . esc_attr( $title ) . '">'
+		. '<div class="rm-cfg-viz"><img class="rm-cfg-img rm-zoomable" src="' . esc_url( $main ) . '" alt="' . esc_attr( $title ) . '">'
 		. ( $sw_html ? '<div class="rm-cv-swatches rm-pdp-sw">' . $sw_html . '</div>' : '' )
-		. ( $code ? '<span class="rm-pdp-codechip">' . esc_html( $code ) . '</span>' : '' )
+		. '<span class="rm-zoom-hint" aria-hidden="true">⤢</span>'
 		. '</div>'
-		. ( ( $studio && $insitu ) ? '<div class="rm-gtabs">' . $tabs . '</div>' : '' )
+		. ( $thumbs ? '<div class="rm-gtabs">' . $tabs . '</div>' : '' )
 		. ( $thumbs ? '<div class="rm-cfg-thumbs rm-gthumbs">' . $thumbs . '</div>' : '' )
+		. '<div class="rm-lightbox" hidden><button type="button" class="rm-lightbox-x" aria-label="Close">&times;</button><img class="rm-lightbox-img" src="" alt=""></div>'
 		. '</div>';
 }
 
@@ -789,7 +787,7 @@ add_shortcode( 'ricoman_product_page', function () {
 	$cta = '<div class="wp-block-cover alignfull has-base-color has-text-color" style="min-height:46vh"><span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-70 has-background-dim"></span><img class="wp-block-cover__image-background" alt="" src="' . esc_url( get_theme_file_uri( 'assets/images/office1.webp' ) ) . '" data-object-fit="cover"/><div class="wp-block-cover__inner-container"><h2 class="wp-block-heading has-text-align-center" style="text-align:center">Specify this product</h2><p class="has-text-align-center" style="text-align:center">Add it to your project or request a free lighting scheme.</p><div class="wp-block-buttons is-content-justification-center" style="display:flex;justify-content:center;gap:10px"><a class="btn btn-line" href="' . $enq . '">Add to My Project</a> <a class="btn btn-solid" href="' . esc_url( $ldu ) . '">' . esc_html( $ld ) . '</a></div></div></div>';
 
 	$out  = $hero_html . $acc_sec . $var_sec . $acc_block . $related . $cta;
-	$out .= '<script>(function(){var w=document.currentScript.previousElementSibling;if(!w)return;var im=w.querySelector(".rm-cfg-img");function bind(sel){w.querySelectorAll(sel).forEach(function(b){b.addEventListener("click",function(){if(b.dataset.img&&im){im.src=b.dataset.img;}var p=b.parentNode;p.querySelectorAll(sel).forEach(function(x){x.classList.remove("on");});b.classList.add("on");});});}bind(".rm-cv-sw");bind(".rm-cfg-thumb");w.querySelectorAll(".rm-gtab").forEach(function(t){t.addEventListener("click",function(){w.querySelectorAll(".rm-gtab").forEach(function(x){x.classList.remove("on");});t.classList.add("on");var tab=t.dataset.tab;w.querySelectorAll(".rm-gthumbs .rm-cfg-thumb").forEach(function(th){th.style.display=(tab==="all"||th.dataset.tab===tab)?"":"none";});});});})();</script>';
+	$out .= '<script>(function(){var w=document.currentScript.previousElementSibling;if(!w)return;var im=w.querySelector(".rm-cfg-img");function bind(sel){w.querySelectorAll(sel).forEach(function(b){b.addEventListener("click",function(){if(b.dataset.img&&im){im.src=b.dataset.img;}var p=b.parentNode;p.querySelectorAll(sel).forEach(function(x){x.classList.remove("on");});b.classList.add("on");});});}bind(".rm-cv-sw");bind(".rm-cfg-thumb");w.querySelectorAll(".rm-gtab").forEach(function(t){t.addEventListener("click",function(){if(t.disabled)return;w.querySelectorAll(".rm-gtab").forEach(function(x){x.classList.remove("on");});t.classList.add("on");var tab=t.dataset.tab;w.querySelectorAll(".rm-gthumbs .rm-cfg-thumb").forEach(function(th){th.style.display=(tab==="all"||th.dataset.tab===tab)?"":"none";});});});var lb=w.querySelector(".rm-lightbox"),lbi=lb?lb.querySelector(".rm-lightbox-img"):null;if(lb&&lbi&&im){im.addEventListener("click",function(){lbi.src=im.src;lb.hidden=false;document.body.style.overflow="hidden";});function cl(){lb.hidden=true;document.body.style.overflow="";}lb.addEventListener("click",function(e){if(e.target===lb||e.target.classList.contains("rm-lightbox-x"))cl();});document.addEventListener("keydown",function(e){if(e.key==="Escape")cl();});}})();</script>';
 	return $out;
 } );
 

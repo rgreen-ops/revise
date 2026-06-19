@@ -976,3 +976,15 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 /* a little air below the hero before the accordions/sections */
 .rm-cfghero{padding-bottom:clamp(28px,4vw,56px)}
 .rm-accs{margin-top:clamp(10px,2vw,24px)}
+
+/* ===== Product hero: light-grey section, click-to-enlarge, tab states ===== */
+.rm-cfghero-wrap{background:#f7f7f7}
+.rm-zoomable{cursor:zoom-in}
+.rm-zoom-hint{position:absolute;right:14px;bottom:14px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);color:#fff;border-radius:8px;font-size:1.05rem;pointer-events:none;opacity:0;transition:opacity .2s ease;z-index:3}
+.rm-cfg-viz:hover .rm-zoom-hint{opacity:1}
+.rm-gtab--off{opacity:.35;cursor:not-allowed}
+.rm-gtab--off:hover{background:none;color:var(--muted)}
+.rm-lightbox{position:fixed;inset:0;background:rgba(10,10,12,.93);z-index:9999;display:flex;align-items:center;justify-content:center;padding:4vw}
+.rm-lightbox[hidden]{display:none}
+.rm-lightbox-img{max-width:92vw;max-height:88vh;object-fit:contain;border-radius:6px;background:#fff}
+.rm-lightbox-x{position:absolute;top:18px;right:26px;background:none;border:0;color:#fff;font-size:2.6rem;line-height:1;cursor:pointer}
