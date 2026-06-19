@@ -100,7 +100,7 @@ add_shortcode( 'ricoman_header', function () {
 		. '.rm-mega-col ul.rm-mega-coll{gap:.95em!important}'
 		. '.rm-mega-col li{margin:0!important;line-height:1.3!important}'
 		. '.rm-mega-col ul a{font-size:.9rem!important;line-height:1.3!important;display:block!important;padding:0!important}'
-		. '.rm-mega-coll a{display:flex!important;flex-direction:column!important;gap:1px!important}'
+		. '.rm-mega-col ul.rm-mega-coll a{display:flex!important;flex-direction:column!important;gap:1px!important}'
 		. '.rm-mega-col h4{font-size:1.05rem!important;margin:0 0 .85em!important}'
 		. '</style>';
 

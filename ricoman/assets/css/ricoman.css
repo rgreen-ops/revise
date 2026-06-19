@@ -532,7 +532,7 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-mega-col li{margin:0;line-height:1.3}
 .rm-mega-col ul a{font-family:Poppins;font-size:.9rem;font-weight:500;line-height:1.3;letter-spacing:0;text-transform:none;color:#4a4a4a!important;display:block;padding:0}
 .rm-mega-col ul a:hover{color:var(--ink)!important}
-.rm-mega-coll a{display:flex;flex-direction:column;gap:1px}
+.rm-mega-col ul.rm-mega-coll a{display:flex;flex-direction:column;gap:1px}
 .rm-mega-name{font-weight:600;color:var(--ink)!important}
 .rm-mega-sub{font-size:.78rem;color:#9a9a9a!important}
 .rm-mega-cards{display:flex;flex-direction:column;gap:14px}
