@@ -1134,9 +1134,10 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 @media(max-width:900px){.rm-pdp .rm-pdp-gallery{position:static}}
 /* ---- Mobile PDP: full-width hero, stacked CTAs, no horizontal overflow ---- */
 @media(max-width:600px){
-  .rm-cfghero{padding-inline:clamp(14px,4vw,20px)}
-  .rm-cfg-acts{flex-direction:column;align-items:stretch;gap:10px}
-  .rm-cfg-acts .btn{width:100%;justify-content:center;text-align:center;white-space:normal;padding:1em 1.2em;font-size:.74rem}
+  .rm-cfghero{padding-inline:clamp(16px,5vw,24px)}
+  /* Stacked, centred CTAs that don't span edge-to-edge — room to breathe */
+  .rm-cfg-acts{flex-direction:column;align-items:center;gap:10px}
+  .rm-cfg-acts .btn{width:auto;max-width:100%;justify-content:center;text-align:center;white-space:normal;padding:.85em 1.5em;font-size:.72rem;letter-spacing:.05em}
 }
 html,body{overflow-x:clip}
 
