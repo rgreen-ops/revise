@@ -110,7 +110,7 @@ function ricoman_pf_highlights( $kf, $max = 4 ) {
 	if ( ! $items ) {
 		return '';
 	}
-	$ic = '<svg class="rm-hi-ic" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.6"/><path d="M8 12.2l2.6 2.6L16 9.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+	$ic = '<svg class="rm-hi-ic" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 	$li = '';
 	foreach ( $items as $t ) {
 		// "Title: description" -> bold title + text.
