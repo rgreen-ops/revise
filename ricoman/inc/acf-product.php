@@ -117,11 +117,166 @@ function ricoman_pf_gallery( $pid ) {
 }
 
 /* ----------------------------------------------------- the full product page */
+/**
+ * Pull a product's fully-resolved data from the site's own headless API
+ * (get_product_details_data) via an internal REST dispatch — no HTTP, and it
+ * returns real image URLs + every section (swatches, paragraphs, zig-zag, …).
+ * That endpoint is provided by the site's API plugin, so it survives the theme
+ * switch. Returns null if unavailable (then we fall back to reading ACF/meta).
+ */
+function ricoman_pf_endpoint( $slug ) {
+	if ( ! $slug || ! function_exists( 'rest_do_request' ) ) {
+		return null;
+	}
+	$req = new WP_REST_Request( 'GET', '/wp/v2/get_product_details_data' );
+	$req->set_param( 'slug', $slug );
+	$res = rest_do_request( $req );
+	if ( ! ( $res instanceof WP_REST_Response ) || $res->is_error() ) {
+		return null;
+	}
+	$d = $res->get_data();
+	return ( is_array( $d ) && ! empty( $d['product_title'] ) ) ? $d : null;
+}
+
+/** Build a localised product permalink from a slug. */
+function ricoman_pf_permalink( $slug ) {
+	$p = get_page_by_path( $slug, OBJECT, 'product' );
+	return $p ? get_permalink( $p ) : home_url( '/products/' . $slug . '/' );
+}
+
+/** Render the whole product page from the resolved endpoint data, in the new design. */
+function ricoman_pf_render_endpoint( $d, $pid ) {
+	$e   = function ( $s ) { return esc_html( (string) $s ); };
+	$cat = ( ! empty( $d['product_categories'][0]['product_cat_name'] ) ) ? $d['product_categories'][0]['product_cat_name'] : '';
+	$hero = ! empty( $d['featured_image_url'] ) ? $d['featured_image_url'] : '';
+
+	// Swatches (colour variants) — variant_name / main_image / variant_icon.
+	$sw = '';
+	if ( ! empty( $d['get_swatch_product_data'] ) && is_array( $d['get_swatch_product_data'] ) ) {
+		foreach ( $d['get_swatch_product_data'] as $i => $v ) {
+			$icon = ! empty( $v['variant_icon'] ) ? $v['variant_icon'] : '';
+			$mimg = ! empty( $v['main_image'] ) ? $v['main_image'] : '';
+			if ( '' === $hero && $mimg ) {
+				$hero = $mimg;
+			}
+			$style = $icon ? 'background-image:url(' . esc_url( $icon ) . ')' : '';
+			$sw   .= '<button type="button" class="rm-cv-sw' . ( 0 === $i ? ' on' : '' ) . '" data-img="' . esc_url( $mimg ) . '" style="' . $style . '" aria-label="' . esc_attr( $v['variant_name'] ) . '"><span>' . $e( $v['variant_name'] ) . '</span></button>';
+		}
+	}
+	// Gallery thumbs.
+	$thumbs = '';
+	if ( ! empty( $d['product_gallery_image'] ) && is_array( $d['product_gallery_image'] ) ) {
+		foreach ( $d['product_gallery_image'] as $j => $g ) {
+			$u = is_array( $g ) ? ( $g['url'] ?? '' ) : $g;
+			if ( $u ) {
+				$thumbs .= '<button type="button" class="rm-cfg-thumb' . ( 0 === $j ? ' on' : '' ) . '" data-img="' . esc_url( $u ) . '"><img src="' . esc_url( $u ) . '" alt="" loading="lazy" onerror="this.parentNode.style.display=\'none\'"></button>';
+			}
+		}
+	}
+	if ( '' === $hero ) {
+		$hero = esc_url( get_theme_file_uri( 'assets/images/ceiling.webp' ) );
+	}
+
+	// CTA buttons (from the product's own fields).
+	$ldl  = ! empty( $d['lighting_design_button_link'] ) ? $d['lighting_design_button_link'] : '/lighting-design/';
+	$ldt  = ! empty( $d['lighting_design_button_title'] ) ? $d['lighting_design_button_title'] : 'Request a Lighting Design';
+	$trl  = ! empty( $d['trade_button_link'] ) ? $d['trade_button_link'] : '/contact/';
+	$trt  = ! empty( $d['trade_button_title'] ) ? $d['trade_button_title'] : 'Apply for a Trade Account';
+	$acts = '<div class="rm-cfg-acts"><a class="btn btn-solid" href="' . esc_url( home_url( '/my-project/' ) ) . '">＋ Add to My Project</a> <a class="btn btn-line-d" href="' . esc_url( $ldl ) . '">' . $e( $ldt ) . '</a> <a class="btn btn-line-d" href="' . esc_url( $trl ) . '">' . $e( $trt ) . '</a></div>';
+
+	$spec = ! empty( $d['specification'] ) ? '<div class="rm-spechtml">' . wp_kses_post( wpautop( $d['specification'] ) ) . '</div>' : '';
+
+	// ---- Split hero ----
+	$out  = '<div class="rm-cfghero-wrap"><div class="rm-cfghero">'
+		. '<div class="rm-cfg-stage"><div class="rm-cfg-viz"><img class="rm-cfg-img" src="' . esc_url( $hero ) . '" alt="' . esc_attr( $d['product_title'] ) . '"></div>'
+		. ( $sw ? '<div class="rm-cv-swatches">' . $sw . '</div>' : '' )
+		. ( $thumbs ? '<div class="rm-cfg-thumbs">' . $thumbs . '</div>' : '' )
+		. '</div><div class="rm-cfg-panel">'
+		. ( $cat ? '<p class="rm-eyebrow">' . $e( $cat ) . '</p>' : '' )
+		. '<h1 class="rm-cfg-name">' . $e( $d['product_title'] ) . '</h1>'
+		. ( ! empty( $d['product_subname'] ) ? '<p class="rm-cfg-desc">' . $e( $d['product_subname'] ) . '</p>' : '' )
+		. ( ! empty( $d['product_sort_description'] ) ? '<p>' . $e( $d['product_sort_description'] ) . '</p>' : '' )
+		. $spec . $acts . '</div></div></div>';
+
+	// Paragraph info → "Why specify" style band.
+	if ( ! empty( $d['get_paragraph_info_section'] ) && is_array( $d['get_paragraph_info_section'] ) ) {
+		$pp = '';
+		foreach ( $d['get_paragraph_info_section'] as $p ) {
+			$txt = is_array( $p ) ? ( $p['paragraph_content'] ?? '' ) : $p;
+			if ( $txt ) {
+				$pp .= '<div class="rm-sp-card"><p>' . $e( $txt ) . '</p></div>';
+			}
+		}
+		if ( $pp ) {
+			$out .= '<div class="rm-sp"><div class="rm-sp-inner"><p class="rm-eyebrow rm-sp-kick">Why specify ' . $e( $d['product_title'] ) . '</p><div class="rm-sp-grid">' . $pp . '</div></div></div>';
+		}
+	}
+
+	// Zig-zag (image/video + text + button), up to two boxes.
+	$z = isset( $d['product_image_video_sec_data'] ) && is_array( $d['product_image_video_sec_data'] ) ? $d['product_image_video_sec_data'] : array();
+	$zz = '';
+	foreach ( array( 'first', 'second' ) as $bi => $box ) {
+		$im = ! empty( $z[ 'upload_' . $box . '_media_image' ] ) ? $z[ 'upload_' . $box . '_media_image' ] : '';
+		$vd = ! empty( $z[ 'upload_' . $box . '_media_video' ] ) ? $z[ 'upload_' . $box . '_media_video' ] : '';
+		$bc = ! empty( $z[ $box . '_box_content' ] ) ? $z[ $box . '_box_content' ] : '';
+		if ( ! $im && ! $vd && ! $bc ) {
+			continue;
+		}
+		$media = $vd ? '<video controls playsinline src="' . esc_url( is_array( $vd ) ? ( $vd['url'] ?? '' ) : $vd ) . '"></video>' : ( $im ? '<img src="' . esc_url( is_array( $im ) ? ( $im['url'] ?? '' ) : $im ) . '" alt="" loading="lazy">' : '' );
+		$bt    = ! empty( $z[ $box . '_box_button_title' ] ) ? '<a class="btn btn-line-d" href="' . esc_url( $z[ $box . '_box_button_link' ] ?? '#' ) . '">' . $e( $z[ $box . '_box_button_title' ] ) . '</a>' : '';
+		$zz   .= '<div class="rm-zz-row' . ( 0 === $bi % 2 ? '' : ' rev' ) . '"><div class="rm-zz-media">' . $media . '</div><div class="rm-zz-body">' . ( $bc ? wp_kses_post( wpautop( $bc ) ) : '' ) . $bt . '</div></div>';
+	}
+	if ( $zz ) {
+		$out .= '<div class="rm-section"><div class="rm-zz">' . $zz . '</div></div>';
+	}
+
+	// Order codes & variants — RICOBOT live (this is what replaces the CSV).
+	$out .= '<div class="rm-section"><div class="rm-pp-wrap"><h2 class="rm-shead">Order codes &amp; variants</h2>' . do_shortcode( '[ricoman_family]' ) . '</div></div>';
+
+	// Downloads.
+	if ( ! empty( $d['download_section'] ) && is_array( $d['download_section'] ) ) {
+		$dl = '';
+		foreach ( $d['download_section'] as $row ) {
+			$file = is_array( $row ) ? ( $row['download-file'] ?? '' ) : '';
+			$dt   = is_array( $row ) ? ( $row['download-title'] ?? 'Download' ) : 'Download';
+			if ( $file ) {
+				$dl .= '<li><a href="' . esc_url( $file ) . '" target="_blank" rel="noopener">' . $e( $dt ) . ' &darr;</a></li>';
+			}
+		}
+		if ( $dl ) {
+			$out .= '<div class="rm-section"><div class="rm-pp-wrap"><div class="rm-prod-downloads"><h3 class="rm-shead">Downloads</h3><ul>' . $dl . '</ul></div></div></div>';
+		}
+	}
+
+	// Related products.
+	if ( ! empty( $d['related_products'] ) && is_array( $d['related_products'] ) ) {
+		$rc = '';
+		foreach ( array_slice( $d['related_products'], 0, 3 ) as $rp ) {
+			$img  = ! empty( $rp['image'] ) ? $rp['image'] : '';
+			$href = ricoman_pf_permalink( $rp['slug'] ?? '' );
+			$rc  .= '<div class="wp-block-column"><div class="wp-block-group rm-card"><figure class="wp-block-image size-large"><a href="' . esc_url( $href ) . '"><img src="' . esc_url( $img ) . '" alt="' . esc_attr( $rp['title'] ?? '' ) . '" loading="lazy"></a></figure><h3 class="wp-block-heading"><a href="' . esc_url( $href ) . '">' . $e( $rp['title'] ?? '' ) . '</a></h3>' . ( ! empty( $rp['sub_name'] ) ? '<p class="has-muted-color has-text-color has-small-font-size">' . $e( $rp['sub_name'] ) . '</p>' : '' ) . '</div></div>';
+		}
+		if ( $rc ) {
+			$out .= '<div class="rm-section"><div class="rm-pp-wrap"><p class="rm-eyebrow">More from the range</p><h2 class="rm-shead">You may also like</h2><div class="wp-block-columns">' . $rc . '</div></div></div>';
+		}
+	}
+
+	$out .= '<script>(function(){var w=document.currentScript.previousElementSibling;if(!w)return;var im=w.querySelector(".rm-cfg-img");function bind(sel){w.querySelectorAll(sel).forEach(function(b){b.addEventListener("click",function(){if(b.dataset.img&&im){im.src=b.dataset.img;}var p=b.parentNode;p.querySelectorAll(sel).forEach(function(x){x.classList.remove("on");});b.classList.add("on");});});}bind(".rm-cv-sw");bind(".rm-cfg-thumb");})();</script>';
+	return $out;
+}
+
 add_shortcode( 'ricoman_product_page', function () {
 	$pid = get_the_ID();
 	if ( ! $pid ) {
 		return '';
 	}
+	// Primary: render from the site's resolved product API (marketing content),
+	// with RICOBOT supplying the live variants/specs.
+	$d = ricoman_pf_endpoint( get_post_field( 'post_name', $pid ) );
+	if ( $d ) {
+		return ricoman_pf_render_endpoint( $d, $pid );
+	}
+	// Fallback: read ACF/meta fields directly.
 	$title   = get_the_title( $pid );
 	$subname = ricoman_pf_get( $pid, 'product_subname' );
 	$sortd   = ricoman_pf_get( $pid, 'product_sort_description' );
