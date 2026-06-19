@@ -39,6 +39,9 @@ function ricoman_live_origin() {
 		$bare  = preg_replace( '/^staging\./i', '', $host );
 		if ( $bare && $bare !== $host ) {
 			$live = 'https://' . $bare;
+		} else {
+			// Default to the known live site when the host isn't a "staging." subdomain.
+			$live = 'https://ricoman.com';
 		}
 	}
 	$live = $live ? rtrim( $live, '/' ) : '';
