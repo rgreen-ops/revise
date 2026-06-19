@@ -895,7 +895,9 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-vptable .vt-thumb{width:64px}
 .rm-vptable .vt-thumb img{width:54px;height:54px;object-fit:contain;background:#f2f2f0;border-radius:6px}
 .rm-vptable .vt-code{font-family:Poppins;font-weight:600;color:var(--accent);white-space:nowrap}
-.rm-vptable .vt-desc{min-width:240px}
+.rm-vptable .vt-desc{min-width:200px}
+.rm-vptable .vt-spec{white-space:nowrap;color:var(--ink)}
+.rm-vptable th{white-space:nowrap}
 .rm-vptable .vt-dl a{color:var(--ink);text-decoration:none;font-weight:600;white-space:nowrap}
 .rm-vptable .vt-dl a:hover{color:var(--accent)}
 

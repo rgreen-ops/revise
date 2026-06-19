@@ -517,10 +517,46 @@ function ricoman_variant_lumens( $vid ) {
 	return '';
 }
 
+/** The full variant spec columns (meta key => label), in display order. No pricing. */
+function ricoman_variant_spec_columns() {
+	return array(
+		'lumens'                 => 'Lumens',
+		'efficacy'               => 'Efficacy',
+		'cri'                    => 'CRI',
+		'beam_angle'             => 'Beam Angle',
+		'ip_rating'              => 'IP',
+		'ik_rating'              => 'IK',
+		'ugr'                    => 'UGR',
+		'voltage_range'          => 'Voltage',
+		'power_factor'           => 'Power Factor',
+		'inrush_current'         => 'Inrush',
+		'running_current'        => 'Running Current',
+		'operating_temperatures' => 'Operating Temp',
+		'operating_hours'        => 'Operating Hours',
+		'colour_finish'          => 'Colour Finish',
+		'colour_deviation'       => 'Colour Deviation',
+		'macadam_ellipse'        => 'MacAdam',
+		'l70_b50'                => 'L70 B50',
+		'l80_b50'                => 'L80 B50',
+		'l90_b50'                => 'L90 B50',
+		'optics'                 => 'Optics',
+		'leds'                   => 'LEDs',
+		'dimensions'             => 'Dimensions (mm)',
+		'unit_weight'            => 'Weight',
+		'construction_material'  => 'Construction',
+		'diffuser_type'          => 'Diffuser',
+		'luminaire_fixing'       => 'Fixing',
+		'applications'           => 'Applications',
+		'warranty'               => 'Warranty',
+		'certifications'         => 'Certifications',
+	);
+}
+
 /**
  * Configure / order-codes table, built from the linked `variant-product` posts
- * (ACF `parent_product` == this product). This is the staging-data equivalent of
- * the old site's Configure Your Product table.
+ * (ACF `parent_product` == this product). Shows every spec column that actually
+ * has data across the variants (Lumens, Voltage, Wattage, IP, CRI, …), like the
+ * old site's Configure Your Product table — horizontally scrollable. No pricing.
  */
 function ricoman_pf_variant_table( $pid ) {
 	if ( ! post_type_exists( 'variant-product' ) ) {
@@ -539,7 +575,11 @@ function ricoman_pf_variant_table( $pid ) {
 		return '';
 	}
 	$datasheet = ricoman_pf_fileurl( ricoman_pf_get( $pid, 'download_family_datasheet' ) );
-	$rows      = '';
+	$specs     = ricoman_variant_spec_columns();
+
+	// Pass 1: gather each variant's data and note which spec columns have values.
+	$variants = array();
+	$has_col  = array();
 	while ( $q->have_posts() ) {
 		$q->the_post();
 		$vid  = get_the_ID();
@@ -551,30 +591,59 @@ function ricoman_pf_variant_table( $pid ) {
 		if ( '' === trim( (string) $desc ) ) {
 			$desc = get_the_title();
 		}
-		$lm   = ricoman_variant_lumens( $vid );
-		$dim  = ricoman_pf_get( $vid, 'dimensions' );
-		$ldt  = ricoman_pf_fileurl( ricoman_pf_get( $vid, 'download_led' ) );
-		$img  = ricoman_pf_imgurl( ricoman_pf_get( $vid, 'product_main_image' ) );
+		$img = ricoman_pf_imgurl( ricoman_pf_get( $vid, 'product_main_image' ) );
 		if ( ! $img ) {
 			$img = ricoman_pf_imgurl( ricoman_pf_get( $vid, 'product_gallery_image' ) );
 		}
-		$thumb = $img ? '<img src="' . esc_url( $img ) . '" alt="" loading="lazy">' : '';
-		// Datasheet is generated on the fly from this line's own data.
-		$ds_url = function_exists( 'ricoman_variant_datasheet_url' ) ? ricoman_variant_datasheet_url( $vid, $pid ) : $datasheet;
-		$rows .= '<tr>'
-			. '<td class="vt-thumb">' . $thumb . '</td>'
-			. '<td class="vt-code">' . esc_html( $code ) . '</td>'
-			. '<td class="vt-desc">' . esc_html( wp_strip_all_tags( (string) $desc ) ) . '</td>'
-			. '<td class="vt-lm">' . esc_html( $lm ) . '</td>'
-			. '<td class="vt-dim">' . esc_html( $dim ) . '</td>'
-			. '<td class="vt-dl">' . ( $ldt ? '<a href="' . esc_url( $ldt ) . '" target="_blank" rel="noopener" aria-label="LDT file">LDT ↓</a>' : '—' ) . '</td>'
-			. '<td class="vt-dl"><a href="' . esc_url( $ds_url ) . '" target="_blank" rel="noopener" aria-label="Datasheet">Datasheet ↓</a></td>'
-			. '</tr>';
+		$vals = array();
+		foreach ( $specs as $key => $label ) {
+			$v = ( 'lumens' === $key ) ? ricoman_variant_lumens( $vid ) : ricoman_pf_get( $vid, $key );
+			$v = is_scalar( $v ) ? trim( (string) $v ) : '';
+			$vals[ $key ] = $v;
+			if ( '' !== $v ) {
+				$has_col[ $key ] = true;
+			}
+		}
+		$variants[] = array(
+			'code'  => (string) $code,
+			'desc'  => wp_strip_all_tags( (string) $desc ),
+			'img'   => $img,
+			'ldt'   => ricoman_pf_fileurl( ricoman_pf_get( $vid, 'download_led' ) ),
+			'ds'    => function_exists( 'ricoman_variant_datasheet_url' ) ? ricoman_variant_datasheet_url( $vid, $pid ) : $datasheet,
+			'vals'  => $vals,
+		);
 	}
 	wp_reset_postdata();
-	return '<div class="rm-vptable-wrap"><table class="rm-vptable"><thead><tr>'
-		. '<th></th><th>Part Code</th><th>Description</th><th>Lumens</th><th>Dimensions</th><th>LDT</th><th>Datasheet</th>'
-		. '</tr></thead><tbody>' . $rows . '</tbody></table></div>';
+
+	// Only render columns that have at least one value.
+	$cols = array();
+	foreach ( $specs as $key => $label ) {
+		if ( ! empty( $has_col[ $key ] ) ) {
+			$cols[ $key ] = $label;
+		}
+	}
+
+	$head = '<th></th><th>Part Code</th><th>Description</th>';
+	foreach ( $cols as $label ) {
+		$head .= '<th>' . esc_html( $label ) . '</th>';
+	}
+	$head .= '<th>LDT</th><th>Datasheet</th>';
+
+	$rows = '';
+	foreach ( $variants as $v ) {
+		$thumb = $v['img'] ? '<img src="' . esc_url( $v['img'] ) . '" alt="" loading="lazy">' : '';
+		$rows .= '<tr><td class="vt-thumb">' . $thumb . '</td>'
+			. '<td class="vt-code">' . esc_html( $v['code'] ) . '</td>'
+			. '<td class="vt-desc">' . esc_html( $v['desc'] ) . '</td>';
+		foreach ( $cols as $key => $label ) {
+			$cell = isset( $v['vals'][ $key ] ) && '' !== $v['vals'][ $key ] ? $v['vals'][ $key ] : '–';
+			$rows .= '<td class="vt-spec">' . esc_html( $cell ) . '</td>';
+		}
+		$rows .= '<td class="vt-dl">' . ( $v['ldt'] ? '<a href="' . esc_url( $v['ldt'] ) . '" target="_blank" rel="noopener" aria-label="LDT file">LDT ↓</a>' : '—' ) . '</td>'
+			. '<td class="vt-dl"><a href="' . esc_url( $v['ds'] ) . '" target="_blank" rel="noopener" aria-label="Datasheet">Datasheet ↓</a></td></tr>';
+	}
+
+	return '<div class="rm-vptable-wrap"><table class="rm-vptable"><thead><tr>' . $head . '</tr></thead><tbody>' . $rows . '</tbody></table></div>';
 }
 
 /** In-situ images for a product — its own In-situ gallery + related projects' galleries. */
