@@ -339,6 +339,7 @@ function ricoman_product_editor_render() {
 		.rmpe-body{flex:1;display:flex;min-height:0}
 		.rmpe-rail{width:312px;flex:0 0 auto;background:var(--rail);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
 		.rmpe-rail.right{border-right:0;border-left:1px solid var(--line);width:330px;background:var(--surface)}
+		.rmpe.rmpe-wide .rmpe-rail{display:none}
 		.rmpe-rail h3{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);font-weight:700;margin:0;padding:18px 20px 6px}
 		.rmpe-list{list-style:none;margin:0;padding:4px 14px 14px;overflow-y:auto;flex:1}
 		.rmpe-card{display:flex;align-items:center;gap:11px;padding:10px 11px;border:1px solid var(--line);border-radius:var(--r);margin:9px 0;background:var(--surface);cursor:pointer;box-shadow:var(--sh-sm);transition:transform .14s,box-shadow .14s,border-color .14s}
@@ -422,6 +423,10 @@ function ricoman_product_editor_render() {
 				<button data-d="tablet" title="Tablet"><span class="dashicons dashicons-tablet"></span></button>
 				<button data-d="mobile" title="Mobile"><span class="dashicons dashicons-smartphone"></span></button>
 			</div>
+			<button class="rmpe-btn rmpe-btn-ghost" id="rmpe-wide" title="<?php esc_attr_e( 'Hide panels for a wider preview', 'ricoman' ); ?>"><span class="dashicons dashicons-editor-expand"></span></button>
+			<?php if ( ! $is_tpl ) : ?>
+				<button class="rmpe-btn rmpe-btn-ghost" id="rmpe-reset"><?php esc_html_e( 'Reset', 'ricoman' ); ?></button>
+			<?php endif; ?>
 			<a class="rmpe-btn rmpe-btn-ghost" id="rmpe-view" target="_blank" href="<?php echo esc_url( get_permalink( $pid ) ); ?>"><?php esc_html_e( 'View live', 'ricoman' ); ?></a>
 			<button class="rmpe-btn rmpe-btn-primary" id="rmpe-save"><?php esc_html_e( 'Save', 'ricoman' ); ?></button>
 		</div>
@@ -466,6 +471,12 @@ function ricoman_product_editor_render() {
 			<input type="hidden" name="_wpnonce" value="<?php echo esc_attr( wp_create_nonce( 'ricoman_save_product_page_' . $pid ) ); ?>">
 			<input type="hidden" name="layout_json" id="rmpe-save-layout">
 			<input type="hidden" name="fields_json" id="rmpe-save-fields">
+		</form>
+
+		<form id="rmpe-resetform" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:none">
+			<input type="hidden" name="action" value="ricoman_pe_reset">
+			<input type="hidden" name="product" value="<?php echo esc_attr( $pid ); ?>">
+			<input type="hidden" name="_wpnonce" value="<?php echo esc_attr( wp_create_nonce( 'ricoman_pe_reset_' . $pid ) ); ?>">
 		</form>
 	</div>
 
@@ -586,7 +597,7 @@ function ricoman_product_editor_render() {
 			var t = document.createElement( 'div' ); t.className = 'rmpe-tile'; t.dataset.kind = kind; t.dataset.name = name;
 			var thumb = ( kind === 'section' )
 				? '<div class="rmpe-thumb sec"><span class="dashicons dashicons-' + ( icon || 'block-default' ) + '"></span></div>'
-				: '<div class="rmpe-thumb"><iframe loading="lazy" scrolling="no" src="' + thumbUrl( kind, name ) + '" onload="this.style.transform=\'scale(\'+(this.parentNode.clientWidth/1280)+\')\'"></iframe></div>';
+				: '<div class="rmpe-thumb"><iframe scrolling="no" data-src="' + thumbUrl( kind, name ) + '" onload="this.style.transform=\'scale(\'+(this.parentNode.clientWidth/1280)+\')\'"></iframe></div>';
 			t.innerHTML = thumb + '<div class="lbl"><span class="cat">' + cat + '</span>' + label + '</div>';
 			return t;
 		}
@@ -608,6 +619,21 @@ function ricoman_product_editor_render() {
 					if ( q && label.toLowerCase().indexOf( q ) < 0 ) { return; }
 					grid.appendChild( tile( 'pattern', n, label.replace( /^[^·]*·\s*/, '' ), cat ) );
 				} );
+			}
+			// Lazy-load preview iframes only as they scroll into view (keeps it fast).
+			if ( 'IntersectionObserver' in window ) {
+				var io = new IntersectionObserver( function ( entries ) {
+					entries.forEach( function ( en ) {
+						if ( en.isIntersecting ) {
+							var f = en.target;
+							if ( f.dataset.src ) { f.src = f.dataset.src; f.removeAttribute( 'data-src' ); }
+							io.unobserve( f );
+						}
+					} );
+				}, { root: grid, rootMargin: '400px' } );
+				grid.querySelectorAll( 'iframe[data-src]' ).forEach( function ( f ) { io.observe( f ); } );
+			} else {
+				grid.querySelectorAll( 'iframe[data-src]' ).forEach( function ( f ) { f.src = f.dataset.src; } );
 			}
 		}
 		function openModal() { buildCats(); buildGrid(); modal.hidden = false; }
@@ -687,6 +713,19 @@ function ricoman_product_editor_render() {
 			$( 'rmpe-saveform' ).submit();
 		} );
 		$( 'rmpe-exit' ).addEventListener( 'click', function () { window.location.href = B.exitUrl; } );
+		// Hide panels for a wider preview.
+		$( 'rmpe-wide' ).addEventListener( 'click', function () {
+			document.querySelector( '.rmpe' ).classList.toggle( 'rmpe-wide' );
+		} );
+		// Reset this product back to its template / default layout.
+		var rst = $( 'rmpe-reset' );
+		if ( rst ) {
+			rst.addEventListener( 'click', function () {
+				if ( window.confirm( 'Reset this product to its template/default layout? Your custom changes will be removed.' ) ) {
+					$( 'rmpe-resetform' ).submit();
+				}
+			} );
+		}
 
 		/* ---- boot ---- */
 		renderList(); renderAdd(); renderSettings();
@@ -761,5 +800,23 @@ add_action( 'admin_post_ricoman_save_product_page', function () {
 
 	delete_transient( ricoman_pe_draft_key( $pid ) );
 	wp_safe_redirect( admin_url( 'admin.php?page=ricoman-product-editor&product=' . $pid . '&saved=1' ) );
+	exit;
+} );
+
+/** Reset a product back to its template / default layout (clear the override). */
+add_action( 'admin_post_ricoman_pe_reset', function () {
+	$pid = isset( $_POST['product'] ) ? absint( $_POST['product'] ) : 0;
+	if ( ! $pid || 'product' !== get_post_type( $pid ) ) {
+		wp_die( esc_html__( 'Invalid product.', 'ricoman' ) );
+	}
+	check_admin_referer( 'ricoman_pe_reset_' . $pid );
+	if ( ! current_user_can( 'edit_post', $pid ) ) {
+		wp_die( esc_html__( 'Permission denied.', 'ricoman' ) );
+	}
+	delete_post_meta( $pid, '_ricoman_custom' );
+	delete_post_meta( $pid, '_ricoman_layout' );
+	wp_update_post( array( 'ID' => $pid, 'post_content' => '' ) ); // back to auto-render.
+	delete_transient( ricoman_pe_draft_key( $pid ) );
+	wp_safe_redirect( admin_url( 'admin.php?page=ricoman-product-editor&product=' . $pid . '&reset=1' ) );
 	exit;
 } );

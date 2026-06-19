@@ -604,6 +604,23 @@ function ricoman_pf_fileurl( $v ) {
 }
 
 /**
+ * Fix double-encoded UTF-8 artifacts from the migration (e.g. "Â°C" -> "°C",
+ * smart quotes, dashes) so spec values read cleanly.
+ */
+function ricoman_fix_text( $s ) {
+	if ( ! is_string( $s ) || '' === $s ) {
+		return $s;
+	}
+	if ( false !== strpos( $s, 'Â' ) || false !== strpos( $s, 'â' ) ) {
+		$s = strtr( $s, array(
+			'Â°' => '°', 'Â ' => ' ', 'â€™' => '’', 'â€˜' => '‘',
+			'â€œ' => '“', 'â€' => '”', 'â€“' => '–', 'â€”' => '—', 'Â' => '',
+		) );
+	}
+	return $s;
+}
+
+/**
  * Resolve a variant's lumens from whichever field/taxonomy the migrated data
  * used, so the Configure table isn't blank when it's stored under an alt key.
  */
@@ -692,13 +709,13 @@ function ricoman_variant_spec_value( $vid, $source, $key ) {
 			return '';
 		}
 		$terms = wp_get_post_terms( $vid, $key, array( 'fields' => 'names' ) );
-		return ( ! is_wp_error( $terms ) && $terms ) ? implode( ', ', $terms ) : '';
+		return ( ! is_wp_error( $terms ) && $terms ) ? ricoman_fix_text( implode( ', ', $terms ) ) : '';
 	}
 	if ( 'lumens' === $key ) {
-		return ricoman_variant_lumens( $vid );
+		return ricoman_fix_text( ricoman_variant_lumens( $vid ) );
 	}
 	$v = ricoman_pf_get( $vid, $key );
-	return is_scalar( $v ) ? trim( (string) $v ) : '';
+	return is_scalar( $v ) ? ricoman_fix_text( trim( (string) $v ) ) : '';
 }
 
 /** A variant's full spec set as label => value (only non-empty), de-duplicated. */
@@ -828,7 +845,6 @@ function ricoman_pf_variant_table( $pid ) {
 	}
 
 	return '<div class="rm-vp">'
-		. '<p class="rm-vp-hint">Tap a row for the full specification.</p>'
 		. '<div class="rm-vptable-wrap"><table class="rm-vptable"><thead><tr>' . $head . '</tr></thead><tbody>' . $rows . '</tbody></table></div>'
 		. '<div class="rm-vt-details" hidden>' . $details . '</div>'
 		. '<div class="rm-vt-modal" hidden><div class="rm-vt-modal-box"><button type="button" class="rm-vt-x" aria-label="Close">&times;</button><div class="rm-vt-body"></div></div></div>'
@@ -1063,9 +1079,7 @@ function ricoman_pf_sections( $pid ) {
 	}
 	$has_fam = '' !== (string) ricoman_pf_get( $pid, '_ricoman_family' );
 
-	$jump = '<p class="rm-pp-jump">' . ( $spec ? '<a href="#specification">Specification</a>' : '' )
-		. ( $dl ? '<a href="#downloads">Downloads and Resources</a>' : '' )
-		. ( $has_fam ? '<a href="#variants">Configure Product</a>' : '' ) . '</p>';
+	$jump = ''; // In-hero jump links removed.
 
 	$desc = $sortd ? $sortd : $subname;
 
