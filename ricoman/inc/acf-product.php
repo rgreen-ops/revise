@@ -124,13 +124,11 @@ function ricoman_pf_highlights( $kf, $max = 4 ) {
 	return '<ul class="rm-hi">' . $li . '</ul>';
 }
 
-/** A product card for the related / accessories carousels. */
-function ricoman_pf_relcard( $href, $img, $title, $sub = '', $plain = false, $btn = 'View Product' ) {
-	return '<a class="rm-relc' . ( $plain ? ' rm-relc--plain' : '' ) . '" href="' . esc_url( $href ) . '">'
+/** A product card for the related / accessories carousels (image + title). */
+function ricoman_pf_relcard( $href, $img, $title ) {
+	return '<a class="rm-relc" href="' . esc_url( $href ) . '">'
 		. '<span class="rm-relc-img"' . ( $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '' ) . '></span>'
-		. '<span class="rm-relc-t">' . esc_html( $title ) . '</span>'
-		. ( $sub ? '<span class="rm-relc-s">' . esc_html( $sub ) . '</span>' : '' )
-		. '<span class="rm-relc-btn">' . esc_html( $btn ) . ' <span aria-hidden="true">&rarr;</span></span></a>';
+		. '<span class="rm-relc-t">' . esc_html( $title ) . '</span></a>';
 }
 
 /** A titled horizontal carousel (prev/next arrows) of product cards. */
@@ -145,12 +143,13 @@ function ricoman_pf_carousel( $title, $cards, $plain = false ) {
 }
 
 /**
- * Accessory products — every product flagged `is_accessories_product`, as a
- * carousel. The Accessories section is a toggleable block in the builder.
+ * Accessory products for a product — products flagged `is_accessories_product`,
+ * preferring the same category (the relevant accessories), falling back to all
+ * accessory products. Same grey-card carousel as "You may also like".
  */
 function ricoman_pf_accessories( $pid, $max = 24 ) {
-	$yes = array( '1', 'yes', 'Yes', 'YES', 'true', 'on' );
-	$q   = new WP_Query( array(
+	$yes  = array( '1', 'yes', 'Yes', 'YES', 'true', 'on' );
+	$base = array(
 		'post_type'      => 'product',
 		'post_status'    => 'publish',
 		'posts_per_page' => $max,
@@ -159,7 +158,18 @@ function ricoman_pf_accessories( $pid, $max = 24 ) {
 		'orderby'        => 'title',
 		'order'          => 'ASC',
 		'meta_query'     => array( array( 'key' => 'is_accessories_product', 'value' => $yes, 'compare' => 'IN' ) ),
-	) );
+	);
+	$tax   = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
+	$terms = wp_get_post_terms( $pid, $tax, array( 'fields' => 'ids' ) );
+	$q     = null;
+	if ( ! is_wp_error( $terms ) && $terms ) {
+		$a              = $base;
+		$a['tax_query'] = array( array( 'taxonomy' => $tax, 'terms' => $terms ) );
+		$q              = new WP_Query( $a );
+	}
+	if ( ! $q || ! $q->have_posts() ) {
+		$q = new WP_Query( $base ); // fall back to all accessory products.
+	}
 	if ( ! $q->have_posts() ) {
 		return '';
 	}
@@ -167,11 +177,10 @@ function ricoman_pf_accessories( $pid, $max = 24 ) {
 	while ( $q->have_posts() ) {
 		$q->the_post();
 		$img    = function_exists( 'ricoman_product_img' ) ? ricoman_product_img( get_the_ID() ) : get_the_post_thumbnail_url( get_the_ID(), 'large' );
-		$sub    = ricoman_pf_get( get_the_ID(), 'product_subname' );
-		$cards .= ricoman_pf_relcard( get_permalink(), $img, get_the_title(), $sub, true, 'View More' );
+		$cards .= ricoman_pf_relcard( get_permalink(), $img, get_the_title() );
 	}
 	wp_reset_postdata();
-	return ricoman_pf_carousel( 'Accessories', $cards, true );
+	return ricoman_pf_carousel( 'Accessories', $cards, false );
 }
 
 /** "You may also like" — carousel of other products in the same category. */
@@ -197,7 +206,7 @@ function ricoman_pf_related( $pid, $max = 12 ) {
 	while ( $q->have_posts() ) {
 		$q->the_post();
 		$img    = function_exists( 'ricoman_product_img' ) ? ricoman_product_img( get_the_ID() ) : get_the_post_thumbnail_url( get_the_ID(), 'large' );
-		$cards .= ricoman_pf_relcard( get_permalink(), $img, get_the_title(), '', false, 'View Product' );
+		$cards .= ricoman_pf_relcard( get_permalink(), $img, get_the_title() );
 	}
 	wp_reset_postdata();
 	return '<div class="rm-section"><div class="rm-pp-wrap">' . ricoman_pf_carousel( 'You may also like', $cards, false ) . '</div></div>';

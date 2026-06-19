@@ -927,11 +927,11 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .wp-site-blocks>main{margin-block-end:0}
 /* Configure / order-codes table (from variant-product posts) */
 .rm-vptable-wrap{overflow-x:auto;margin-top:8px}
-.rm-vptable{width:100%;border-collapse:collapse;font-size:.9rem}
-.rm-vptable th{font-family:Poppins;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--ink);text-align:left;padding:0 14px 14px;border-bottom:1px solid var(--ink)}
-.rm-vptable td{padding:14px;border-bottom:1px solid var(--line);vertical-align:middle;color:var(--text)}
+.rm-vptable{width:100%;border-collapse:collapse;font-size:.82rem}
+.rm-vptable th{font-family:Poppins;font-size:.64rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--ink);text-align:left;padding:0 12px 9px;border-bottom:1px solid var(--ink)}
+.rm-vptable td{padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:middle;color:var(--text)}
 .rm-vptable .vt-thumb{width:64px}
-.rm-vptable .vt-thumb img{width:54px;height:54px;object-fit:contain;background:#f2f2f0;border-radius:6px}
+.rm-vptable .vt-thumb img{width:40px;height:40px;object-fit:contain;background:#f2f2f0;border-radius:6px}
 .rm-vptable .vt-code{font-family:Poppins;font-weight:600;color:var(--accent);white-space:nowrap}
 .rm-vptable .vt-desc{min-width:200px}
 .rm-vptable .vt-spec{white-space:nowrap;color:var(--ink)}
