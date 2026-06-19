@@ -33,7 +33,7 @@ echo $cover(
 	55
 );
 
-echo $sec( '<!-- wp:shortcode -->[ricoman_projects_grid count="12"]<!-- /wp:shortcode -->' );
+echo '<!-- wp:group {"align":"full","className":"rm-section rm-projwide","layout":{"type":"default"}} --><div class="wp-block-group alignfull rm-section rm-projwide"><!-- wp:shortcode -->[ricoman_projects_grid count="-1"]<!-- /wp:shortcode --></div><!-- /wp:group -->';
 
 echo $cover(
 	$u( 'office6.webp' ),

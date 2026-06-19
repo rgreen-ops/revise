@@ -686,8 +686,12 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-hero .wp-site-blocks{margin-top:0}
 
 /* Dynamic project / product grid (real posts, real permalinks) */
-.rm-projgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:clamp(20px,3vw,34px)}
-.rm-projcard{position:relative;display:flex;align-items:flex-end;min-height:340px;border-radius:4px;overflow:hidden;background:#1c1c1e center/cover no-repeat;color:#fff!important;text-decoration:none}
+.rm-projgrid{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:180px;grid-auto-flow:dense;gap:16px;margin-top:clamp(20px,3vw,34px)}
+.rm-projwide .rm-projgrid{max-width:1720px;margin-left:auto;margin-right:auto;padding-inline:clamp(20px,4vw,56px)}
+/* Varied (masonry-style) tile heights */
+.rm-projgrid .rm-projcard{grid-row:span 2}
+.rm-projgrid .rm-projcard:nth-child(6n+1),.rm-projgrid .rm-projcard:nth-child(6n+5){grid-row:span 3}
+.rm-projcard{position:relative;display:flex;align-items:flex-end;min-height:0;border-radius:4px;overflow:hidden;background:#1c1c1e center/cover no-repeat;color:#fff!important;text-decoration:none}
 .rm-projcard::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.62))}
 .rm-projcard>*{position:relative;z-index:1}
 .rm-projcard-ov{padding:22px;width:100%}
@@ -696,7 +700,7 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-projcard img{width:100%;height:100%;object-fit:cover}
 .rm-projcard:hover{transform:translateY(-2px);transition:transform .25s}
 @media(max-width:860px){.rm-projgrid{grid-template-columns:1fr 1fr}}
-@media(max-width:560px){.rm-projgrid{grid-template-columns:1fr}}
+@media(max-width:560px){.rm-projgrid{grid-template-columns:1fr;grid-auto-rows:auto}.rm-projgrid .rm-projcard,.rm-projgrid .rm-projcard:nth-child(6n+1),.rm-projgrid .rm-projcard:nth-child(6n+5){grid-row:auto;min-height:300px}}
 
 /* Flow+ rolling banner (admin-editable slides) */
 .rm-banner{position:relative;min-height:90vh;overflow:hidden;background:var(--ink)}
