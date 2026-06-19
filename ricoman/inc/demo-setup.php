@@ -291,3 +291,94 @@ function ricoman_scaffold_site() {
 	flush_rewrite_rules( true );
 	update_option( 'ricoman_scaffolded', 1 );
 }
+
+/* -------------------------------------------------------------------------
+ * On-demand: re-apply the theme's marketing page designs.
+ *
+ * The installer is create-once (it never overwrites your content on update),
+ * which means design changes to the built-in marketing pages won't appear on
+ * pages that already exist. This opt-in tool lets the team pull the latest
+ * page designs when they want them. It ONLY rewrites the theme's own marketing
+ * pages — it never touches products, projects, legal pages or anything else.
+ * ---------------------------------------------------------------------- */
+
+/** slug => generator function for the theme's built-in marketing pages. */
+function ricoman_theme_page_map() {
+	return array(
+		'home'            => 'ricoman_home_blocks',
+		'about'           => 'ricoman_about_blocks',
+		'manufacturing'   => 'ricoman_manufacturing_blocks',
+		'lighting-design' => 'ricoman_lighting_blocks',
+		'downloads'       => 'ricoman_downloads_blocks',
+		'customisation'   => 'ricoman_customisation_blocks',
+		'contact'         => 'ricoman_contact_blocks',
+	);
+}
+
+add_action( 'admin_menu', function () {
+	add_submenu_page(
+		'ricoman-hub',
+		__( 'Page Designs', 'ricoman' ),
+		__( 'Page Designs', 'ricoman' ),
+		'manage_options',
+		'ricoman-page-designs',
+		'ricoman_render_page_designs'
+	);
+}, 30 );
+
+function ricoman_render_page_designs() {
+	$map    = ricoman_theme_page_map();
+	$action = admin_url( 'admin-post.php' );
+	echo '<div class="wrap"><h1>' . esc_html__( 'Page Designs', 'ricoman' ) . '</h1>';
+
+	if ( isset( $_GET['updated'] ) ) {
+		echo '<div class="notice notice-success is-dismissible"><p>'
+			. sprintf( esc_html__( 'Re-applied the latest design to %d page(s).', 'ricoman' ), (int) $_GET['updated'] )
+			. '</p></div>';
+	}
+
+	echo '<p>' . esc_html__( 'Your content is never wiped on a theme update. If you want the newest built-in page designs (headers, sections and layout) applied to the marketing pages below, use this button. It only rewrites these pages — products, projects, legal and any pages you created yourself are left untouched.', 'ricoman' ) . '</p>';
+
+	echo '<p style="color:#b32d2e"><strong>' . esc_html__( 'Heads up:', 'ricoman' ) . '</strong> ' . esc_html__( 'this replaces the content of the pages listed below with the latest theme design, so any manual edits to those specific pages will be overwritten.', 'ricoman' ) . '</p>';
+
+	echo '<ul style="list-style:disc;margin-left:20px">';
+	foreach ( $map as $slug => $fn ) {
+		$page   = get_page_by_path( $slug );
+		$exists = $page && 'page' === $page->post_type;
+		echo '<li><strong>' . esc_html( ucwords( str_replace( '-', ' ', $slug ) ) ) . '</strong> — '
+			. ( $exists ? esc_html__( 'will be refreshed', 'ricoman' ) : '<em>' . esc_html__( 'not found (skipped)', 'ricoman' ) . '</em>' ) . '</li>';
+	}
+	echo '</ul>';
+
+	echo '<form method="post" action="' . esc_url( $action ) . '" onsubmit="return confirm(\'' . esc_js( __( 'Re-apply the latest design to the marketing pages? This overwrites those pages only.', 'ricoman' ) ) . '\');">';
+	echo '<input type="hidden" name="action" value="ricoman_refresh_pages">';
+	wp_nonce_field( 'ricoman_refresh_pages' );
+	submit_button( __( 'Re-apply latest page designs', 'ricoman' ), 'primary' );
+	echo '</form></div>';
+}
+
+add_action( 'admin_post_ricoman_refresh_pages', function () {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( esc_html__( 'You do not have permission to do this.', 'ricoman' ) );
+	}
+	check_admin_referer( 'ricoman_refresh_pages' );
+
+	$done = 0;
+	foreach ( ricoman_theme_page_map() as $slug => $fn ) {
+		$page = get_page_by_path( $slug );
+		if ( ! $page || 'page' !== $page->post_type || ! function_exists( $fn ) ) {
+			continue;
+		}
+		$content = call_user_func( $fn );
+		if ( $content ) {
+			wp_update_post( array( 'ID' => $page->ID, 'post_content' => $content ) );
+			$done++;
+		}
+	}
+
+	wp_safe_redirect( add_query_arg(
+		array( 'page' => 'ricoman-page-designs', 'updated' => $done ),
+		admin_url( 'admin.php' )
+	) );
+	exit;
+} );

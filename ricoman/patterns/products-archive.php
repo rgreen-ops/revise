@@ -35,11 +35,11 @@ $ptile = function ( $url, $title, $sub, $href ) {
 echo $cover(
 	$u( 'arch-line.webp' ),
 	$eyebrow( 'Our Lighting Range' ) .
-	'<!-- wp:heading {"level":1,"style":{"typography":{"fontWeight":"500","fontSize":"clamp(2.6rem, 6vw, 5rem)","lineHeight":"1"}}} --><h1 class="wp-block-heading" style="font-size:clamp(2.6rem, 6vw, 5rem);font-weight:500;line-height:1">Commercial luminaires, made to specify.</h1><!-- /wp:heading -->' .
+	'<!-- wp:heading {"level":1,"style":{"typography":{"fontWeight":"500","fontSize":"clamp(2.1rem,4.4vw,3.4rem)","lineHeight":"1.04"}}} --><h1 class="wp-block-heading" style="font-size:clamp(2.1rem,4.4vw,3.4rem);font-weight:500;line-height:1.04">Commercial luminaires, made to specify.</h1><!-- /wp:heading -->' .
 	$para( 'Over 500 interior fittings across linear, downlights, pendants, track and modular ranges — held in UK stock and made to order in Manchester.' ),
-	62,
+	38,
 	'bottom left',
-	50
+	55
 );
 
 echo $sec(

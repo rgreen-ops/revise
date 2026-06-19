@@ -26,11 +26,11 @@ $tile = function ( $url, $sub, $title, $href, $min = 320 ) {
 echo $cover(
 	$u( 'office1.webp' ),
 	$eyebrow( 'Selected Work' ) .
-	'<!-- wp:heading {"level":1,"style":{"typography":{"fontWeight":"500","fontSize":"clamp(2.6rem, 6vw, 5rem)","lineHeight":"1"}}} --><h1 class="wp-block-heading" style="font-size:clamp(2.6rem, 6vw, 5rem);font-weight:500;line-height:1">Light that performs in the real world.</h1><!-- /wp:heading -->' .
+	'<!-- wp:heading {"level":1,"style":{"typography":{"fontWeight":"500","fontSize":"clamp(2.1rem,4.4vw,3.4rem)","lineHeight":"1.04"}}} --><h1 class="wp-block-heading" style="font-size:clamp(2.1rem,4.4vw,3.4rem);font-weight:500;line-height:1.04">Light that performs in the real world.</h1><!-- /wp:heading -->' .
 	$para( 'From workplace fit-outs to flagship retail, our luminaires are specified, delivered and installed across the UK.' ),
-	62,
+	38,
 	'bottom left',
-	50
+	55
 );
 
 echo $sec( '<!-- wp:shortcode -->[ricoman_projects_grid count="12"]<!-- /wp:shortcode -->' );
