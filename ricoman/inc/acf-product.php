@@ -734,6 +734,61 @@ function ricoman_variant_spec_pairs( $vid ) {
 	return $out;
 }
 
+/** All spec column labels, in definition order (de-duplicated). */
+function ricoman_variant_spec_label_order() {
+	$order = array();
+	foreach ( ricoman_variant_spec_defs() as $def ) {
+		if ( ! in_array( $def[2], $order, true ) ) {
+			$order[] = $def[2];
+		}
+	}
+	return $order;
+}
+
+/** Spec labels that have data across a product's variants (in order). */
+function ricoman_variant_populated_cols( $pid ) {
+	if ( ! post_type_exists( 'variant-product' ) ) {
+		return array();
+	}
+	$ids = get_posts( array(
+		'post_type'      => 'variant-product',
+		'post_status'    => 'publish',
+		'posts_per_page' => -1,
+		'no_found_rows'  => true,
+		'fields'         => 'ids',
+		'meta_query'     => array( array( 'key' => 'parent_product', 'value' => (string) $pid ) ),
+	) );
+	$has = array();
+	foreach ( $ids as $vid ) {
+		foreach ( ricoman_variant_spec_pairs( $vid ) as $label => $v ) {
+			$has[ $label ] = true;
+		}
+	}
+	$out = array();
+	foreach ( ricoman_variant_spec_label_order() as $l ) {
+		if ( isset( $has[ $l ] ) ) {
+			$out[] = $l;
+		}
+	}
+	return $out;
+}
+
+/** Columns to render: preview override > per-product meta > global option > auto (null). */
+function ricoman_variant_columns_for( $pid ) {
+	if ( ! empty( $GLOBALS['rm_pe_preview'] ) && (int) $GLOBALS['rm_pe_preview']['pid'] === (int) $pid && isset( $GLOBALS['rm_pe_preview']['cols'] ) && is_array( $GLOBALS['rm_pe_preview']['cols'] ) ) {
+		return $GLOBALS['rm_pe_preview']['cols'];
+	}
+	$per = get_post_meta( $pid, '_ricoman_cols', true );
+	if ( is_array( $per ) && $per ) {
+		return $per;
+	}
+	$glob = get_option( 'ricoman_spec_columns' );
+	if ( is_array( $glob ) && $glob ) {
+		return $glob;
+	}
+	return null;
+}
+
 /**
  * Configure / order-codes table, built from the linked `variant-product` posts
  * (ACF `parent_product` == this product). Shows every spec column that actually
@@ -800,10 +855,19 @@ function ricoman_pf_variant_table( $pid ) {
 	}
 	wp_reset_postdata();
 
-	$cols = array();
-	foreach ( $order as $label ) {
-		if ( ! empty( $has_col[ $label ] ) ) {
-			$cols[] = $label;
+	$chosen = ricoman_variant_columns_for( $pid );
+	$cols   = array();
+	if ( is_array( $chosen ) ) {
+		foreach ( $order as $label ) {
+			if ( in_array( $label, $chosen, true ) ) {
+				$cols[] = $label;
+			}
+		}
+	} else {
+		foreach ( $order as $label ) {
+			if ( ! empty( $has_col[ $label ] ) ) {
+				$cols[] = $label;
+			}
 		}
 	}
 

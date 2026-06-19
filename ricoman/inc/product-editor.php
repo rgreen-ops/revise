@@ -121,6 +121,9 @@ add_action( 'wp', function () {
 		'fields' => ( is_array( $draft ) && ! empty( $draft['fields'] ) ) ? $draft['fields'] : array(),
 		'layout' => ( is_array( $draft ) && ! empty( $draft['layout'] ) ) ? $draft['layout'] : $fallback,
 	);
+	if ( is_array( $draft ) && isset( $draft['cols'] ) && is_array( $draft['cols'] ) ) {
+		$GLOBALS['rm_pe_preview']['cols'] = $draft['cols'];
+	}
 } );
 
 /** Title override in preview. */
@@ -186,7 +189,14 @@ add_action( 'wp_ajax_ricoman_pe_draft', function () {
 			$fields = array_map( 'wp_kses_post', $d );
 		}
 	}
-	set_transient( ricoman_pe_draft_key( $pid ), array( 'layout' => $layout, 'fields' => $fields ), HOUR_IN_SECONDS );
+	$cols = null;
+	if ( isset( $_POST['cols'] ) ) {
+		$d = json_decode( wp_unslash( $_POST['cols'] ), true );
+		if ( is_array( $d ) ) {
+			$cols = array_map( 'sanitize_text_field', $d );
+		}
+	}
+	set_transient( ricoman_pe_draft_key( $pid ), array( 'layout' => $layout, 'fields' => $fields, 'cols' => $cols ), HOUR_IN_SECONDS );
 	wp_send_json_success();
 } );
 
@@ -286,6 +296,14 @@ function ricoman_product_editor_render() {
 		'accessories' => 'screenoptions', 'related' => 'grid-view', 'cta' => 'megaphone',
 	);
 
+	// Configure-table columns: all options + the product's current selection.
+	$all_cols = function_exists( 'ricoman_variant_spec_label_order' ) ? ricoman_variant_spec_label_order() : array();
+	$cur_cols = get_post_meta( $pid, '_ricoman_cols', true );
+	if ( ! is_array( $cur_cols ) || ! $cur_cols ) {
+		$g        = get_option( 'ricoman_spec_columns' );
+		$cur_cols = ( is_array( $g ) && $g ) ? $g : ( function_exists( 'ricoman_variant_populated_cols' ) ? ricoman_variant_populated_cols( $pid ) : array() );
+	}
+
 	$boot = array(
 		'pid'      => $pid,
 		'isTpl'    => $is_tpl,
@@ -300,6 +318,8 @@ function ricoman_product_editor_render() {
 		'fields'   => $fielddef,
 		'values'   => $fieldvals,
 		'icons'    => $icons,
+		'specCols' => array_values( $all_cols ),
+		'cols'     => array_values( $cur_cols ),
 		'saveUrl'  => admin_url( 'admin-post.php' ),
 		'saveNonce'=> wp_create_nonce( 'ricoman_save_product_page_' . $pid ),
 		'exitUrl'  => admin_url( 'edit.php?post_type=product' ),
@@ -386,6 +406,10 @@ function ricoman_product_editor_render() {
 		.rmpe-set .danger{color:#c0392b;border:1px solid #f1cccc;background:#fff;border-radius:var(--r-sm);padding:10px;width:100%;cursor:pointer;font-weight:650;margin-top:12px;transition:.14s;font-family:inherit}
 		.rmpe-set .danger:hover{background:#fdf1f1;border-color:#e8a9a9}
 		.rmpe-empty{color:var(--faint);text-align:center;padding:54px 18px;font-size:13px}
+		.rmpe-cols{display:grid;gap:7px;margin:4px 0 14px;max-height:46vh;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:12px}
+		.rmpe-colrow{display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:500;color:var(--ink);margin:0;cursor:pointer}
+		.rmpe-colrow input{margin:0}
+		.rmpe-colglobal{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:600;color:var(--muted);margin:0 0 14px;cursor:pointer}
 		/* visual picker modal */
 		.rmpe-modal{position:fixed;inset:0;background:rgba(13,15,22,.5);backdrop-filter:blur(4px);z-index:100000;display:flex;align-items:center;justify-content:center;padding:3vh 3vw;animation:rmpe-fade .18s ease}
 		@keyframes rmpe-fade{from{opacity:0}to{opacity:1}}
@@ -471,6 +495,8 @@ function ricoman_product_editor_render() {
 			<input type="hidden" name="_wpnonce" value="<?php echo esc_attr( wp_create_nonce( 'ricoman_save_product_page_' . $pid ) ); ?>">
 			<input type="hidden" name="layout_json" id="rmpe-save-layout">
 			<input type="hidden" name="fields_json" id="rmpe-save-fields">
+			<input type="hidden" name="cols_json" id="rmpe-save-cols">
+			<input type="hidden" name="cols_global" id="rmpe-save-cols-global" value="0">
 		</form>
 
 		<form id="rmpe-resetform" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:none">
@@ -483,7 +509,7 @@ function ricoman_product_editor_render() {
 	<script>
 	( function () {
 		var B = <?php echo wp_json_encode( $boot ); ?>;
-		var state = { layout: B.layout.slice(), fields: Object.assign( {}, B.values ), sel: 0, device: 'desktop' };
+		var state = { layout: B.layout.slice(), fields: Object.assign( {}, B.values ), cols: ( B.cols || [] ).slice(), colsGlobal: false, sel: 0, device: 'desktop' };
 		var $ = function ( id ) { return document.getElementById( id ); };
 		var iframe = $( 'rmpe-iframe' ), load = $( 'rmpe-load' );
 
@@ -496,6 +522,7 @@ function ricoman_product_editor_render() {
 			fd.append( 'nonce', B.nonce );
 			fd.append( 'layout', JSON.stringify( state.layout ) );
 			fd.append( 'fields', JSON.stringify( state.fields ) );
+			fd.append( 'cols', JSON.stringify( state.cols ) );
 			clearTimeout( draftTimer );
 			draftTimer = setTimeout( function () {
 				fetch( B.ajax, { method: 'POST', body: fd, credentials: 'same-origin' } ).then( function () {
@@ -665,6 +692,16 @@ function ricoman_product_editor_render() {
 					html += field( k, B.fields[ k ], k === 'product_sort_description' );
 				} );
 				html += visRow( it );
+			} else if ( it.type === 'section' && it.key === 'configure' ) {
+				html += '<p class="ttl">Configure &amp; order codes</p><p class="hint">Choose which spec columns show in the table. The full spec always shows when a row is opened.</p>';
+				html += '<div class="rmpe-cols">';
+				( B.specCols || [] ).forEach( function ( c ) {
+					var on = state.cols.indexOf( c ) > -1;
+					html += '<label class="rmpe-colrow"><input type="checkbox" data-col="' + c.replace( /"/g, '&quot;' ) + '"' + ( on ? ' checked' : '' ) + '> ' + c + '</label>';
+				} );
+				html += '</div>';
+				html += '<label class="rmpe-colglobal"><input type="checkbox" data-act="colsglobal"' + ( state.colsGlobal ? ' checked' : '' ) + '> Apply to all products (global default)</label>';
+				html += visRow( it );
 			} else if ( it.type === 'section' ) {
 				html += '<p class="ttl">' + sectionName( it ) + '</p><p class="hint">This section renders from the product’s fields.</p>';
 				html += visRow( it );
@@ -690,7 +727,17 @@ function ricoman_product_editor_render() {
 		} );
 		$( 'rmpe-set' ).addEventListener( 'change', function ( e ) {
 			var act = e.target.dataset.act;
-			if ( act === 'vis' ) { state.layout[ state.sel ].on = e.target.checked; renderList(); pushDraft(); }
+			if ( act === 'vis' ) { state.layout[ state.sel ].on = e.target.checked; renderList(); pushDraft(); return; }
+			if ( act === 'colsglobal' ) { state.colsGlobal = e.target.checked; return; }
+			if ( e.target.dataset.col ) {
+				var c = e.target.dataset.col;
+				var i = state.cols.indexOf( c );
+				if ( e.target.checked && i < 0 ) { state.cols.push( c ); }
+				else if ( ! e.target.checked && i > -1 ) { state.cols.splice( i, 1 ); }
+				// keep columns in canonical order
+				state.cols = ( B.specCols || [] ).filter( function ( x ) { return state.cols.indexOf( x ) > -1; } );
+				pushDraft();
+			}
 		} );
 		$( 'rmpe-set' ).addEventListener( 'click', function ( e ) {
 			var btn = e.target.closest( '[data-act=remove]' ); if ( ! btn ) { return; }
@@ -710,6 +757,8 @@ function ricoman_product_editor_render() {
 		$( 'rmpe-save' ).addEventListener( 'click', function () {
 			$( 'rmpe-save-layout' ).value = JSON.stringify( state.layout );
 			$( 'rmpe-save-fields' ).value = JSON.stringify( state.fields );
+			$( 'rmpe-save-cols' ).value = JSON.stringify( state.cols );
+			$( 'rmpe-save-cols-global' ).value = state.colsGlobal ? '1' : '0';
 			$( 'rmpe-saveform' ).submit();
 		} );
 		$( 'rmpe-exit' ).addEventListener( 'click', function () { window.location.href = B.exitUrl; } );
@@ -788,6 +837,18 @@ add_action( 'admin_post_ricoman_save_product_page', function () {
 		}
 	}
 
+	// Configure-table columns (per-product + optional global default).
+	if ( isset( $_POST['cols_json'] ) ) {
+		$cols = json_decode( wp_unslash( $_POST['cols_json'] ), true );
+		if ( is_array( $cols ) ) {
+			$cols = array_values( array_map( 'sanitize_text_field', $cols ) );
+			update_post_meta( $pid, '_ricoman_cols', $cols );
+			if ( ! empty( $_POST['cols_global'] ) && '1' === (string) $_POST['cols_global'] ) {
+				update_option( 'ricoman_spec_columns', $cols );
+			}
+		}
+	}
+
 	// Layout -> meta + compiled content ($layout already parsed above).
 	update_post_meta( $pid, '_ricoman_layout', wp_json_encode( array_values( $layout ) ) );
 	update_post_meta( $pid, '_ricoman_custom', 1 ); // this product now overrides its template.
@@ -815,6 +876,7 @@ add_action( 'admin_post_ricoman_pe_reset', function () {
 	}
 	delete_post_meta( $pid, '_ricoman_custom' );
 	delete_post_meta( $pid, '_ricoman_layout' );
+	delete_post_meta( $pid, '_ricoman_cols' );
 	wp_update_post( array( 'ID' => $pid, 'post_content' => '' ) ); // back to auto-render.
 	delete_transient( ricoman_pe_draft_key( $pid ) );
 	wp_safe_redirect( admin_url( 'admin.php?page=ricoman-product-editor&product=' . $pid . '&reset=1' ) );
