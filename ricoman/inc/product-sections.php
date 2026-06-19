@@ -167,40 +167,13 @@ add_action( 'enqueue_block_editor_assets', function () {
 } );
 
 /**
- * Open every product straight into the live layout. Setting a block-editor
- * template on the product post type means an empty product's editor is
- * pre-filled with the section blocks — each rendering a real preview — so the
- * admin immediately sees the page and can click ➕ between sections to drop in
- * their own patterns. Nothing is saved until they hit Save, and the template is
- * ignored for products that already have their own block content. Products never
- * opened/saved keep auto-rendering (empty content) exactly as before.
- */
-add_filter( 'register_post_type_args', function ( $args, $pt ) {
-	if ( 'product' !== $pt ) {
-		return $args;
-	}
-	$tpl = array();
-	foreach ( array_keys( ricoman_section_defs() ) as $key ) {
-		$tpl[] = array( 'ricoman/product-' . $key );
-	}
-	$args['template'] = $tpl;
-	// Leave it unlocked so sections can be reordered, removed, or have patterns
-	// and other blocks inserted between them.
-	$args['template_lock'] = false;
-	if ( empty( $args['show_in_rest'] ) ) {
-		$args['show_in_rest'] = true; // required for the block editor + previews.
-	}
-	return $args;
-}, 20, 2 );
-
-/**
- * A short note in the product editor sidebar explaining the live layout, so the
- * preview blocks aren't mistaken for stray content.
+ * A short note in the product editor sidebar pointing to the dedicated live
+ * Product Page Editor (the bespoke edit-left / preview-right screen).
  */
 add_action( 'add_meta_boxes_product', function () {
 	add_meta_box(
 		'ricoman_product_layout',
-		__( 'Page layout', 'ricoman' ),
+		__( 'Product page editor', 'ricoman' ),
 		'ricoman_product_layout_box',
 		'product',
 		'side',
@@ -208,8 +181,8 @@ add_action( 'add_meta_boxes_product', function () {
 	);
 } );
 
-function ricoman_product_layout_box() {
-	echo '<p class="description">' . esc_html__( 'The page above is built from live-preview section blocks — Hero, Specification, Configure, Accessories, You may also like, CTA.', 'ricoman' ) . '</p>';
-	echo '<p class="description">' . esc_html__( 'Drag to reorder them, delete any you don’t want, or click the ➕ between sections to drop in your own pattern. Then Save.', 'ricoman' ) . '</p>';
-	echo '<p class="description">' . esc_html__( 'Leave it untouched to keep the standard automatic layout.', 'ricoman' ) . '</p>';
+function ricoman_product_layout_box( $post ) {
+	$url = admin_url( 'admin.php?page=ricoman-product-editor&product=' . (int) $post->ID );
+	echo '<p class="description">' . esc_html__( 'Build this product’s page — edit the content with a live preview and drop patterns between sections — on the dedicated editor:', 'ricoman' ) . '</p>';
+	echo '<p><a class="button button-primary button-large" href="' . esc_url( $url ) . '">' . esc_html__( 'Open Product Page Editor', 'ricoman' ) . '</a></p>';
 }
