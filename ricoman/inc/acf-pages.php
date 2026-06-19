@@ -199,6 +199,20 @@ function ricoman_render_acf_page( $pid ) {
 	}
 
 	$out .= ricoman_acf_layout_items( $items );
+
+	// Closing call-to-action band — on marketing pages, not legal/utility ones.
+	$slug = get_post_field( 'post_name', $pid );
+	if ( ! preg_match( '/privacy|cookie|terms|slavery|email-notice|site-?map|thank|warranty|legal|login|register|dashboard|account/i', $slug ) ) {
+		$img = esc_url( get_theme_file_uri( 'assets/images/office1.webp' ) );
+		$out .= '<div class="wp-block-cover alignfull has-base-color has-text-color" style="min-height:42vh">'
+			. '<span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-70 has-background-dim"></span>'
+			. '<img class="wp-block-cover__image-background" alt="" src="' . $img . '" data-object-fit="cover"/>'
+			. '<div class="wp-block-cover__inner-container"><h2 class="wp-block-heading has-text-align-center" style="text-align:center">Let’s plan your lighting</h2>'
+			. '<p class="has-text-align-center" style="text-align:center">Talk to our team or request a free lighting design for your project.</p>'
+			. '<div class="wp-block-buttons is-content-justification-center" style="display:flex;justify-content:center;gap:10px">'
+			. '<a class="btn btn-solid" href="' . esc_url( home_url( '/lighting-design/' ) ) . '">Request a Lighting Design</a> '
+			. '<a class="btn btn-line" href="' . esc_url( home_url( '/contact/' ) ) . '">Contact us</a></div></div></div>';
+	}
 	return $out;
 }
 
