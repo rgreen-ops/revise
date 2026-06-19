@@ -930,3 +930,36 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-proj-body img,.rm-proj-single .rm-apage-wysiwyg img{max-width:100%;height:auto;border-radius:8px}
 .rm-proj-quote{border-left:3px solid var(--accent);margin:1.8em 0;padding:.4em 0 .4em 24px;font-family:Poppins;font-weight:500;font-size:clamp(1.2rem,2.4vw,1.6rem);line-height:1.4;color:var(--ink)}
 .rm-proj-quote cite{display:block;font-style:normal;font-size:.85rem;font-weight:600;color:var(--muted);margin-top:.8em}
+
+/* ===== PDP tabbed gallery (All / Studio / In-situ) ===== */
+.rm-pdp .rm-pdp-gallery{display:block;position:sticky;top:100px}
+.rm-pdp-gallery .rm-cfg-viz{position:relative;aspect-ratio:4/3;border-radius:12px;background:#f2f2f0;overflow:hidden}
+.rm-pdp-gallery .rm-cfg-img{width:100%;height:100%;object-fit:contain;padding:6%}
+.rm-pdp-gallery .rm-pdp-sw{position:absolute;top:16px;right:16px;left:auto;display:flex;flex-direction:column;gap:8px;margin:0;z-index:2;width:auto}
+.rm-pdp-gallery .rm-pdp-sw .rm-cv-sw{width:auto;height:auto;border-radius:999px;background:#5b626d;color:#fff;border:0;padding:.5em 1em;font-size:.66rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;justify-content:center}
+.rm-pdp-gallery .rm-pdp-sw .rm-cv-sw::before{display:none}
+.rm-pdp-gallery .rm-pdp-sw .rm-cv-sw.on{background:var(--ink)}
+.rm-pdp-codechip{position:absolute;left:16px;bottom:16px;background:#5b626d;color:#fff;font-family:Poppins;font-weight:600;font-size:.95rem;letter-spacing:.02em;padding:.55em 1em;border-radius:10px;z-index:2}
+.rm-gtabs{display:inline-flex;gap:4px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px;margin:16px 0 12px}
+.rm-gtab{border:0;background:none;font-family:Poppins;font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:8px 20px;border-radius:999px;cursor:pointer}
+.rm-gtab.on{background:var(--ink);color:#fff}
+.rm-gthumbs{display:flex;flex-wrap:wrap;gap:12px;margin-top:0}
+.rm-gthumbs .rm-cfg-thumb{width:96px;height:80px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#f2f2f0;cursor:pointer;padding:7px}
+.rm-gthumbs .rm-cfg-thumb.on{border-color:var(--ink);border-width:2px}
+.rm-gthumbs .rm-cfg-thumb img{width:100%;height:100%;object-fit:contain}
+@media(max-width:900px){.rm-pdp .rm-pdp-gallery{position:static}}
+
+/* ===== Header refinement: thinner, right-grouped, hover underline + arrow ===== */
+.brand{font-weight:500;letter-spacing:.16em;font-size:1rem}
+@media(min-width:1025px){
+	.nav{justify-content:space-between}
+	.brand{margin-right:auto}
+	.rm-nav{margin-right:34px}
+	.nav ul{gap:30px;font-size:.7rem;font-weight:500;letter-spacing:.13em}
+	.rm-nav>li>a{position:relative;display:inline-flex;align-items:center;gap:.4em;padding-bottom:4px}
+	.rm-nav>li>a::after{content:"\2197";font-size:.78em;opacity:.38;transition:opacity .2s ease,transform .2s ease}
+	.rm-nav>li>a:hover::after{opacity:1;transform:translate(1px,-1px)}
+	.rm-nav>li.rm-has-mega>a::after{content:none}
+	.rm-nav>li>a::before{content:"";position:absolute;left:0;bottom:0;height:1.5px;width:0;background:#fff;transition:width .28s ease}
+	.rm-nav>li>a:hover::before{width:100%}
+}

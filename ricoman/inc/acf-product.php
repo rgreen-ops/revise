@@ -394,7 +394,7 @@ function ricoman_pf_render_endpoint( $d, $pid ) {
 		}
 	}
 
-	$out .= '<script>(function(){var w=document.currentScript.previousElementSibling;if(!w)return;var im=w.querySelector(".rm-cfg-img");function bind(sel){w.querySelectorAll(sel).forEach(function(b){b.addEventListener("click",function(){if(b.dataset.img&&im){im.src=b.dataset.img;}var p=b.parentNode;p.querySelectorAll(sel).forEach(function(x){x.classList.remove("on");});b.classList.add("on");});});}bind(".rm-cv-sw");bind(".rm-cfg-thumb");})();</script>';
+	$out .= '<script>(function(){var w=document.currentScript.previousElementSibling;if(!w)return;var im=w.querySelector(".rm-cfg-img");function bind(sel){w.querySelectorAll(sel).forEach(function(b){b.addEventListener("click",function(){if(b.dataset.img&&im){im.src=b.dataset.img;}var p=b.parentNode;p.querySelectorAll(sel).forEach(function(x){x.classList.remove("on");});b.classList.add("on");});});}bind(".rm-cv-sw");bind(".rm-cfg-thumb");w.querySelectorAll(".rm-gtab").forEach(function(t){t.addEventListener("click",function(){w.querySelectorAll(".rm-gtab").forEach(function(x){x.classList.remove("on");});t.classList.add("on");var tab=t.dataset.tab;w.querySelectorAll(".rm-gthumbs .rm-cfg-thumb").forEach(function(th){th.style.display=(tab==="all"||th.dataset.tab===tab)?"":"none";});});});})();</script>';
 	return $out;
 }
 
@@ -529,6 +529,8 @@ function ricoman_pf_variant_table( $pid ) {
 			$img = ricoman_pf_imgurl( ricoman_pf_get( $vid, 'product_gallery_image' ) );
 		}
 		$thumb = $img ? '<img src="' . esc_url( $img ) . '" alt="" loading="lazy">' : '';
+		// Datasheet is generated on the fly from this line's own data.
+		$ds_url = function_exists( 'ricoman_variant_datasheet_url' ) ? ricoman_variant_datasheet_url( $vid, $pid ) : $datasheet;
 		$rows .= '<tr>'
 			. '<td class="vt-thumb">' . $thumb . '</td>'
 			. '<td class="vt-code">' . esc_html( $code ) . '</td>'
@@ -536,13 +538,91 @@ function ricoman_pf_variant_table( $pid ) {
 			. '<td class="vt-lm">' . esc_html( $lm ) . '</td>'
 			. '<td class="vt-dim">' . esc_html( $dim ) . '</td>'
 			. '<td class="vt-dl">' . ( $ldt ? '<a href="' . esc_url( $ldt ) . '" target="_blank" rel="noopener" aria-label="LDT file">LDT ↓</a>' : '—' ) . '</td>'
-			. '<td class="vt-dl">' . ( $datasheet ? '<a href="' . esc_url( $datasheet ) . '" target="_blank" rel="noopener" aria-label="Datasheet">Datasheet ↓</a>' : '—' ) . '</td>'
+			. '<td class="vt-dl"><a href="' . esc_url( $ds_url ) . '" target="_blank" rel="noopener" aria-label="Datasheet">Datasheet ↓</a></td>'
 			. '</tr>';
 	}
 	wp_reset_postdata();
 	return '<div class="rm-vptable-wrap"><table class="rm-vptable"><thead><tr>'
 		. '<th></th><th>Part Code</th><th>Description</th><th>Lumens</th><th>Dimensions</th><th>LDT</th><th>Datasheet</th>'
 		. '</tr></thead><tbody>' . $rows . '</tbody></table></div>';
+}
+
+/** In-situ images for a product — pulled from its related projects' galleries. */
+function ricoman_pf_insitu_images( $pid ) {
+	$out = array();
+	$rp  = ricoman_pf_get( $pid, 'related_projects' );
+	$ids = array();
+	if ( is_array( $rp ) ) {
+		foreach ( $rp as $v ) {
+			if ( is_numeric( $v ) ) {
+				$ids[] = (int) $v;
+			} elseif ( is_string( $v ) && '' !== $v ) {
+				$p = get_page_by_path( $v, OBJECT, 'project' );
+				if ( $p ) {
+					$ids[] = $p->ID;
+				}
+			}
+		}
+	}
+	foreach ( $ids as $proj ) {
+		$im = ricoman_pf_imgurl( get_post_meta( $proj, 'project_image', true ) );
+		if ( $im ) {
+			$out[] = $im;
+		}
+		$gal = get_post_meta( $proj, 'project_gallery', true );
+		if ( is_array( $gal ) ) {
+			foreach ( $gal as $g ) {
+				$u = ricoman_pf_imgurl( $g );
+				if ( $u ) {
+					$out[] = $u;
+				}
+			}
+		}
+	}
+	return array_values( array_unique( array_filter( $out ) ) );
+}
+
+/** Hero gallery block: main image (with finish swatches + order code chip), All/Studio/In-situ tabs, thumbnails. */
+function ricoman_pf_gallery_block( $pid, $title, $code, $sw_html ) {
+	$studio = ricoman_pf_gallery( $pid ); // product_gallery_image.
+	foreach ( ricoman_pf_color_variants( $pid ) as $cv ) {
+		if ( $cv['main'] ) {
+			$studio[] = $cv['main'];
+		}
+	}
+	$studio = array_values( array_unique( array_filter( (array) $studio ) ) );
+	$insitu = ricoman_pf_insitu_images( $pid );
+	$main   = $studio ? $studio[0] : ( $insitu ? $insitu[0] : esc_url( get_theme_file_uri( 'assets/images/ceiling.webp' ) ) );
+
+	$thumb = function ( $u, $tab, $on ) {
+		return '<button type="button" class="rm-cfg-thumb' . ( $on ? ' on' : '' ) . '" data-tab="' . esc_attr( $tab ) . '" data-img="' . esc_url( $u ) . '"><img src="' . esc_url( $u ) . '" alt="" loading="lazy" onerror="this.parentNode.style.display=\'none\'"></button>';
+	};
+	$thumbs = '';
+	$first  = true;
+	foreach ( $studio as $u ) {
+		$thumbs .= $thumb( $u, 'studio', $first );
+		$first   = false;
+	}
+	foreach ( $insitu as $u ) {
+		$thumbs .= $thumb( $u, 'insitu', false );
+	}
+
+	$tabs = '<button type="button" class="rm-gtab on" data-tab="all">All</button>';
+	if ( $studio ) {
+		$tabs .= '<button type="button" class="rm-gtab" data-tab="studio">Studio</button>';
+	}
+	if ( $insitu ) {
+		$tabs .= '<button type="button" class="rm-gtab" data-tab="insitu">In-situ</button>';
+	}
+
+	return '<div class="rm-cfg-stage rm-pdp-gallery">'
+		. '<div class="rm-cfg-viz"><img class="rm-cfg-img" src="' . esc_url( $main ) . '" alt="' . esc_attr( $title ) . '">'
+		. ( $sw_html ? '<div class="rm-cv-swatches rm-pdp-sw">' . $sw_html . '</div>' : '' )
+		. ( $code ? '<span class="rm-pdp-codechip">' . esc_html( $code ) . '</span>' : '' )
+		. '</div>'
+		. ( ( $studio && $insitu ) ? '<div class="rm-gtabs">' . $tabs . '</div>' : '' )
+		. ( $thumbs ? '<div class="rm-cfg-thumbs rm-gthumbs">' . $thumbs . '</div>' : '' )
+		. '</div>';
 }
 
 add_shortcode( 'ricoman_product_page', function () {
@@ -669,17 +749,13 @@ add_shortcode( 'ricoman_product_page', function () {
 
 	$desc = $sortd ? $sortd : $subname;
 
-	// ---- Hero: thumbnail rail + main image | panel (matches ricoman.com) ----
+	// ---- Hero: tabbed gallery (All/Studio/In-situ) + main image | panel ----
 	$hero_html = ( $crumb ? '<div class="rm-section rm-pp-crumbwrap"><div class="rm-pp-wrap rm-pp-crumb">' . $crumb . '</div></div>' : '' )
 		. '<div class="rm-cfghero-wrap"><div class="rm-cfghero rm-pdp">'
-		. '<div class="rm-cfg-stage">'
-		. ( $thumbs ? '<div class="rm-cfg-thumbs rm-thumbs-rail">' . $thumbs . '</div>' : '' )
-		. '<div class="rm-cfg-viz"><img class="rm-cfg-img" src="' . esc_url( $hero ) . '" alt="' . esc_attr( $title ) . '"></div>'
-		. '</div>'
+		. ricoman_pf_gallery_block( $pid, $title, $code, $sw )
 		. '<div class="rm-cfg-panel">'
 		. '<h1 class="rm-cfg-name">' . esc_html( $title ) . '</h1>'
 		. ( $desc ? '<p class="rm-cfg-desc">' . esc_html( $desc ) . '</p>' : '' )
-		. ( $sw ? '<div class="rm-cv-swatches rm-pdp-sw">' . $sw . '</div>' : '' )
 		. $highlights
 		. '<div class="rm-cfg-acts"><a class="btn btn-solid" href="' . esc_url( $ldu ) . '">' . esc_html( $ld ) . ' →</a>'
 		. ' <a class="btn btn-line-d" href="' . esc_url( $tru ) . '">' . esc_html( $tr ) . ' →</a></div>'
@@ -713,7 +789,7 @@ add_shortcode( 'ricoman_product_page', function () {
 	$cta = '<div class="wp-block-cover alignfull has-base-color has-text-color" style="min-height:46vh"><span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-70 has-background-dim"></span><img class="wp-block-cover__image-background" alt="" src="' . esc_url( get_theme_file_uri( 'assets/images/office1.webp' ) ) . '" data-object-fit="cover"/><div class="wp-block-cover__inner-container"><h2 class="wp-block-heading has-text-align-center" style="text-align:center">Specify this product</h2><p class="has-text-align-center" style="text-align:center">Add it to your project or request a free lighting scheme.</p><div class="wp-block-buttons is-content-justification-center" style="display:flex;justify-content:center;gap:10px"><a class="btn btn-line" href="' . $enq . '">Add to My Project</a> <a class="btn btn-solid" href="' . esc_url( $ldu ) . '">' . esc_html( $ld ) . '</a></div></div></div>';
 
 	$out  = $hero_html . $acc_sec . $var_sec . $acc_block . $related . $cta;
-	$out .= '<script>(function(){var w=document.currentScript.previousElementSibling;if(!w)return;var im=w.querySelector(".rm-cfg-img");function bind(sel){w.querySelectorAll(sel).forEach(function(b){b.addEventListener("click",function(){if(b.dataset.img&&im){im.src=b.dataset.img;}var p=b.parentNode;p.querySelectorAll(sel).forEach(function(x){x.classList.remove("on");});b.classList.add("on");});});}bind(".rm-cv-sw");bind(".rm-cfg-thumb");})();</script>';
+	$out .= '<script>(function(){var w=document.currentScript.previousElementSibling;if(!w)return;var im=w.querySelector(".rm-cfg-img");function bind(sel){w.querySelectorAll(sel).forEach(function(b){b.addEventListener("click",function(){if(b.dataset.img&&im){im.src=b.dataset.img;}var p=b.parentNode;p.querySelectorAll(sel).forEach(function(x){x.classList.remove("on");});b.classList.add("on");});});}bind(".rm-cv-sw");bind(".rm-cfg-thumb");w.querySelectorAll(".rm-gtab").forEach(function(t){t.addEventListener("click",function(){w.querySelectorAll(".rm-gtab").forEach(function(x){x.classList.remove("on");});t.classList.add("on");var tab=t.dataset.tab;w.querySelectorAll(".rm-gthumbs .rm-cfg-thumb").forEach(function(th){th.style.display=(tab==="all"||th.dataset.tab===tab)?"":"none";});});});})();</script>';
 	return $out;
 } );
 
