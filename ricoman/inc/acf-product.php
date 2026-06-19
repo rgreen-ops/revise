@@ -124,6 +124,51 @@ function ricoman_pf_highlights( $kf, $max = 4 ) {
 	return '<ul class="rm-hi">' . $li . '</ul>';
 }
 
+/**
+ * Accessory products to show on a product page — products flagged
+ * `is_accessories_product`, preferring the same category, else any. Rendered as
+ * a card grid. The Accessories section is a toggleable block in the builder, so
+ * it can be removed per product.
+ */
+function ricoman_pf_accessories( $pid, $max = 10 ) {
+	$yes  = array( '1', 'yes', 'Yes', 'YES', 'true', 'on' );
+	$base = array(
+		'post_type'      => 'product',
+		'post_status'    => 'publish',
+		'posts_per_page' => $max,
+		'post__not_in'   => array( $pid ),
+		'no_found_rows'  => true,
+		'orderby'        => 'title',
+		'order'          => 'ASC',
+		'meta_query'     => array( array( 'key' => 'is_accessories_product', 'value' => $yes, 'compare' => 'IN' ) ),
+	);
+	$tax   = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
+	$terms = wp_get_post_terms( $pid, $tax, array( 'fields' => 'ids' ) );
+	$q     = null;
+	if ( ! is_wp_error( $terms ) && $terms ) {
+		$a              = $base;
+		$a['tax_query'] = array( array( 'taxonomy' => $tax, 'terms' => $terms ) );
+		$q              = new WP_Query( $a );
+	}
+	if ( ! $q || ! $q->have_posts() ) {
+		$q = new WP_Query( $base );
+	}
+	if ( ! $q->have_posts() ) {
+		return '';
+	}
+	$cards = '';
+	while ( $q->have_posts() ) {
+		$q->the_post();
+		$img  = function_exists( 'ricoman_product_img' ) ? ricoman_product_img( get_the_ID() ) : get_the_post_thumbnail_url( get_the_ID(), 'large' );
+		$sub  = ricoman_pf_get( get_the_ID(), 'product_subname' );
+		$cards .= '<a class="rm-rel-card" href="' . esc_url( get_permalink() ) . '"><span class="rm-rel-img"' . ( $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '' ) . '></span>'
+			. '<span class="rm-rel-t">' . esc_html( get_the_title() ) . '</span>'
+			. ( $sub ? '<span class="rm-rel-s">' . esc_html( $sub ) . '</span>' : '' ) . '</a>';
+	}
+	wp_reset_postdata();
+	return '<div class="rm-relgrid">' . $cards . '</div>';
+}
+
 /** "You may also like" grid — other products in the same category. */
 function ricoman_pf_related( $pid, $max = 5 ) {
 	$tax   = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
@@ -1053,10 +1098,15 @@ function ricoman_pf_sections( $pid ) {
 		? '<div class="rm-section" id="variants"><div class="rm-pp-wrap"><h2 class="rm-shead">Configure Your Product</h2>' . $var_inner . '</div></div>'
 		: '';
 
-	// ---- Accessories (RICOBOT live, when available) ----
-	$acc_live  = do_shortcode( '[ricoman_accessories_live]' );
-	$acc_block = ( $acc_live && false === strpos( $acc_live, 'rm-config-note' ) )
-		? '<div class="rm-section"><div class="rm-pp-wrap">' . $acc_live . '</div></div>' : '';
+	// ---- Accessories — accessory products (toggle/remove per product in builder) ----
+	$acc_grid  = ricoman_pf_accessories( $pid );
+	if ( $acc_grid ) {
+		$acc_block = '<div class="rm-section"><div class="rm-pp-wrap"><h2 class="rm-shead">Accessories</h2>' . $acc_grid . '</div></div>';
+	} else {
+		$acc_live  = do_shortcode( '[ricoman_accessories_live]' );
+		$acc_block = ( $acc_live && false === strpos( $acc_live, 'rm-config-note' ) )
+			? '<div class="rm-section"><div class="rm-pp-wrap">' . $acc_live . '</div></div>' : '';
+	}
 
 	// ---- You may also like ----
 	$related = ricoman_pf_related( $pid );
