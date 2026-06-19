@@ -39,11 +39,20 @@ add_filter( 'the_content', function ( $content ) {
 	if ( isset( $map[ $slug ] ) ) {
 		return do_shortcode( $map[ $slug ] );
 	}
-	if ( ! function_exists( 'get_field_objects' ) ) {
-		return $content;
+	if ( function_exists( 'get_field_objects' ) ) {
+		$html = ricoman_render_acf_page( get_the_ID() );
+		if ( '' !== $html ) {
+			return $html;
+		}
 	}
-	$html = ricoman_render_acf_page( get_the_ID() );
-	return '' !== $html ? $html : $content;
+	// Last resort: a page with neither blocks nor ACF content (e.g. the few
+	// Elementor-only pages still awaiting a bespoke layout). Render a clean
+	// titled header instead of a blank screen, plus breadcrumbs for context.
+	$title = get_the_title( get_the_ID() );
+	$crumb = shortcode_exists( 'ricoman_breadcrumbs' ) ? do_shortcode( '[ricoman_breadcrumbs]' ) : '';
+	return '<div class="rm-section rm-pp-crumbwrap"><div class="rm-pp-wrap">'
+		. ( $crumb ? '<div class="rm-pp-crumb">' . $crumb . '</div>' : '' )
+		. '<h1 class="rm-apage-title">' . esc_html( $title ) . '</h1></div></div>';
 }, 9 );
 
 /** url helpers (shared with acf-product.php when present). */
