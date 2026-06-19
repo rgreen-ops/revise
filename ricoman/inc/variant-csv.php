@@ -61,6 +61,20 @@ function ricoman_variant_csv_meta_keys() {
 	return array_values( array_diff( $cols, array( 'id', 'parent', 'title' ) ) );
 }
 
+/** Taxonomy axis slugs offered as CSV columns (wattage, temperature, …). */
+function ricoman_variant_csv_tax_keys() {
+	return function_exists( 'ricoman_variant_axis_taxonomies' ) ? array_keys( ricoman_variant_axis_taxonomies() ) : array();
+}
+
+/** Full ordered header row: meta columns + taxonomy columns (prefixed tax_). */
+function ricoman_variant_csv_headers() {
+	$cols = ricoman_variant_csv_columns();
+	foreach ( ricoman_variant_csv_tax_keys() as $slug ) {
+		$cols[] = 'tax_' . $slug;
+	}
+	return $cols;
+}
+
 /** Resolve a stored image/file meta value to a URL for export. */
 function ricoman_variant_csv_url( $v ) {
 	if ( is_numeric( $v ) ) {
@@ -148,7 +162,8 @@ add_action( 'admin_post_ricoman_variant_export', function () {
 	if ( ! current_user_can( 'edit_posts' ) || ! check_admin_referer( 'ricoman_variant_export' ) ) {
 		wp_die( esc_html__( 'Permission denied.', 'ricoman' ) );
 	}
-	$cols     = ricoman_variant_csv_columns();
+	$cols     = ricoman_variant_csv_headers();
+	$tax_keys = ricoman_variant_csv_tax_keys();
 	$template = ! empty( $_POST['template'] );
 	$parent   = isset( $_POST['parent'] ) ? absint( $_POST['parent'] ) : 0;
 
@@ -191,6 +206,11 @@ add_action( 'admin_post_ricoman_variant_export', function () {
 				$v = ricoman_variant_csv_url( $v );
 			}
 			$row[ $k ] = is_scalar( $v ) ? (string) $v : '';
+		}
+		// Taxonomy axes -> tax_<slug> columns (terms joined by | ).
+		foreach ( $tax_keys as $slug ) {
+			$terms = taxonomy_exists( $slug ) ? wp_get_post_terms( $vid, $slug, array( 'fields' => 'names' ) ) : array();
+			$row[ 'tax_' . $slug ] = ( ! is_wp_error( $terms ) && $terms ) ? implode( ' | ', $terms ) : '';
 		}
 		// Keep column order.
 		$line = array();
@@ -241,8 +261,9 @@ add_action( 'admin_post_ricoman_variant_import', function () {
 		$header[0] = preg_replace( '/^\xEF\xBB\xBF/', '', (string) $header[0] );
 		$header    = array_map( function ( $h ) { return strtolower( trim( (string) $h ) ); }, $header );
 	}
-	$allowed   = ricoman_variant_csv_columns();
+	$allowed   = ricoman_variant_csv_headers();
 	$meta_keys = ricoman_variant_csv_meta_keys();
+	$tax_keys  = ricoman_variant_csv_tax_keys();
 
 	$created = 0;
 	$updated = 0;
@@ -297,6 +318,19 @@ add_action( 'admin_post_ricoman_variant_import', function () {
 					update_post_meta( $id, $k, $rec[ $k ] );
 				}
 			}
+		}
+		// Taxonomy axes: tax_<slug> columns -> terms (created if missing, | separated).
+		foreach ( $tax_keys as $slug ) {
+			$col = 'tax_' . $slug;
+			if ( ! array_key_exists( $col, $rec ) || ! taxonomy_exists( $slug ) ) {
+				continue;
+			}
+			if ( '' === $rec[ $col ] ) {
+				wp_set_object_terms( $id, array(), $slug );
+				continue;
+			}
+			$names = array_filter( array_map( 'trim', explode( '|', $rec[ $col ] ) ), 'strlen' );
+			wp_set_object_terms( $id, $names, $slug ); // names auto-create terms.
 		}
 	}
 	fclose( $fh );
