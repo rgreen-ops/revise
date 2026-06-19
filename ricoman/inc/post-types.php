@@ -581,59 +581,8 @@ add_shortcode( 'ricoman_catalogue', function ( $atts ) {
 		. '<p class="rm-fcount"><b>' . (int) $total . '</b> products</p>' . $sections
 		. '<p class="rm-fnone" hidden>No products match those filters. <button type="button" class="rm-fclear">Clear filters</button></p></div>';
 
-	// Live filtering across every section.
-	$out .= <<<'JS'
-<script>(function(){
- var w=document.currentScript.previousElementSibling;if(!w)return;
- var cards=[].slice.call(w.querySelectorAll('.rm-fcard'));
- var lmMin=w.querySelector('.rm-lm-min'),lmMax=w.querySelector('.rm-lm-max');
- var wMin=w.querySelector('.rm-w-min'),wMax=w.querySelector('.rm-w-max');
- var lmLo=w.querySelector('.rm-lm-lo'),lmHi=w.querySelector('.rm-lm-hi');
- var wLo=w.querySelector('.rm-w-lo'),wHi=w.querySelector('.rm-w-hi');
- var total=w.querySelector('.rm-fcount b'),none=w.querySelector('.rm-fnone');
- function ticks(){return [].slice.call(w.querySelectorAll('.rm-ftick input:checked')).map(function(i){return i.value;});}
- // Keep a min thumb from passing its max thumb (and vice-versa).
- function pair(min,max,gap){
-  if(!min||!max)return;
-  min.addEventListener('input',function(){if(+min.value>+max.value-gap)min.value=Math.max(+min.min,+max.value-gap);apply();});
-  max.addEventListener('input',function(){if(+max.value<+min.value+gap)max.value=Math.min(+max.max,+min.value+gap);apply();});
- }
- function apply(){
-  var loLm=lmMin?+lmMin.value:0, hiLm=lmMax?+lmMax.value:1e9;
-  var loW =wMin?+wMin.value:0,  hiW =wMax?+wMax.value:1e9;
-  var lmFull=!lmMin||(loLm<=+lmMin.min&&hiLm>=+lmMax.max);
-  var wFull =!wMin ||(loW <=+wMin.min &&hiW >=+wMax.max);
-  if(lmLo)lmLo.textContent=loLm.toLocaleString();
-  if(lmHi)lmHi.textContent=hiLm.toLocaleString();
-  if(wLo)wLo.textContent=loW;
-  if(wHi)wHi.textContent=hiW;
-  var want=ticks(),shown=0;
-  cards.forEach(function(c){
-   var clm=+c.dataset.lm||0,cw=+c.dataset.w||0,cf=(c.dataset.feat||'').split(' ');
-   var ok=true;
-   if(!lmFull&&clm>0&&(clm<loLm||clm>hiLm))ok=false;
-   if(!wFull &&cw>0&&(cw<loW ||cw>hiW ))ok=false;
-   want.forEach(function(f){if(cf.indexOf(f)<0)ok=false;});
-   c.hidden=!ok;if(ok)shown++;
-  });
-  [].slice.call(w.querySelectorAll('.rm-catsec')).forEach(function(s){
-   var vis=s.querySelectorAll('.rm-fcard:not([hidden])').length;
-   s.hidden=vis===0;
-   var cc=s.querySelector('.rm-catarch-count');if(cc)cc.textContent=vis;
-  });
-  if(total)total.textContent=shown;
-  if(none)none.hidden=shown>0;
- }
- pair(lmMin,lmMax,100);pair(wMin,wMax,1);
- w.querySelectorAll('.rm-ftick input').forEach(function(i){i.addEventListener('change',apply);});
- w.querySelectorAll('.rm-fclear').forEach(function(b){b.addEventListener('click',function(){
-  if(lmMin)lmMin.value=lmMin.min;if(lmMax)lmMax.value=lmMax.max;
-  if(wMin)wMin.value=wMin.min;if(wMax)wMax.value=wMax.max;
-  w.querySelectorAll('.rm-ftick input').forEach(function(i){i.checked=false;});apply();
- });});
- apply();
-})();</script>
-JS;
+	// Filtering is wired up by the enqueued product-gallery.js (rmCatFilterInit),
+	// keyed off .rm-catwide — reliable regardless of where the markup lands.
 	return $out;
 } );
 
