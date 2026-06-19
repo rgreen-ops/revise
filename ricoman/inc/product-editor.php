@@ -448,26 +448,28 @@ function ricoman_product_editor_render() {
 		.rmpe-btn-primary:hover{filter:brightness(1.06);transform:translateY(-1px)}
 		.rmpe-btn-primary:active{transform:translateY(0)}
 		.rmpe-btn-ghost{background:transparent;color:var(--muted)}.rmpe-btn-ghost:hover{color:var(--ink);background:#eef0f5}
+		.rmpe-btn-on{background:#e6efff;color:var(--accent)}
 		.rmpe-saved{color:#1a7f37;font-weight:650;opacity:0;transition:opacity .3s;display:flex;align-items:center;gap:5px}
 		.rmpe-saved:before{content:"";width:7px;height:7px;border-radius:50%;background:#1a7f37}
 		.rmpe-saved.show{opacity:1}
 		/* body */
 		.rmpe-body{flex:1;display:flex;min-height:0}
-		.rmpe-rail{width:312px;flex:0 0 auto;background:var(--rail);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
-		.rmpe-rail.right{border-right:0;border-left:1px solid var(--line);width:330px;background:var(--surface)}
-		.rmpe.rmpe-wide .rmpe-rail{display:none}
+		.rmpe-rail{width:236px;flex:0 0 auto;background:var(--rail);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+		.rmpe-rail.right{border-right:0;border-left:1px solid var(--line);width:340px;background:var(--surface)}
+		.rmpe.hide-left .rmpe-rail.left{display:none}
+		.rmpe.hide-right .rmpe-rail.right{display:none}
 		.rmpe-rail h3{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);font-weight:700;margin:0;padding:18px 20px 6px}
 		.rmpe-list{list-style:none;margin:0;padding:4px 14px 14px;overflow-y:auto;flex:1}
-		.rmpe-card{display:flex;align-items:center;gap:11px;padding:10px 11px;border:1px solid var(--line);border-radius:var(--r);margin:9px 0;background:var(--surface);cursor:pointer;box-shadow:var(--sh-sm);transition:transform .14s,box-shadow .14s,border-color .14s}
+		.rmpe-card{display:flex;align-items:center;gap:8px;padding:8px 9px;border:1px solid var(--line);border-radius:var(--r);margin:7px 0;background:var(--surface);cursor:pointer;box-shadow:var(--sh-sm);transition:transform .14s,box-shadow .14s,border-color .14s}
 		.rmpe-card:hover{border-color:#d4d8e4;box-shadow:var(--sh);transform:translateY(-1px)}
 		.rmpe-card.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),var(--sh-lift)}
 		.rmpe-card.off{opacity:.52}
-		.rmpe-card .ic{width:32px;height:32px;border-radius:9px;background:var(--tint);display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+		.rmpe-card .ic{width:26px;height:26px;border-radius:7px;background:var(--tint);display:flex;align-items:center;justify-content:center;flex:0 0 auto}
 		.rmpe-card .ic .dashicons{font-size:17px;width:17px;height:17px;color:var(--accent)}
 		.rmpe-card.pat .ic{background:#eaf3ec}.rmpe-card.pat .ic .dashicons{color:#2f7d46}
 		.rmpe-card .drag{color:#c4c8d4;cursor:grab;display:flex;opacity:0;transition:.14s;margin-left:-4px}
 		.rmpe-card:hover .drag,.rmpe-card.sel .drag{opacity:1}
-		.rmpe-card .nm{flex:1;font-weight:600;color:var(--ink);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+		.rmpe-card .nm{flex:1;font-weight:600;color:var(--ink);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 		.rmpe-card .eye,.rmpe-card .del{border:0;background:none;cursor:pointer;color:var(--faint);padding:4px;border-radius:7px;display:flex;transition:.14s}
 		.rmpe-card .eye:hover{background:var(--tint);color:var(--accent)}
 		.rmpe-card .del:hover{background:#fdeaea;color:#c0392b}
@@ -547,7 +549,8 @@ function ricoman_product_editor_render() {
 				<button data-d="tablet" title="Tablet"><span class="dashicons dashicons-tablet"></span></button>
 				<button data-d="mobile" title="Mobile"><span class="dashicons dashicons-smartphone"></span></button>
 			</div>
-			<button class="rmpe-btn rmpe-btn-ghost" id="rmpe-wide" title="<?php esc_attr_e( 'Hide panels for a wider preview', 'ricoman' ); ?>"><span class="dashicons dashicons-editor-expand"></span></button>
+			<button class="rmpe-btn rmpe-btn-ghost" id="rmpe-tleft" title="<?php esc_attr_e( 'Hide / show the sections panel', 'ricoman' ); ?>"><span class="dashicons dashicons-align-pull-left"></span></button>
+			<button class="rmpe-btn rmpe-btn-ghost" id="rmpe-tright" title="<?php esc_attr_e( 'Hide / show the settings panel', 'ricoman' ); ?>"><span class="dashicons dashicons-align-pull-right"></span></button>
 			<?php if ( ! $is_tpl ) : ?>
 				<a class="rmpe-btn rmpe-btn-ghost" href="<?php echo esc_url( admin_url( 'post.php?post=' . $pid . '&action=edit&classic=1' ) ); ?>"><?php esc_html_e( 'All fields', 'ricoman' ); ?></a>
 				<button class="rmpe-btn rmpe-btn-ghost" id="rmpe-reset"><?php esc_html_e( 'Reset', 'ricoman' ); ?></button>
@@ -930,9 +933,14 @@ function ricoman_product_editor_render() {
 			$( 'rmpe-saveform' ).submit();
 		} );
 		$( 'rmpe-exit' ).addEventListener( 'click', function () { window.location.href = B.exitUrl; } );
-		// Hide panels for a wider preview.
-		$( 'rmpe-wide' ).addEventListener( 'click', function () {
-			document.querySelector( '.rmpe' ).classList.toggle( 'rmpe-wide' );
+		// Independently hide the left / right panels for a wider preview.
+		$( 'rmpe-tleft' ).addEventListener( 'click', function () {
+			document.querySelector( '.rmpe' ).classList.toggle( 'hide-left' );
+			this.classList.toggle( 'rmpe-btn-on' );
+		} );
+		$( 'rmpe-tright' ).addEventListener( 'click', function () {
+			document.querySelector( '.rmpe' ).classList.toggle( 'hide-right' );
+			this.classList.toggle( 'rmpe-btn-on' );
 		} );
 		// Reset this product back to its template / default layout.
 		var rst = $( 'rmpe-reset' );
