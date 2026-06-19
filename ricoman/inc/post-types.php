@@ -324,32 +324,65 @@ add_shortcode( 'ricoman_projects_grid', function ( $atts ) {
 	}
 	$tax = taxonomy_exists( 'project-cat' ) ? 'project-cat' : 'application';
 
-	// Category facet chips (only sectors that actually have projects).
-	$chips = '';
+	// Sector dropdown — cleaner than a wall of chips when there are many sectors.
+	$opts  = '';
 	$terms = get_terms( array( 'taxonomy' => $tax, 'hide_empty' => true ) );
 	if ( ! is_wp_error( $terms ) && $terms ) {
-		$chips = '<div class="rm-projfilters"><button type="button" class="rm-projchip on" data-cat="">All</button>';
 		foreach ( $terms as $t ) {
-			$chips .= '<button type="button" class="rm-projchip" data-cat="' . esc_attr( $t->slug ) . '">' . esc_html( $t->name ) . '</button>';
+			$opts .= '<option value="' . esc_attr( $t->slug ) . '">' . esc_html( $t->name ) . '</option>';
 		}
-		$chips .= '</div>';
 	}
 
-	$out = $chips . '<div class="rm-projgrid">';
+	// Build the cards first so we can show an accurate total in the toolbar.
+	$cards = '';
+	$total = 0;
 	while ( $q->have_posts() ) {
 		$q->the_post();
-		$img    = function_exists( 'ricoman_project_img' ) ? ricoman_project_img( get_the_ID() ) : get_the_post_thumbnail_url( get_the_ID(), 'large' );
-		$sector = ricoman_first_term_name( get_the_ID(), array( 'project-cat', 'application' ) );
-		$slugs  = wp_get_post_terms( get_the_ID(), $tax, array( 'fields' => 'slugs' ) );
+		$pid    = get_the_ID();
+		$img    = function_exists( 'ricoman_project_img' ) ? ricoman_project_img( $pid ) : get_the_post_thumbnail_url( $pid, 'large' );
+		$sector = ricoman_first_term_name( $pid, array( 'project-cat', 'application' ) );
+		$slugs  = wp_get_post_terms( $pid, $tax, array( 'fields' => 'slugs' ) );
 		$cats   = ( ! is_wp_error( $slugs ) && $slugs ) ? implode( ' ', $slugs ) : '';
+		$loc    = trim( wp_strip_all_tags( (string) get_post_meta( $pid, 'area', true ) ) );
+		// Searchable haystack: title + sector + location + product names used.
+		$hay    = strtolower( get_the_title() . ' ' . $sector . ' ' . $loc . ' ' . ricoman_project_products_text( $pid ) );
 		$style  = $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '';
-		$out   .= '<a class="rm-projcard" data-cats="' . esc_attr( $cats ) . '" href="' . esc_url( get_permalink() ) . '"' . $style . '><span class="rm-projcard-ov">'
+		$cards .= '<a class="rm-projcard" data-cats="' . esc_attr( $cats ) . '" data-search="' . esc_attr( $hay ) . '" href="' . esc_url( get_permalink() ) . '"' . $style . '><span class="rm-projcard-ov">'
 			. ( $sector ? '<span class="rm-eyebrow">' . esc_html( $sector ) . '</span>' : '' )
-			. '<span class="rm-projcard-t">' . esc_html( get_the_title() ) . '</span></span></a>';
+			. '<span class="rm-projcard-t">' . esc_html( get_the_title() ) . '</span>'
+			. ( $loc ? '<span class="rm-projcard-loc">' . esc_html( $loc ) . '</span>' : '' )
+			. '</span></a>';
+		$total++;
 	}
 	wp_reset_postdata();
-	return $out . '</div>';
+
+	// Toolbar: live search (title / sector / location / product) + sector filter.
+	$tools = '<div class="rm-projtools">'
+		. '<div class="rm-projsearch"><svg class="rm-projsearch-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'
+		. '<input type="search" class="rm-projq" placeholder="Search projects, sectors or products…" aria-label="Search projects"></div>'
+		. ( $opts ? '<div class="rm-projselwrap"><select class="rm-projsel" aria-label="Filter by sector"><option value="">All sectors</option>' . $opts . '</select></div>' : '' )
+		. '<span class="rm-projcount" data-total="' . (int) $total . '">' . (int) $total . ' projects</span>'
+		. '</div>';
+
+	return $tools . '<div class="rm-projwide"><div class="rm-projgrid">' . $cards . '</div>'
+		. '<p class="rm-projempty" hidden>No projects match your search. <button type="button" class="rm-projreset">Clear filters</button></p></div>';
 } );
+
+/** Flat text of the product names used on a project (for search). */
+function ricoman_project_products_text( $pid ) {
+	$txt = '';
+	if ( function_exists( 'have_rows' ) && have_rows( 'product_use', $pid ) ) {
+		while ( have_rows( 'product_use', $pid ) ) {
+			the_row();
+			$txt .= ' ' . (string) get_sub_field( 'name' );
+		}
+	}
+	$fam = get_post_meta( $pid, '_ricoman_family', true );
+	if ( $fam ) {
+		$txt .= ' ' . $fam;
+	}
+	return trim( $txt );
+}
 
 /**
  * Slugs of the demo case studies seeded by the theme installer (demo-setup.php).

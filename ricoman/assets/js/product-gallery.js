@@ -138,20 +138,59 @@
 		vtApply( vp );
 	} );
 
-	/* ---- Projects category filter chips ---- */
-	document.addEventListener( 'click', function ( e ) {
-		var c = e.target.closest( '.rm-projchip' ); if ( ! c ) { return; }
-		var bar = c.closest( '.rm-projfilters' ); if ( ! bar ) { return; }
-		var grid = bar.nextElementSibling;
-		while ( grid && ! grid.classList.contains( 'rm-projgrid' ) ) { grid = grid.nextElementSibling; }
-		if ( ! grid ) { return; }
-		bar.querySelectorAll( '.rm-projchip' ).forEach( function ( x ) { x.classList.remove( 'on' ); } );
-		c.classList.add( 'on' );
-		var cat = c.getAttribute( 'data-cat' );
-		grid.querySelectorAll( '.rm-projcard' ).forEach( function ( card ) {
+	/* ---- Projects search + sector filter toolbar ---- */
+	function projScope( el ) {
+		// Tools bar and grid are siblings; walk forward to the grid wrapper.
+		var tools = el.closest( '.rm-projtools' );
+		if ( ! tools ) { return null; }
+		var n = tools.nextElementSibling;
+		while ( n && ! ( n.classList && n.classList.contains( 'rm-projwide' ) ) ) { n = n.nextElementSibling; }
+		var grid = n && n.querySelector( '.rm-projgrid' );
+		if ( ! grid ) { return null; }
+		return {
+			tools: tools, grid: grid,
+			q: tools.querySelector( '.rm-projq' ),
+			sel: tools.querySelector( '.rm-projsel' ),
+			count: tools.querySelector( '.rm-projcount' ),
+			empty: n.querySelector( '.rm-projempty' )
+		};
+	}
+	function projApply( s ) {
+		if ( ! s ) { return; }
+		var q = ( s.q && s.q.value || '' ).trim().toLowerCase();
+		var cat = s.sel && s.sel.value || '';
+		var shown = 0;
+		s.grid.querySelectorAll( '.rm-projcard' ).forEach( function ( card ) {
 			var cats = ( card.getAttribute( 'data-cats' ) || '' ).split( ' ' );
-			card.style.display = ( ! cat || cats.indexOf( cat ) > -1 ) ? '' : 'none';
+			var hay = card.getAttribute( 'data-search' ) || '';
+			var ok = ( ! cat || cats.indexOf( cat ) > -1 ) && ( ! q || hay.indexOf( q ) > -1 );
+			card.style.display = ok ? '' : 'none';
+			if ( ok ) { shown++; }
 		} );
+		if ( s.count ) {
+			var total = s.count.getAttribute( 'data-total' ) || shown;
+			s.count.textContent = ( q || cat )
+				? ( shown + ' of ' + total + ' projects' )
+				: ( total + ' projects' );
+		}
+		if ( s.empty ) { s.empty.hidden = shown !== 0; }
+	}
+	document.addEventListener( 'input', function ( e ) {
+		if ( e.target.closest( '.rm-projq' ) ) { projApply( projScope( e.target ) ); }
+	} );
+	document.addEventListener( 'change', function ( e ) {
+		if ( e.target.closest( '.rm-projsel' ) ) { projApply( projScope( e.target ) ); }
+	} );
+	document.addEventListener( 'click', function ( e ) {
+		if ( ! e.target.closest( '.rm-projreset' ) ) { return; }
+		var wide = e.target.closest( '.rm-projwide' );
+		var tools = wide && wide.previousElementSibling;
+		while ( tools && ! ( tools.classList && tools.classList.contains( 'rm-projtools' ) ) ) { tools = tools.previousElementSibling; }
+		var s = tools && projScope( tools.querySelector( '.rm-projq' ) || tools );
+		if ( ! s ) { return; }
+		if ( s.q ) { s.q.value = ''; }
+		if ( s.sel ) { s.sel.value = ''; }
+		projApply( s );
 	} );
 
 	/* ---- Variant spec popup ---- */
