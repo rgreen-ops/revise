@@ -84,6 +84,19 @@
 		slider.scrollBy( { left: ( a.getAttribute( 'data-rel' ) === 'prev' ? -step : step ), behavior: 'smooth' } );
 	} );
 
+	/* ---- Configure table "Show more" (reveal 20 rows at a time) ---- */
+	document.addEventListener( 'click', function ( e ) {
+		var b = e.target.closest( '.rm-vt-morebtn' );
+		if ( ! b ) { return; }
+		var vp = b.closest( '.rm-vp' ); if ( ! vp ) { return; }
+		var hidden = vp.querySelectorAll( 'tr.rm-vt-more' );
+		var step = parseInt( b.getAttribute( 'data-step' ), 10 ) || 20;
+		for ( var i = 0; i < step && i < hidden.length; i++ ) { hidden[ i ].classList.remove( 'rm-vt-more' ); }
+		var left = vp.querySelectorAll( 'tr.rm-vt-more' ).length;
+		if ( left <= 0 ) { var w = b.closest( '.rm-vt-morewrap' ); if ( w ) { w.remove(); } }
+		else { var c = b.querySelector( '.rm-vt-morecount' ); if ( c ) { c.textContent = '(' + left + ' more)'; } }
+	} );
+
 	/* ---- Variant spec popup ---- */
 	function openVariant( row ) {
 		var vp = row.closest( '.rm-vp' ); if ( ! vp ) { return; }

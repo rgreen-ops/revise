@@ -944,6 +944,12 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-vptable th{white-space:nowrap}
 .rm-vptable .vt-dl a{color:var(--ink);text-decoration:none;font-weight:600;white-space:nowrap}
 .rm-vptable .vt-dl a:hover{color:var(--accent)}
+.rm-vptable tr.rm-vt-more{display:none}
+.rm-vt-morewrap{margin-top:18px;text-align:center}
+.rm-vt-morebtn{font-family:Poppins;font-size:.8rem;font-weight:600;color:var(--ink);background:none;border:1px solid var(--line);border-radius:999px;padding:10px 22px;cursor:pointer;transition:.15s}
+.rm-vt-morebtn:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
+.rm-vt-morecount{color:var(--muted);font-weight:500}
+.rm-vt-morebtn:hover .rm-vt-morecount{color:rgba(255,255,255,.7)}
 .rm-vp-hint{font-size:.8rem;color:var(--muted);margin:0 0 10px}
 .rm-vptable .vt-row{cursor:pointer;transition:background .12s}
 .rm-vptable .vt-row:hover{background:#f5f7fb}

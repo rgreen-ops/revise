@@ -509,7 +509,8 @@ function ricoman_product_editor_render() {
 		.rmpe-colrow input{margin:0}
 		.rmpe-colglobal{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:600;color:var(--muted);margin:0 0 14px;cursor:pointer}
 		.rmpe-gallery{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 16px}
-		.rmpe-gthumb{width:46px;height:46px;border-radius:7px;background:#eef0f5 center/cover no-repeat;border:1px solid var(--line)}
+		.rmpe-gthumb{position:relative;width:46px;height:46px;border-radius:7px;background:#eef0f5 center/cover no-repeat;border:1px solid var(--line);cursor:pointer}
+		.rmpe-gthumb:hover::after{content:"\00d7";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(20,22,28,.55);color:#fff;font-size:18px;border-radius:7px}
 		.rmpe-gbtn{border:1px dashed #b3c2dd;background:var(--tint-2);color:var(--accent);border-radius:7px;padding:0 14px;height:46px;font-weight:700;font-size:12px;cursor:pointer}
 		.rmpe-gbtn:hover{background:var(--tint)}
 		/* visual picker modal */
@@ -850,17 +851,15 @@ function ricoman_product_editor_render() {
 		}
 		function galleryControl( label, key ) {
 			var arr = state[ key ] || [];
-			var thumbs = arr.map( function ( it ) { return '<span class="rmpe-gthumb" style="background-image:url(' + it.url + ')"></span>'; } ).join( '' );
-			return '<label><span>' + label + '</span></label><div class="rmpe-gallery">' + thumbs
-				+ '<button type="button" class="rmpe-gbtn" data-gal="' + key + '">' + ( arr.length ? '✎ Edit' : '＋ Add' ) + '</button></div>';
+			var thumbs = arr.map( function ( it, idx ) {
+				return '<span class="rmpe-gthumb" data-grm="' + key + '" data-gi="' + idx + '" title="Click to remove" style="background-image:url(' + it.url + ')"></span>';
+			} ).join( '' );
+			return '<label><span>' + label + ' <em style="font-weight:400;color:var(--faint);text-transform:none;letter-spacing:0">(click an image to remove)</em></span></label><div class="rmpe-gallery">' + thumbs
+				+ '<button type="button" class="rmpe-gbtn" data-gal="' + key + '">＋ Add images</button></div>';
 		}
-		function openMedia( current, cb ) {
+		function openMedia( cb ) {
 			if ( ! window.wp || ! wp.media ) { return; }
-			var frame = wp.media( { title: 'Select images', multiple: true, library: { type: 'image' }, button: { text: 'Use images' } } );
-			frame.on( 'open', function () {
-				var sel = frame.state().get( 'selection' );
-				( current || [] ).forEach( function ( it ) { if ( it.id ) { var a = wp.media.attachment( it.id ); a.fetch(); sel.add( a ); } } );
-			} );
+			var frame = wp.media( { title: 'Add images', multiple: 'add', library: { type: 'image' }, button: { text: 'Add to gallery' } } );
 			frame.on( 'select', function () {
 				var items = frame.state().get( 'selection' ).map( function ( a ) {
 					a = a.toJSON();
@@ -895,10 +894,22 @@ function ricoman_product_editor_render() {
 			}
 		} );
 		$( 'rmpe-set' ).addEventListener( 'click', function ( e ) {
+			var grm = e.target.closest( '[data-grm]' );
+			if ( grm ) {
+				var rk = grm.getAttribute( 'data-grm' );
+				var gi = parseInt( grm.getAttribute( 'data-gi' ), 10 );
+				if ( state[ rk ] && gi > -1 ) { state[ rk ].splice( gi, 1 ); renderSettings(); pushDraft(); }
+				return;
+			}
 			var gal = e.target.closest( '[data-gal]' );
 			if ( gal ) {
 				var key = gal.getAttribute( 'data-gal' );
-				openMedia( state[ key ], function ( items ) { state[ key ] = items; renderSettings(); pushDraft(); } );
+				openMedia( function ( items ) {
+					var byId = {};
+					( state[ key ] || [] ).concat( items ).forEach( function ( it ) { if ( it && it.id ) { byId[ it.id ] = it; } } );
+					state[ key ] = Object.keys( byId ).map( function ( id ) { return byId[ id ]; } );
+					renderSettings(); pushDraft();
+				} );
 				return;
 			}
 			var btn = e.target.closest( '[data-act=remove]' ); if ( ! btn ) { return; }

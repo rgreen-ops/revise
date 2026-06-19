@@ -823,7 +823,7 @@ function ricoman_pf_variant_table( $pid ) {
 	$q = new WP_Query( array(
 		'post_type'      => 'variant-product',
 		'post_status'    => 'publish',
-		'posts_per_page' => -1,
+		'posts_per_page' => 300,
 		'no_found_rows'  => true,
 		'orderby'        => 'menu_order title',
 		'order'          => 'ASC',
@@ -901,7 +901,7 @@ function ricoman_pf_variant_table( $pid ) {
 	$details = '';
 	foreach ( $variants as $i => $v ) {
 		$thumb = $v['img'] ? '<img src="' . esc_url( $v['img'] ) . '" alt="" loading="lazy">' : '';
-		$rows .= '<tr class="vt-row" data-vt="' . $i . '" tabindex="0"><td class="vt-thumb">' . $thumb . '</td>'
+		$rows .= '<tr class="vt-row' . ( $i >= 20 ? ' rm-vt-more' : '' ) . '" data-vt="' . $i . '" tabindex="0"><td class="vt-thumb">' . $thumb . '</td>'
 			. '<td class="vt-code">' . esc_html( $v['code'] ) . '</td>'
 			. '<td class="vt-desc">' . esc_html( $v['desc'] ) . '</td>';
 		foreach ( $cols as $label ) {
@@ -928,8 +928,14 @@ function ricoman_pf_variant_table( $pid ) {
 			. $acts . '</div>';
 	}
 
+	$total    = count( $variants );
+	$showmore = $total > 20
+		? '<div class="rm-vt-morewrap"><button type="button" class="rm-vt-morebtn" data-step="20">Show more <span class="rm-vt-morecount">(' . ( $total - 20 ) . ' more)</span></button></div>'
+		: '';
+
 	return '<div class="rm-vp">'
 		. '<div class="rm-vptable-wrap"><table class="rm-vptable"><thead><tr>' . $head . '</tr></thead><tbody>' . $rows . '</tbody></table></div>'
+		. $showmore
 		. '<div class="rm-vt-details" hidden>' . $details . '</div>'
 		. '<div class="rm-vt-modal" hidden><div class="rm-vt-modal-box"><button type="button" class="rm-vt-x" aria-label="Close">&times;</button><div class="rm-vt-body"></div></div></div>'
 		. '</div>';
