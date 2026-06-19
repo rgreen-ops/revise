@@ -511,6 +511,7 @@ function ricoman_product_editor_render() {
 		.rmpe-gallery{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 16px}
 		.rmpe-gthumb{position:relative;width:46px;height:46px;border-radius:7px;background:#eef0f5 center/cover no-repeat;border:1px solid var(--line);cursor:pointer}
 		.rmpe-gthumb:hover::after{content:"\00d7";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(20,22,28,.55);color:#fff;font-size:18px;border-radius:7px}
+		.rmpe-gthumb.rmpe-gdrag{opacity:.4}
 		.rmpe-gbtn{border:1px dashed #b3c2dd;background:var(--tint-2);color:var(--accent);border-radius:7px;padding:0 14px;height:46px;font-weight:700;font-size:12px;cursor:pointer}
 		.rmpe-gbtn:hover{background:var(--tint)}
 		/* visual picker modal */
@@ -852,9 +853,9 @@ function ricoman_product_editor_render() {
 		function galleryControl( label, key ) {
 			var arr = state[ key ] || [];
 			var thumbs = arr.map( function ( it, idx ) {
-				return '<span class="rmpe-gthumb" data-grm="' + key + '" data-gi="' + idx + '" title="Click to remove" style="background-image:url(' + it.url + ')"></span>';
+				return '<span class="rmpe-gthumb" draggable="true" data-grm="' + key + '" data-gi="' + idx + '" title="Drag to reorder · click to remove" style="background-image:url(' + it.url + ')"></span>';
 			} ).join( '' );
-			return '<label><span>' + label + ' <em style="font-weight:400;color:var(--faint);text-transform:none;letter-spacing:0">(click an image to remove)</em></span></label><div class="rmpe-gallery">' + thumbs
+			return '<label><span>' + label + ' <em style="font-weight:400;color:var(--faint);text-transform:none;letter-spacing:0">(drag to reorder · click to remove)</em></span></label><div class="rmpe-gallery">' + thumbs
 				+ '<button type="button" class="rmpe-gbtn" data-gal="' + key + '">＋ Add images</button></div>';
 		}
 		function openMedia( cb ) {
@@ -915,6 +916,30 @@ function ricoman_product_editor_render() {
 			var btn = e.target.closest( '[data-act=remove]' ); if ( ! btn ) { return; }
 			state.layout.splice( state.sel, 1 ); state.sel = Math.max( 0, state.sel - 1 );
 			renderList(); renderAdd(); renderSettings(); pushDraft();
+		} );
+
+		/* ---- gallery drag-to-reorder ---- */
+		var gDragKey = null, gDragIdx = null;
+		$( 'rmpe-set' ).addEventListener( 'dragstart', function ( e ) {
+			var t = e.target.closest( '.rmpe-gthumb' ); if ( ! t ) { return; }
+			gDragKey = t.getAttribute( 'data-grm' ); gDragIdx = parseInt( t.getAttribute( 'data-gi' ), 10 );
+			e.dataTransfer.effectAllowed = 'move'; t.classList.add( 'rmpe-gdrag' );
+		} );
+		$( 'rmpe-set' ).addEventListener( 'dragover', function ( e ) {
+			if ( e.target.closest( '.rmpe-gthumb' ) && gDragKey !== null ) { e.preventDefault(); }
+		} );
+		$( 'rmpe-set' ).addEventListener( 'drop', function ( e ) {
+			var t = e.target.closest( '.rmpe-gthumb' ); if ( ! t || gDragKey === null ) { return; }
+			e.preventDefault();
+			var k = t.getAttribute( 'data-grm' ); if ( k !== gDragKey ) { return; }
+			var to = parseInt( t.getAttribute( 'data-gi' ), 10 );
+			var arr = state[ k ]; if ( ! arr || gDragIdx === to ) { return; }
+			var moved = arr.splice( gDragIdx, 1 )[ 0 ]; arr.splice( to, 0, moved );
+			gDragKey = null; gDragIdx = null; renderSettings(); pushDraft();
+		} );
+		$( 'rmpe-set' ).addEventListener( 'dragend', function () {
+			document.querySelectorAll( '.rmpe-gdrag' ).forEach( function ( x ) { x.classList.remove( 'rmpe-gdrag' ); } );
+			gDragKey = null; gDragIdx = null;
 		} );
 
 		/* ---- device toggle ---- */
