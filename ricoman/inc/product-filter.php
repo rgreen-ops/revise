@@ -38,8 +38,32 @@ function ricoman_pf_feature_map() {
 	);
 }
 
-/** Extract {lm, w, feats[]} from a product's ACF text fields. */
+/**
+ * Light output (lumens) + power (watts) + feature flags for a product.
+ *
+ * The real ricoman.com catalogue keeps lumens/wattage on the per-variant
+ * `variant-product` posts (lumens as meta, wattage as a taxonomy), not on the
+ * parent — so we aggregate the variants (taking the maximum, since a family
+ * spans a range) and fall back to parsing the parent's ACF text. Results are
+ * cached per product because the catalogue calls this for every product.
+ */
 function ricoman_pf_metrics( $pid ) {
+	static $memo = array();
+	if ( isset( $memo[ $pid ] ) ) {
+		return $memo[ $pid ];
+	}
+	$cached = get_transient( 'rm_pfm_' . $pid );
+	if ( is_array( $cached ) && isset( $cached['lm'], $cached['w'], $cached['feats'] ) ) {
+		return $memo[ $pid ] = $cached;
+	}
+
+	// 1) Variant-derived metrics (the authoritative source when present).
+	$vm    = ricoman_pf_variant_metrics( $pid );
+	$lm    = (int) $vm['lm'];
+	$w     = (int) $vm['w'];
+	$feats = $vm['feats'];
+
+	// 2) Parent ACF text — fills the gaps / covers products with no variants.
 	$text = '';
 	foreach ( array( 'key_features', 'specification', 'product_sort_description', 'product_subname' ) as $f ) {
 		$v = function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( $pid, $f ) : get_post_meta( $pid, $f, true );
@@ -50,26 +74,129 @@ function ricoman_pf_metrics( $pid ) {
 	}
 	$lc = strtolower( wp_strip_all_tags( $text ) );
 
-	$lm = 0;
 	if ( preg_match_all( '/([0-9][0-9,\.]*)\s*(?:lm|lumens)\b/i', $lc, $m ) ) {
 		foreach ( $m[1] as $n ) {
 			$lm = max( $lm, (int) str_replace( array( ',', '.' ), '', $n ) );
 		}
 	}
-	$w = 0;
 	if ( preg_match_all( '/([0-9]+(?:\.[0-9]+)?)\s*w\b/i', $lc, $m ) ) {
 		foreach ( $m[1] as $n ) {
 			$w = max( $w, (int) ceil( (float) $n ) );
 		}
 	}
-	$feats = array();
 	foreach ( ricoman_pf_feature_map() as $kw => $label ) {
 		if ( false !== strpos( $lc, $kw ) ) {
 			$feats[ $label ] = true;
 		}
 	}
-	return array( 'lm' => $lm, 'w' => $w, 'feats' => array_keys( $feats ) );
+
+	$res = array( 'lm' => $lm, 'w' => $w, 'feats' => array_keys( $feats ) );
+	set_transient( 'rm_pfm_' . $pid, $res, 6 * HOUR_IN_SECONDS );
+	return $memo[ $pid ] = $res;
 }
+
+/**
+ * Aggregate lumens / wattage / feature flags from a product's variants.
+ * Lumens live in variant meta; wattage in the `wattage` taxonomy; feature
+ * flags can be read from variant taxonomies (dimming, emergency, pir…).
+ * Returns the family maximums so the slider ranges cover every variant.
+ */
+function ricoman_pf_variant_metrics( $pid ) {
+	$lm    = 0;
+	$w     = 0;
+	$feats = array();
+	if ( ! post_type_exists( 'variant-product' ) ) {
+		return array( 'lm' => 0, 'w' => 0, 'feats' => $feats );
+	}
+	$ids = get_posts( array(
+		'post_type'      => 'variant-product',
+		'post_status'    => 'publish',
+		'posts_per_page' => -1,
+		'no_found_rows'  => true,
+		'fields'         => 'ids',
+		'meta_query'     => array( array( 'key' => 'parent_product', 'value' => (string) $pid ) ),
+	) );
+	if ( ! $ids ) {
+		return array( 'lm' => 0, 'w' => 0, 'feats' => $feats );
+	}
+
+	// Lumens live in variant meta — prime the cache so the loop is query-free
+	// even for families with thousands of variants.
+	update_meta_cache( 'post', $ids );
+	$lm_keys = array( 'lumens', 'lumen', 'lumen_output', 'lumens_output', 'total_lumens', 'output_lumens', 'lumen_value', 'lm' );
+	foreach ( $ids as $vid ) {
+		foreach ( $lm_keys as $k ) {
+			$lv = get_post_meta( $vid, $k, true );
+			if ( is_scalar( $lv ) && '' !== trim( (string) $lv ) ) {
+				if ( preg_match_all( '/([0-9][0-9,\.]+|[0-9]+)/', (string) $lv, $m ) ) {
+					foreach ( $m[1] as $n ) {
+						$lm = max( $lm, (int) str_replace( array( ',', '.' ), '', $n ) );
+					}
+				}
+				break; // first populated lumens key wins for this variant.
+			}
+		}
+	}
+
+	// Wattage + feature flags come from taxonomies — one bulk query each across
+	// all of the product's variants (not one query per variant).
+	$wtxt = '';
+	foreach ( array( 'wattage', 'lumen', 'lumens' ) as $ltx ) {
+		// 'wattage' parsed below; lumen taxonomies feed the lumens max here.
+		if ( ! taxonomy_exists( $ltx ) ) {
+			continue;
+		}
+		$names = wp_get_object_terms( $ids, $ltx, array( 'fields' => 'names' ) );
+		if ( is_wp_error( $names ) || ! $names ) {
+			continue;
+		}
+		if ( 'wattage' === $ltx ) {
+			$wtxt = implode( ' ', $names );
+		} elseif ( preg_match_all( '/([0-9][0-9,\.]+|[0-9]+)/', implode( ' ', $names ), $m ) ) {
+			foreach ( $m[1] as $n ) {
+				$lm = max( $lm, (int) str_replace( array( ',', '.' ), '', $n ) );
+			}
+		}
+	}
+	if ( preg_match_all( '/([0-9]+(?:\.[0-9]+)?)/', $wtxt, $m ) ) {
+		foreach ( $m[1] as $n ) {
+			$w = max( $w, (int) ceil( (float) $n ) );
+		}
+	}
+
+	$featblob = '';
+	foreach ( array( 'dimming', 'emergency', 'pir', 'microwave', 'iprating', 'color' ) as $tx ) {
+		if ( taxonomy_exists( $tx ) ) {
+			$tn = wp_get_object_terms( $ids, $tx, array( 'fields' => 'names' ) );
+			if ( ! is_wp_error( $tn ) && $tn ) {
+				$featblob .= ' ' . strtolower( implode( ' ', $tn ) );
+			}
+		}
+	}
+	if ( '' !== $featblob ) {
+		foreach ( ricoman_pf_feature_map() as $kw => $label ) {
+			if ( false !== strpos( $featblob, $kw ) ) {
+				$feats[ $label ] = true;
+			}
+		}
+	}
+	return array( 'lm' => $lm, 'w' => $w, 'feats' => $feats );
+}
+
+/** Invalidate cached metrics when a product or one of its variants is saved. */
+add_action( 'save_post', function ( $post_id, $post ) {
+	if ( wp_is_post_revision( $post_id ) || wp_is_post_autosave( $post_id ) ) {
+		return;
+	}
+	if ( 'product' === $post->post_type ) {
+		delete_transient( 'rm_pfm_' . $post_id );
+	} elseif ( 'variant-product' === $post->post_type ) {
+		$parent = (int) get_post_meta( $post_id, 'parent_product', true );
+		if ( $parent ) {
+			delete_transient( 'rm_pfm_' . $parent );
+		}
+	}
+}, 10, 2 );
 
 /**
  * The category archive grid + filter UI. Reads the current queried product-cat

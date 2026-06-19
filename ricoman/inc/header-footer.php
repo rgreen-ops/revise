@@ -105,6 +105,12 @@ add_shortcode( 'ricoman_header', function () {
 		. '.rm-mega-name{font-weight:500!important}'
 		. '.rm-mega-sub{font-size:.76rem!important;font-weight:300!important}'
 		. '.rm-mega-col h4{font-size:.95rem!important;margin:0 0 .9em!important}'
+		// Mobile: keep only the Categories column in the menu.
+		. '@media(max-width:1024px){'
+		. '.rm-mega-cols{grid-template-columns:1fr!important}'
+		. '.rm-mega-cols .rm-mega-col:nth-child(2),.rm-mega-cols .rm-mega-col:nth-child(3){display:none!important}'
+		. '.rm-mega-col h4,.rm-mega-col ul a,.rm-mega-name{color:#fff!important}'
+		. '}'
 		. '</style>';
 
 	return $crit . '<header class="site ricoman-site-header"><div class="wrap nav">'

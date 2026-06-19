@@ -28,6 +28,42 @@ function ricoman_project_img( $pid ) {
 	return '';
 }
 
+/** Resolve a product page URL from a product name (slug match, then title). */
+function ricoman_find_product_url( $name ) {
+	$name = trim( (string) $name );
+	if ( '' === $name ) {
+		return '';
+	}
+	static $cache = array();
+	$key = strtolower( $name );
+	if ( isset( $cache[ $key ] ) ) {
+		return $cache[ $key ];
+	}
+	$url = '';
+	// Try the slug derived from the name first (fast, exact).
+	$p = get_page_by_path( sanitize_title( $name ), OBJECT, 'product' );
+	if ( ! $p ) {
+		// Fall back to a title match.
+		$q = new WP_Query( array(
+			'post_type'              => 'product',
+			'post_status'            => 'publish',
+			'title'                  => $name,
+			'posts_per_page'         => 1,
+			'no_found_rows'          => true,
+			'ignore_sticky_posts'    => true,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+		) );
+		if ( $q->have_posts() ) {
+			$p = $q->posts[0];
+		}
+	}
+	if ( $p ) {
+		$url = (string) get_permalink( $p );
+	}
+	return $cache[ $key ] = $url;
+}
+
 /** Single project body, rendered from ACF (short + long content templates). */
 add_filter( 'the_content', function ( $content ) {
 	if ( is_admin() || ! is_singular( 'project' ) || ! in_the_loop() || ! is_main_query() ) {
@@ -170,6 +206,11 @@ add_filter( 'the_content', function ( $content ) {
 			$pu_name = (string) get_sub_field( 'name' );
 			$pu_link = get_sub_field( 'link' );
 			$pu_href = is_array( $pu_link ) ? ( $pu_link['url'] ?? '' ) : (string) $pu_link;
+			// Always try to link to the real product page: explicit link first,
+			// otherwise match a product post by name.
+			if ( '' === trim( $pu_href ) ) {
+				$pu_href = ricoman_find_product_url( $pu_name );
+			}
 			$inner   = ( $pu_img ? '<div class="rm-acard-img" style="background-image:url(' . esc_url( $pu_img ) . ')"></div>' : '' )
 				. '<div class="rm-acard-body"><h3>' . esc_html( $pu_name ) . '</h3></div>';
 			$cards  .= $pu_href ? '<a class="rm-acard" href="' . esc_url( $pu_href ) . '">' . $inner . '</a>' : '<div class="rm-acard">' . $inner . '</div>';

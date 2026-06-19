@@ -573,8 +573,12 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
   .rm-has-mega:focus-within .rm-mega,.rm-navtoggle:checked ~ .rm-nav .rm-has-mega .rm-mega{display:block}
   .rm-mega-head{color:#fff!important;font-size:1.1rem;margin-bottom:.8em}
   .rm-mega-grid{grid-template-columns:1fr;gap:18px}
-  .rm-mega-cols{grid-template-columns:1fr 1fr}
+  /* Mobile: show Categories only — Collections + By Application are removed
+     to keep the menu short and tappable. */
+  .rm-mega-cols{grid-template-columns:1fr}
+  .rm-mega-cols .rm-mega-col:nth-child(2),.rm-mega-cols .rm-mega-col:nth-child(3){display:none}
   .rm-mega-col h4,.rm-mega-col ul a,.rm-mega-name{color:#fff!important}
+  .rm-mega-col ul{display:flex!important;flex-direction:column!important}
   .rm-mega-sub{color:rgba(255,255,255,.6)!important}
   .rm-mega-cards{display:none}
   .rm-nav-right{position:fixed;left:0;right:0;bottom:0;background:var(--ink);padding:16px var(--pad);flex-direction:column;align-items:stretch;gap:12px;transform:translateX(100%);transition:transform .35s ease;z-index:56}
@@ -688,7 +692,7 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 /* Dynamic project / product grid (real posts, real permalinks) */
 /* Editorial listing header — clean, contained, no dead whitespace. */
 .rm-projintro{padding-block:clamp(34px,5vw,68px) clamp(18px,2.4vw,30px)!important;text-align:left}
-.rm-projintro .rm-eyebrow{margin-bottom:.7em}
+.rm-projintro .rm-eyebrow{margin-bottom:.7em;color:var(--muted)}
 .rm-projintro-h{margin:0 0 .35em}
 .rm-projintro-sub{max-width:62ch;font-size:1.05rem;line-height:1.6;margin:0}
 /* Search + sector toolbar */
@@ -850,7 +854,13 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-fcard-meta{display:block;font-family:Poppins;font-size:.72rem;font-weight:600;letter-spacing:.04em;color:rgba(255,255,255,.85);margin-top:6px}
 .rm-fnone{font-family:Poppins;color:var(--muted);padding:30px 0}
 .rm-fnone .rm-fclear{display:inline}
-@media(max-width:820px){.rm-catgrid-wrap{grid-template-columns:1fr}.rm-facets{position:static;display:grid;grid-template-columns:1fr 1fr;gap:0 28px}.rm-facets .rm-fgroup{grid-column:1/-1}}
+@media(max-width:820px){.rm-catgrid-wrap{grid-template-columns:1fr}.rm-facets{position:static;display:grid;grid-template-columns:1fr 1fr;gap:0 28px;padding:16px}.rm-facets .rm-fgroup{grid-column:1/-1}
+  /* Compact features list in two columns on mobile */
+  .rm-fgroup .rm-ftick{display:flex;margin:6px 0;font-size:.8rem}
+  .rm-fgroup{display:grid;grid-template-columns:1fr 1fr;gap:2px 18px;align-items:center}
+  .rm-fgroup .rm-facets-sub{grid-column:1/-1}
+  .rm-facets-head{grid-column:1/-1}
+  .rm-facets .rm-fclear{grid-column:1/-1;justify-self:start}}
 
 /* Catalogue: wide grid + horizontal filter bar on /products/ */
 .rm-catwide{padding-top:clamp(10px,2vw,24px)}
@@ -1036,7 +1046,7 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 @media(max-width:820px){.rm-acards{grid-template-columns:1fr 1fr}}
 @media(max-width:520px){.rm-acards{grid-template-columns:1fr}}
 .rm-acard{display:block;text-decoration:none;color:var(--ink);border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
-.rm-acard-img{aspect-ratio:16/10;background:#f2f2f0 center/cover no-repeat}
+.rm-acard-img{aspect-ratio:16/10;background:#e4e4e4 center/contain no-repeat;background-size:contain;padding:0}
 .rm-acard-body{padding:18px}
 .rm-acard-body h3{font-family:Poppins;font-size:1.1rem;font-weight:600;margin:0 0 .4em}
 .rm-acard-desc{color:var(--muted);font-size:.92rem;line-height:1.6}
@@ -1110,10 +1120,19 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-gtabs{margin:14px 0 0}
 .rm-gthumbs{display:flex;flex-direction:column;flex-wrap:nowrap;gap:10px;width:88px;flex:0 0 88px;max-height:min(56vh,520px);overflow-y:auto;margin-top:0}
 .rm-gthumbs .rm-cfg-thumb{width:88px;height:64px;flex:0 0 auto;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#e4e4e4;cursor:pointer;padding:6px}
-@media(max-width:600px){.rm-pdp-row{flex-direction:column-reverse}.rm-gthumbs{flex-direction:row;flex-wrap:nowrap;width:auto;flex:0 0 auto;max-height:none;overflow-x:auto}.rm-gthumbs .rm-cfg-thumb{flex:0 0 64px}}
+@media(max-width:600px){.rm-pdp-row{flex-direction:column-reverse}.rm-gthumbs{flex-direction:row;flex-wrap:nowrap;width:auto;flex:0 0 auto;max-height:none;overflow-x:auto}.rm-gthumbs .rm-cfg-thumb{flex:0 0 56px;height:48px}
+  /* Shrink the main image so it + the thumbnail row fit in the fold */
+  .rm-pdp-gallery .rm-cfg-viz{height:min(40vh,360px)}}
 .rm-gthumbs .rm-cfg-thumb.on{border-color:var(--ink);border-width:2px}
 .rm-gthumbs .rm-cfg-thumb img{width:100%;height:100%;object-fit:contain}
 @media(max-width:900px){.rm-pdp .rm-pdp-gallery{position:static}}
+/* ---- Mobile PDP: full-width hero, stacked CTAs, no horizontal overflow ---- */
+@media(max-width:600px){
+  .rm-cfghero{padding-inline:clamp(14px,4vw,20px)}
+  .rm-cfg-acts{flex-direction:column;align-items:stretch;gap:10px}
+  .rm-cfg-acts .btn{width:100%;justify-content:center;text-align:center;white-space:normal;padding:1em 1.2em;font-size:.74rem}
+}
+html,body{overflow-x:clip}
 
 /* ===== Header refinement: thinner, right-grouped, hover underline + arrow ===== */
 .brand{font-weight:500;letter-spacing:.16em;font-size:1rem}
