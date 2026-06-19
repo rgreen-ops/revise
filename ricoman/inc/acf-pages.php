@@ -29,10 +29,12 @@ add_filter( 'the_content', function ( $content ) {
 	// Known listing pages (were Elementor) -> native shortcodes.
 	$slug = get_post_field( 'post_name', get_the_ID() );
 	$map  = array(
-		'our-news'  => '[ricoman_news_grid]',
-		'news'      => '[ricoman_news_grid]',
-		'products'  => '[ricoman_catalogue]',
-		'downloads' => '[ricoman_catalogue]',
+		'our-news'   => '[ricoman_news_grid]',
+		'news'       => '[ricoman_news_grid]',
+		'products'   => '[ricoman_catalogue]',
+		'downloads'  => '[ricoman_catalogue]',
+		'contact'    => '[ricoman_contact]',
+		'contact-us' => '[ricoman_contact]',
 	);
 	if ( isset( $map[ $slug ] ) ) {
 		return do_shortcode( $map[ $slug ] );

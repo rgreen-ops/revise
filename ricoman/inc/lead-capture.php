@@ -107,6 +107,47 @@ function ricoman_lead_form( $atts = array() ) {
 add_shortcode( 'ricoman_lead_form', 'ricoman_lead_form' );
 
 /**
+ * Native Contact page: company details (address / phone / email, reused from the
+ * footer settings) beside the enquiry form. Mapped to the `contact` slug by
+ * acf-pages.php so the Elementor contact page renders natively.
+ */
+function ricoman_contact_page() {
+	$opt     = function ( $k, $d = '' ) { return function_exists( 'ricoman_opt' ) ? ricoman_opt( $k, $d ) : $d; };
+	$address = (string) $opt( 'foot_address', "Metroplex Business Park,\n520, Broadway, M50 2UE\nManchester, UK." );
+	$phone   = (string) $opt( 'foot_phone', '0161 451 5913' );
+	$email   = (string) $opt( 'foot_email', 'sales@ricoman.com' );
+	$telhref = preg_replace( '/[^0-9+]/', '', $phone );
+
+	$details = '<div class="rm-contact-info">'
+		. '<h2 class="rm-shead">Get in touch</h2>'
+		. '<p class="rm-cfg-desc">Tell us about your project and our lighting team will be in touch within one working day.</p>'
+		. '<ul class="rm-contact-list">';
+	if ( $address ) {
+		$details .= '<li><span class="rm-contact-lbl">Visit</span><span>' . nl2br( esc_html( $address ) ) . '</span></li>';
+	}
+	if ( $phone ) {
+		$details .= '<li><span class="rm-contact-lbl">Call</span><a href="tel:' . esc_attr( $telhref ) . '">' . esc_html( $phone ) . '</a></li>';
+	}
+	if ( $email ) {
+		$details .= '<li><span class="rm-contact-lbl">Email</span><a href="mailto:' . esc_attr( $email ) . '">' . esc_html( $email ) . '</a></li>';
+	}
+	$details .= '</ul></div>';
+
+	$form = '<div class="rm-contact-form">' . ricoman_lead_form( array( 'title' => '', 'source' => 'Contact page' ) ) . '</div>';
+
+	$map = '';
+	if ( $address ) {
+		$q   = rawurlencode( 'Ricoman Lighting, ' . preg_replace( '/\s+/', ' ', $address ) );
+		$map = '<div class="rm-contact-map"><iframe title="Map to Ricoman" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q=' . esc_attr( $q ) . '&output=embed"></iframe></div>';
+	}
+
+	return '<div class="rm-section rm-contact-head"><div class="rm-pp-wrap"><p class="rm-eyebrow">Contact</p><h1 class="rm-apage-title">Talk to our lighting team</h1></div></div>'
+		. '<div class="rm-section"><div class="rm-pp-wrap"><div class="rm-contact-grid">' . $details . $form . '</div></div></div>'
+		. ( $map ? '<div class="rm-section rm-contact-mapwrap"><div class="rm-pp-wrap">' . $map . '</div></div>' : '' );
+}
+add_shortcode( 'ricoman_contact', 'ricoman_contact_page' );
+
+/**
  * Handle the submitted lead.
  */
 function ricoman_handle_lead() {
