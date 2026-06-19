@@ -917,11 +917,11 @@ function ricoman_pf_gallery_block( $pid, $title, $code, $sw_html ) {
 	// Thumbnails sit in a vertical rail beside the main image (tabs above them),
 	// so the whole gallery stays above the fold.
 	return '<div class="rm-cfg-stage rm-pdp-gallery">'
-		. ( $thumbs ? '<div class="rm-gtabs">' . $tabs . '</div>' : '' )
 		. '<div class="rm-pdp-row">'
 		. ( $thumbs ? '<div class="rm-cfg-thumbs rm-gthumbs">' . $thumbs . '</div>' : '' )
 		. $viz
 		. '</div>'
+		. ( $thumbs ? '<div class="rm-gtabs">' . $tabs . '</div>' : '' )
 		. '<div class="rm-lightbox" hidden><button type="button" class="rm-lightbox-x" aria-label="Close">&times;</button><img class="rm-lightbox-img" src="" alt=""></div>'
 		. '</div>';
 }

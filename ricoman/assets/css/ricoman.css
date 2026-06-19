@@ -1031,7 +1031,7 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 /* Thumbnails in a vertical rail beside the main image (above the fold) */
 .rm-pdp-row{display:flex;gap:14px;align-items:flex-start}
 .rm-pdp-gallery .rm-cfg-viz{flex:1;min-width:0}
-.rm-gtabs{margin:0 0 12px}
+.rm-gtabs{margin:14px 0 0}
 .rm-gthumbs{display:flex;flex-direction:column;flex-wrap:nowrap;gap:10px;width:88px;flex:0 0 88px;max-height:min(56vh,520px);overflow-y:auto;margin-top:0}
 .rm-gthumbs .rm-cfg-thumb{width:88px;height:64px;flex:0 0 auto;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#e4e4e4;cursor:pointer;padding:6px}
 @media(max-width:600px){.rm-pdp-row{flex-direction:column-reverse}.rm-gthumbs{flex-direction:row;flex-wrap:nowrap;width:auto;flex:0 0 auto;max-height:none;overflow-x:auto}.rm-gthumbs .rm-cfg-thumb{flex:0 0 64px}}
