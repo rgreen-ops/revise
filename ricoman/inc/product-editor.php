@@ -24,12 +24,35 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /* ---------------------------------------------------------------- data model */
 
-/** Editable content fields shown in the builder: meta key => label. */
+/** Editable content fields shown in the builder: meta key => label (legacy). */
 function ricoman_pe_fields() {
 	return array(
 		'product_subname'          => __( 'Subtitle', 'ricoman' ),
 		'product_sort_description' => __( 'Short description', 'ricoman' ),
 		'product_code'             => __( 'Order code', 'ricoman' ),
+	);
+}
+
+/**
+ * Editable fields grouped by the section they belong to: [key, label, type].
+ * type is 'text' or 'textarea'. Keys map to ACF/meta fields (or post_title).
+ */
+function ricoman_pe_field_groups() {
+	return array(
+		'hero'  => array(
+			array( 'title', __( 'Title', 'ricoman' ), 'text' ),
+			array( 'product_subname', __( 'Subtitle', 'ricoman' ), 'text' ),
+			array( 'product_sort_description', __( 'Short description', 'ricoman' ), 'textarea' ),
+			array( 'product_code', __( 'Order code', 'ricoman' ), 'text' ),
+			array( 'key_features', __( 'Key features (one per line)', 'ricoman' ), 'textarea' ),
+			array( '_ricoman_ld_btn', __( '“Lighting design” button label', 'ricoman' ), 'text' ),
+			array( '_ricoman_ld_url', __( '“Lighting design” button link', 'ricoman' ), 'text' ),
+			array( '_ricoman_trade_btn', __( '“Trade account” button label', 'ricoman' ), 'text' ),
+			array( '_ricoman_trade_url', __( '“Trade account” button link', 'ricoman' ), 'text' ),
+		),
+		'specs' => array(
+			array( 'specification', __( 'Specification (HTML)', 'ricoman' ), 'textarea' ),
+		),
 	);
 }
 
@@ -301,15 +324,24 @@ function ricoman_product_editor_render() {
 
 	$patterns = ricoman_pe_patterns();
 	$labels   = ricoman_section_defs();
-	$fielddef = ricoman_pe_fields();
+	$fgroups  = ricoman_pe_field_groups();
 	$preview  = add_query_arg( 'rmpe', 1, get_permalink( $pid ) );
 
-	$gv = function ( $k ) use ( $pid ) {
-		return function_exists( 'get_field' ) ? (string) get_field( $k, $pid ) : (string) get_post_meta( $pid, $k, true );
-	};
+	// Current values for every editable field (across all groups).
 	$fieldvals = array( 'title' => get_the_title( $pid ) );
-	foreach ( array_keys( $fielddef ) as $k ) {
-		$fieldvals[ $k ] = $gv( $k );
+	foreach ( $fgroups as $grp ) {
+		foreach ( $grp as $f ) {
+			$k = $f[0];
+			if ( 'title' === $k ) {
+				continue;
+			}
+			$raw = function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( $pid, $k ) : get_post_meta( $pid, $k, true );
+			if ( 'key_features' === $k ) {
+				$fieldvals[ $k ] = function_exists( 'ricoman_pf_features_items' ) ? implode( "\n", ricoman_pf_features_items( $raw ) ) : ( is_string( $raw ) ? $raw : '' );
+			} else {
+				$fieldvals[ $k ] = is_scalar( $raw ) ? (string) $raw : '';
+			}
+		}
 	}
 
 	// Section meta for the left list (icon hints).
@@ -337,7 +369,8 @@ function ricoman_product_editor_render() {
 		'layout'   => $layout,
 		'sections' => $labels,
 		'patterns' => $patterns,
-		'fields'   => $fielddef,
+		'heroFields' => $fgroups['hero'],
+		'specFields' => $fgroups['specs'],
 		'values'   => $fieldvals,
 		'icons'    => $icons,
 		'specCols' => array_values( $all_cols ),
@@ -709,11 +742,12 @@ function ricoman_product_editor_render() {
 			if ( ! it ) { box.innerHTML = '<div class="rmpe-empty">Select a section to edit it.</div>'; return; }
 			var html = '';
 			if ( it.type === 'section' && it.key === 'hero' && ! B.isTpl ) {
-				html += '<p class="ttl">' + B.i18n.details + '</p><p class="hint">Shown in the hero section.</p>';
-				html += field( 'title', 'Title', false );
-				Object.keys( B.fields ).forEach( function ( k ) {
-					html += field( k, B.fields[ k ], k === 'product_sort_description' );
-				} );
+				html += '<p class="ttl">' + B.i18n.details + '</p><p class="hint">Title, copy, buttons and key features shown in the hero.</p>';
+				( B.heroFields || [] ).forEach( function ( f ) { html += field( f[0], f[1], f[2] ); } );
+				html += visRow( it );
+			} else if ( it.type === 'section' && it.key === 'specs' && ! B.isTpl ) {
+				html += '<p class="ttl">Specification &amp; details</p><p class="hint">Edit the specification shown in this section.</p>';
+				( B.specFields || [] ).forEach( function ( f ) { html += field( f[0], f[1], f[2] ); } );
 				html += visRow( it );
 			} else if ( it.type === 'section' && it.key === 'configure' ) {
 				html += '<p class="ttl">Configure &amp; order codes</p><p class="hint">Choose which spec columns show in the table. The full spec always shows when a row is opened.</p>';
@@ -734,9 +768,15 @@ function ricoman_product_editor_render() {
 			}
 			box.innerHTML = html;
 		}
-		function field( key, label, area ) {
+		function field( key, label, type ) {
 			var v = ( state.fields[ key ] || '' ).replace( /</g, '&lt;' );
-			var input = area ? '<textarea rows="3" data-f="' + key + '">' + v + '</textarea>' : '<input type="text" data-f="' + key + '" value="' + v.replace( /"/g, '&quot;' ) + '">';
+			var input;
+			if ( type === 'textarea' ) {
+				var rows = ( key === 'specification' ) ? 8 : 3;
+				input = '<textarea rows="' + rows + '" data-f="' + key + '">' + v + '</textarea>';
+			} else {
+				input = '<input type="text" data-f="' + key + '" value="' + v.replace( /"/g, '&quot;' ) + '">';
+			}
 			return '<label><span>' + label + '</span>' + input + '</label>';
 		}
 		function visRow( it ) {
@@ -848,15 +888,28 @@ add_action( 'admin_post_ricoman_save_product_page', function () {
 		}
 	}
 	$title = isset( $fields['title'] ) ? sanitize_text_field( $fields['title'] ) : get_the_title( $pid );
-	foreach ( ricoman_pe_fields() as $k => $label ) {
-		if ( ! array_key_exists( $k, $fields ) ) {
-			continue;
-		}
-		$v = ( 'product_sort_description' === $k ) ? sanitize_textarea_field( $fields[ $k ] ) : sanitize_text_field( $fields[ $k ] );
-		if ( function_exists( 'update_field' ) ) {
-			update_field( $k, $v, $pid );
-		} else {
-			update_post_meta( $pid, $k, $v );
+	foreach ( ricoman_pe_field_groups() as $grp ) {
+		foreach ( $grp as $f ) {
+			$k    = $f[0];
+			$type = $f[2];
+			if ( 'title' === $k || ! array_key_exists( $k, $fields ) ) {
+				continue;
+			}
+			$raw = (string) $fields[ $k ];
+			if ( 'specification' === $k ) {
+				$v = wp_kses_post( $raw );
+			} elseif ( 'textarea' === $type ) {
+				$v = sanitize_textarea_field( $raw );
+			} else {
+				$v = sanitize_text_field( $raw );
+			}
+			if ( 0 === strpos( $k, '_ricoman_' ) ) {
+				update_post_meta( $pid, $k, $v ); // plain theme meta (CTA buttons).
+			} elseif ( function_exists( 'update_field' ) ) {
+				update_field( $k, $v, $pid );
+			} else {
+				update_post_meta( $pid, $k, $v );
+			}
 		}
 	}
 
