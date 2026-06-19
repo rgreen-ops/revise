@@ -35,6 +35,7 @@ require_once get_theme_file_path( 'inc/shortcodes.php' );    // Product spec/var
 require_once get_theme_file_path( 'inc/product-builder.php' );// Product Builder: RICOBOT sync + field shortcodes.
 require_once get_theme_file_path( 'inc/product-fields.php' ); // Structured product content (variants/zigzag/paragraphs) as fields.
 require_once get_theme_file_path( 'inc/acf-product.php' );    // Render existing ACF products (empty content) in the new design.
+require_once get_theme_file_path( 'inc/product-filter.php' ); // Category archive grid + faceted filters (lumens/watts/features).
 require_once get_theme_file_path( 'inc/configurator.php' );   // Live variant configurator (RICOBOT price/options).
 require_once get_theme_file_path( 'inc/product-patterns.php' );// Product page blocks (Hero/Specs/Configurator/…).
 require_once get_theme_file_path( 'inc/family.php' );         // Family filter page (facets -> pick -> configure).
@@ -90,7 +91,10 @@ add_action( 'wp_head', function () {
  * everything else gets a solid dark header bar (see ricoman.css).
  */
 add_filter( 'body_class', function ( $classes ) {
-	if ( is_front_page() || is_post_type_archive( array( 'product', 'project' ) ) || is_tax( 'product_cat' ) || is_singular( array( 'product', 'project' ) ) ) {
+	// NB: product single pages open with a light split hero (not a dark cover),
+	// so they keep the solid header (not added to rm-hero). Project singles and
+	// the listing archives do open on dark imagery, so they overlay.
+	if ( is_front_page() || is_post_type_archive( array( 'product', 'project' ) ) || is_singular( 'project' ) ) {
 		$classes[] = 'rm-hero';
 	} elseif ( is_singular() || is_page() ) {
 		$post = get_post();
