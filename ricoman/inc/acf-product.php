@@ -496,6 +496,28 @@ function ricoman_pf_fileurl( $v ) {
 }
 
 /**
+ * Resolve a variant's lumens from whichever field/taxonomy the migrated data
+ * used, so the Configure table isn't blank when it's stored under an alt key.
+ */
+function ricoman_variant_lumens( $vid ) {
+	foreach ( array( 'lumens', 'lumen', 'lumen_output', 'lumens_output', 'total_lumens', 'output_lumens', 'lumen_value', 'lm' ) as $k ) {
+		$v = ricoman_pf_get( $vid, $k );
+		if ( is_scalar( $v ) && '' !== trim( (string) $v ) ) {
+			return (string) $v;
+		}
+	}
+	foreach ( array( 'lumen', 'lumens', 'lumen-output', 'lumen_output', 'wattage', 'watt' ) as $tax ) {
+		if ( taxonomy_exists( $tax ) ) {
+			$terms = wp_get_post_terms( $vid, $tax, array( 'fields' => 'names' ) );
+			if ( ! is_wp_error( $terms ) && $terms ) {
+				return implode( ', ', $terms );
+			}
+		}
+	}
+	return '';
+}
+
+/**
  * Configure / order-codes table, built from the linked `variant-product` posts
  * (ACF `parent_product` == this product). This is the staging-data equivalent of
  * the old site's Configure Your Product table.
@@ -529,7 +551,7 @@ function ricoman_pf_variant_table( $pid ) {
 		if ( '' === trim( (string) $desc ) ) {
 			$desc = get_the_title();
 		}
-		$lm   = ricoman_pf_get( $vid, 'lumens' );
+		$lm   = ricoman_variant_lumens( $vid );
 		$dim  = ricoman_pf_get( $vid, 'dimensions' );
 		$ldt  = ricoman_pf_fileurl( ricoman_pf_get( $vid, 'download_led' ) );
 		$img  = ricoman_pf_imgurl( ricoman_pf_get( $vid, 'product_main_image' ) );
