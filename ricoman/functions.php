@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'RICOMAN_VERSION' ) ) {
-	define( 'RICOMAN_VERSION', '1.0.0' );
+	define( 'RICOMAN_VERSION', '1.1.0' );
 }
 
 /**
