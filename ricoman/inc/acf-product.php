@@ -330,6 +330,17 @@ function ricoman_pf_variant_row( $row ) {
 
 /** Gallery image URLs from product_gallery_image (array of IDs / arrays / urls). */
 function ricoman_pf_gallery( $pid ) {
+	// Live builder preview override (array of attachment IDs).
+	if ( ! empty( $GLOBALS['rm_pe_preview'] ) && (int) $GLOBALS['rm_pe_preview']['pid'] === (int) $pid && isset( $GLOBALS['rm_pe_preview']['gallery'] ) && is_array( $GLOBALS['rm_pe_preview']['gallery'] ) ) {
+		$out = array();
+		foreach ( $GLOBALS['rm_pe_preview']['gallery'] as $id ) {
+			$u = ricoman_pf_imgurl( (int) $id );
+			if ( $u ) {
+				$out[] = $u;
+			}
+		}
+		return $out;
+	}
 	$g   = ricoman_pf_get( $pid, 'product_gallery_image', array() );
 	$out = array();
 	if ( is_array( $g ) ) {
@@ -918,6 +929,17 @@ function ricoman_pf_variant_table( $pid ) {
 /** In-situ images for a product — its own In-situ gallery + related projects' galleries. */
 function ricoman_pf_insitu_images( $pid ) {
 	$out = array();
+	// Live builder preview override (array of attachment IDs).
+	if ( ! empty( $GLOBALS['rm_pe_preview'] ) && (int) $GLOBALS['rm_pe_preview']['pid'] === (int) $pid && isset( $GLOBALS['rm_pe_preview']['insitu'] ) && is_array( $GLOBALS['rm_pe_preview']['insitu'] ) ) {
+		$o = array();
+		foreach ( $GLOBALS['rm_pe_preview']['insitu'] as $id ) {
+			$u = ricoman_pf_imgurl( (int) $id );
+			if ( $u ) {
+				$o[] = $u;
+			}
+		}
+		return array_values( array_unique( array_filter( $o ) ) );
+	}
 	// 1. Photos tagged directly on the product (insitu_gallery field).
 	$own = ricoman_pf_get( $pid, 'insitu_gallery' );
 	if ( is_array( $own ) ) {
