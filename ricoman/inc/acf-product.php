@@ -547,10 +547,21 @@ function ricoman_pf_variant_table( $pid ) {
 		. '</tr></thead><tbody>' . $rows . '</tbody></table></div>';
 }
 
-/** In-situ images for a product — pulled from its related projects' galleries. */
+/** In-situ images for a product — its own In-situ gallery + related projects' galleries. */
 function ricoman_pf_insitu_images( $pid ) {
 	$out = array();
-	$rp  = ricoman_pf_get( $pid, 'related_projects' );
+	// 1. Photos tagged directly on the product (insitu_gallery field).
+	$own = ricoman_pf_get( $pid, 'insitu_gallery' );
+	if ( is_array( $own ) ) {
+		foreach ( $own as $g ) {
+			$u = ricoman_pf_imgurl( $g );
+			if ( $u ) {
+				$out[] = $u;
+			}
+		}
+	}
+	// 2. Photos pulled from linked projects' galleries (Option A).
+	$rp = ricoman_pf_get( $pid, 'related_projects' );
 	$ids = array();
 	if ( is_array( $rp ) ) {
 		foreach ( $rp as $v ) {

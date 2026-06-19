@@ -111,6 +111,59 @@ add_filter( 'acf/load_field/name=related_projects', function ( $field ) {
 	return $field;
 } );
 
+/**
+ * Hide product fields the business no longer uses, so the editor stays clean.
+ * Non-destructive: the data is left in place, the inputs are just removed.
+ *   - product_video (WYSIWYG)            — not used.
+ *   - is_it_family_product (radio)       — family products retired.
+ *   - family_product_type (radio)        — family products retired.
+ *   - content_zic_zac_section (repeater) — unused "Content Zic Zac" section.
+ */
+foreach ( array(
+	'field_6278eb30ec06b', // product_video.
+	'field_64477838cbb6e', // is_it_family_product.
+	'field_64477ac36a1aa', // family_product_type.
+	'field_68f43367b452d', // content_zic_zac_section.
+) as $ricoman_hidden_field ) {
+	add_filter( 'acf/prepare_field/key=' . $ricoman_hidden_field, '__return_false' );
+}
+
+/**
+ * Add an "In-situ Photos" gallery to products, so an admin can tag real-world /
+ * installed shots directly on the product (separate from the studio shots in
+ * "Product Gallery Image"). These fill the In-situ tab of the product gallery,
+ * in addition to any pulled from linked projects.
+ */
+add_action( 'acf/init', function () {
+	if ( ! function_exists( 'acf_add_local_field_group' ) ) {
+		return;
+	}
+	acf_add_local_field_group( array(
+		'key'      => 'group_ricoman_insitu',
+		'title'    => __( 'In-situ Photos', 'ricoman' ),
+		'fields'   => array(
+			array(
+				'key'           => 'field_ricoman_insitu_gallery',
+				'label'         => __( 'In-situ Photos', 'ricoman' ),
+				'name'          => 'insitu_gallery',
+				'type'          => 'gallery',
+				'instructions'  => __( 'Real-world / installed shots. These show under the “In-situ” tab on the product page. (Studio shots go in “Product Gallery Image”.)', 'ricoman' ),
+				'return_format' => 'array',
+				'library'       => 'all',
+				'preview_size'  => 'medium',
+			),
+		),
+		'location' => array(
+			array(
+				array( 'param' => 'post_type', 'operator' => '==', 'value' => 'product' ),
+			),
+		),
+		'menu_order' => 6,
+		'position'   => 'normal',
+		'style'      => 'default',
+	) );
+} );
+
 // Family fields target child terms of product-cat — match any product-cat term.
 add_filter( 'acf/location/rule_match/taxonomy_term_child', function ( $match, $rule, $options ) {
 	$tax = '';

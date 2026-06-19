@@ -52,32 +52,58 @@ add_shortcode( 'ricoman_section_cta', function () {
 	return ricoman_section_render( 'cta' );
 } );
 
-/** One section as a core/shortcode block. */
-function ricoman_section_block( $tag ) {
-	return "<!-- wp:shortcode -->\n[$tag]\n<!-- /wp:shortcode -->\n";
+/** The product sections, in default order: key => editor label. */
+function ricoman_section_defs() {
+	return array(
+		'hero'        => __( 'Product: Hero (gallery + panel)', 'ricoman' ),
+		'specs'       => __( 'Product: Specification & details', 'ricoman' ),
+		'configure'   => __( 'Product: Configure & order codes', 'ricoman' ),
+		'accessories' => __( 'Product: Accessories', 'ricoman' ),
+		'related'     => __( 'Product: You may also like', 'ricoman' ),
+		'cta'         => __( 'Product: Specify call-to-action', 'ricoman' ),
+	);
 }
 
-/** The default product layout, as editable section blocks (in order). */
+/** The default product layout, as live-preview section blocks (in order). */
 function ricoman_product_layout_blocks() {
-	return ricoman_section_block( 'ricoman_section_hero' )
-		. ricoman_section_block( 'ricoman_section_specs' )
-		. ricoman_section_block( 'ricoman_section_configure' )
-		. ricoman_section_block( 'ricoman_section_accessories' )
-		. ricoman_section_block( 'ricoman_section_related' )
-		. ricoman_section_block( 'ricoman_section_cta' );
+	$out = '';
+	foreach ( array_keys( ricoman_section_defs() ) as $key ) {
+		$out .= '<!-- wp:ricoman/product-' . $key . ' /-->' . "\n";
+	}
+	return $out;
 }
 
 /**
- * Register the section blocks + the full "Product page" pattern.
- *
- * Each section is a one-line core/shortcode block so it shows as a tidy,
- * reorderable block in the editor; admins drop patterns into the spaces between.
+ * Server render for a section block. On the front end the product is the current
+ * post; inside the editor it renders through the REST block-renderer, which sets
+ * up the post from the `post_id` query arg (we also read it as a fallback) so the
+ * preview shows the real product.
+ */
+function ricoman_section_block_render( $key ) {
+	$pid = get_the_ID();
+	if ( ( ! $pid || 'product' !== get_post_type( $pid ) ) && ! empty( $_REQUEST['post_id'] ) ) {
+		$pid = (int) $_REQUEST['post_id'];
+	}
+	$labels = ricoman_section_defs();
+	if ( ! $pid || 'product' !== get_post_type( $pid ) || ! function_exists( 'ricoman_pf_sections' ) ) {
+		return '<div class="rm-block-ph" style="padding:22px;border:1px dashed #c9ccd1;border-radius:10px;color:#6b7280;font:14px/1.5 system-ui,sans-serif">'
+			. esc_html( isset( $labels[ $key ] ) ? $labels[ $key ] : $key ) . ' — ' . esc_html__( 'shows on the live product page.', 'ricoman' ) . '</div>';
+	}
+	$s    = ricoman_pf_sections( $pid );
+	$html = isset( $s[ $key ] ) ? $s[ $key ] : '';
+	if ( '' === trim( (string) $html ) ) {
+		return '<div class="rm-block-ph" style="padding:16px;border:1px dashed #c9ccd1;border-radius:10px;color:#9096a0;font:13px/1.5 system-ui,sans-serif">'
+			. esc_html( isset( $labels[ $key ] ) ? $labels[ $key ] : $key ) . ' — ' . esc_html__( 'no content for this product yet.', 'ricoman' ) . '</div>';
+	}
+	return $html;
+}
+
+/**
+ * Register the live-preview section blocks + the full "Product page" pattern.
+ * Each section is a dynamic block that renders server-side, so the editor canvas
+ * shows a real preview and the ➕ between blocks inserts patterns anywhere.
  */
 add_action( 'init', function () {
-	if ( ! function_exists( 'register_block_pattern' ) ) {
-		return;
-	}
-
 	register_block_pattern_category(
 		'ricoman-product',
 		array(
@@ -86,26 +112,17 @@ add_action( 'init', function () {
 		)
 	);
 
-	$sc = 'ricoman_section_block';
-
-	$sections = array(
-		'hero'        => __( 'Product: Hero (gallery + panel)', 'ricoman' ),
-		'specs'       => __( 'Product: Specification & details', 'ricoman' ),
-		'configure'   => __( 'Product: Configure & order codes', 'ricoman' ),
-		'accessories' => __( 'Product: Accessories', 'ricoman' ),
-		'related'     => __( 'Product: You may also like', 'ricoman' ),
-		'cta'         => __( 'Product: Specify call-to-action', 'ricoman' ),
-	);
-	foreach ( $sections as $key => $label ) {
-		register_block_pattern(
-			'ricoman/product-' . $key,
-			array(
-				'title'      => $label,
-				'categories' => array( 'ricoman-product' ),
-				'postTypes'  => array( 'product' ),
-				'content'    => $sc( 'ricoman_section_' . $key ),
-			)
-		);
+	if ( function_exists( 'register_block_type' ) ) {
+		foreach ( array_keys( ricoman_section_defs() ) as $key ) {
+			register_block_type( 'ricoman/product-' . $key, array(
+				'api_version'     => 2,
+				'category'        => 'ricoman-product',
+				'render_callback' => function () use ( $key ) {
+					return ricoman_section_block_render( $key );
+				},
+				'supports'        => array( 'html' => false, 'reusable' => false, 'multiple' => false ),
+			) );
+		}
 	}
 
 	// The whole page, laid out as separate section blocks you can rearrange.
@@ -117,6 +134,35 @@ add_action( 'init', function () {
 			'postTypes'  => array( 'product' ),
 			'content'    => ricoman_product_layout_blocks(),
 		)
+	);
+} );
+
+/** Give the section blocks their own editor category. */
+add_filter( 'block_categories_all', function ( $cats ) {
+	foreach ( $cats as $c ) {
+		if ( isset( $c['slug'] ) && 'ricoman-product' === $c['slug'] ) {
+			return $cats;
+		}
+	}
+	$cats[] = array(
+		'slug'  => 'ricoman-product',
+		'title' => __( 'Ricoman: Product page', 'ricoman' ),
+	);
+	return $cats;
+} );
+
+/** Editor script that registers the blocks with a live ServerSideRender preview. */
+add_action( 'enqueue_block_editor_assets', function () {
+	$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+	if ( ! $screen || 'product' !== $screen->post_type ) {
+		return;
+	}
+	wp_enqueue_script(
+		'ricoman-product-blocks',
+		get_theme_file_uri( 'assets/js/product-blocks.js' ),
+		array( 'wp-blocks', 'wp-element', 'wp-server-side-render', 'wp-block-editor', 'wp-data', 'wp-i18n' ),
+		defined( 'RICOMAN_VERSION' ) ? RICOMAN_VERSION : false,
+		true
 	);
 } );
 
@@ -149,7 +195,7 @@ function ricoman_product_layout_box( $post ) {
 	}
 	echo '<p class="description">' . esc_html__( 'This product renders its sections automatically.', 'ricoman' ) . '</p>';
 	echo '<p><label><input type="checkbox" name="ricoman_make_editable" value="1"> <strong>' . esc_html__( 'Make this layout editable', 'ricoman' ) . '</strong></label></p>';
-	echo '<p class="description">' . esc_html__( 'Fills the editor with the default sections (Hero, Specification, Configure, Accessories, You may also like, CTA) as separate blocks so you can reorder them and add patterns. Save, then reload the editor.', 'ricoman' ) . '</p>';
+	echo '<p class="description">' . esc_html__( 'Fills the editor with the page as live-preview section blocks (Hero, Specification, Configure, Accessories, You may also like, CTA). Each shows a real preview, so you can reorder them and click ➕ between sections to drop in your own patterns. Save, then reload the editor.', 'ricoman' ) . '</p>';
 }
 
 add_action( 'save_post_product', function ( $post_id, $post ) {
