@@ -84,17 +84,58 @@
 		slider.scrollBy( { left: ( a.getAttribute( 'data-rel' ) === 'prev' ? -step : step ), behavior: 'smooth' } );
 	} );
 
-	/* ---- Configure table "Show more" (reveal 20 rows at a time) ---- */
+	/* ---- Configure table: filters + "Show more" pagination ---- */
+	function vtApply( vp ) {
+		var limit = parseInt( vp.getAttribute( 'data-limit' ) || '20', 10 );
+		var filters = {};
+		vp.querySelectorAll( '.rm-vt-filter' ).forEach( function ( s ) {
+			if ( s.value ) { filters[ 'data-f-' + s.getAttribute( 'data-col' ) ] = s.value; }
+		} );
+		var rows = vp.querySelectorAll( 'tbody .vt-row' ), shown = 0, matching = 0;
+		rows.forEach( function ( r ) {
+			var ok = true;
+			for ( var k in filters ) { if ( r.getAttribute( k ) !== filters[ k ] ) { ok = false; break; } }
+			if ( ok ) {
+				matching++;
+				if ( shown < limit ) { r.classList.remove( 'rm-vt-hide' ); shown++; }
+				else { r.classList.add( 'rm-vt-hide' ); }
+			} else {
+				r.classList.add( 'rm-vt-hide' );
+			}
+		} );
+		var wrap = vp.querySelector( '.rm-vt-morewrap' );
+		if ( wrap ) {
+			if ( matching > limit ) {
+				wrap.style.display = '';
+				var c = wrap.querySelector( '.rm-vt-morecount' );
+				if ( c ) { c.textContent = '(' + ( matching - limit ) + ' more)'; }
+			} else { wrap.style.display = 'none'; }
+		}
+	}
+	function vtInit() {
+		document.querySelectorAll( '.rm-vp' ).forEach( function ( vp ) {
+			if ( ! vp.hasAttribute( 'data-limit' ) ) { vp.setAttribute( 'data-limit', '20' ); }
+			vtApply( vp );
+		} );
+	}
+	if ( document.readyState !== 'loading' ) { vtInit(); } else { document.addEventListener( 'DOMContentLoaded', vtInit ); }
+	document.addEventListener( 'change', function ( e ) {
+		var s = e.target.closest( '.rm-vt-filter' ); if ( ! s ) { return; }
+		var vp = s.closest( '.rm-vp' ); if ( ! vp ) { return; }
+		vp.setAttribute( 'data-limit', '20' ); vtApply( vp );
+	} );
 	document.addEventListener( 'click', function ( e ) {
+		if ( e.target.closest( '.rm-vt-clear' ) ) {
+			var vpc = e.target.closest( '.rm-vp' ); if ( ! vpc ) { return; }
+			vpc.querySelectorAll( '.rm-vt-filter' ).forEach( function ( s ) { s.value = ''; } );
+			vpc.setAttribute( 'data-limit', '20' ); vtApply( vpc );
+			return;
+		}
 		var b = e.target.closest( '.rm-vt-morebtn' );
 		if ( ! b ) { return; }
 		var vp = b.closest( '.rm-vp' ); if ( ! vp ) { return; }
-		var hidden = vp.querySelectorAll( 'tr.rm-vt-more' );
-		var step = parseInt( b.getAttribute( 'data-step' ), 10 ) || 20;
-		for ( var i = 0; i < step && i < hidden.length; i++ ) { hidden[ i ].classList.remove( 'rm-vt-more' ); }
-		var left = vp.querySelectorAll( 'tr.rm-vt-more' ).length;
-		if ( left <= 0 ) { var w = b.closest( '.rm-vt-morewrap' ); if ( w ) { w.remove(); } }
-		else { var c = b.querySelector( '.rm-vt-morecount' ); if ( c ) { c.textContent = '(' + left + ' more)'; } }
+		vp.setAttribute( 'data-limit', String( ( parseInt( vp.getAttribute( 'data-limit' ) || '20', 10 ) ) + 20 ) );
+		vtApply( vp );
 	} );
 
 	/* ---- Variant spec popup ---- */

@@ -946,7 +946,11 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-vptable th{white-space:nowrap}
 .rm-vptable .vt-dl a{color:var(--ink);text-decoration:none;font-weight:600;white-space:nowrap}
 .rm-vptable .vt-dl a:hover{color:var(--accent)}
-.rm-vptable tr.rm-vt-more{display:none}
+.rm-vptable tr.rm-vt-hide{display:none}
+.rm-vt-filters{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 16px}
+.rm-vt-filters select{font-family:Poppins;font-size:.78rem;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 12px;background:#fff;cursor:pointer}
+.rm-vt-clear{font-family:Poppins;font-size:.78rem;font-weight:600;color:var(--muted);background:none;border:0;cursor:pointer;padding:8px 6px}
+.rm-vt-clear:hover{color:var(--accent)}
 .rm-vt-morewrap{margin-top:18px;text-align:center}
 .rm-vt-morebtn{font-family:Poppins;font-size:.8rem;font-weight:600;color:var(--ink);background:none;border:1px solid var(--line);border-radius:999px;padding:10px 22px;cursor:pointer;transition:.15s}
 .rm-vt-morebtn:hover{background:var(--ink);color:#fff;border-color:var(--ink)}

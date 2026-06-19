@@ -891,6 +891,38 @@ function ricoman_pf_variant_table( $pid ) {
 		}
 	}
 
+	// Filterable attributes: spec columns with more than one distinct value.
+	$slugify  = function ( $l ) { return preg_replace( '/[^a-z0-9]+/', '-', strtolower( $l ) ); };
+	$distinct = array();
+	foreach ( $variants as $v ) {
+		foreach ( $cols as $label ) {
+			$val = isset( $v['pairs'][ $label ] ) ? $v['pairs'][ $label ] : '';
+			if ( '' !== $val ) {
+				$distinct[ $label ][ $val ] = true;
+			}
+		}
+	}
+	$filterable = array();
+	foreach ( $cols as $label ) {
+		if ( ! empty( $distinct[ $label ] ) && count( $distinct[ $label ] ) > 1 ) {
+			$vals = array_keys( $distinct[ $label ] );
+			natcasesort( $vals );
+			$filterable[ $label ] = array_values( $vals );
+		}
+	}
+	$fbar = '';
+	if ( $filterable ) {
+		$fbar = '<div class="rm-vt-filters">';
+		foreach ( $filterable as $label => $vals ) {
+			$opts = '<option value="">' . esc_html( $label ) . ': All</option>';
+			foreach ( $vals as $vv ) {
+				$opts .= '<option value="' . esc_attr( $vv ) . '">' . esc_html( $vv ) . '</option>';
+			}
+			$fbar .= '<select class="rm-vt-filter" data-col="' . esc_attr( $slugify( $label ) ) . '">' . $opts . '</select>';
+		}
+		$fbar .= '<button type="button" class="rm-vt-clear">Clear</button></div>';
+	}
+
 	$head = '<th></th><th>Part Code</th><th>Description</th>';
 	foreach ( $cols as $label ) {
 		$head .= '<th>' . esc_html( $label ) . '</th>';
@@ -900,8 +932,12 @@ function ricoman_pf_variant_table( $pid ) {
 	$rows    = '';
 	$details = '';
 	foreach ( $variants as $i => $v ) {
-		$thumb = $v['img'] ? '<img src="' . esc_url( $v['img'] ) . '" alt="" loading="lazy">' : '';
-		$rows .= '<tr class="vt-row' . ( $i >= 20 ? ' rm-vt-more' : '' ) . '" data-vt="' . $i . '" tabindex="0"><td class="vt-thumb">' . $thumb . '</td>'
+		$thumb   = $v['img'] ? '<img src="' . esc_url( $v['img'] ) . '" alt="" loading="lazy">' : '';
+		$rowattr = '';
+		foreach ( $filterable as $label => $vals ) {
+			$rowattr .= ' data-f-' . $slugify( $label ) . '="' . esc_attr( isset( $v['pairs'][ $label ] ) ? $v['pairs'][ $label ] : '' ) . '"';
+		}
+		$rows .= '<tr class="vt-row' . ( $i >= 20 ? ' rm-vt-hide' : '' ) . '" data-vt="' . $i . '"' . $rowattr . ' tabindex="0"><td class="vt-thumb">' . $thumb . '</td>'
 			. '<td class="vt-code">' . esc_html( $v['code'] ) . '</td>'
 			. '<td class="vt-desc">' . esc_html( $v['desc'] ) . '</td>';
 		foreach ( $cols as $label ) {
@@ -934,6 +970,7 @@ function ricoman_pf_variant_table( $pid ) {
 		: '';
 
 	return '<div class="rm-vp">'
+		. $fbar
 		. '<div class="rm-vptable-wrap"><table class="rm-vptable"><thead><tr>' . $head . '</tr></thead><tbody>' . $rows . '</tbody></table></div>'
 		. $showmore
 		. '<div class="rm-vt-details" hidden>' . $details . '</div>'
