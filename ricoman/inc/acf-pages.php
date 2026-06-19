@@ -109,22 +109,20 @@ function ricoman_render_acf_page( $pid ) {
 			. ( $bsub ? '<p class="rm-cfg-desc">' . $e( $bsub ) . '</p>' : '' ) . '</div></div>';
 	}
 
-	// ---- Body: walk fields in order, render with light heuristics ----
-	$body       = '';
+	// ---- Body: collect fields as typed items, then lay out (zig-zag) ----
+	$items       = array();
 	$pending_btn = '';
-	$used_banner = array(); // skip the fields we already used for the hero.
 
 	foreach ( $fields as $name => $f ) {
 		$type  = $f['type'];
 		$label = (string) ( $f['label'] ?? '' );
 		$val   = $f['value'] ?? '';
 
-		// Skip banner fields already shown + admin-only tabs handled as spacing.
 		if ( preg_match( '/banner/i', $name ) && in_array( $type, array( 'image', 'text', 'textarea' ), true ) ) {
 			continue;
 		}
 		if ( 'tab' === $type ) {
-			$body .= '<hr class="rm-apage-div" aria-hidden="true">';
+			$items[] = array( 'kind' => 'divider', 'html' => '' );
 			continue;
 		}
 		if ( '' === $val || array() === $val ) {
@@ -137,8 +135,8 @@ function ricoman_render_acf_page( $pid ) {
 			continue;
 		}
 		if ( preg_match( '/button\s*(link|url)/i', $label ) && is_string( $val ) ) {
-			$lbl = $pending_btn ? $pending_btn : 'Find out more';
-			$body .= '<p class="rm-apage-btn"><a class="btn btn-line-d" href="' . esc_url( $val ) . '">' . $e( $lbl ) . ' →</a></p>';
+			$lbl     = $pending_btn ? $pending_btn : 'Find out more';
+			$items[] = array( 'kind' => 'body', 'html' => '<p class="rm-apage-btn"><a class="btn btn-line-d" href="' . esc_url( $val ) . '">' . $e( $lbl ) . ' →</a></p>' );
 			$pending_btn = '';
 			continue;
 		}
@@ -149,33 +147,33 @@ function ricoman_render_acf_page( $pid ) {
 		switch ( $type ) {
 			case 'text':
 				if ( preg_match( '/(title|heading)/i', $label ) ) {
-					$body .= '<h2 class="rm-shead">' . $e( $val ) . '</h2>';
+					$items[] = array( 'kind' => 'body', 'html' => '<h2 class="rm-shead">' . $e( $val ) . '</h2>' );
 				} elseif ( preg_match( '/(subtitle|sub title|tag\s*line)/i', $label ) ) {
-					$body .= '<p class="rm-eyebrow">' . $e( $val ) . '</p>';
+					$items[] = array( 'kind' => 'body', 'html' => '<p class="rm-eyebrow">' . $e( $val ) . '</p>' );
 				} else {
-					$body .= '<p>' . $e( $val ) . '</p>';
+					$items[] = array( 'kind' => 'body', 'html' => '<p>' . $e( $val ) . '</p>' );
 				}
 				break;
 			case 'textarea':
-				$body .= wpautop( $e( $val ) );
+				$items[] = array( 'kind' => 'body', 'html' => wpautop( $e( $val ) ) );
 				break;
 			case 'wysiwyg':
-				$body .= '<div class="rm-apage-wysiwyg">' . wp_kses_post( $val ) . '</div>';
+				$items[] = array( 'kind' => 'body', 'html' => '<div class="rm-apage-wysiwyg">' . wp_kses_post( $val ) . '</div>' );
 				break;
 			case 'image':
 				$u = ricoman_pf_imgurl( $val );
 				if ( $u && ! preg_match( '/(icon|logo)/i', $label ) ) {
-					$body .= '<figure class="wp-block-image size-large rm-apage-img"><img src="' . esc_url( $u ) . '" alt="' . esc_attr( $label ) . '" loading="lazy"></figure>';
+					$items[] = array( 'kind' => 'media', 'html' => '<img src="' . esc_url( $u ) . '" alt="' . esc_attr( $label ) . '" loading="lazy">' );
 				}
 				break;
 			case 'file':
 				$u = is_string( $val ) ? $val : ( is_array( $val ) ? ( $val['url'] ?? '' ) : '' );
 				if ( $u ) {
-					$body .= '<p class="rm-apage-btn"><a class="btn btn-line-d" href="' . esc_url( $u ) . '" target="_blank" rel="noopener">' . $e( $label ) . ' ↓</a></p>';
+					$items[] = array( 'kind' => 'body', 'html' => '<p class="rm-apage-btn"><a class="btn btn-line-d" href="' . esc_url( $u ) . '" target="_blank" rel="noopener">' . $e( $label ) . ' ↓</a></p>' );
 				}
 				break;
 			case 'oembed':
-				$body .= '<div class="rm-apage-embed">' . wp_kses_post( $val ) . '</div>';
+				$items[] = array( 'kind' => 'media', 'html' => '<div class="rm-apage-embed">' . wp_kses_post( $val ) . '</div>' );
 				break;
 			case 'gallery':
 				if ( is_array( $val ) ) {
@@ -187,17 +185,81 @@ function ricoman_render_acf_page( $pid ) {
 						}
 					}
 					if ( $g ) {
-						$body .= '<div class="rm-apage-gallery">' . $g . '</div>';
+						$items[] = array( 'kind' => 'wide', 'html' => '<div class="rm-apage-gallery">' . $g . '</div>' );
 					}
 				}
 				break;
 			case 'repeater':
-				$body .= ricoman_render_acf_repeater( $label, $val );
+				$cards = ricoman_render_acf_repeater( $label, $val );
+				if ( $cards ) {
+					$items[] = array( 'kind' => 'wide', 'html' => $cards );
+				}
 				break;
 		}
 	}
 
-	$out .= '<div class="rm-section"><div class="rm-pp-wrap rm-apage-body">' . $body . '</div></div>';
+	$out .= ricoman_acf_layout_items( $items );
+	return $out;
+}
+
+/**
+ * Lay collected items out like a real marketing page: pair each image/embed with
+ * the text that follows it into an alternating (zig-zag) row; render runs of
+ * text on their own as a centred prose block; galleries / card grids span wide.
+ */
+function ricoman_acf_layout_items( $items ) {
+	$n   = count( $items );
+	$out = '';
+	$zz  = 0;
+	$i   = 0;
+	while ( $i < $n ) {
+		$it = $items[ $i ];
+
+		if ( 'media' === $it['kind'] ) {
+			// Collect the body items that belong with this media.
+			$bodyhtml = '';
+			$j        = $i + 1;
+			while ( $j < $n && 'body' === $items[ $j ]['kind'] ) {
+				$bodyhtml .= $items[ $j ]['html'];
+				$j++;
+			}
+			if ( '' !== $bodyhtml ) {
+				$rev  = ( $zz % 2 ) ? ' rev' : '';
+				$out .= '<div class="rm-section"><div class="rm-pp-wrap"><div class="rm-azz' . $rev . '">'
+					. '<div class="rm-azz-media">' . $it['html'] . '</div>'
+					. '<div class="rm-azz-body">' . $bodyhtml . '</div></div></div></div>';
+				$zz++;
+				$i = $j;
+			} else {
+				$out .= '<div class="rm-section"><div class="rm-pp-wrap"><figure class="rm-apage-img">' . $it['html'] . '</figure></div></div>';
+				$i++;
+			}
+			continue;
+		}
+
+		if ( 'wide' === $it['kind'] ) {
+			$out .= '<div class="rm-section"><div class="rm-pp-wrap">' . $it['html'] . '</div></div>';
+			$i++;
+			continue;
+		}
+
+		if ( 'divider' === $it['kind'] ) {
+			$i++;
+			continue;
+		}
+
+		// A run of body-only items -> a centred prose block.
+		$buf = '';
+		while ( $i < $n && 'body' === $items[ $i ]['kind'] ) {
+			$buf .= $items[ $i ]['html'];
+			$i++;
+		}
+		if ( '' !== $buf ) {
+			$out .= '<div class="rm-section"><div class="rm-pp-wrap rm-apage-body">' . $buf . '</div></div>';
+		} else {
+			$i++; // safety against stalls.
+		}
+	}
 	return $out;
 }
 
