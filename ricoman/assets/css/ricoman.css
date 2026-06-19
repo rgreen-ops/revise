@@ -963,3 +963,16 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 	.rm-nav>li>a::before{content:"";position:absolute;left:0;bottom:0;height:1.5px;width:0;background:#fff;transition:width .28s ease}
 	.rm-nav>li>a:hover::before{width:100%}
 }
+
+/* ===== Product hero: more breathing room ===== */
+.rm-cfg-panel{padding-block:6px}
+.rm-cfg-panel>.rm-cfg-name{margin-top:.1em}
+.rm-cfg-desc{margin-bottom:1.6em}
+.rm-hi{margin:14px 0 36px;gap:20px}
+.rm-cfg-acts{gap:14px;margin:8px 0 0}
+.rm-pp-jump{margin-top:34px;padding-top:26px;border-top:1px solid var(--line);gap:30px}
+.rm-pp-features{margin:.6em 0 1.8em}
+.rm-pp-code{margin:.4em 0 1.4em}
+/* a little air below the hero before the accordions/sections */
+.rm-cfghero{padding-bottom:clamp(28px,4vw,56px)}
+.rm-accs{margin-top:clamp(10px,2vw,24px)}
