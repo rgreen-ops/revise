@@ -900,6 +900,29 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-vptable th{white-space:nowrap}
 .rm-vptable .vt-dl a{color:var(--ink);text-decoration:none;font-weight:600;white-space:nowrap}
 .rm-vptable .vt-dl a:hover{color:var(--accent)}
+.rm-vp-hint{font-size:.8rem;color:var(--muted);margin:0 0 10px}
+.rm-vptable .vt-row{cursor:pointer;transition:background .12s}
+.rm-vptable .vt-row:hover{background:#f5f7fb}
+.rm-vptable .vt-row:focus{outline:2px solid var(--accent);outline-offset:-2px}
+/* Variant spec popup (datasheet style) */
+.rm-vt-modal{position:fixed;inset:0;background:rgba(13,15,22,.55);backdrop-filter:blur(3px);z-index:10000;display:flex;align-items:center;justify-content:center;padding:5vh 5vw}
+.rm-vt-modal[hidden]{display:none}
+.rm-vt-modal-box{position:relative;background:#fff;border-radius:16px;width:560px;max-width:100%;max-height:88vh;overflow:auto;box-shadow:0 30px 80px -20px rgba(0,0,0,.5);padding:28px}
+.rm-vt-x{position:absolute;top:14px;right:16px;border:0;background:#f1f2f6;width:34px;height:34px;border-radius:9px;font-size:22px;line-height:1;cursor:pointer;color:var(--muted)}
+.rm-vt-x:hover{background:#e6e8ef;color:var(--ink)}
+.vt-d-head{display:flex;gap:18px;align-items:center;border-bottom:2px solid var(--accent);padding-bottom:16px;margin-bottom:4px}
+.vt-d-img{width:92px;height:92px;flex:0 0 auto;background:#e4e4e4;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.vt-d-img img{width:100%;height:100%;object-fit:contain;padding:6px}
+.vt-d-eyebrow{font-size:.66rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:0 0 2px;font-weight:700}
+.vt-d-code{font-family:Poppins;font-weight:700;font-size:1.4rem;color:var(--accent);margin:0}
+.vt-d-desc{color:var(--ink);margin:4px 0 0;font-size:.92rem}
+.vt-d-specs{margin:14px 0 0;display:grid;grid-template-columns:1fr;gap:0}
+.vt-d-row{display:flex;justify-content:space-between;gap:18px;padding:9px 0;border-bottom:1px solid var(--line)}
+.vt-d-row dt{color:var(--muted);font-size:.85rem;margin:0}
+.vt-d-row dd{margin:0;font-weight:600;color:var(--ink);font-size:.9rem;text-align:right}
+.vt-d-empty{color:var(--muted);padding:14px 0}
+.vt-d-acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+@media(max-width:520px){.rm-vt-modal-box{padding:20px}.vt-d-code{font-size:1.2rem}}
 
 /* ===== Migrated ACF content pages (generic renderer) ===== */
 .rm-apage-hero{display:flex}

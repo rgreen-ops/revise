@@ -629,10 +629,11 @@ function ricoman_pf_variant_table( $pid ) {
 	}
 	$head .= '<th>LDT</th><th>Datasheet</th>';
 
-	$rows = '';
-	foreach ( $variants as $v ) {
+	$rows    = '';
+	$details = '';
+	foreach ( $variants as $i => $v ) {
 		$thumb = $v['img'] ? '<img src="' . esc_url( $v['img'] ) . '" alt="" loading="lazy">' : '';
-		$rows .= '<tr><td class="vt-thumb">' . $thumb . '</td>'
+		$rows .= '<tr class="vt-row" data-vt="' . $i . '" tabindex="0"><td class="vt-thumb">' . $thumb . '</td>'
 			. '<td class="vt-code">' . esc_html( $v['code'] ) . '</td>'
 			. '<td class="vt-desc">' . esc_html( $v['desc'] ) . '</td>';
 		foreach ( $cols as $key => $label ) {
@@ -641,9 +642,33 @@ function ricoman_pf_variant_table( $pid ) {
 		}
 		$rows .= '<td class="vt-dl">' . ( $v['ldt'] ? '<a href="' . esc_url( $v['ldt'] ) . '" target="_blank" rel="noopener" aria-label="LDT file">LDT ↓</a>' : '—' ) . '</td>'
 			. '<td class="vt-dl"><a href="' . esc_url( $v['ds'] ) . '" target="_blank" rel="noopener" aria-label="Datasheet">Datasheet ↓</a></td></tr>';
+
+		// Per-variant detail "datasheet" panel (shown in a modal on row click).
+		$dl = '';
+		foreach ( $specs as $key => $label ) {
+			$val = isset( $v['vals'][ $key ] ) ? $v['vals'][ $key ] : '';
+			if ( '' !== $val ) {
+				$dl .= '<div class="vt-d-row"><dt>' . esc_html( $label ) . '</dt><dd>' . esc_html( $val ) . '</dd></div>';
+			}
+		}
+		$dimg = $v['img'] ? '<div class="vt-d-img"><img src="' . esc_url( $v['img'] ) . '" alt="' . esc_attr( $v['code'] ) . '"></div>' : '';
+		$acts = '<div class="vt-d-acts">'
+			. ( $v['ldt'] ? '<a class="btn btn-line-d" href="' . esc_url( $v['ldt'] ) . '" target="_blank" rel="noopener">LDT file ↓</a>' : '' )
+			. '<a class="btn btn-solid" href="' . esc_url( $v['ds'] ) . '" target="_blank" rel="noopener">Download datasheet ↓</a></div>';
+		$details .= '<div class="vt-detail" data-vt="' . $i . '">'
+			. '<div class="vt-d-head">' . $dimg . '<div class="vt-d-head-t"><p class="vt-d-eyebrow">Order code</p>'
+			. '<h3 class="vt-d-code">' . esc_html( $v['code'] ) . '</h3>'
+			. ( $v['desc'] ? '<p class="vt-d-desc">' . esc_html( $v['desc'] ) . '</p>' : '' ) . '</div></div>'
+			. ( $dl ? '<dl class="vt-d-specs">' . $dl . '</dl>' : '<p class="vt-d-empty">No specification recorded for this variant yet.</p>' )
+			. $acts . '</div>';
 	}
 
-	return '<div class="rm-vptable-wrap"><table class="rm-vptable"><thead><tr>' . $head . '</tr></thead><tbody>' . $rows . '</tbody></table></div>';
+	return '<div class="rm-vp">'
+		. '<p class="rm-vp-hint">Tap a row for the full specification.</p>'
+		. '<div class="rm-vptable-wrap"><table class="rm-vptable"><thead><tr>' . $head . '</tr></thead><tbody>' . $rows . '</tbody></table></div>'
+		. '<div class="rm-vt-details" hidden>' . $details . '</div>'
+		. '<div class="rm-vt-modal" hidden><div class="rm-vt-modal-box"><button type="button" class="rm-vt-x" aria-label="Close">&times;</button><div class="rm-vt-body"></div></div></div>'
+		. '</div>';
 }
 
 /** In-situ images for a product — its own In-situ gallery + related projects' galleries. */

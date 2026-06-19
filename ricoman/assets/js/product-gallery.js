@@ -67,9 +67,37 @@
 
 	document.addEventListener( 'keydown', function ( e ) {
 		if ( e.key !== 'Escape' ) { return; }
-		document.querySelectorAll( '.rm-lightbox' ).forEach( function ( lb ) {
+		document.querySelectorAll( '.rm-lightbox, .rm-vt-modal' ).forEach( function ( lb ) {
 			if ( ! lb.hidden ) { lb.hidden = true; document.body.style.overflow = ''; }
 		} );
+	} );
+
+	/* ---- Variant spec popup ---- */
+	function openVariant( row ) {
+		var vp = row.closest( '.rm-vp' ); if ( ! vp ) { return; }
+		var idx = row.getAttribute( 'data-vt' );
+		var detail = vp.querySelector( '.rm-vt-details .vt-detail[data-vt="' + idx + '"]' );
+		var modal = vp.querySelector( '.rm-vt-modal' );
+		var body = modal && modal.querySelector( '.rm-vt-body' );
+		if ( ! detail || ! modal || ! body ) { return; }
+		body.innerHTML = detail.innerHTML;
+		modal.hidden = false;
+		document.body.style.overflow = 'hidden';
+	}
+	document.addEventListener( 'click', function ( e ) {
+		// Don't hijack the LDT / Datasheet links inside a row.
+		if ( e.target.closest( '.rm-vptable a' ) ) { return; }
+		var row = e.target.closest( '.vt-row' );
+		if ( row ) { openVariant( row ); return; }
+		var m = e.target.closest( '.rm-vt-modal' );
+		if ( m && ( e.target === m || e.target.classList.contains( 'rm-vt-x' ) ) ) {
+			m.hidden = true; document.body.style.overflow = '';
+		}
+	} );
+	document.addEventListener( 'keydown', function ( e ) {
+		if ( e.key !== 'Enter' ) { return; }
+		var row = e.target.closest && e.target.closest( '.vt-row' );
+		if ( row ) { openVariant( row ); }
 	} );
 
 	/* Transparent cut-out detection: photos fill, cut-outs keep the grey frame. */
