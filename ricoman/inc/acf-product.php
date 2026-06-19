@@ -20,6 +20,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * ACF field-group sync: load (and save) field groups from the theme's acf-json
+ * folder, so the product field definitions travel with the theme. Export your
+ * field group from the old site (ACF → Field Groups → Export → Generate JSON,
+ * or just drop the acf-json file in) and place it in /acf-json.
+ */
+add_filter( 'acf/settings/load_json', function ( $paths ) {
+	$paths[] = get_template_directory() . '/acf-json';
+	return $paths;
+} );
+add_filter( 'acf/settings/save_json', function ( $path ) {
+	$dir = get_template_directory() . '/acf-json';
+	return is_dir( $dir ) ? $dir : $path;
+} );
+
 /** ACF-aware field getter — get_field() when ACF is active, else raw meta. */
 function ricoman_pf_get( $pid, $key, $default = '' ) {
 	if ( function_exists( 'get_field' ) ) {
