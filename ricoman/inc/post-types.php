@@ -85,6 +85,25 @@ function ricoman_register_post_types() {
 		)
 	);
 
+	// --- News (migrated articles) ------------------------------------------
+	register_post_type(
+		'news',
+		array(
+			'labels'        => array(
+				'name'          => __( 'News', 'ricoman' ),
+				'singular_name' => __( 'News Article', 'ricoman' ),
+				'menu_name'     => __( 'News', 'ricoman' ),
+			),
+			'public'        => true,
+			'has_archive'   => true,
+			'menu_icon'     => 'dashicons-megaphone',
+			'menu_position' => 24,
+			'rewrite'       => array( 'slug' => 'news', 'with_front' => false ),
+			'supports'      => array( 'title', 'editor', 'thumbnail', 'excerpt', 'custom-fields', 'revisions' ),
+			'show_in_rest'  => true,
+		)
+	);
+
 	// --- Variant products (the order-code rows for the Configure table) -----
 	// Each is linked to its parent product via the ACF `parent_product` field.
 	register_post_type(
