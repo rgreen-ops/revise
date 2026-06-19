@@ -281,22 +281,24 @@ add_shortcode( 'ricoman_catalogue', function ( $atts ) {
 	}
 	$out .= '</div>';
 
-	// A row of products per category.
+	// Every product in each category — no truncation. include_children=false so a
+	// product only appears under its own (sub)category, never duplicated under a parent.
 	foreach ( $terms as $t ) {
 		$q = new WP_Query( array(
 			'post_type'      => 'product',
 			'post_status'    => 'publish',
-			'posts_per_page' => (int) $atts['per_cat'],
+			'posts_per_page' => -1,
 			'orderby'        => 'title',
 			'order'          => 'ASC',
 			'no_found_rows'  => true,
-			'tax_query'      => array( array( 'taxonomy' => $tax, 'terms' => $t->term_id ) ),
+			'tax_query'      => array( array( 'taxonomy' => $tax, 'terms' => $t->term_id, 'include_children' => false ) ),
 		) );
 		if ( ! $q->have_posts() ) {
 			continue;
 		}
-		$out .= '<section class="rm-catsec"><div class="rm-catsec-head"><h2 class="rm-shead">' . esc_html( $t->name ) . '</h2>'
-			. '<a class="rm-catsec-all" href="' . esc_url( get_term_link( $t ) ) . '">View all ' . (int) $t->count . ' →</a></div>'
+		$shown = $q->post_count;
+		$out  .= '<section class="rm-catsec"><div class="rm-catsec-head"><h2 class="rm-shead">' . esc_html( $t->name ) . ' <span class="rm-catarch-count">' . (int) $shown . '</span></h2>'
+			. '<a class="rm-catsec-all" href="' . esc_url( get_term_link( $t ) ) . '">Filter &amp; order codes →</a></div>'
 			. '<div class="rm-projgrid rm-prodgrid">';
 		while ( $q->have_posts() ) {
 			$q->the_post();
