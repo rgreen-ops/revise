@@ -341,6 +341,7 @@ function ricoman_product_editor_render() {
 	}
 
 	wp_enqueue_media(); // WordPress media frame for the gallery picker.
+	wp_enqueue_editor(); // TinyMCE for the Specification WYSIWYG.
 
 	$patterns = ricoman_pe_patterns();
 	$labels   = ricoman_section_defs();
@@ -784,7 +785,27 @@ function ricoman_product_editor_render() {
 		} );
 
 		/* ---- right settings ---- */
+		function teardownSpecEditor() {
+			if ( window.wp && wp.editor && document.getElementById( 'rmpe-spec' ) ) {
+				try { wp.editor.remove( 'rmpe-spec' ); } catch ( e ) {}
+			}
+		}
+		function initSpecEditor() {
+			if ( ! window.wp || ! wp.editor || ! document.getElementById( 'rmpe-spec' ) ) { return; }
+			wp.editor.initialize( 'rmpe-spec', {
+				tinymce: { toolbar1: 'bold italic bullist numlist link removeformat', menubar: false, statusbar: false, height: 300 },
+				quicktags: false,
+				mediaButtons: false
+			} );
+			setTimeout( function () {
+				if ( window.tinymce ) {
+					var ed = tinymce.get( 'rmpe-spec' );
+					if ( ed ) { ed.on( 'input change keyup undo redo SetContent', function () { state.fields.specification = ed.getContent(); pushDraft(); } ); }
+				}
+			}, 300 );
+		}
 		function renderSettings() {
+			teardownSpecEditor();
 			var box = $( 'rmpe-set' );
 			var it = state.layout[ state.sel ];
 			if ( ! it ) { box.innerHTML = '<div class="rmpe-empty">Select a section to edit it.</div>'; return; }
@@ -817,12 +838,15 @@ function ricoman_product_editor_render() {
 				html += '<button class="danger" data-act="remove">Remove pattern</button>';
 			}
 			box.innerHTML = html;
+			if ( it.type === 'section' && it.key === 'specs' && ! B.isTpl ) { initSpecEditor(); }
 		}
 		function field( key, label, type ) {
 			var v = ( state.fields[ key ] || '' ).replace( /</g, '&lt;' );
 			var input;
-			if ( type === 'textarea' ) {
-				var rows = ( key === 'specification' ) ? 8 : 3;
+			if ( key === 'specification' ) {
+				input = '<textarea id="rmpe-spec" class="rmpe-wysiwyg" data-f="specification">' + v + '</textarea>';
+			} else if ( type === 'textarea' ) {
+				var rows = 3;
 				input = '<textarea rows="' + rows + '" data-f="' + key + '">' + v + '</textarea>';
 			} else {
 				input = '<input type="text" data-f="' + key + '" value="' + v.replace( /"/g, '&quot;' ) + '">';

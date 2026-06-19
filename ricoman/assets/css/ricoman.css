@@ -734,12 +734,12 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-spechtml strong{display:block;font-family:Poppins;font-size:.7rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:1.2em 0 .3em}
 .rm-spechtml p{margin:0 0 .6em}
 /* Specification — tidy card grid (accent headers, dot bullets) */
-.rm-specgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin:6px 0 2px}
-.rm-speccard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px}
-.rm-speccard h4{font-family:Poppins;font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:0 0 12px;padding-bottom:10px;border-bottom:1px solid var(--line)}
-.rm-speccard ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
-.rm-speccard li{position:relative;padding-left:16px;font-size:.92rem;line-height:1.5;color:var(--ink)}
-.rm-speccard li:before{content:"";position:absolute;left:0;top:.55em;width:5px;height:5px;border-radius:50%;background:var(--accent)}
+.rm-specgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:20px 44px;margin:4px 0}
+.rm-speccard{background:none;border:0;border-radius:0;padding:0}
+.rm-speccard h4{font-family:Poppins;font-size:.84rem;font-weight:700;letter-spacing:0;text-transform:none;color:#16181d;margin:0 0 7px;padding:0;border:0}
+.rm-speccard ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.rm-speccard li{position:relative;padding-left:0;font-size:.84rem;line-height:1.5;color:#1a1a1a}
+.rm-speccard li:before{content:none}
 /* Features — two-column tick list */
 .rm-pp-features{list-style:none;margin:6px 0 2px;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:11px 36px}
 .rm-pp-features li{position:relative;padding-left:30px;font-size:.96rem;line-height:1.5;color:var(--ink)}
