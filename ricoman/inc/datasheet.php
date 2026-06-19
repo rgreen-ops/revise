@@ -116,34 +116,19 @@ function ricoman_variant_datasheet_markup( $vid ) {
 		$diagram = $dd ? $dd[0] : '';
 	}
 
-	// Spec rows from the variant's own fields.
-	$spec_map = array(
-		'lumens'                 => 'Lumens',
-		'dimensions'             => 'Dimensions (mm)',
-		'efficacy'               => 'Efficacy',
-		'cri'                    => 'CRI',
-		'beam_angle'             => 'Beam angle',
-		'ip_rating'              => 'IP rating',
-		'ik_rating'              => 'IK rating',
-		'ugr'                    => 'UGR',
-		'colour_finish'          => 'Colour finish',
-		'operating_temperatures' => 'Operating temp.',
-		'voltage_range'          => 'Voltage range',
-		'power_factor'           => 'Power factor',
-		'l70_b50'                => 'L70 B50',
-		'optics'                 => 'Optics',
-		'leds'                   => 'LEDs',
-		'construction_material'  => 'Construction',
-		'diffuser_type'          => 'Diffuser',
-		'unit_weight'            => 'Unit weight',
-		'warranty'               => 'Warranty',
-		'certifications'         => 'Certifications',
-	);
+	// Spec rows — the same unified set as the on-page popup (meta + taxonomy axes
+	// like Wattage / Colour Temp / IP), so the downloaded datasheet matches.
 	$rows = '';
-	foreach ( $spec_map as $k => $label ) {
-		$v = $g( $k );
-		if ( '' !== trim( $v ) ) {
+	if ( function_exists( 'ricoman_variant_spec_pairs' ) ) {
+		foreach ( ricoman_variant_spec_pairs( $vid ) as $label => $v ) {
 			$rows .= '<tr><th>' . esc_html( $label ) . '</th><td>' . esc_html( $v ) . '</td></tr>';
+		}
+	} else {
+		foreach ( array( 'lumens' => 'Lumens', 'dimensions' => 'Dimensions (mm)', 'cri' => 'CRI', 'ip_rating' => 'IP rating', 'warranty' => 'Warranty' ) as $k => $label ) {
+			$v = $g( $k );
+			if ( '' !== trim( $v ) ) {
+				$rows .= '<tr><th>' . esc_html( $label ) . '</th><td>' . esc_html( $v ) . '</td></tr>';
+			}
 		}
 	}
 
