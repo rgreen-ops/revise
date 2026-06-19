@@ -162,22 +162,23 @@ function ricoman_pf_acc( $title, $content, $open = false ) {
 
 /** Resolve an ACF image value (ID, URL, or array) to a URL. */
 function ricoman_pf_imgurl( $v ) {
+	$u = '';
 	if ( is_numeric( $v ) ) {
 		$u = wp_get_attachment_image_url( (int) $v, 'large' );
-		return $u ? $u : '';
-	}
-	if ( is_array( $v ) ) {
+	} elseif ( is_array( $v ) ) {
 		if ( ! empty( $v['url'] ) ) {
-			return $v['url'];
+			$u = $v['url'];
+		} elseif ( ! empty( $v['sizes']['large'] ) ) {
+			$u = $v['sizes']['large'];
+		} elseif ( ! empty( $v['ID'] ) ) {
+			$u = (string) wp_get_attachment_image_url( (int) $v['ID'], 'large' );
 		}
-		if ( ! empty( $v['sizes']['large'] ) ) {
-			return $v['sizes']['large'];
-		}
-		if ( ! empty( $v['ID'] ) ) {
-			return (string) wp_get_attachment_image_url( (int) $v['ID'], 'large' );
-		}
+	} elseif ( is_string( $v ) ) {
+		$u = $v;
 	}
-	return is_string( $v ) ? $v : '';
+	$u = $u ? $u : '';
+	// Borrow from the live origin if the file is missing locally (staging).
+	return ( $u && function_exists( 'ricoman_img_fallback' ) ) ? ricoman_img_fallback( $u ) : $u;
 }
 
 /** Extract [name, mainImage, swatch] from one variant row of unknown sub-field names. */
@@ -478,13 +479,15 @@ function ricoman_pf_paragraphs( $pid ) {
 
 /** Resolve an ACF file value (ID / array / URL) to a URL. */
 function ricoman_pf_fileurl( $v ) {
+	$u = '';
 	if ( is_numeric( $v ) ) {
-		return wp_get_attachment_url( (int) $v );
+		$u = (string) wp_get_attachment_url( (int) $v );
+	} elseif ( is_array( $v ) ) {
+		$u = isset( $v['url'] ) ? (string) $v['url'] : '';
+	} elseif ( is_string( $v ) ) {
+		$u = $v;
 	}
-	if ( is_array( $v ) ) {
-		return isset( $v['url'] ) ? $v['url'] : '';
-	}
-	return is_string( $v ) ? $v : '';
+	return ( $u && function_exists( 'ricoman_img_fallback' ) ) ? ricoman_img_fallback( $u ) : $u;
 }
 
 /**
