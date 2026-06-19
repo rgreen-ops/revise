@@ -527,12 +527,12 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-mega-grid{display:grid;grid-template-columns:1.7fr 1fr;gap:clamp(24px,3vw,48px)}
 .rm-mega-cols{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:clamp(20px,2.4vw,40px)}
 .rm-mega-col h4{font-family:Poppins;font-weight:700;font-size:1.05rem;letter-spacing:-.01em;color:var(--ink);margin:0 0 .85em;text-transform:none}
-.rm-mega-col ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.34em}
-.rm-mega-col ul.rm-mega-coll{gap:.8em}
-.rm-mega-col li{margin:0;line-height:1.25}
-.rm-mega-col ul a{font-family:Poppins;font-size:.88rem;font-weight:500;line-height:1.25;letter-spacing:0;text-transform:none;color:#4a4a4a!important;display:block;padding:0}
+.rm-mega-col ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.5em}
+.rm-mega-col ul.rm-mega-coll{gap:.95em}
+.rm-mega-col li{margin:0;line-height:1.3}
+.rm-mega-col ul a{font-family:Poppins;font-size:.9rem;font-weight:500;line-height:1.3;letter-spacing:0;text-transform:none;color:#4a4a4a!important;display:block;padding:0}
 .rm-mega-col ul a:hover{color:var(--ink)!important}
-.rm-mega-coll a{display:flex;flex-direction:column;gap:2px}
+.rm-mega-coll a{display:flex;flex-direction:column;gap:1px}
 .rm-mega-name{font-weight:600;color:var(--ink)!important}
 .rm-mega-sub{font-size:.78rem;color:#9a9a9a!important}
 .rm-mega-cards{display:flex;flex-direction:column;gap:14px}
