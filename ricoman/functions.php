@@ -41,6 +41,7 @@ require_once get_theme_file_path( 'inc/product-sections.php' );// Composable pro
 require_once get_theme_file_path( 'inc/product-editor.php' );  // Custom Product Page Editor (edit + live preview).
 require_once get_theme_file_path( 'inc/product-templates.php' );// Product page templates (Standard/Flow/Estrella) + inheritance.
 require_once get_theme_file_path( 'inc/variant-csv.php' );    // Variant CSV import / export (Import/Export Variable Product).
+require_once get_theme_file_path( 'inc/variant-specs.php' );  // Variant Specifications hub (manage axis taxonomies).
 require_once get_theme_file_path( 'inc/acf-pages.php' );      // Render migrated ACF content pages natively (no Elementor).
 require_once get_theme_file_path( 'inc/news.php' );           // News master listing + single article.
 require_once get_theme_file_path( 'inc/projects.php' );       // Project single (short/long) from ACF.
