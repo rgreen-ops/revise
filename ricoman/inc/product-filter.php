@@ -52,19 +52,12 @@ function ricoman_pf_metrics( $pid ) {
 	if ( isset( $memo[ $pid ] ) ) {
 		return $memo[ $pid ];
 	}
-	$cached = get_transient( 'rm_pfm_' . $pid );
-	if ( is_array( $cached ) && isset( $cached['lm'], $cached['w'], $cached['feats'] ) ) {
-		return $memo[ $pid ] = $cached;
-	}
 
-	// 1) Variant-derived metrics (the authoritative source when present).
-	$vm    = ricoman_pf_variant_metrics( $pid );
-	$lm    = (int) $vm['lm'];
-	$w     = (int) $vm['w'];
-	$feats = $vm['feats'];
-
-	// 2) Parent ACF text — fills the gaps / covers products with no variants.
-	$text = '';
+	// Parent ACF text metrics — always fast, computed inline on the request.
+	$lm    = 0;
+	$w     = 0;
+	$feats = array();
+	$text  = '';
 	foreach ( array( 'key_features', 'specification', 'product_sort_description', 'product_subname' ) as $f ) {
 		$v = function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( $pid, $f ) : get_post_meta( $pid, $f, true );
 		if ( is_array( $v ) ) {
@@ -73,7 +66,6 @@ function ricoman_pf_metrics( $pid ) {
 		$text .= ' ' . (string) $v;
 	}
 	$lc = strtolower( wp_strip_all_tags( $text ) );
-
 	if ( preg_match_all( '/([0-9][0-9,\.]*)\s*(?:lm|lumens)\b/i', $lc, $m ) ) {
 		foreach ( $m[1] as $n ) {
 			$lm = max( $lm, (int) str_replace( array( ',', '.' ), '', $n ) );
@@ -90,10 +82,29 @@ function ricoman_pf_metrics( $pid ) {
 		}
 	}
 
+	// Merge variant-derived lumens/wattage/features. These are pre-computed by a
+	// background job (never on the page request — aggregating thousands of
+	// variants live would time the catalogue out). If not built yet, schedule it.
+	$pre = get_post_meta( $pid, '_rm_pfm', true );
+	if ( is_array( $pre ) ) {
+		$lm = max( $lm, (int) ( $pre['lm'] ?? 0 ) );
+		$w  = max( $w, (int) ( $pre['w'] ?? 0 ) );
+		foreach ( (array) ( $pre['feats'] ?? array() ) as $f ) {
+			$feats[ $f ] = true;
+		}
+	} elseif ( ! wp_next_scheduled( 'ricoman_pf_build', array( (int) $pid ) ) ) {
+		wp_schedule_single_event( time() + 5, 'ricoman_pf_build', array( (int) $pid ) );
+	}
+
 	$res = array( 'lm' => $lm, 'w' => $w, 'feats' => array_keys( $feats ) );
-	set_transient( 'rm_pfm_' . $pid, $res, 6 * HOUR_IN_SECONDS );
 	return $memo[ $pid ] = $res;
 }
+
+/** Background job: compute + store a product's variant metrics on its parent. */
+add_action( 'ricoman_pf_build', function ( $pid ) {
+	$vm = ricoman_pf_variant_metrics( (int) $pid );
+	update_post_meta( (int) $pid, '_rm_pfm', $vm );
+} );
 
 /**
  * Aggregate lumens / wattage / feature flags from a product's variants.
@@ -110,24 +121,7 @@ function ricoman_pf_variant_metrics( $pid ) {
 		return array( 'lm' => 0, 'w' => 0, 'feats' => $feats );
 	}
 
-	// Lumens: a single SQL MAX across the family's variants, regardless of how
-	// many variants there are (CAST stops at the first non-digit, so "1200lm"
-	// and "1,200" both resolve sensibly once commas are stripped).
-	$lm_keys     = array( 'lumens', 'lumen', 'lumen_output', 'lumens_output', 'total_lumens', 'output_lumens', 'lumen_value' );
-	$placeholders = implode( ',', array_fill( 0, count( $lm_keys ), '%s' ) );
-	$sql = $wpdb->prepare(
-		"SELECT MAX(CAST(REPLACE(REPLACE(pm.meta_value, ',', ''), ' ', '') AS UNSIGNED))
-		 FROM {$wpdb->postmeta} pm
-		 INNER JOIN {$wpdb->postmeta} pp ON pp.post_id = pm.post_id
-		   AND pp.meta_key = 'parent_product' AND pp.meta_value = %s
-		 INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
-		   AND p.post_type = 'variant-product' AND p.post_status = 'publish'
-		 WHERE pm.meta_key IN ($placeholders) AND pm.meta_value REGEXP '[0-9]'",
-		array_merge( array( (string) $pid ), $lm_keys )
-	);
-	$lm = (int) $wpdb->get_var( $sql );
-
-	// Variant IDs (one query) for the taxonomy lookups below.
+	// Variant IDs for this product (one indexed meta query).
 	$ids = get_posts( array(
 		'post_type'      => 'variant-product',
 		'post_status'    => 'publish',
@@ -138,8 +132,19 @@ function ricoman_pf_variant_metrics( $pid ) {
 		'meta_query'     => array( array( 'key' => 'parent_product', 'value' => (string) $pid ) ),
 	) );
 	if ( ! $ids ) {
-		return array( 'lm' => $lm, 'w' => 0, 'feats' => $feats );
+		return array( 'lm' => 0, 'w' => 0, 'feats' => $feats );
 	}
+
+	// Lumens: one MAX query restricted by post_id (indexed) — no table scan.
+	$ids_in   = implode( ',', array_map( 'absint', $ids ) );
+	$lm_keys  = array( 'lumens', 'lumen', 'lumen_output', 'lumens_output', 'total_lumens', 'output_lumens', 'lumen_value' );
+	$keys_in  = implode( ',', array_fill( 0, count( $lm_keys ), '%s' ) );
+	$lm = (int) $wpdb->get_var( $wpdb->prepare(
+		"SELECT MAX(CAST(REPLACE(REPLACE(meta_value, ',', ''), ' ', '') AS UNSIGNED))
+		 FROM {$wpdb->postmeta}
+		 WHERE post_id IN ($ids_in) AND meta_key IN ($keys_in)",
+		$lm_keys
+	) );
 
 	// Wattage + lumen taxonomies + feature flags — one query per taxonomy across
 	// every variant (wp_get_object_terms issues a single IN(...) query).
@@ -182,17 +187,21 @@ function ricoman_pf_variant_metrics( $pid ) {
 	return array( 'lm' => $lm, 'w' => $w, 'feats' => $feats );
 }
 
-/** Invalidate cached metrics when a product or one of its variants is saved. */
+/** Rebuild a product's variant metrics when it (or a variant) is saved. */
 add_action( 'save_post', function ( $post_id, $post ) {
 	if ( wp_is_post_revision( $post_id ) || wp_is_post_autosave( $post_id ) ) {
 		return;
 	}
+	$target = 0;
 	if ( 'product' === $post->post_type ) {
-		delete_transient( 'rm_pfm_' . $post_id );
+		$target = (int) $post_id;
 	} elseif ( 'variant-product' === $post->post_type ) {
-		$parent = (int) get_post_meta( $post_id, 'parent_product', true );
-		if ( $parent ) {
-			delete_transient( 'rm_pfm_' . $parent );
+		$target = (int) get_post_meta( $post_id, 'parent_product', true );
+	}
+	if ( $target ) {
+		delete_post_meta( $target, '_rm_pfm' );
+		if ( ! wp_next_scheduled( 'ricoman_pf_build', array( $target ) ) ) {
+			wp_schedule_single_event( time() + 5, 'ricoman_pf_build', array( $target ) );
 		}
 	}
 }, 10, 2 );
