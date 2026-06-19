@@ -865,8 +865,11 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-rel-s{display:block;color:var(--muted);font-size:.85rem;margin-top:2px}
 @media(max-width:720px){.rm-relgrid{grid-template-columns:1fr 1fr}}
 /* Dimension diagrams */
-.rm-dimgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
-.rm-dimgrid img{width:100%;height:auto;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px}
+.rm-dimgrid{display:flex;flex-wrap:wrap;gap:18px;justify-content:center;align-items:flex-start}
+/* Dimension diagrams are small line drawings — never upscale them (that's what
+   made them blurry). Render at natural size, capped so a large one still fits. */
+.rm-dimgrid img{width:auto;height:auto;max-width:min(100%,340px);max-height:300px;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px}
+@media(max-width:520px){.rm-dimgrid img{max-width:100%}}
 /* Configure / order-codes table (from variant-product posts) */
 .rm-vptable-wrap{overflow-x:auto;margin-top:8px}
 .rm-vptable{width:100%;border-collapse:collapse;font-size:.9rem}

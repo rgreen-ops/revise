@@ -623,18 +623,32 @@ function ricoman_pf_gallery_block( $pid, $title, $code, $sw_html ) {
 		. '</div>';
 }
 
-add_shortcode( 'ricoman_product_page', function () {
-	$pid = get_the_ID();
-	if ( ! $pid ) {
-		return '';
+/**
+ * The shared gallery / swatch / thumbnail-tab / lightbox script. Scoped to the
+ * hero wrapper via document.currentScript.previousElementSibling, so it works
+ * whether the hero is rendered as part of the whole page or dropped in on its
+ * own as a composable section block.
+ */
+function ricoman_pf_gallery_js() {
+	return '<script>(function(){var w=document.currentScript.previousElementSibling;if(!w)return;var im=w.querySelector(".rm-cfg-img");function bind(sel){w.querySelectorAll(sel).forEach(function(b){b.addEventListener("click",function(){if(b.dataset.img&&im){im.src=b.dataset.img;}var p=b.parentNode;p.querySelectorAll(sel).forEach(function(x){x.classList.remove("on");});b.classList.add("on");});});}bind(".rm-cv-sw");bind(".rm-cfg-thumb");w.querySelectorAll(".rm-gtab").forEach(function(t){t.addEventListener("click",function(){if(t.disabled)return;w.querySelectorAll(".rm-gtab").forEach(function(x){x.classList.remove("on");});t.classList.add("on");var tab=t.dataset.tab;w.querySelectorAll(".rm-gthumbs .rm-cfg-thumb").forEach(function(th){th.style.display=(tab==="all"||th.dataset.tab===tab)?"":"none";});});});var lb=w.querySelector(".rm-lightbox"),lbi=lb?lb.querySelector(".rm-lightbox-img"):null;if(lb&&lbi&&im){im.addEventListener("click",function(){lbi.src=im.src;lb.hidden=false;document.body.style.overflow="hidden";});function cl(){lb.hidden=true;document.body.style.overflow="";}lb.addEventListener("click",function(e){if(e.target===lb||e.target.classList.contains("rm-lightbox-x"))cl();});document.addEventListener("keydown",function(e){if(e.key==="Escape")cl();});}})();</script>';
+}
+
+/**
+ * Build every product-page section from the ACF/meta fields, returned as a map
+ * of named HTML fragments:
+ *   hero · specs · configure · accessories · related · cta
+ *
+ * This is the single source of truth for the product layout. The whole-page
+ * renderer simply concatenates the fragments in order; the composable section
+ * blocks ([ricoman_section_hero] etc.) each emit just one fragment, so an admin
+ * can reorder them and drop their own patterns into the gaps. Result is cached
+ * per-product per-request so multiple section blocks don't rebuild it.
+ */
+function ricoman_pf_sections( $pid ) {
+	static $cache = array();
+	if ( isset( $cache[ $pid ] ) ) {
+		return $cache[ $pid ];
 	}
-	// Primary: render from the site's resolved product API (marketing content),
-	// with RICOBOT supplying the live variants/specs.
-	$d = ricoman_pf_endpoint( get_post_field( 'post_name', $pid ) );
-	if ( $d ) {
-		return ricoman_pf_render_endpoint( $d, $pid );
-	}
-	// Fallback: read ACF/meta fields directly.
 	$title   = get_the_title( $pid );
 	$subname = ricoman_pf_get( $pid, 'product_subname' );
 	$sortd   = ricoman_pf_get( $pid, 'product_sort_description' );
@@ -748,6 +762,7 @@ add_shortcode( 'ricoman_product_page', function () {
 	$desc = $sortd ? $sortd : $subname;
 
 	// ---- Hero: tabbed gallery (All/Studio/In-situ) + main image | panel ----
+	// The hero carries the gallery script so it works even when dropped in alone.
 	$hero_html = ( $crumb ? '<div class="rm-section rm-pp-crumbwrap"><div class="rm-pp-wrap rm-pp-crumb">' . $crumb . '</div></div>' : '' )
 		. '<div class="rm-cfghero-wrap"><div class="rm-cfghero rm-pdp">'
 		. ricoman_pf_gallery_block( $pid, $title, $code, $sw )
@@ -758,7 +773,8 @@ add_shortcode( 'ricoman_product_page', function () {
 		. '<div class="rm-cfg-acts"><a class="btn btn-solid" href="' . esc_url( $ldu ) . '">' . esc_html( $ld ) . ' →</a>'
 		. ' <a class="btn btn-line-d" href="' . esc_url( $tru ) . '">' . esc_html( $tr ) . ' →</a></div>'
 		. $jump
-		. '</div></div></div>';
+		. '</div></div></div>'
+		. ricoman_pf_gallery_js();
 
 	// ---- Accordions: Specification / Dimensions / Features / Downloads (closed) ----
 	$acc  = ricoman_pf_acc( 'Specification', $spec, false );
@@ -786,9 +802,31 @@ add_shortcode( 'ricoman_product_page', function () {
 
 	$cta = '<div class="wp-block-cover alignfull has-base-color has-text-color" style="min-height:46vh"><span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-70 has-background-dim"></span><img class="wp-block-cover__image-background" alt="" src="' . esc_url( get_theme_file_uri( 'assets/images/office1.webp' ) ) . '" data-object-fit="cover"/><div class="wp-block-cover__inner-container"><h2 class="wp-block-heading has-text-align-center" style="text-align:center">Specify this product</h2><p class="has-text-align-center" style="text-align:center">Add it to your project or request a free lighting scheme.</p><div class="wp-block-buttons is-content-justification-center" style="display:flex;justify-content:center;gap:10px"><a class="btn btn-line" href="' . $enq . '">Add to My Project</a> <a class="btn btn-solid" href="' . esc_url( $ldu ) . '">' . esc_html( $ld ) . '</a></div></div></div>';
 
-	$out  = $hero_html . $acc_sec . $var_sec . $acc_block . $related . $cta;
-	$out .= '<script>(function(){var w=document.currentScript.previousElementSibling;if(!w)return;var im=w.querySelector(".rm-cfg-img");function bind(sel){w.querySelectorAll(sel).forEach(function(b){b.addEventListener("click",function(){if(b.dataset.img&&im){im.src=b.dataset.img;}var p=b.parentNode;p.querySelectorAll(sel).forEach(function(x){x.classList.remove("on");});b.classList.add("on");});});}bind(".rm-cv-sw");bind(".rm-cfg-thumb");w.querySelectorAll(".rm-gtab").forEach(function(t){t.addEventListener("click",function(){if(t.disabled)return;w.querySelectorAll(".rm-gtab").forEach(function(x){x.classList.remove("on");});t.classList.add("on");var tab=t.dataset.tab;w.querySelectorAll(".rm-gthumbs .rm-cfg-thumb").forEach(function(th){th.style.display=(tab==="all"||th.dataset.tab===tab)?"":"none";});});});var lb=w.querySelector(".rm-lightbox"),lbi=lb?lb.querySelector(".rm-lightbox-img"):null;if(lb&&lbi&&im){im.addEventListener("click",function(){lbi.src=im.src;lb.hidden=false;document.body.style.overflow="hidden";});function cl(){lb.hidden=true;document.body.style.overflow="";}lb.addEventListener("click",function(e){if(e.target===lb||e.target.classList.contains("rm-lightbox-x"))cl();});document.addEventListener("keydown",function(e){if(e.key==="Escape")cl();});}})();</script>';
-	return $out;
+	$cache[ $pid ] = array(
+		'hero'        => $hero_html,
+		'specs'       => $acc_sec,
+		'configure'   => $var_sec,
+		'accessories' => $acc_block,
+		'related'     => $related,
+		'cta'         => $cta,
+	);
+	return $cache[ $pid ];
+}
+
+add_shortcode( 'ricoman_product_page', function () {
+	$pid = get_the_ID();
+	if ( ! $pid ) {
+		return '';
+	}
+	// Primary: render from the site's resolved product API (marketing content),
+	// with RICOBOT supplying the live variants/specs.
+	$d = ricoman_pf_endpoint( get_post_field( 'post_name', $pid ) );
+	if ( $d ) {
+		return ricoman_pf_render_endpoint( $d, $pid );
+	}
+	// Fallback: read ACF/meta fields directly, assembled from the section map.
+	$s = ricoman_pf_sections( $pid );
+	return $s['hero'] . $s['specs'] . $s['configure'] . $s['accessories'] . $s['related'] . $s['cta'];
 } );
 
 /* When a product has no block content (the ACF products), render the field page. */

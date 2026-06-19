@@ -36,6 +36,8 @@ require_once get_theme_file_path( 'inc/shortcodes.php' );    // Product spec/var
 require_once get_theme_file_path( 'inc/product-builder.php' );// Product Builder: RICOBOT sync + field shortcodes.
 require_once get_theme_file_path( 'inc/product-fields.php' ); // Structured product content (variants/zigzag/paragraphs) as fields.
 require_once get_theme_file_path( 'inc/acf-product.php' );    // Render existing ACF products (empty content) in the new design.
+require_once get_theme_file_path( 'inc/product-sections.php' );// Composable product-page section blocks/patterns.
+require_once get_theme_file_path( 'inc/variant-csv.php' );    // Variant CSV import / export (Import/Export Variable Product).
 require_once get_theme_file_path( 'inc/acf-pages.php' );      // Render migrated ACF content pages natively (no Elementor).
 require_once get_theme_file_path( 'inc/news.php' );           // News master listing + single article.
 require_once get_theme_file_path( 'inc/projects.php' );       // Project single (short/long) from ACF.
