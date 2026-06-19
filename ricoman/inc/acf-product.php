@@ -47,6 +47,52 @@ function ricoman_pf_get( $pid, $key, $default = '' ) {
 	return ( '' !== $m && null !== $m ) ? $m : $default;
 }
 
+/**
+ * Turn a key-features value into a clean bullet list. The ACF field often holds
+ * raw HTML (<ul class="animatable fadeInUp"><li>…</li></ul>) — pull just the item
+ * text so the page never shows literal <ul>/<li> tags.
+ */
+function ricoman_pf_features_list( $kf, $max = 0 ) {
+	$items = array();
+	if ( is_array( $kf ) ) {
+		foreach ( $kf as $row ) {
+			$t = is_array( $row ) ? implode( ' ', array_filter( $row, 'is_scalar' ) ) : $row;
+			$t = trim( wp_strip_all_tags( (string) $t ) );
+			if ( '' !== $t ) {
+				$items[] = $t;
+			}
+		}
+	} else {
+		$kf = (string) $kf;
+		if ( false !== stripos( $kf, '<li' ) && preg_match_all( '/<li[^>]*>(.*?)<\/li>/is', $kf, $m ) ) {
+			foreach ( $m[1] as $t ) {
+				$t = trim( wp_strip_all_tags( html_entity_decode( $t ) ) );
+				if ( '' !== $t ) {
+					$items[] = $t;
+				}
+			}
+		} else {
+			foreach ( preg_split( '/\r\n|\r|\n/', wp_strip_all_tags( $kf ) ) as $line ) {
+				$line = trim( ltrim( $line, "•-*\t " ) );
+				if ( '' !== $line ) {
+					$items[] = $line;
+				}
+			}
+		}
+	}
+	if ( ! $items ) {
+		return '';
+	}
+	if ( $max > 0 ) {
+		$items = array_slice( $items, 0, $max );
+	}
+	$li = '';
+	foreach ( $items as $t ) {
+		$li .= '<li>' . esc_html( $t ) . '</li>';
+	}
+	return '<ul class="rm-ul rm-pp-features">' . $li . '</ul>';
+}
+
 /** Resolve an ACF image value (ID, URL, or array) to a URL. */
 function ricoman_pf_imgurl( $v ) {
 	if ( is_numeric( $v ) ) {
@@ -189,23 +235,8 @@ function ricoman_pf_render_endpoint( $d, $pid ) {
 	// Breadcrumb (Products › Category › Name).
 	$crumb = do_shortcode( '[ricoman_breadcrumbs]' );
 
-	// Key features — concise bullets for the hero (full spec lives below).
-	$feat = '';
-	$kf   = ! empty( $d['key_features'] ) ? $d['key_features'] : '';
-	if ( is_array( $kf ) ) {
-		$li = '';
-		foreach ( $kf as $row ) {
-			$t = is_array( $row ) ? implode( ' ', array_filter( $row, 'is_scalar' ) ) : $row;
-			if ( $t ) {
-				$li .= '<li>' . $e( $t ) . '</li>';
-			}
-		}
-		if ( $li ) {
-			$feat = '<ul class="rm-ul rm-pp-features">' . $li . '</ul>';
-		}
-	} elseif ( $kf ) {
-		$feat = '<div class="rm-pp-features rm-spechtml">' . wp_kses_post( wpautop( $kf ) ) . '</div>';
-	}
+	// Key features — clean bullets for the hero (full spec lives below).
+	$feat = ricoman_pf_features_list( ! empty( $d['key_features'] ) ? $d['key_features'] : '' );
 
 	// Order code + jump links.
 	$code = ! empty( $d['product_code'] ) ? '<p class="rm-pp-code"><span class="rm-cfg-code">' . $e( $d['product_code'] ) . '</span></p>' : '';
@@ -223,7 +254,7 @@ function ricoman_pf_render_endpoint( $d, $pid ) {
 		. '<h1 class="rm-cfg-name">' . $e( $d['product_title'] ) . '</h1>'
 		. ( ! empty( $d['product_subname'] ) ? '<p class="rm-cfg-desc">' . $e( $d['product_subname'] ) . '</p>' : '' )
 		. ( ! empty( $d['product_sort_description'] ) ? '<p>' . $e( $d['product_sort_description'] ) . '</p>' : '' )
-		. $code . $feat . $acts . $jump . '</div></div></div>';
+		. $feat . $code . $acts . $jump . '</div></div></div>';
 
 	// Specification — moved out of the hero, into its own section below.
 	if ( $spec ) {
@@ -263,7 +294,10 @@ function ricoman_pf_render_endpoint( $d, $pid ) {
 	}
 
 	// Order codes & variants — RICOBOT live (this is what replaces the CSV).
-	$out .= '<div class="rm-section" id="variants"><div class="rm-pp-wrap"><h2 class="rm-shead">Configure &amp; order codes</h2>' . do_shortcode( '[ricoman_family]' ) . '</div></div>';
+	// Only shown when the product is linked to a RICOBOT family in Product Builder.
+	if ( '' !== (string) get_post_meta( $pid, '_ricoman_family', true ) ) {
+		$out .= '<div class="rm-section" id="variants"><div class="rm-pp-wrap"><h2 class="rm-shead">Configure &amp; order codes</h2>' . do_shortcode( '[ricoman_family]' ) . '</div></div>';
+	}
 
 	// Downloads.
 	if ( ! empty( $d['download_section'] ) && is_array( $d['download_section'] ) ) {
@@ -350,16 +384,8 @@ add_shortcode( 'ricoman_product_page', function () {
 	$spec = (string) ricoman_pf_get( $pid, 'specification' );
 	$spec = $spec ? '<div class="rm-spechtml">' . wp_kses_post( wpautop( $spec ) ) . '</div>' : '';
 
-	// Key features (bullets).
-	$kf   = (string) ricoman_pf_get( $pid, 'key_features' );
-	$kfli = '';
-	foreach ( preg_split( '/\r\n|\r|\n/', $kf ) as $line ) {
-		$line = trim( ltrim( $line, '•-* ' ) );
-		if ( '' !== $line ) {
-			$kfli .= '<li>' . esc_html( $line ) . '</li>';
-		}
-	}
-	$features = $kfli ? '<div class="rm-section rm-soft"><div class="rm-pp-wrap"><p class="rm-eyebrow">Key features</p><ul class="rm-ul rm-pp-features">' . $kfli . '</ul></div></div>' : '';
+	// Key features — clean bullets (handles ACF fields that hold raw <ul>/<li> HTML).
+	$feat = ricoman_pf_features_list( ricoman_pf_get( $pid, 'key_features' ) );
 
 	// Downloads (download_section rows + brochure + family datasheet).
 	$dls = ricoman_pf_get( $pid, 'download_section', array() );
@@ -418,6 +444,7 @@ add_shortcode( 'ricoman_product_page', function () {
 		. '<h1 class="rm-cfg-name">' . esc_html( $title ) . '</h1>'
 		. ( $subname ? '<p class="rm-cfg-desc">' . esc_html( $subname ) . '</p>' : '' )
 		. ( $sortd ? '<p>' . esc_html( $sortd ) . '</p>' : '' )
+		. $feat
 		. ( $code ? '<p class="rm-pp-code"><span class="rm-cfg-lbl">Order code</span> <span class="rm-cfg-code">' . esc_html( $code ) . '</span></p>' : '' )
 		. $acts
 		. $jump
@@ -425,7 +452,9 @@ add_shortcode( 'ricoman_product_page', function () {
 
 	// Specification, variants (RICOBOT) and downloads — below the hero.
 	$spec_sec = $spec ? '<div class="rm-section" id="specification"><div class="rm-pp-wrap"><h2 class="rm-shead">Specification</h2>' . $spec . '</div></div>' : '';
-	$var_sec  = '<div class="rm-section" id="variants"><div class="rm-pp-wrap"><h2 class="rm-shead">Configure &amp; order codes</h2>' . do_shortcode( '[ricoman_family]' ) . '</div></div>';
+	$var_sec  = '' !== (string) ricoman_pf_get( $pid, '_ricoman_family' )
+		? '<div class="rm-section" id="variants"><div class="rm-pp-wrap"><h2 class="rm-shead">Configure &amp; order codes</h2>' . do_shortcode( '[ricoman_family]' ) . '</div></div>'
+		: '';
 	$dl_sec   = $downloads ? '<div class="rm-section" id="downloads"><div class="rm-pp-wrap">' . $downloads . '</div></div>' : '';
 
 	// Zig-zag + paragraphs (structured fields), then CTA band.
@@ -434,7 +463,7 @@ add_shortcode( 'ricoman_product_page', function () {
 
 	$cta = '<div class="wp-block-cover alignfull has-base-color has-text-color" style="min-height:46vh"><span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-70 has-background-dim"></span><img class="wp-block-cover__image-background" alt="" src="' . esc_url( get_theme_file_uri( 'assets/images/office1.webp' ) ) . '" data-object-fit="cover"/><div class="wp-block-cover__inner-container"><h2 class="wp-block-heading has-text-align-center" style="text-align:center">Specify this product</h2><p class="has-text-align-center" style="text-align:center">Add it to your project or request a free lighting scheme.</p><div class="wp-block-buttons is-content-justification-center" style="display:flex;justify-content:center;gap:10px"><a class="btn btn-line" href="' . $enq . '">Add to My Project</a> <a class="btn btn-solid" href="' . esc_url( $ldu ) . '">' . esc_html( $ld ) . '</a></div></div></div>';
 
-	$out  = $hero_html . $spec_sec . $features . $zig . $var_sec . $dl_sec . $cta;
+	$out  = $hero_html . $spec_sec . $zig . $var_sec . $dl_sec . $cta;
 	$out .= '<script>(function(){var w=document.currentScript.previousElementSibling;if(!w)return;var im=w.querySelector(".rm-cfg-img");function bind(sel){w.querySelectorAll(sel).forEach(function(b){b.addEventListener("click",function(){if(b.dataset.img&&im){im.src=b.dataset.img;}var p=b.parentNode;p.querySelectorAll(sel).forEach(function(x){x.classList.remove("on");});b.classList.add("on");});});}bind(".rm-cv-sw");bind(".rm-cfg-thumb");})();</script>';
 	return $out;
 } );

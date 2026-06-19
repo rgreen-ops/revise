@@ -805,3 +805,18 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-fnone{font-family:Poppins;color:var(--muted);padding:30px 0}
 .rm-fnone .rm-fclear{display:inline}
 @media(max-width:820px){.rm-catgrid-wrap{grid-template-columns:1fr}.rm-facets{position:static;display:grid;grid-template-columns:1fr 1fr;gap:0 28px}.rm-facets .rm-fgroup{grid-column:1/-1}}
+
+/* Catalogue: wide grid + horizontal filter bar on /products/ */
+.rm-catwide{padding-top:clamp(10px,2vw,24px)}
+.rm-prodgrid{grid-template-columns:repeat(4,1fr)}
+@media(max-width:1200px){.rm-prodgrid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:860px){.rm-prodgrid{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.rm-prodgrid{grid-template-columns:1fr}}
+.rm-catfilter{display:flex;flex-wrap:wrap;align-items:flex-end;gap:clamp(20px,3vw,46px);padding:20px 22px;border:1px solid var(--line);border-radius:14px;margin:0 0 22px}
+.rm-catfilter .rm-catfilter-ranges{display:flex;flex-wrap:wrap;gap:clamp(20px,3vw,40px);flex:1 1 360px}
+.rm-catfilter .rm-frange{margin:0;min-width:180px;flex:1 1 180px}
+.rm-catfilter .rm-catfilter-ticks{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;flex:2 1 100%}
+.rm-catfilter .rm-facets-sub{flex-basis:100%;margin:0 0 2px}
+.rm-catfilter .rm-fclear{margin:0 0 4px;align-self:flex-end}
+.rm-catsec[hidden]{display:none}
+.rm-fcard[hidden]{display:none}

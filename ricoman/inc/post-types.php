@@ -259,12 +259,11 @@ function ricoman_product_img( $pid ) {
 }
 
 /**
- * The real product catalogue: category tiles + a grid of products per category,
- * built from the live data model (product-cat). Powers the /products/ archive so
- * every migrated product is reachable. [ricoman_catalogue per_cat="8"]
+ * The real product catalogue: category quick-nav + faceted filter bar (light
+ * output / power sliders + feature tick-boxes) + every product grouped by
+ * category. Powers the /products/ archive. [ricoman_catalogue]
  */
 add_shortcode( 'ricoman_catalogue', function ( $atts ) {
-	$atts  = shortcode_atts( array( 'per_cat' => 8 ), $atts, 'ricoman_catalogue' );
 	$tax   = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
 	$terms = get_terms( array( 'taxonomy' => $tax, 'hide_empty' => true ) );
 
@@ -274,15 +273,19 @@ add_shortcode( 'ricoman_catalogue', function ( $atts ) {
 	}
 
 	// Category quick-nav.
-	$out = '<div class="rm-catnav">';
+	$nav = '<div class="rm-catnav">';
 	foreach ( $terms as $t ) {
-		$out .= '<a class="rm-catnav-item" href="' . esc_url( get_term_link( $t ) ) . '">'
+		$nav .= '<a class="rm-catnav-item" href="' . esc_url( get_term_link( $t ) ) . '">'
 			. esc_html( $t->name ) . ' <span>' . (int) $t->count . '</span></a>';
 	}
-	$out .= '</div>';
+	$nav .= '</div>';
 
-	// Every product in each category — no truncation. include_children=false so a
-	// product only appears under its own (sub)category, never duplicated under a parent.
+	// Build the category sections, collecting facet ranges as we go.
+	$sections = '';
+	$maxlm    = 0;
+	$maxw     = 0;
+	$allfeat  = array();
+	$total    = 0;
 	foreach ( $terms as $t ) {
 		$q = new WP_Query( array(
 			'post_type'      => 'product',
@@ -296,21 +299,99 @@ add_shortcode( 'ricoman_catalogue', function ( $atts ) {
 		if ( ! $q->have_posts() ) {
 			continue;
 		}
-		$shown = $q->post_count;
-		$out  .= '<section class="rm-catsec"><div class="rm-catsec-head"><h2 class="rm-shead">' . esc_html( $t->name ) . ' <span class="rm-catarch-count">' . (int) $shown . '</span></h2>'
-			. '<a class="rm-catsec-all" href="' . esc_url( get_term_link( $t ) ) . '">Filter &amp; order codes →</a></div>'
-			. '<div class="rm-projgrid rm-prodgrid">';
+		$cnt    = $q->post_count;
+		$total += $cnt;
+		$cards  = '';
 		while ( $q->have_posts() ) {
 			$q->the_post();
-			$img   = ricoman_product_img( get_the_ID() );
-			$sub   = function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( get_the_ID(), 'product_subname' ) : '';
+			$pid   = get_the_ID();
+			$mx    = function_exists( 'ricoman_pf_metrics' ) ? ricoman_pf_metrics( $pid ) : array( 'lm' => 0, 'w' => 0, 'feats' => array() );
+			$maxlm = max( $maxlm, $mx['lm'] );
+			$maxw  = max( $maxw, $mx['w'] );
+			$fslug = array();
+			foreach ( $mx['feats'] as $f ) {
+				$allfeat[ $f ] = true;
+				$fslug[]       = sanitize_title( $f );
+			}
+			$img   = ricoman_product_img( $pid );
+			$sub   = function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( $pid, 'product_subname' ) : '';
 			$style = $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '';
-			$out  .= '<a class="rm-projcard" href="' . esc_url( get_permalink() ) . '"' . $style . '><span class="rm-projcard-ov">'
+			$meta  = array();
+			if ( $mx['lm'] ) { $meta[] = number_format( $mx['lm'] ) . ' lm'; }
+			if ( $mx['w'] ) { $meta[] = $mx['w'] . 'W'; }
+			$cards .= '<a class="rm-projcard rm-fcard" href="' . esc_url( get_permalink() ) . '"'
+				. ' data-lm="' . (int) $mx['lm'] . '" data-w="' . (int) $mx['w'] . '" data-feat="' . esc_attr( implode( ' ', $fslug ) ) . '"' . $style . '>'
+				. '<span class="rm-projcard-ov">'
 				. ( $sub ? '<span class="rm-eyebrow">' . esc_html( $sub ) . '</span>' : '' )
-				. '<span class="rm-projcard-t">' . esc_html( get_the_title() ) . '</span></span></a>';
+				. '<span class="rm-projcard-t">' . esc_html( get_the_title() ) . '</span>'
+				. ( $meta ? '<span class="rm-fcard-meta">' . esc_html( implode( ' · ', $meta ) ) . '</span>' : '' )
+				. '</span></a>';
 		}
-		$out .= '</div></section>';
 		wp_reset_postdata();
+		$sections .= '<section class="rm-catsec" data-cat="' . esc_attr( $t->slug ) . '"><div class="rm-catsec-head"><h2 class="rm-shead">' . esc_html( $t->name )
+			. ' <span class="rm-catarch-count">' . (int) $cnt . '</span></h2>'
+			. '<a class="rm-catsec-all" href="' . esc_url( get_term_link( $t ) ) . '">Filter &amp; order codes →</a></div>'
+			. '<div class="rm-projgrid rm-prodgrid rm-fgrid">' . $cards . '</div></section>';
 	}
+
+	// Filter bar (rounded up sensible ranges).
+	$maxlm = $maxlm > 0 ? (int) ( ceil( $maxlm / 500 ) * 500 ) : 0;
+	$maxw  = $maxw > 0 ? (int) ( ceil( $maxw / 5 ) * 5 ) : 0;
+	ksort( $allfeat );
+	$ticks = '';
+	foreach ( array_keys( $allfeat ) as $f ) {
+		$ticks .= '<label class="rm-ftick"><input type="checkbox" value="' . esc_attr( sanitize_title( $f ) ) . '"> ' . esc_html( $f ) . '</label>';
+	}
+	$lmS = $maxlm ? '<div class="rm-frange"><label>Min. light output <b class="rm-lm-val">0</b> lm</label><input type="range" class="rm-lm" min="0" max="' . $maxlm . '" step="100" value="0"></div>' : '';
+	$wS  = $maxw ? '<div class="rm-frange"><label>Max. power <b class="rm-w-val">' . $maxw . '</b> W</label><input type="range" class="rm-w" min="0" max="' . $maxw . '" step="1" value="' . $maxw . '"></div>' : '';
+	$bar = ( $lmS || $wS || $ticks )
+		? '<div class="rm-catfilter"><div class="rm-catfilter-ranges">' . $lmS . $wS . '</div>'
+			. ( $ticks ? '<div class="rm-catfilter-ticks"><span class="rm-facets-sub">Features</span>' . $ticks . '</div>' : '' )
+			. '<button type="button" class="rm-fclear">Clear</button></div>'
+		: '';
+
+	$out  = '<div class="rm-pp-wrap rm-catwide">' . $nav . $bar
+		. '<p class="rm-fcount"><b>' . (int) $total . '</b> products</p>' . $sections
+		. '<p class="rm-fnone" hidden>No products match those filters. <button type="button" class="rm-fclear">Clear filters</button></p></div>';
+
+	// Live filtering across every section.
+	$out .= <<<'JS'
+<script>(function(){
+ var w=document.currentScript.previousElementSibling;if(!w)return;
+ var cards=[].slice.call(w.querySelectorAll('.rm-fcard'));
+ var lm=w.querySelector('.rm-lm'),pw=w.querySelector('.rm-w');
+ var lmv=w.querySelector('.rm-lm-val'),wv=w.querySelector('.rm-w-val');
+ var total=w.querySelector('.rm-fcount b'),none=w.querySelector('.rm-fnone');
+ function ticks(){return [].slice.call(w.querySelectorAll('.rm-ftick input:checked')).map(function(i){return i.value;});}
+ function apply(){
+  var minLm=lm?+lm.value:0,maxW=pw?+pw.value:1e9,want=ticks(),shown=0;
+  if(lmv&&lm)lmv.textContent=(+lm.value).toLocaleString();
+  if(wv&&pw)wv.textContent=pw.value;
+  cards.forEach(function(c){
+   var clm=+c.dataset.lm||0,cw=+c.dataset.w||0,cf=(c.dataset.feat||'').split(' ');
+   var ok=true;
+   if(minLm>0&&clm>0&&clm<minLm)ok=false;
+   if(pw&&maxW<(+pw.max)&&cw>0&&cw>maxW)ok=false;
+   want.forEach(function(f){if(cf.indexOf(f)<0)ok=false;});
+   c.hidden=!ok;if(ok)shown++;
+  });
+  [].slice.call(w.querySelectorAll('.rm-catsec')).forEach(function(s){
+   var vis=s.querySelectorAll('.rm-fcard:not([hidden])').length;
+   s.hidden=vis===0;
+   var cc=s.querySelector('.rm-catarch-count');if(cc)cc.textContent=vis;
+  });
+  if(total)total.textContent=shown;
+  if(none)none.hidden=shown>0;
+ }
+ [lm,pw].forEach(function(el){if(el)el.addEventListener('input',apply);});
+ w.querySelectorAll('.rm-ftick input').forEach(function(i){i.addEventListener('change',apply);});
+ w.querySelectorAll('.rm-fclear').forEach(function(b){b.addEventListener('click',function(){
+  if(lm)lm.value=0;if(pw)pw.value=pw.max;
+  w.querySelectorAll('.rm-ftick input').forEach(function(i){i.checked=false;});apply();
+ });});
+ apply();
+})();</script>
+JS;
 	return $out;
 } );
+

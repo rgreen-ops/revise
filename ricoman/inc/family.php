@@ -20,7 +20,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 add_action( 'wp_ajax_ricoman_rb_family', 'ricoman_rb_family_cb' );
 add_action( 'wp_ajax_nopriv_ricoman_rb_family', 'ricoman_rb_family_cb' );
 function ricoman_rb_family_cb() {
-	check_ajax_referer( 'ricoman_rb_front', 'nonce' );
+	// Non-fatal nonce check: this only returns public catalogue data, and a stale
+	// nonce on a cached product page must not blank out the configurator.
+	check_ajax_referer( 'ricoman_rb_front', 'nonce', false );
 	$family = isset( $_REQUEST['family'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['family'] ) ) : '';
 	if ( '' === $family || ! function_exists( 'ricoman_ricobot_ready' ) || ! ricoman_ricobot_ready() ) {
 		wp_send_json_error( 'Not available.' );

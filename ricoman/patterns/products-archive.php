@@ -42,9 +42,9 @@ echo $cover(
 	55
 );
 
-// The live catalogue — real product categories + products from the database
-// (falls back to a flat product grid if nothing is categorised yet).
-echo $sec( '<!-- wp:shortcode -->[ricoman_catalogue per_cat="8"]<!-- /wp:shortcode -->' );
+// The live catalogue — full width (its own .rm-pp-wrap controls the max width,
+// so it isn't squeezed by the 760px content size). Filters live inside it.
+echo '<!-- wp:group {"align":"full","className":"rm-section","layout":{"type":"default"}} --><div class="wp-block-group alignfull rm-section"><!-- wp:shortcode -->[ricoman_catalogue]<!-- /wp:shortcode --></div><!-- /wp:group -->';
 
 echo $cover(
 	$u( 'office1.webp' ),
