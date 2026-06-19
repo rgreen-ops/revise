@@ -122,6 +122,16 @@ add_filter( 'body_class', function ( $classes ) {
 } );
 
 /**
+ * Cache-busting asset version: the file's modification time, so every CSS/JS
+ * change is fetched fresh by browsers (a fixed version string was causing stale
+ * styles to persist across deploys).
+ */
+function ricoman_asset_ver( $rel ) {
+	$f = get_theme_file_path( $rel );
+	return file_exists( $f ) ? (string) filemtime( $f ) : RICOMAN_VERSION;
+}
+
+/**
  * Enqueue front-end assets: the theme stylesheet, a small shared stylesheet
  * and the Inter / Inter Tight web fonts used across the design.
  */
@@ -131,7 +141,7 @@ function ricoman_enqueue_assets() {
 		'ricoman-style',
 		get_stylesheet_uri(),
 		array(),
-		RICOMAN_VERSION
+		ricoman_asset_ver( 'style.css' )
 	);
 
 	// Shared utility styles used on the front end and in the editor.
@@ -139,7 +149,7 @@ function ricoman_enqueue_assets() {
 		'ricoman-shared',
 		get_theme_file_uri( 'assets/css/shared.css' ),
 		array( 'ricoman-style' ),
-		RICOMAN_VERSION
+		ricoman_asset_ver( 'assets/css/shared.css' )
 	);
 
 	// Ported design-system stylesheet (chrome, heroes, sections, cards, footer).
@@ -147,7 +157,7 @@ function ricoman_enqueue_assets() {
 		'ricoman-design',
 		get_theme_file_uri( 'assets/css/ricoman.css' ),
 		array( 'ricoman-shared' ),
-		RICOMAN_VERSION
+		ricoman_asset_ver( 'assets/css/ricoman.css' )
 	);
 
 	// Subtle motion layer (count-up stats + reveal-on-scroll); deferred.
@@ -155,7 +165,7 @@ function ricoman_enqueue_assets() {
 		'ricoman-anim',
 		get_theme_file_uri( 'assets/js/ricoman-motion.js' ),
 		array(),
-		RICOMAN_VERSION,
+		ricoman_asset_ver( 'assets/js/ricoman-motion.js' ),
 		true
 	);
 
@@ -165,7 +175,7 @@ function ricoman_enqueue_assets() {
 		'ricoman-product-gallery',
 		get_theme_file_uri( 'assets/js/product-gallery.js' ),
 		array(),
-		RICOMAN_VERSION,
+		ricoman_asset_ver( 'assets/js/product-gallery.js' ),
 		true
 	);
 
