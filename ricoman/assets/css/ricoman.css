@@ -726,6 +726,19 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-spechtml{font-size:.98rem;line-height:1.7;color:var(--text);margin:8px 0 4px}
 .rm-spechtml strong{display:block;font-family:Poppins;font-size:.7rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:1.2em 0 .3em}
 .rm-spechtml p{margin:0 0 .6em}
+/* Specification — tidy card grid (accent headers, dot bullets) */
+.rm-specgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin:6px 0 2px}
+.rm-speccard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+.rm-speccard h4{font-family:Poppins;font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:0 0 12px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.rm-speccard ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.rm-speccard li{position:relative;padding-left:16px;font-size:.92rem;line-height:1.5;color:var(--ink)}
+.rm-speccard li:before{content:"";position:absolute;left:0;top:.55em;width:5px;height:5px;border-radius:50%;background:var(--accent)}
+/* Features — two-column tick list */
+.rm-pp-features{list-style:none;margin:6px 0 2px;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:11px 36px}
+.rm-pp-features li{position:relative;padding-left:30px;font-size:.96rem;line-height:1.5;color:var(--ink)}
+.rm-pp-features li:before{content:"";position:absolute;left:0;top:0;width:20px;height:20px;border-radius:50%;background:#eef3fc}
+.rm-pp-features li:after{content:"";position:absolute;left:7px;top:4px;width:5px;height:9px;border:solid var(--accent);border-width:0 2px 2px 0;transform:rotate(45deg)}
+@media(max-width:680px){.rm-pp-features{grid-template-columns:1fr;gap:10px}}
 .rm-pp-code{font-family:Poppins;margin:.2em 0 1em}
 .rm-pp-code .rm-cfg-code{font-family:'JetBrains Mono',monospace;font-weight:600;color:#004899;font-size:1.05rem}
 .rm-pp-wrap{max-width:1640px;margin:0 auto;padding-inline:clamp(20px,4vw,72px)}
@@ -869,7 +882,7 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-dimgrid{display:flex;flex-wrap:wrap;gap:18px;justify-content:center;align-items:flex-start}
 /* Dimension diagrams are small line drawings — never upscale them (that's what
    made them blurry). Render at natural size, capped so a large one still fits. */
-.rm-dimgrid img{width:auto;height:auto;max-width:min(100%,340px);max-height:300px;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px}
+.rm-dimgrid img{width:auto;height:auto;max-width:min(100%,300px);max-height:300px;object-fit:contain;background:#f7f8fa;border:1px solid var(--line);border-radius:16px;padding:clamp(20px,3vw,40px)}
 @media(max-width:520px){.rm-dimgrid img{max-width:100%}}
 /* Contact page */
 .rm-contact-head{padding-bottom:0}
@@ -886,7 +899,8 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 @media(max-width:820px){.rm-contact-grid{grid-template-columns:1fr;gap:28px}.rm-contact-map iframe{height:300px}}
 /* Tighten the gap at the very top of the product page (WP adds 1rem by default) */
 .single-product .wp-site-blocks > *:first-child,
-.single-product .rm-pp-crumbwrap:first-child{margin-block-start:.5rem}
+.single-product .rm-pp-crumbwrap:first-child{margin-block-start:0}
+.single-product .rm-pp-crumbwrap{padding-top:clamp(8px,1.2vw,14px)!important}
 /* Configure / order-codes table (from variant-product posts) */
 .rm-vptable-wrap{overflow-x:auto;margin-top:8px}
 .rm-vptable{width:100%;border-collapse:collapse;font-size:.9rem}
@@ -1007,8 +1021,13 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-gtabs{display:inline-flex;gap:4px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px;margin:16px 0 12px}
 .rm-gtab{border:0;background:none;font-family:Poppins;font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:8px 20px;border-radius:999px;cursor:pointer}
 .rm-gtab.on{background:var(--ink);color:#fff}
-.rm-gthumbs{display:flex;flex-wrap:wrap;gap:12px;margin-top:0}
-.rm-gthumbs .rm-cfg-thumb{width:96px;height:80px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#e4e4e4;cursor:pointer;padding:7px}
+/* Thumbnails in a vertical rail beside the main image (above the fold) */
+.rm-pdp-row{display:flex;gap:14px;align-items:flex-start}
+.rm-pdp-gallery .rm-cfg-viz{flex:1;min-width:0}
+.rm-gtabs{margin:0 0 12px}
+.rm-gthumbs{display:flex;flex-direction:column;flex-wrap:nowrap;gap:10px;width:88px;flex:0 0 88px;max-height:min(56vh,520px);overflow-y:auto;margin-top:0}
+.rm-gthumbs .rm-cfg-thumb{width:88px;height:64px;flex:0 0 auto;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#e4e4e4;cursor:pointer;padding:6px}
+@media(max-width:600px){.rm-pdp-row{flex-direction:column-reverse}.rm-gthumbs{flex-direction:row;flex-wrap:nowrap;width:auto;flex:0 0 auto;max-height:none;overflow-x:auto}.rm-gthumbs .rm-cfg-thumb{flex:0 0 64px}}
 .rm-gthumbs .rm-cfg-thumb.on{border-color:var(--ink);border-width:2px}
 .rm-gthumbs .rm-cfg-thumb img{width:100%;height:100%;object-fit:contain}
 @media(max-width:900px){.rm-pdp .rm-pdp-gallery{position:static}}

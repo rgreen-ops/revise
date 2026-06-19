@@ -125,7 +125,7 @@ function ricoman_pf_highlights( $kf, $max = 4 ) {
 }
 
 /** "You may also like" grid — other products in the same category. */
-function ricoman_pf_related( $pid, $max = 3 ) {
+function ricoman_pf_related( $pid, $max = 5 ) {
 	$tax   = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
 	$terms = wp_get_post_terms( $pid, $tax, array( 'fields' => 'ids' ) );
 	if ( is_wp_error( $terms ) || ! $terms ) {
@@ -154,6 +154,67 @@ function ricoman_pf_related( $pid, $max = 3 ) {
 	}
 	wp_reset_postdata();
 	return '<div class="rm-section"><div class="rm-pp-wrap"><h2 class="rm-shead">You may also like</h2><div class="rm-relgrid">' . $cards . '</div></div></div>';
+}
+
+/**
+ * Render the Specification field as a clean card grid. The field holds heading
+ * (<strong>) blocks followed by "·"-prefixed bullet lines; we parse those into
+ * groups and lay them out as cards with accent headers and dot bullets. Falls
+ * back to the raw HTML if there are no headings to group on.
+ */
+function ricoman_pf_spec_html( $raw ) {
+	$raw = (string) $raw;
+	if ( '' === trim( $raw ) ) {
+		return '';
+	}
+	if ( ! preg_match( '/<strong/i', $raw ) ) {
+		return '<div class="rm-spechtml">' . wp_kses_post( wpautop( $raw ) ) . '</div>';
+	}
+	$txt = preg_replace( '/<\s*br\s*\/?>/i', "\n", $raw );
+	$txt = preg_replace( '/<\/(p|div|li|h[1-6])>/i', "\n", $txt );
+	$txt = preg_replace( '/<strong[^>]*>(.*?)<\/strong>/is', "\n@@H@@$1\n", $txt );
+	$txt = wp_strip_all_tags( $txt );
+	$lines = preg_split( '/\r\n|\r|\n/', $txt );
+
+	$groups = array();
+	$idx    = -1;
+	foreach ( $lines as $ln ) {
+		$ln = trim( html_entity_decode( $ln, ENT_QUOTES ) );
+		if ( '' === $ln ) {
+			continue;
+		}
+		if ( 0 === strpos( $ln, '@@H@@' ) ) {
+			$groups[] = array( 'title' => trim( substr( $ln, 5 ) ), 'items' => array() );
+			$idx      = count( $groups ) - 1;
+		} else {
+			$ln = ltrim( $ln, "·•-*\t " );
+			if ( '' === $ln ) {
+				continue;
+			}
+			if ( $idx < 0 ) {
+				$groups[] = array( 'title' => '', 'items' => array() );
+				$idx      = 0;
+			}
+			$groups[ $idx ]['items'][] = $ln;
+		}
+	}
+	if ( ! $groups ) {
+		return '<div class="rm-spechtml">' . wp_kses_post( wpautop( $raw ) ) . '</div>';
+	}
+	$cards = '';
+	foreach ( $groups as $g ) {
+		if ( '' === $g['title'] && ! $g['items'] ) {
+			continue;
+		}
+		$li = '';
+		foreach ( $g['items'] as $it ) {
+			$li .= '<li>' . esc_html( $it ) . '</li>';
+		}
+		$cards .= '<div class="rm-speccard">'
+			. ( '' !== $g['title'] ? '<h4>' . esc_html( $g['title'] ) . '</h4>' : '' )
+			. ( $li ? '<ul>' . $li . '</ul>' : '' ) . '</div>';
+	}
+	return '<div class="rm-specgrid">' . $cards . '</div>';
 }
 
 /** Collapsible accordion row (native <details>, no JS needed). */
@@ -803,13 +864,19 @@ function ricoman_pf_gallery_block( $pid, $title, $code, $sw_html ) {
 		. '<button type="button" class="rm-gtab' . ( $studio ? '' : ' rm-gtab--off' ) . '" data-tab="studio"' . ( $studio ? '' : ' disabled' ) . '>Studio</button>'
 		. '<button type="button" class="rm-gtab' . ( $insitu ? '' : ' rm-gtab--off' ) . '" data-tab="insitu"' . ( $insitu ? '' : ' disabled' ) . '>In-situ</button>';
 
-	return '<div class="rm-cfg-stage rm-pdp-gallery">'
-		. '<div class="rm-cfg-viz"><img class="rm-cfg-img rm-zoomable" src="' . esc_url( $main ) . '" alt="' . esc_attr( $title ) . '">'
+	$viz = '<div class="rm-cfg-viz"><img class="rm-cfg-img rm-zoomable" src="' . esc_url( $main ) . '" alt="' . esc_attr( $title ) . '">'
 		. ( $sw_html ? '<div class="rm-cv-swatches rm-pdp-sw">' . $sw_html . '</div>' : '' )
 		. '<span class="rm-zoom-hint" aria-hidden="true">⤢</span>'
-		. '</div>'
+		. '</div>';
+
+	// Thumbnails sit in a vertical rail beside the main image (tabs above them),
+	// so the whole gallery stays above the fold.
+	return '<div class="rm-cfg-stage rm-pdp-gallery">'
 		. ( $thumbs ? '<div class="rm-gtabs">' . $tabs . '</div>' : '' )
+		. '<div class="rm-pdp-row">'
 		. ( $thumbs ? '<div class="rm-cfg-thumbs rm-gthumbs">' . $thumbs . '</div>' : '' )
+		. $viz
+		. '</div>'
 		. '<div class="rm-lightbox" hidden><button type="button" class="rm-lightbox-x" aria-label="Close">&times;</button><img class="rm-lightbox-img" src="" alt=""></div>'
 		. '</div>';
 }
@@ -872,9 +939,9 @@ function ricoman_pf_sections( $pid ) {
 		$thumbs .= '<button type="button" class="rm-cfg-thumb' . ( 0 === $j ? ' on' : '' ) . '" data-img="' . esc_url( $g ) . '"><img src="' . esc_url( $g ) . '" alt="" loading="lazy" onerror="this.parentNode.style.display=\'none\'"></button>';
 	}
 
-	// Specification (HTML with <strong> headings + · lines) — render faithfully.
-	$spec = (string) ricoman_pf_get( $pid, 'specification' );
-	$spec = $spec ? '<div class="rm-spechtml">' . wp_kses_post( wpautop( $spec ) ) . '</div>' : '';
+	// Specification (HTML with <strong> headings + · lines) — rendered as a tidy
+	// card grid (accent headers, dot bullets) instead of plain grey bands.
+	$spec = ricoman_pf_spec_html( (string) ricoman_pf_get( $pid, 'specification' ) );
 
 	// Key features — clean bullets (handles ACF fields that hold raw <ul>/<li> HTML).
 	$feat = ricoman_pf_features_list( ricoman_pf_get( $pid, 'key_features' ) );
