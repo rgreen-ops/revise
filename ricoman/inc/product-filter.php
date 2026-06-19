@@ -102,65 +102,64 @@ function ricoman_pf_metrics( $pid ) {
  * Returns the family maximums so the slider ranges cover every variant.
  */
 function ricoman_pf_variant_metrics( $pid ) {
+	global $wpdb;
 	$lm    = 0;
 	$w     = 0;
 	$feats = array();
 	if ( ! post_type_exists( 'variant-product' ) ) {
 		return array( 'lm' => 0, 'w' => 0, 'feats' => $feats );
 	}
+
+	// Lumens: a single SQL MAX across the family's variants, regardless of how
+	// many variants there are (CAST stops at the first non-digit, so "1200lm"
+	// and "1,200" both resolve sensibly once commas are stripped).
+	$lm_keys     = array( 'lumens', 'lumen', 'lumen_output', 'lumens_output', 'total_lumens', 'output_lumens', 'lumen_value' );
+	$placeholders = implode( ',', array_fill( 0, count( $lm_keys ), '%s' ) );
+	$sql = $wpdb->prepare(
+		"SELECT MAX(CAST(REPLACE(REPLACE(pm.meta_value, ',', ''), ' ', '') AS UNSIGNED))
+		 FROM {$wpdb->postmeta} pm
+		 INNER JOIN {$wpdb->postmeta} pp ON pp.post_id = pm.post_id
+		   AND pp.meta_key = 'parent_product' AND pp.meta_value = %s
+		 INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+		   AND p.post_type = 'variant-product' AND p.post_status = 'publish'
+		 WHERE pm.meta_key IN ($placeholders) AND pm.meta_value REGEXP '[0-9]'",
+		array_merge( array( (string) $pid ), $lm_keys )
+	);
+	$lm = (int) $wpdb->get_var( $sql );
+
+	// Variant IDs (one query) for the taxonomy lookups below.
 	$ids = get_posts( array(
 		'post_type'      => 'variant-product',
 		'post_status'    => 'publish',
 		'posts_per_page' => -1,
 		'no_found_rows'  => true,
 		'fields'         => 'ids',
+		'cache_results'  => false,
 		'meta_query'     => array( array( 'key' => 'parent_product', 'value' => (string) $pid ) ),
 	) );
 	if ( ! $ids ) {
-		return array( 'lm' => 0, 'w' => 0, 'feats' => $feats );
+		return array( 'lm' => $lm, 'w' => 0, 'feats' => $feats );
 	}
 
-	// Lumens live in variant meta — prime the cache so the loop is query-free
-	// even for families with thousands of variants.
-	update_meta_cache( 'post', $ids );
-	$lm_keys = array( 'lumens', 'lumen', 'lumen_output', 'lumens_output', 'total_lumens', 'output_lumens', 'lumen_value', 'lm' );
-	foreach ( $ids as $vid ) {
-		foreach ( $lm_keys as $k ) {
-			$lv = get_post_meta( $vid, $k, true );
-			if ( is_scalar( $lv ) && '' !== trim( (string) $lv ) ) {
-				if ( preg_match_all( '/([0-9][0-9,\.]+|[0-9]+)/', (string) $lv, $m ) ) {
-					foreach ( $m[1] as $n ) {
-						$lm = max( $lm, (int) str_replace( array( ',', '.' ), '', $n ) );
-					}
-				}
-				break; // first populated lumens key wins for this variant.
-			}
-		}
-	}
-
-	// Wattage + feature flags come from taxonomies — one bulk query each across
-	// all of the product's variants (not one query per variant).
-	$wtxt = '';
-	foreach ( array( 'wattage', 'lumen', 'lumens' ) as $ltx ) {
-		// 'wattage' parsed below; lumen taxonomies feed the lumens max here.
+	// Wattage + lumen taxonomies + feature flags — one query per taxonomy across
+	// every variant (wp_get_object_terms issues a single IN(...) query).
+	foreach ( array( 'lumen', 'lumens' ) as $ltx ) {
 		if ( ! taxonomy_exists( $ltx ) ) {
 			continue;
 		}
 		$names = wp_get_object_terms( $ids, $ltx, array( 'fields' => 'names' ) );
-		if ( is_wp_error( $names ) || ! $names ) {
-			continue;
-		}
-		if ( 'wattage' === $ltx ) {
-			$wtxt = implode( ' ', $names );
-		} elseif ( preg_match_all( '/([0-9][0-9,\.]+|[0-9]+)/', implode( ' ', $names ), $m ) ) {
+		if ( ! is_wp_error( $names ) && $names && preg_match_all( '/([0-9][0-9,\.]+|[0-9]+)/', implode( ' ', $names ), $m ) ) {
 			foreach ( $m[1] as $n ) {
 				$lm = max( $lm, (int) str_replace( array( ',', '.' ), '', $n ) );
 			}
 		}
 	}
-	if ( preg_match_all( '/([0-9]+(?:\.[0-9]+)?)/', $wtxt, $m ) ) {
-		foreach ( $m[1] as $n ) {
-			$w = max( $w, (int) ceil( (float) $n ) );
+	if ( taxonomy_exists( 'wattage' ) ) {
+		$wt = wp_get_object_terms( $ids, 'wattage', array( 'fields' => 'names' ) );
+		if ( ! is_wp_error( $wt ) && $wt && preg_match_all( '/([0-9]+(?:\.[0-9]+)?)/', implode( ' ', $wt ), $m ) ) {
+			foreach ( $m[1] as $n ) {
+				$w = max( $w, (int) ceil( (float) $n ) );
+			}
 		}
 	}
 
