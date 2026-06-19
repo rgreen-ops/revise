@@ -293,13 +293,32 @@ add_action( 'wp_loaded', function () {
  */
 add_shortcode( 'ricoman_projects_grid', function ( $atts ) {
 	$atts = shortcode_atts( array( 'count' => 12 ), $atts, 'ricoman_projects_grid' );
-	$q    = new WP_Query( array(
+	$args = array(
 		'post_type'      => 'project',
 		'post_status'    => 'publish',
 		'posts_per_page' => (int) $atts['count'],
 		'orderby'        => array( 'menu_order' => 'ASC', 'date' => 'DESC' ),
 		'no_found_rows'  => true,
-	) );
+	);
+	// Hide the theme's seeded demo case studies once real projects are imported,
+	// so the listing shows genuine ricoman.com work — not the placeholder set.
+	// Non-destructive: the demo posts stay in the DB, they're just filtered out.
+	$exclude = ricoman_demo_project_ids();
+	if ( $exclude ) {
+		$real = new WP_Query( array(
+			'post_type'      => 'project',
+			'post_status'    => 'publish',
+			'post__not_in'   => $exclude,
+			'posts_per_page' => 1,
+			'fields'         => 'ids',
+			'no_found_rows'  => true,
+		) );
+		// Only exclude when genuine projects remain (otherwise show the demo set).
+		if ( $real->have_posts() ) {
+			$args['post__not_in'] = $exclude;
+		}
+	}
+	$q = new WP_Query( $args );
 	if ( ! $q->have_posts() ) {
 		return '<p class="rm-config-note">Projects will appear here once published.</p>';
 	}
@@ -331,6 +350,31 @@ add_shortcode( 'ricoman_projects_grid', function ( $atts ) {
 	wp_reset_postdata();
 	return $out . '</div>';
 } );
+
+/**
+ * Slugs of the demo case studies seeded by the theme installer (demo-setup.php).
+ * Kept in one place so the public Projects grid can hide them once real projects
+ * are imported. Filterable, so the team can adjust the set without code edits.
+ */
+function ricoman_demo_project_slugs() {
+	return apply_filters( 'ricoman_demo_project_slugs', array(
+		'allianz-hq', 'flagship-store', 'acoustic-ceiling', 'breakout-lounge',
+		'boutique-hotel', 'betfred-hq', 'kingsgate', 'estrella-canteen',
+		'campus-library', 'studio-hq',
+	) );
+}
+
+/** Resolve the demo project slugs to post IDs (only ones that exist). */
+function ricoman_demo_project_ids() {
+	$ids = array();
+	foreach ( ricoman_demo_project_slugs() as $slug ) {
+		$p = get_page_by_path( $slug, OBJECT, 'project' );
+		if ( $p ) {
+			$ids[] = (int) $p->ID;
+		}
+	}
+	return $ids;
+}
 
 /** Dynamic grid of real Product posts (same idea). [ricoman_products_grid] */
 add_shortcode( 'ricoman_products_grid', function ( $atts ) {
