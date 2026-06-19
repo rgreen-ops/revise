@@ -163,6 +163,32 @@ function ricoman_flush_rewrites() {
 add_action( 'after_switch_theme', 'ricoman_flush_rewrites' );
 
 /**
+ * Self-healing permalinks. Uploading a new theme ZIP (rather than switching
+ * themes) doesn't fire after_switch_theme, so the rewrite rules for the
+ * product-category / sector taxonomies can be missing — which makes clicking a
+ * (sub)category do nothing. If our taxonomy rules aren't present, flush once.
+ */
+add_action( 'wp_loaded', function () {
+	if ( get_transient( 'ricoman_rw_ok' ) ) {
+		return;
+	}
+	$rules = get_option( 'rewrite_rules' );
+	$has   = false;
+	if ( is_array( $rules ) ) {
+		foreach ( array_keys( $rules ) as $k ) {
+			if ( false !== strpos( $k, 'product-category' ) ) {
+				$has = true;
+				break;
+			}
+		}
+	}
+	if ( ! $has ) {
+		flush_rewrite_rules( false );
+	}
+	set_transient( 'ricoman_rw_ok', 1, HOUR_IN_SECONDS );
+}, 99 );
+
+/**
  * Dynamic grid of real Project posts — every tile links to a live permalink, so
  * the listing always works regardless of what was seeded or imported.
  * Use: [ricoman_projects_grid count="12"]
