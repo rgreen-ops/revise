@@ -1,0 +1,51 @@
+name: Deploy theme to staging
+
+# Fully automatic: on every push to the working branch, upload the theme
+# (the ricoman/ folder) to staging via FTPS. Configure the four repo secrets
+# below once (Settings -> Secrets and variables -> Actions) and it just runs.
+#
+#   FTP_SERVER      - host, e.g. staging.ricoman.com  (or the FTP host Plesk gives)
+#   FTP_USERNAME    - FTP/FTPS username
+#   FTP_PASSWORD    - FTP/FTPS password
+#   FTP_SERVER_DIR  - path to the theme dir, ending in a slash, e.g.
+#                     wp-content/themes/ricoman/   (relative to the FTP user's home)
+#
+# Only changed files are uploaded (a sync-state file is kept on the server), so
+# deploys are fast. If your host only offers SFTP (not FTPS), tell me and I'll
+# switch the action.
+
+on:
+  push:
+    branches:
+      - claude/wordpress-theme-s5u19q
+    paths:
+      - 'ricoman/**'
+      - '.github/workflows/deploy-staging.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy via FTPS
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          port: 21
+          local-dir: ./ricoman/
+          server-dir: ${{ secrets.FTP_SERVER_DIR }}
+          dangerous-clean-slate: false
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.DS_Store
