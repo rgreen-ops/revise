@@ -158,6 +158,16 @@ function ricoman_enqueue_assets() {
 		true
 	);
 
+	// Product gallery interactions (thumbnails, Studio/In-situ tabs, lightbox).
+	// Delegated on document, so it works wherever the gallery markup renders.
+	wp_enqueue_script(
+		'ricoman-product-gallery',
+		get_theme_file_uri( 'assets/js/product-gallery.js' ),
+		array(),
+		RICOMAN_VERSION,
+		true
+	);
+
 	// Brand web font — self-hosted Poppins (see inc/performance.php for preload).
 	wp_enqueue_style(
 		'ricoman-fonts',

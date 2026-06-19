@@ -1,0 +1,102 @@
+/**
+ * Product gallery interactions — robust, delegated, position-independent.
+ *
+ * Bound once on `document`, so it works no matter where the gallery markup ends
+ * up in the page (the_content, blocks, builder preview) and regardless of load
+ * order. Handles: thumbnail + finish-swatch image switching, the All/Studio/
+ * In-situ tabs, the click-to-zoom lightbox, and transparent-cutout detection
+ * (adds .rm-cutout so cut-outs keep the grey frame while photos fill).
+ */
+( function () {
+	'use strict';
+
+	function wrapOf( el ) {
+		return el.closest( '.rm-pdp-gallery' ) || el.closest( '.rm-cfghero-wrap' ) || document;
+	}
+	function mainImg( wrap ) {
+		return wrap.querySelector( '.rm-cfg-img' );
+	}
+
+	document.addEventListener( 'click', function ( e ) {
+		// 1) Thumbnail or finish swatch -> swap the main image.
+		var btn = e.target.closest( '.rm-cfg-thumb, .rm-cv-sw' );
+		if ( btn ) {
+			var wrap = wrapOf( btn ), im = mainImg( wrap );
+			if ( btn.dataset.img && im ) { im.src = btn.dataset.img; }
+			var sel = btn.classList.contains( 'rm-cv-sw' ) ? '.rm-cv-sw' : '.rm-cfg-thumb';
+			var group = btn.parentNode;
+			group.querySelectorAll( sel ).forEach( function ( x ) { x.classList.remove( 'on' ); } );
+			btn.classList.add( 'on' );
+			return;
+		}
+
+		// 2) All / Studio / In-situ tab.
+		var tab = e.target.closest( '.rm-gtab' );
+		if ( tab ) {
+			if ( tab.disabled ) { return; }
+			var w = wrapOf( tab );
+			w.querySelectorAll( '.rm-gtab' ).forEach( function ( x ) { x.classList.remove( 'on' ); } );
+			tab.classList.add( 'on' );
+			var t = tab.getAttribute( 'data-tab' );
+			w.querySelectorAll( '.rm-gthumbs .rm-cfg-thumb' ).forEach( function ( th ) {
+				th.style.display = ( t === 'all' || th.getAttribute( 'data-tab' ) === t ) ? '' : 'none';
+			} );
+			return;
+		}
+
+		// 3) Main image or zoom hint -> open lightbox.
+		var zoom = e.target.closest( '.rm-cfg-img, .rm-zoom-hint' );
+		if ( zoom && ! zoom.closest( '.rm-cfg-thumb' ) ) {
+			var gw = wrapOf( zoom ), gim = mainImg( gw );
+			var lb = gw.querySelector( '.rm-lightbox' ), lbi = lb && lb.querySelector( '.rm-lightbox-img' );
+			if ( lb && lbi && gim ) {
+				lbi.src = gim.src;
+				lb.hidden = false;
+				document.body.style.overflow = 'hidden';
+			}
+			return;
+		}
+
+		// 4) Close the lightbox (backdrop or the × button).
+		var inLb = e.target.closest( '.rm-lightbox' );
+		if ( inLb && ( e.target === inLb || e.target.classList.contains( 'rm-lightbox-x' ) ) ) {
+			inLb.hidden = true;
+			document.body.style.overflow = '';
+		}
+	} );
+
+	document.addEventListener( 'keydown', function ( e ) {
+		if ( e.key !== 'Escape' ) { return; }
+		document.querySelectorAll( '.rm-lightbox' ).forEach( function ( lb ) {
+			if ( ! lb.hidden ) { lb.hidden = true; document.body.style.overflow = ''; }
+		} );
+	} );
+
+	/* Transparent cut-out detection: photos fill, cut-outs keep the grey frame. */
+	function applyFit( img ) {
+		if ( ! img || ! img.naturalWidth ) { return; }
+		try {
+			var c = document.createElement( 'canvas' ), s = 24;
+			c.width = s; c.height = s;
+			var x = c.getContext( '2d' );
+			x.drawImage( img, 0, 0, s, s );
+			var d = x.getImageData( 0, 0, s, s ).data, transparent = false;
+			for ( var i = 3; i < d.length; i += 4 ) { if ( d[ i ] < 240 ) { transparent = true; break; } }
+			img.classList.toggle( 'rm-cutout', transparent );
+		} catch ( err ) {
+			img.classList.remove( 'rm-cutout' );
+		}
+	}
+	function scanFit() {
+		document.querySelectorAll( '.rm-pdp-gallery .rm-cfg-img' ).forEach( function ( im ) {
+			if ( im.complete ) { applyFit( im ); }
+		} );
+	}
+	// Re-check whenever a main image finishes loading (incl. after a swap).
+	document.addEventListener( 'load', function ( e ) {
+		var im = e.target;
+		if ( im && im.classList && im.classList.contains( 'rm-cfg-img' ) ) { applyFit( im ); }
+	}, true );
+	if ( document.readyState !== 'loading' ) { scanFit(); }
+	else { document.addEventListener( 'DOMContentLoaded', scanFit ); }
+} )();

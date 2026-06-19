@@ -1005,6 +1005,7 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-zoomable{cursor:zoom-in}
 .rm-zoom-hint{position:absolute;right:14px;bottom:14px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);color:#fff;border-radius:8px;font-size:1.05rem;pointer-events:none;opacity:0;transition:opacity .2s ease;z-index:3}
 .rm-cfg-viz:hover .rm-zoom-hint{opacity:1}
+.rm-pdp-gallery .rm-cfg-img{cursor:zoom-in}
 .rm-gtab--off{opacity:.35;cursor:not-allowed}
 .rm-gtab--off:hover{background:none;color:var(--muted)}
 .rm-lightbox{position:fixed;inset:0;background:#e4e4e4;z-index:9999;display:flex;align-items:center;justify-content:center;padding:4vw}
