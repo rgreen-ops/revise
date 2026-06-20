@@ -100,10 +100,16 @@ function ricoman_pf_metrics( $pid ) {
 	return $memo[ $pid ] = $res;
 }
 
-/** Background job: compute + store a product's variant metrics on its parent. */
-add_action( 'ricoman_pf_build', function ( $pid ) {
+/** Compute + store a product's variant metrics on its parent. */
+function ricoman_pf_rebuild( $pid ) {
 	$vm = ricoman_pf_variant_metrics( (int) $pid );
 	update_post_meta( (int) $pid, '_rm_pfm', $vm );
+	return $vm;
+}
+
+/** Background job: build one product's variant metrics. */
+add_action( 'ricoman_pf_build', function ( $pid ) {
+	ricoman_pf_rebuild( (int) $pid );
 } );
 
 /**
@@ -306,4 +312,65 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 	// Filtering is wired up by the enqueued product-gallery.js (rmCatFilterInit),
 	// keyed off .rm-catarch — reliable regardless of where the markup lands.
 	return $out;
+} );
+
+/* ---------------------------------------------------------------------------
+ * Admin: rebuild the lumens/wattage filter data on demand.
+ *
+ * Variant metrics are normally built lazily by a background job as catalogue
+ * pages are viewed. This button forces a full recompute across every product
+ * so the filter ranges are correct immediately (e.g. after a data import).
+ * ------------------------------------------------------------------------- */
+add_action( 'admin_menu', function () {
+	add_submenu_page(
+		'ricoman-hub',
+		__( 'Filter Data', 'ricoman' ),
+		__( 'Filter Data', 'ricoman' ),
+		'manage_options',
+		'ricoman-filter-data',
+		'ricoman_render_filter_data'
+	);
+}, 31 );
+
+function ricoman_render_filter_data() {
+	$built = 0;
+	if ( function_exists( 'wp_count_posts' ) ) {
+		$counts = wp_count_posts( 'product' );
+		$total  = isset( $counts->publish ) ? (int) $counts->publish : 0;
+	} else {
+		$total = 0;
+	}
+	echo '<div class="wrap"><h1>' . esc_html__( 'Filter Data', 'ricoman' ) . '</h1>';
+	if ( isset( $_GET['built'] ) ) {
+		echo '<div class="notice notice-success is-dismissible"><p>'
+			. sprintf( esc_html__( 'Rebuilt light-output / power filter data for %d product(s).', 'ricoman' ), (int) $_GET['built'] )
+			. '</p></div>';
+	}
+	echo '<p>' . esc_html__( 'The product catalogue filters (light output and power) read their ranges from each product\'s variants. This is computed automatically in the background as pages are viewed; use this button to rebuild it for every product right now — handy after importing or editing variant data.', 'ricoman' ) . '</p>';
+	echo '<p><strong>' . esc_html( sprintf( __( '%d published products', 'ricoman' ), $total ) ) . '</strong></p>';
+	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
+	echo '<input type="hidden" name="action" value="ricoman_rebuild_filters">';
+	wp_nonce_field( 'ricoman_rebuild_filters' );
+	submit_button( __( 'Rebuild filter data now', 'ricoman' ), 'primary' );
+	echo '</form></div>';
+}
+
+add_action( 'admin_post_ricoman_rebuild_filters', function () {
+	if ( ! current_user_can( 'manage_options' ) || ! check_admin_referer( 'ricoman_rebuild_filters' ) ) {
+		wp_die( esc_html__( 'Not allowed.', 'ricoman' ) );
+	}
+	$ids = get_posts( array(
+		'post_type'      => 'product',
+		'post_status'    => 'publish',
+		'posts_per_page' => -1,
+		'fields'         => 'ids',
+		'no_found_rows'  => true,
+	) );
+	$built = 0;
+	foreach ( $ids as $pid ) {
+		ricoman_pf_rebuild( $pid );
+		$built++;
+	}
+	wp_safe_redirect( add_query_arg( 'built', $built, admin_url( 'admin.php?page=ricoman-filter-data' ) ) );
+	exit;
 } );
