@@ -268,15 +268,14 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 		$img   = function_exists( 'ricoman_product_img' ) ? ricoman_product_img( $pid ) : get_the_post_thumbnail_url( $pid, 'large' );
 		$sub   = function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( $pid, 'product_subname' ) : '';
 		$style = $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '';
-		$meta  = array();
-		if ( $mx['lm'] ) { $meta[] = number_format( $mx['lm'] ) . ' lm'; }
-		if ( $mx['w'] ) { $meta[] = $mx['w'] . 'W'; }
+		// Lumens/wattage stay as data-attributes for the filter, but are NOT shown
+		// on the card: a product spans many variants with different output/power,
+		// so a single figure on the card would mislead.
 		$cards .= '<a class="rm-projcard rm-fcard" href="' . esc_url( get_permalink() ) . '"'
 			. ' data-lm="' . (int) $mx['lm'] . '" data-w="' . (int) $mx['w'] . '" data-feat="' . esc_attr( implode( ' ', $fslug ) ) . '"' . $style . '>'
 			. '<span class="rm-projcard-ov">'
 			. ( $sub ? '<span class="rm-eyebrow">' . esc_html( $sub ) . '</span>' : '' )
 			. '<span class="rm-projcard-t">' . esc_html( get_the_title() ) . '</span>'
-			. ( $meta ? '<span class="rm-fcard-meta">' . esc_html( implode( ' · ', $meta ) ) . '</span>' : '' )
 			. '</span></a>';
 	}
 	wp_reset_postdata();

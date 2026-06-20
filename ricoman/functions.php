@@ -22,6 +22,9 @@ if ( isset( $_GET['rm_trace'] ) && 'lights' === $_GET['rm_trace'] ) {
 	@ini_set( 'display_errors', '1' );
 	@ini_set( 'memory_limit', '512M' );
 	error_reporting( E_ALL );
+	if ( 'sections' === ( $_GET['rm_path'] ?? '' ) ) {
+		$GLOBALS['rm_force_sections'] = true; // Force the ACF/sections fallback.
+	}
 	register_shutdown_function( function () {
 		$e = error_get_last();
 		if ( $e && in_array( $e['type'], array( E_ERROR, E_PARSE, E_COMPILE_ERROR, E_CORE_ERROR ), true ) ) {

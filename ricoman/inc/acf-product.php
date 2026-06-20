@@ -375,6 +375,9 @@ function ricoman_pf_endpoint( $slug ) {
 	if ( ! $slug || ! function_exists( 'rest_do_request' ) ) {
 		return null;
 	}
+	if ( ! empty( $GLOBALS['rm_force_sections'] ) ) {
+		return null; // TEMP diagnostic: force the ACF/sections fallback.
+	}
 	$req = new WP_REST_Request( 'GET', '/wp/v2/get_product_details_data' );
 	$req->set_param( 'slug', $slug );
 	$res = rest_do_request( $req );
