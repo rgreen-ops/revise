@@ -1165,39 +1165,64 @@ function ricoman_pf_sections( $pid ) {
 	// Key features — clean bullets (handles ACF fields that hold raw <ul>/<li> HTML).
 	$feat = ricoman_pf_features_list( ricoman_pf_get( $pid, 'key_features' ) );
 
-	// Downloads (download_section rows + brochure + family datasheet).
+	// Downloads — compact "Label (TYPE) · SIZE" links, de-duplicated by file.
+	$dlitems = array(); // url => array( label, attachment_id ).
+	$dl_add  = function ( $label, $val ) use ( &$dlitems ) {
+		$att = is_numeric( $val ) ? (int) $val : ( is_array( $val ) && ! empty( $val['ID'] ) ? (int) $val['ID'] : 0 );
+		$url = $att ? wp_get_attachment_url( $att ) : ( is_array( $val ) && ! empty( $val['url'] ) ? $val['url'] : ( is_string( $val ) ? $val : '' ) );
+		if ( ! $url || isset( $dlitems[ $url ] ) ) {
+			return;
+		}
+		if ( ! $att && is_string( $url ) ) {
+			$att = attachment_url_to_postid( $url );
+		}
+		$dlitems[ $url ] = array( trim( (string) $label ), $att );
+	};
 	$dls = ricoman_pf_get( $pid, 'download_section', array() );
-	$dl  = '';
 	if ( is_array( $dls ) ) {
 		foreach ( $dls as $d ) {
 			if ( ! is_array( $d ) ) {
 				continue;
 			}
 			$dtitle = '';
-			$dfile  = '';
+			$dfile  = null;
 			foreach ( $d as $k => $v ) {
 				if ( false !== strpos( strtolower( (string) $k ), 'title' ) ) {
 					$dtitle = $v;
 				} elseif ( false !== strpos( strtolower( (string) $k ), 'file' ) ) {
-					$dfile = is_numeric( $v ) ? wp_get_attachment_url( (int) $v ) : ( is_array( $v ) && ! empty( $v['url'] ) ? $v['url'] : $v );
+					$dfile = $v;
 				}
 			}
 			if ( $dfile ) {
-				$dl .= '<li><a href="' . esc_url( $dfile ) . '" target="_blank" rel="noopener">' . esc_html( $dtitle ? $dtitle : 'Download' ) . ' &darr;</a></li>';
+				$dl_add( $dtitle ? $dtitle : __( 'Download', 'ricoman' ), $dfile );
 			}
 		}
 	}
-	foreach ( array( 'download_led_or_details' => 'Brochure', 'download_family_datasheet' => 'Family datasheet' ) as $fk => $flabel ) {
-		$fv = ricoman_pf_get( $pid, $fk );
-		$fu = is_numeric( $fv ) ? wp_get_attachment_url( (int) $fv ) : ( is_array( $fv ) && ! empty( $fv['url'] ) ? $fv['url'] : $fv );
-		if ( $fu ) {
-			$dl .= '<li><a href="' . esc_url( $fu ) . '" target="_blank" rel="noopener">' . esc_html( $flabel ) . ' &darr;</a></li>';
+	$dl_add( __( 'Brochure', 'ricoman' ), ricoman_pf_get( $pid, 'download_led_or_details' ) );
+	$dl_add( __( 'Family datasheet', 'ricoman' ), ricoman_pf_get( $pid, 'download_family_datasheet' ) );
+
+	$typemap = array( 'RFA' => 'BIM/REVIT', 'RVT' => 'BIM/REVIT', 'IES' => 'IES', 'LDT' => 'LDT', 'DWG' => 'DWG', 'DXF' => 'DXF', 'ZIP' => 'ZIP' );
+	$dl = '';
+	foreach ( $dlitems as $url => $meta ) {
+		list( $label, $att ) = $meta;
+		$ext = strtoupper( pathinfo( (string) wp_parse_url( $url, PHP_URL_PATH ), PATHINFO_EXTENSION ) );
+		$typ = $ext ? ( isset( $typemap[ $ext ] ) ? $typemap[ $ext ] : $ext ) : '';
+		$sz  = '';
+		if ( $att ) {
+			$fp = get_attached_file( $att );
+			if ( $fp && is_file( $fp ) ) {
+				$bytes = filesize( $fp );
+				$sz    = size_format( $bytes, $bytes >= 1048576 ? 1 : 0 );
+			}
 		}
+		$sub = trim( ( $typ ? '(' . $typ . ')' : '' ) . ( $sz ? ( $typ ? ' · ' : '' ) . $sz : '' ) );
+		$dl .= '<a href="' . esc_url( $url ) . '" target="_blank" rel="noopener"><span class="rm-dl-lbl">' . esc_html( $label ) . '</span>'
+			. ( $sub ? ' <span class="rm-dl-sub">' . esc_html( $sub ) . '</span>' : '' ) . '</a>';
 	}
 	// BIM / Revit is a made-to-request file (built by the lighting team on demand),
-	// so it's a request button on every product — not a direct download.
-	$bim = '<li class="rm-dl-bim"><a class="rm-bim-req" href="#" data-product="' . esc_attr( $title ) . '">' . esc_html__( 'BIM / Revit (RFA) — request', 'ricoman' ) . ' &darr;</a></li>';
-	$downloads = '<div class="rm-prod-downloads"><h3 class="rm-shead">Downloads</h3><ul>' . $dl . $bim . '</ul></div>';
+	// so it's a request link on every product — not a direct download.
+	$dl .= '<a class="rm-bim-req" href="#" data-product="' . esc_attr( $title ) . '"><span class="rm-dl-lbl">' . esc_html__( 'BIM / Revit', 'ricoman' ) . '</span> <span class="rm-dl-sub">' . esc_html__( '(RFA) · request', 'ricoman' ) . '</span></a>';
+	$downloads = '<div class="rm-prod-downloads"><h3 class="rm-shead">Downloads</h3><div class="rm-dls">' . $dl . '</div></div>';
 
 	// CTA buttons (LD + trade) from the structured fields, with fallbacks.
 	$ld    = ricoman_pf_get( $pid, '_ricoman_ld_btn', 'Request a Lighting Design' );

@@ -1475,3 +1475,12 @@ html,body{overflow-x:clip}
 .rm-proj-hint{color:var(--muted);font-size:.82rem;margin:14px 0 0}
 .rm-proj-msg{margin-top:10px}
 @media(max-width:600px){.rm-proj-thumb{display:none}.rm-proj-head{flex-direction:column;align-items:stretch}}
+
+/* ===== Compact product downloads (type + size, two columns) ===== */
+.rm-dls{display:grid;grid-template-columns:1fr 1fr;gap:0 34px;margin-top:14px}
+.rm-dls a{display:flex;align-items:baseline;gap:8px;border-top:1px solid var(--line);padding:12px 2px;color:var(--ink);text-decoration:none;font-family:Poppins;font-size:.8rem;transition:color .15s}
+.rm-dls a:hover{color:var(--accent)}
+.rm-dls a::after{content:"↓";margin-left:auto;color:var(--accent);font-weight:700}
+.rm-dls .rm-dl-lbl{font-weight:600;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rm-dls .rm-dl-sub{color:var(--muted);text-transform:none;letter-spacing:0;font-weight:400;white-space:nowrap}
+@media(max-width:600px){.rm-dls{grid-template-columns:1fr;gap:0}}
