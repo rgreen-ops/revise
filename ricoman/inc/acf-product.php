@@ -1305,11 +1305,12 @@ function ricoman_pf_sections( $pid ) {
 		. '</div></div></div>'
 		. ricoman_pf_gallery_js();
 
-	// ---- Accordions: Specification / Dimensions / Features / Downloads (closed) ----
+	// ---- Accordions: Specification / Dimensions / Features ----
+	// (No "Downloads and Resources" accordion — the downloads are shown in the
+	// hero panel above, so a duplicate here is redundant.)
 	$acc  = ricoman_pf_acc( 'Specification', $spec, false );
 	$acc .= ricoman_pf_acc( 'Dimensions', $dims );
 	$acc .= ricoman_pf_acc( 'Features', $feat_full );
-	$acc .= ricoman_pf_acc( 'Downloads and Resources', $dl ? '<ul class="rm-acc-dl">' . $dl . '</ul>' : '' );
 	$acc_sec = $acc ? '<div class="rm-section" id="specification"><div class="rm-pp-wrap"><div class="rm-accs">' . $acc . '</div></div></div>' : '';
 
 	// ---- Configure Your Product ----
