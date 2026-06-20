@@ -121,7 +121,7 @@ add_action( 'admin_menu', function () {
 function rm_mc_stats() {
 	global $wpdb;
 	$images = (int) $wpdb->get_var(
-		"SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type='attachment' AND post_mime_type LIKE 'image/%'"
+		"SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type='attachment' AND post_mime_type LIKE 'image/%' AND post_status <> 'trash'"
 	);
 	$indexed = (int) $wpdb->get_var(
 		"SELECT COUNT(*) FROM {$wpdb->postmeta} WHERE meta_key='_rm_sha1' AND meta_value<>'missing'"
