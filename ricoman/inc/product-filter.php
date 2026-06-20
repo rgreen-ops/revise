@@ -170,8 +170,14 @@ function ricoman_pf_build_all() {
 		'cache_results'  => false,
 		'orderby'        => 'ID',
 		'order'          => 'ASC',
+		// Rebuild products with NO record AND those still in the old variant-only
+		// format (missing the "_v" marker / precomputed sub+img). Without this the
+		// old records satisfy NOT EXISTS and never get upgraded, so the catalogue
+		// keeps falling back to the slow live ACF path.
 		'meta_query'     => array(
+			'relation' => 'OR',
 			array( 'key' => '_rm_pfm', 'compare' => 'NOT EXISTS' ),
+			array( 'key' => '_rm_pfm', 'value' => '"_v";', 'compare' => 'NOT LIKE' ),
 		),
 	) );
 	foreach ( $ids as $pid ) {
