@@ -131,30 +131,113 @@ add_shortcode( 'ricoman_sectors_grid', function () {
 	return '<div class="rm-pp-wrap rm-projwide"><div class="rm-projgrid">' . $cards . '</div></div>';
 } );
 
-/** Create the "Lighting by Sector" hub page once (slug: sectors). */
+/** Big, bold, sharp sector tiles for the showcase. [ricoman_sectors_showcase] */
+add_shortcode( 'ricoman_sectors_showcase', function () {
+	$tax   = taxonomy_exists( 'project-cat' ) ? 'project-cat' : 'application';
+	$terms = get_terms( array( 'taxonomy' => $tax, 'hide_empty' => true ) );
+	if ( is_wp_error( $terms ) || ! $terms ) {
+		return '';
+	}
+	$tiles = '';
+	foreach ( $terms as $t ) {
+		$img = '';
+		$q   = new WP_Query( array(
+			'post_type'      => 'project',
+			'posts_per_page' => 1,
+			'fields'         => 'ids',
+			'no_found_rows'  => true,
+			'orderby'        => array( 'menu_order' => 'ASC', 'date' => 'DESC' ),
+			'tax_query'      => array( array( 'taxonomy' => $tax, 'terms' => $t->term_id ) ),
+		) );
+		if ( $q->posts && function_exists( 'ricoman_project_img' ) ) {
+			$img = ricoman_project_img( (int) $q->posts[0] );
+		}
+		if ( ! $img ) {
+			$img = get_theme_file_uri( 'assets/images/office1.webp' );
+		}
+		$tag = trim( (string) get_term_meta( $t->term_id, '_rm_tagline', true ) );
+		if ( '' === $tag ) {
+			$tag = sprintf( _n( '%d project', '%d projects', (int) $t->count, 'ricoman' ), (int) $t->count );
+		}
+		$tiles .= '<a class="rm-secshow-tile" href="' . esc_url( get_term_link( $t ) ) . '" style="background-image:url(' . esc_url( $img ) . ')">'
+			. '<span class="rm-secshow-ov"><span class="rm-secshow-tag">' . esc_html( $tag ) . '</span>'
+			. '<span class="rm-secshow-t">' . esc_html( $t->name ) . '</span>'
+			. '<span class="rm-secshow-go">View sector →</span></span></a>';
+	}
+	return '<div class="rm-pp-wrap rm-secshow-wrap"><div class="rm-secshow-grid">' . $tiles . '</div></div>';
+} );
+
+/** Editable per-sector call-out (tagline) on the project-cat term screen. */
+add_action( 'project-cat_edit_form_fields', function ( $term ) {
+	$val = esc_attr( (string) get_term_meta( $term->term_id, '_rm_tagline', true ) );
+	echo '<tr class="form-field"><th scope="row"><label for="rm_tagline">' . esc_html__( 'Showcase call-out', 'ricoman' ) . '</label></th><td>';
+	echo '<input type="text" name="rm_tagline" id="rm_tagline" class="large-text" value="' . $val . '" placeholder="e.g. Light that performs under pressure">';
+	echo '<p class="description">' . esc_html__( 'Short, punchy line shown over this sector\'s tile on the Lighting by Sector page.', 'ricoman' ) . '</p></td></tr>';
+} );
+add_action( 'edited_project-cat', function ( $term_id ) {
+	if ( isset( $_POST['rm_tagline'] ) ) {
+		update_term_meta( $term_id, '_rm_tagline', sanitize_text_field( wp_unslash( $_POST['rm_tagline'] ) ) );
+	}
+} );
+
+/** Build/refresh the "Lighting by Sector" showcase page (slug: sectors). */
 add_action( 'admin_init', function () {
-	if ( get_option( 'ricoman_sectors_page' ) ) {
+	$version = 2; // bump to rebuild the page design once.
+	$cur     = (int) get_option( 'ricoman_sectors_page', 0 );
+	if ( $cur >= $version ) {
 		return;
 	}
-	if ( get_page_by_path( 'sectors' ) ) {
-		update_option( 'ricoman_sectors_page', 1 );
-		return;
+	$hero = esc_url( get_theme_file_uri( 'assets/images/office6.webp' ) );
+	$cta  = esc_url( get_theme_file_uri( 'assets/images/office1.webp' ) );
+	$cover = function ( $url, $inner, $min, $dim, $pos = 'bottom left' ) {
+		$poscls = 'center center' === $pos ? '' : ' has-custom-content-position is-position-' . str_replace( ' ', '-', $pos );
+		return '<!-- wp:cover {"url":"' . $url . '","dimRatio":' . $dim . ',"overlayColor":"ink","minHeight":' . $min . ',"minHeightUnit":"vh","contentPosition":"' . $pos . '","align":"full","textColor":"base"} --><div class="wp-block-cover alignfull has-base-color has-text-color' . $poscls . '" style="min-height:' . $min . 'vh"><span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-' . $dim . ' has-background-dim"></span><img class="wp-block-cover__image-background" alt="" src="' . $url . '" data-object-fit="cover"/><div class="wp-block-cover__inner-container">' . $inner . '</div></div><!-- /wp:cover -->';
+	};
+	$callout = function ( $h, $p ) {
+		return '<!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"rm-aud-card","layout":{"type":"constrained"}} --><div class="wp-block-group rm-aud-card"><!-- wp:heading {"level":3} --><h3 class="wp-block-heading">' . $h . '</h3><!-- /wp:heading --><!-- wp:paragraph {"textColor":"muted"} --><p class="has-muted-color has-text-color">' . $p . '</p><!-- /wp:paragraph --></div><!-- /wp:group --></div><!-- /wp:column -->';
+	};
+
+	$content = $cover(
+		$hero,
+		'<!-- wp:paragraph {"className":"rm-eyebrow"} --><p class="rm-eyebrow">Lighting by sector</p><!-- /wp:paragraph -->'
+		. '<!-- wp:heading {"level":1,"style":{"typography":{"fontWeight":"500","fontSize":"clamp(2.6rem,6vw,5rem)","lineHeight":"1"}}} --><h1 class="wp-block-heading" style="font-size:clamp(2.6rem,6vw,5rem);font-weight:500;line-height:1">Light that elevates every space.</h1><!-- /wp:heading -->'
+		. '<!-- wp:paragraph {"style":{"typography":{"fontSize":"clamp(1.1rem,1.8vw,1.4rem)"}}} --><p style="font-size:clamp(1.1rem,1.8vw,1.4rem)">From workplace and hospitality to healthcare and retail — see what\'s possible, then let our UK design team specify it for you.</p><!-- /wp:paragraph -->'
+		. '<!-- wp:buttons --><div class="wp-block-buttons"><!-- wp:button {"className":"is-style-outline-light"} --><div class="wp-block-button is-style-outline-light"><a class="wp-block-button__link wp-element-button" href="/lighting-design/">Request a free lighting design</a></div><!-- /wp:button --></div><!-- /wp:buttons -->',
+		64, 52
+	);
+
+	$content .= '<!-- wp:group {"align":"full","className":"rm-section","layout":{"type":"default"}} --><div class="wp-block-group alignfull rm-section"><!-- wp:shortcode -->[ricoman_sectors_showcase]<!-- /wp:shortcode --></div><!-- /wp:group -->';
+
+	$content .= '<!-- wp:group {"align":"full","className":"rm-section rm-soft","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-section rm-soft">'
+		. '<!-- wp:paragraph {"className":"rm-eyebrow"} --><p class="rm-eyebrow">Why specify Ricoman</p><!-- /wp:paragraph -->'
+		. '<!-- wp:heading {"level":2,"className":"rm-shead"} --><h2 class="wp-block-heading rm-shead">Made for the people who design great spaces</h2><!-- /wp:heading -->'
+		. '<!-- wp:columns --><div class="wp-block-columns">'
+		. $callout( 'Free lighting design', 'Send drawings or a finishes schedule — we return a fully specified, photometric scheme, usually within 3–5 days.' )
+		. $callout( 'UK manufactured', 'Designed, built and finished in Manchester. Full control of quality, bespoke detail and lead times.' )
+		. $callout( 'Specifier-first', 'Clean photometrics, honest lead times and a 5-year warranty — a spec you can stand behind.' )
+		. '</div><!-- /wp:columns --></div><!-- /wp:group -->';
+
+	$content .= $cover(
+		$cta,
+		'<!-- wp:heading {"textAlign":"center","level":2} --><h2 class="wp-block-heading has-text-align-center">Have a project on the board?</h2><!-- /wp:heading -->'
+		. '<!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">Tell us about your scheme and our in-house designers will spec the range, beam and finish — and return a costed scheme, usually within 3–5 days.</p><!-- /wp:paragraph -->'
+		. '<!-- wp:buttons {"layout":{"type":"flex","justifyContent":"center"}} --><div class="wp-block-buttons is-content-justification-center"><!-- wp:button {"className":"is-style-outline-light"} --><div class="wp-block-button is-style-outline-light"><a class="wp-block-button__link wp-element-button" href="/lighting-design/">Start a project</a></div><!-- /wp:button --><!-- wp:button {"className":"is-style-outline-light"} --><div class="wp-block-button is-style-outline-light"><a class="wp-block-button__link wp-element-button" href="/contact/">Talk to the team →</a></div><!-- /wp:button --></div><!-- /wp:buttons -->',
+		48, 70, 'center center'
+	);
+
+	$page = get_page_by_path( 'sectors' );
+	if ( $page ) {
+		wp_update_post( array( 'ID' => $page->ID, 'post_content' => $content ) );
+	} else {
+		wp_insert_post( array(
+			'post_type'    => 'page',
+			'post_status'  => 'publish',
+			'post_title'   => 'Lighting by Sector',
+			'post_name'    => 'sectors',
+			'post_content' => $content,
+		) );
 	}
-	$content = '<!-- wp:group {"align":"full","className":"rm-section rm-projintro","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-section rm-projintro">'
-		. '<!-- wp:paragraph {"className":"rm-eyebrow"} --><p class="rm-eyebrow">By Application</p><!-- /wp:paragraph -->'
-		. '<!-- wp:heading {"level":1,"style":{"typography":{"fontWeight":"500"}}} --><h1 class="wp-block-heading" style="font-weight:500">Lighting by sector</h1><!-- /wp:heading -->'
-		. '<!-- wp:paragraph {"className":"rm-projintro-sub","textColor":"muted"} --><p class="rm-projintro-sub has-muted-color has-text-color">From offices and healthcare to retail and industrial — explore our lighting solutions and real project case studies by sector.</p><!-- /wp:paragraph --></div><!-- /wp:group -->'
-		. '<!-- wp:group {"align":"full","className":"rm-section","layout":{"type":"default"}} --><div class="wp-block-group alignfull rm-section"><!-- wp:shortcode -->[ricoman_sectors_grid]<!-- /wp:shortcode --></div><!-- /wp:group -->';
-	$id = wp_insert_post( array(
-		'post_type'    => 'page',
-		'post_status'  => 'publish',
-		'post_title'   => 'Lighting by Sector',
-		'post_name'    => 'sectors',
-		'post_content' => $content,
-	) );
-	if ( $id && ! is_wp_error( $id ) ) {
-		update_option( 'ricoman_sectors_page', 1 );
-	}
+	update_option( 'ricoman_sectors_page', $version );
 } );
 
 /** Trust / credibility bar for the sector landing (conversion signals). */

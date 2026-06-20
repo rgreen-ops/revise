@@ -714,6 +714,21 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-projq,.rm-newsq{width:100%;font-family:Poppins;font-size:.92rem;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:999px;padding:11px 18px 11px 40px;outline:none;transition:border-color .15s;-webkit-appearance:none;appearance:none}
 .rm-projq:focus,.rm-newsq:focus{border-color:var(--ink)}
 .rm-projq::placeholder,.rm-newsq::placeholder{color:var(--muted)}
+/* Lighting by Sector — big bold sharp showcase tiles */
+.rm-secshow-wrap{max-width:1720px;margin:0 auto;padding-inline:clamp(20px,4vw,56px)}
+.rm-secshow-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,1.6vw,22px)}
+@media(max-width:980px){.rm-secshow-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.rm-secshow-grid{grid-template-columns:1fr}}
+.rm-secshow-tile{position:relative;display:flex;align-items:flex-end;min-height:clamp(280px,30vw,420px);border-radius:14px;overflow:hidden;background:#1c1c1e center/cover no-repeat;color:#fff!important;text-decoration:none;isolation:isolate}
+.rm-secshow-tile::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05) 30%,rgba(0,0,0,.72));z-index:0;transition:opacity .3s}
+.rm-secshow-tile::before{content:"";position:absolute;inset:0;background:center/cover no-repeat inherit;z-index:-1;transition:transform .6s ease}
+.rm-secshow-tile:hover{transform:translateY(-3px);transition:transform .3s;box-shadow:0 22px 48px rgba(0,0,0,.28)}
+.rm-secshow-tile:hover::after{opacity:.92}
+.rm-secshow-ov{position:relative;z-index:1;padding:clamp(20px,2.4vw,30px);width:100%}
+.rm-secshow-tag{display:block;font-family:Poppins;font-size:.72rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.85);margin:0 0 .5em}
+.rm-secshow-t{display:block;font-family:Poppins;font-weight:600;font-size:clamp(1.4rem,2vw,1.9rem);letter-spacing:-.02em;line-height:1.1;color:#fff}
+.rm-secshow-go{display:inline-block;font-family:Poppins;font-weight:600;font-size:.82rem;color:#fff;margin-top:.8em;opacity:0;transform:translateY(6px);transition:.25s}
+.rm-secshow-tile:hover .rm-secshow-go{opacity:1;transform:none}
 /* Sector landing: big visual hero (lead with the work) */
 .rm-sechero{position:relative;display:flex;align-items:flex-end;min-height:clamp(420px,62vh,640px);background:#1c1c1e center/cover no-repeat;color:#fff;overflow:hidden}
 .rm-sechero-scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.25) 0%,rgba(0,0,0,.15) 40%,rgba(0,0,0,.78) 100%)}
