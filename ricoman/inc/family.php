@@ -99,6 +99,15 @@ function ricoman_rb_family_cb() {
 
 /* ---- Shortcode: the family filter UI ---- */
 add_shortcode( 'ricoman_family', function ( $atts ) {
+	// RICOBOT is parked — render the configurable range from the migrated variant
+	// data (variant-product posts) instead of the live RICOBOT loader. Re-enable
+	// the live loader via the 'ricoman_use_product_api' filter for roadmap step 5.
+	if ( ! apply_filters( 'ricoman_use_product_api', false ) ) {
+		$pid = get_the_ID();
+		$t   = ( $pid && function_exists( 'ricoman_pf_variant_table' ) ) ? ricoman_pf_variant_table( $pid ) : '';
+		return $t ? $t : '';
+	}
+
 	$atts   = shortcode_atts( array( 'family' => '' ), $atts, 'ricoman_family' );
 	$family = trim( (string) $atts['family'] );
 	// Fall back to the family linked to the current product in the Product Builder,
