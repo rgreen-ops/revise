@@ -38,13 +38,44 @@ function ricoman_news_readtime( $pid ) {
 	return max( 1, (int) round( $words / 200 ) );
 }
 
+/** Topic chips are derived from each article's title + body (no manual tagging
+ * needed). slug => [ label, keywords[] ]. Filterable. */
+function ricoman_news_topic_map() {
+	return apply_filters( 'ricoman_news_topic_map', array(
+		'guides'   => array( 'Guides & how-to', array( 'how to', 'guide', 'glossary', 'what is', 'what beam', 'do i need', 'mistake', 'tips', 'explained', 'best ', 'should i', 'why ', 'how do' ) ),
+		'linear'   => array( 'Linear', array( 'linear', 'flow+', 'flow plus' ) ),
+		'controls' => array( 'Controls & dimming', array( 'dimming', 'dimmable', 'dali', 'casambi', 'control', 'tunable', 'scene' ) ),
+		'colour'   => array( 'Colour & RGBW', array( 'rgbw', 'rgb', 'colour temp', 'cct', 'tunable white' ) ),
+		'sectors'  => array( 'By sector', array( 'office', 'gym', 'retail', 'hospital', 'healthcare', 'warehouse', 'school', 'education', 'industrial', 'workplace', 'leisure', 'commercial space' ) ),
+		'emergency'=> array( 'Emergency', array( 'emergency' ) ),
+		'products' => array( 'Products', array( 'range', 'launch', 'new product', 'estrella', 'luminaire' ) ),
+		'energy'   => array( 'Energy & sustainability', array( 'energy', 'sustainab', 'efficien', 'carbon', 'recycl' ) ),
+	) );
+}
+
+/** Topic slugs that match an article (from its title + body). */
+function ricoman_news_topics( $pid ) {
+	$hay = strtolower( get_the_title( $pid ) . ' ' . wp_strip_all_tags( (string) get_post_field( 'post_content', $pid ) ) );
+	$out = array();
+	foreach ( ricoman_news_topic_map() as $slug => $def ) {
+		foreach ( $def[1] as $kw ) {
+			if ( false !== strpos( $hay, $kw ) ) {
+				$out[] = $slug;
+				break;
+			}
+		}
+	}
+	return $out;
+}
+
 /** One news card (used for the grid and the featured lead). */
 function ricoman_news_card( $pid, $featured = false ) {
 	$img = ricoman_news_img( $pid, $featured ? 'large' : 'medium_large' );
 	$tag = (string) get_post_meta( $pid, 'news_tag_line', true );
 	$cls = $featured ? 'rm-newscard rm-newscard--lead' : 'rm-newscard';
-	$hay = strtolower( get_the_title( $pid ) . ' ' . $tag . ' ' . ricoman_news_excerpt( $pid, 30 ) );
-	return '<a class="' . $cls . '" data-tags="' . esc_attr( sanitize_title( $tag ) ) . '" data-search="' . esc_attr( $hay ) . '" href="' . esc_url( get_permalink( $pid ) ) . '">'
+	$hay   = strtolower( get_the_title( $pid ) . ' ' . $tag . ' ' . ricoman_news_excerpt( $pid, 30 ) );
+	$tagsl = implode( ' ', ricoman_news_topics( $pid ) );
+	return '<a class="' . $cls . '" data-tags="' . esc_attr( $tagsl ) . '" data-search="' . esc_attr( $hay ) . '" href="' . esc_url( get_permalink( $pid ) ) . '">'
 		. '<span class="rm-newscard-img"' . ( $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '' ) . '></span>'
 		. '<span class="rm-newscard-body">'
 		. ( $tag ? '<span class="rm-eyebrow">' . esc_html( $tag ) . '</span>' : '' )
@@ -73,15 +104,20 @@ add_shortcode( 'ricoman_news_grid', function ( $atts ) {
 	$ids = wp_list_pluck( $q->posts, 'ID' );
 	wp_reset_postdata();
 
-	// Distinct topic tags for the filter chips (from the article tag line).
-	$tags = array();
+	// Topic chips derived from the articles themselves (only topics with hits).
+	$map  = ricoman_news_topic_map();
+	$seen = array();
 	foreach ( $ids as $pid ) {
-		$t = trim( (string) get_post_meta( $pid, 'news_tag_line', true ) );
-		if ( '' !== $t ) {
-			$tags[ sanitize_title( $t ) ] = $t;
+		foreach ( ricoman_news_topics( $pid ) as $slug ) {
+			$seen[ $slug ] = true;
 		}
 	}
-	asort( $tags );
+	$tags = array();
+	foreach ( $map as $slug => $def ) {
+		if ( isset( $seen[ $slug ] ) ) {
+			$tags[ $slug ] = $def[0];
+		}
+	}
 
 	$tools = '<div class="rm-newstools">'
 		. '<div class="rm-projsearch"><svg class="rm-projsearch-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'
