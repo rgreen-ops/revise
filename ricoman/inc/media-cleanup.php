@@ -172,6 +172,21 @@ function rm_mc_render_page() {
 		. '<button class="button button-primary" id="rm-mc-merge" disabled>' . esc_html__( 'Merge duplicates (to Trash)', 'ricoman' ) . '</button> '
 		. '<span id="rm-mc-merge-out" style="margin-left:10px"></span></p>';
 
+	echo '<h2>' . esc_html__( 'Step 4 — Find unused images (report only)', 'ricoman' ) . '</h2>';
+	echo '<p>' . esc_html__( 'Scans for images with no reference we can detect and tags them, so you can review them in the Media Library before deciding. Nothing is deleted.', 'ricoman' ) . '</p>';
+	echo '<p><button class="button" id="rm-mc-unused">' . esc_html__( 'Scan for unused images', 'ricoman' ) . '</button> <span id="rm-mc-unused-out" style="margin-left:10px">';
+	$uc = (int) get_option( 'rm_mc_unused_count', 0 );
+	if ( $uc ) {
+		printf( esc_html__( 'Last scan: %s unused.', 'ricoman' ), '<strong>' . esc_html( number_format_i18n( $uc ) ) . '</strong>' );
+	}
+	echo '</span></p>';
+
+	echo '<h2>' . esc_html__( 'Step 5 — Rename junk filenames from context', 'ricoman' ) . '</h2>';
+	echo '<p>' . esc_html__( 'Finds images with meaningless titles (just numbers, IMG_1234, etc.) and renames the title + alt text from the product/post they belong to, plus its category. Preview first; only changes metadata (reversible).', 'ricoman' ) . '</p>';
+	echo '<p><button class="button" id="rm-mc-rename-pv">' . esc_html__( 'Preview renames', 'ricoman' ) . '</button> '
+		. '<button class="button button-primary" id="rm-mc-rename">' . esc_html__( 'Rename now', 'ricoman' ) . '</button> '
+		. '<span id="rm-mc-rename-out" style="margin-left:10px"></span></p>';
+
 	$nonce = wp_create_nonce( 'rm_mc' );
 	?>
 	<script>
@@ -226,6 +241,38 @@ function rm_mc_render_page() {
 		mg.addEventListener('click',function(){ if(merging)return; if(cf.value.trim().toUpperCase()!=='MERGE')return;
 			if(!confirm('Merge duplicate images to Trash? Make sure you have a backup.'))return;
 			merging=true; mg.disabled=true; mgOut.textContent='Merging…'; mergeBatch(); });
+
+		// Step 4 — unused scan (report only).
+		var us=document.getElementById('rm-mc-unused'),usOut=document.getElementById('rm-mc-unused-out'),usRun=false;
+		function unusedBatch(off){
+			var b=new URLSearchParams({action:'rm_mc_unused',nonce:nonce,offset:off});
+			fetch(ajax,{method:'POST',body:b,credentials:'same-origin'}).then(function(r){return r.json();}).then(function(j){
+				if(!j||!j.success){ usOut.textContent='Error.'; usRun=false; us.disabled=false; return; }
+				var d=j.data; usOut.innerHTML='Scanned '+d.done.toLocaleString()+' of '+d.total.toLocaleString()+' — <strong>'+d.unused.toLocaleString()+'</strong> unused so far…';
+				if(d.next!==null){ unusedBatch(d.next); }
+				else { usOut.innerHTML='Done — <strong>'+d.unused.toLocaleString()+'</strong> unused images tagged (filter Media by them to review).'; usRun=false; us.disabled=false; }
+			}).catch(function(){ usOut.textContent='Network error.'; usRun=false; us.disabled=false; });
+		}
+		us.addEventListener('click',function(){ if(usRun)return; usRun=true; us.disabled=true; usOut.textContent='Scanning…'; unusedBatch(0); });
+
+		// Step 5 — rename (preview + apply).
+		var rPv=document.getElementById('rm-mc-rename-pv'),rGo=document.getElementById('rm-mc-rename'),rOut=document.getElementById('rm-mc-rename-out'),rRun=false;
+		function renameRun(apply){
+			var totalR=0;
+			function step(off){
+				var b=new URLSearchParams({action:'rm_mc_rename',nonce:nonce,offset:off,apply:apply?'1':'0'});
+				fetch(ajax,{method:'POST',body:b,credentials:'same-origin'}).then(function(r){return r.json();}).then(function(j){
+					if(!j||!j.success){ rOut.textContent='Error.'; rRun=false; rPv.disabled=rGo.disabled=false; return; }
+					var d=j.data; totalR+=d.renamed;
+					rOut.textContent=(apply?'Renamed ':'Would rename ')+totalR.toLocaleString()+' so far ('+d.done.toLocaleString()+'/'+d.total.toLocaleString()+')…';
+					if(d.next!==null){ step(d.next); }
+					else { rOut.textContent=(apply?'Done — renamed ':'Preview — would rename ')+totalR.toLocaleString()+' images'+(apply?'.':' (nothing changed).'); rRun=false; rPv.disabled=rGo.disabled=false; }
+				}).catch(function(){ rOut.textContent='Network error.'; rRun=false; rPv.disabled=rGo.disabled=false; });
+			}
+			step(0);
+		}
+		rPv.addEventListener('click',function(){ if(rRun)return; rRun=true; rPv.disabled=rGo.disabled=true; rOut.textContent='Checking…'; renameRun(false); });
+		rGo.addEventListener('click',function(){ if(rRun)return; if(!confirm('Rename junk-named images from their context?'))return; rRun=true; rPv.disabled=rGo.disabled=true; rOut.textContent='Renaming…'; renameRun(true); });
 	})();
 	</script>
 	<?php
@@ -380,6 +427,173 @@ add_action( 'wp_ajax_rm_mc_merge', function () {
 	$res   = rm_mc_merge_batch( $apply, $limit );
 	$res['applied'] = $apply;
 	wp_send_json_success( $res );
+} );
+
+/* ------------------------------------------------------------------ *
+ * 5. Unused report (read-only) + context-based renaming.
+ * ------------------------------------------------------------------ */
+
+/** Is this attachment referenced anywhere we can detect? */
+function rm_mc_is_referenced( $id ) {
+	global $wpdb;
+	$id = (int) $id;
+	if ( $wpdb->get_var( $wpdb->prepare( "SELECT 1 FROM {$wpdb->postmeta} WHERE meta_key='_thumbnail_id' AND meta_value=%d LIMIT 1", $id ) ) ) {
+		return true;
+	}
+	if ( $wpdb->get_var( $wpdb->prepare(
+		"SELECT 1 FROM {$wpdb->postmeta} m WHERE " . rm_mc_image_key_sql( 'm' ) . " AND m.meta_value REGEXP %s LIMIT 1",
+		'(^|[^0-9])' . $id . '([^0-9]|$)'
+	) ) ) {
+		return true;
+	}
+	if ( $wpdb->get_var( $wpdb->prepare( "SELECT 1 FROM {$wpdb->posts} WHERE post_content LIKE %s LIMIT 1", '%wp-image-' . $id . '%' ) ) ) {
+		return true;
+	}
+	$url = wp_get_attachment_url( $id );
+	if ( $url && $wpdb->get_var( $wpdb->prepare( "SELECT 1 FROM {$wpdb->posts} WHERE post_content LIKE %s LIMIT 1", '%' . $wpdb->esc_like( $url ) . '%' ) ) ) {
+		return true;
+	}
+	$parent = (int) get_post_field( 'post_parent', $id );
+	if ( $parent && get_post_status( $parent ) && 'trash' !== get_post_status( $parent ) ) {
+		return true;
+	}
+	return false;
+}
+
+/** A post that owns / references this image, for naming context. */
+function rm_mc_owner_post( $id ) {
+	global $wpdb;
+	$id     = (int) $id;
+	$parent = (int) get_post_field( 'post_parent', $id );
+	if ( $parent && get_post_status( $parent ) ) {
+		return $parent;
+	}
+	$owner = (int) $wpdb->get_var( $wpdb->prepare( "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key='_thumbnail_id' AND meta_value=%d LIMIT 1", $id ) );
+	if ( $owner ) {
+		return $owner;
+	}
+	return (int) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_id FROM {$wpdb->postmeta} m WHERE " . rm_mc_image_key_sql( 'm' ) . " AND m.meta_value REGEXP %s LIMIT 1",
+		'(^|[^0-9])' . $id . '([^0-9]|$)'
+	) );
+}
+
+/** Does this attachment have a junk / meaningless title? */
+function rm_mc_is_junk_name( $id ) {
+	$t = trim( get_the_title( $id ) );
+	if ( '' === $t ) {
+		return true;
+	}
+	if ( preg_match( '/^[0-9\-_\s\.]+$/', $t ) ) {
+		return true; // only digits/separators.
+	}
+	if ( preg_match( '/^(img|dsc|dscn|image|images|photo|untitled|screenshot|scan|file|p)[-_\s]?\d+$/i', $t ) ) {
+		return true;
+	}
+	if ( ! preg_match( '/[a-z]{3,}/i', $t ) ) {
+		return true; // no real word.
+	}
+	return false;
+}
+
+/** Build a human title from the owning post (+ product category). */
+function rm_mc_context_name( $id ) {
+	$owner = rm_mc_owner_post( $id );
+	if ( ! $owner ) {
+		return '';
+	}
+	$base = trim( wp_strip_all_tags( get_the_title( $owner ) ) );
+	if ( '' === $base ) {
+		return '';
+	}
+	$cat = '';
+	foreach ( array( 'product-cat', 'product_cat', 'project-cat' ) as $tax ) {
+		if ( taxonomy_exists( $tax ) ) {
+			$terms = get_the_terms( $owner, $tax );
+			if ( $terms && ! is_wp_error( $terms ) ) {
+				$cat = $terms[0]->name;
+				break;
+			}
+		}
+	}
+	return $cat ? $base . ' – ' . $cat : $base;
+}
+
+/** AJAX: scan a batch for unused images (report only — marks _rm_unref). */
+add_action( 'wp_ajax_rm_mc_unused', function () {
+	if ( ! current_user_can( 'manage_options' ) || ! check_ajax_referer( 'rm_mc', 'nonce', false ) ) {
+		wp_send_json_error();
+	}
+	global $wpdb;
+	$batch  = rm_mc_batch();
+	$offset = max( 0, (int) ( $_POST['offset'] ?? 0 ) );
+	$ids = $wpdb->get_col( $wpdb->prepare(
+		"SELECT ID FROM {$wpdb->posts} WHERE post_type='attachment' AND post_status<>'trash' AND post_mime_type LIKE 'image/%%' ORDER BY ID ASC LIMIT %d OFFSET %d",
+		$batch, $offset
+	) );
+	$unused = (int) get_option( 'rm_mc_unused_count', 0 );
+	if ( 0 === $offset ) {
+		$unused = 0;
+	}
+	foreach ( $ids as $id ) {
+		if ( ! rm_mc_is_referenced( (int) $id ) ) {
+			update_post_meta( (int) $id, '_rm_unref', 1 );
+			$unused++;
+		} else {
+			delete_post_meta( (int) $id, '_rm_unref' );
+		}
+	}
+	update_option( 'rm_mc_unused_count', $unused, false );
+	$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type='attachment' AND post_status<>'trash' AND post_mime_type LIKE 'image/%'" );
+	$next  = ( $offset + count( $ids ) );
+	wp_send_json_success( array(
+		'total'  => $total,
+		'done'   => $next,
+		'unused' => $unused,
+		'next'   => count( $ids ) < $batch ? null : $next,
+	) );
+} );
+
+/** AJAX: rename a batch of junk-named images from context (title + alt). */
+add_action( 'wp_ajax_rm_mc_rename', function () {
+	if ( ! current_user_can( 'manage_options' ) || ! check_ajax_referer( 'rm_mc', 'nonce', false ) ) {
+		wp_send_json_error();
+	}
+	global $wpdb;
+	$apply  = isset( $_POST['apply'] ) && '1' === $_POST['apply'];
+	$batch  = rm_mc_batch();
+	$offset = max( 0, (int) ( $_POST['offset'] ?? 0 ) );
+	$ids = $wpdb->get_col( $wpdb->prepare(
+		"SELECT ID FROM {$wpdb->posts} WHERE post_type='attachment' AND post_status<>'trash' AND post_mime_type LIKE 'image/%%' ORDER BY ID ASC LIMIT %d OFFSET %d",
+		$batch, $offset
+	) );
+	$renamed = 0;
+	foreach ( $ids as $id ) {
+		$id = (int) $id;
+		if ( ! rm_mc_is_junk_name( $id ) ) {
+			continue;
+		}
+		$name = rm_mc_context_name( $id );
+		if ( '' === $name ) {
+			continue;
+		}
+		$renamed++;
+		if ( $apply ) {
+			wp_update_post( array( 'ID' => $id, 'post_title' => $name ) );
+			if ( '' === trim( (string) get_post_meta( $id, '_wp_attachment_image_alt', true ) ) ) {
+				update_post_meta( $id, '_wp_attachment_image_alt', $name );
+			}
+		}
+	}
+	$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type='attachment' AND post_status<>'trash' AND post_mime_type LIKE 'image/%'" );
+	$next  = ( $offset + count( $ids ) );
+	wp_send_json_success( array(
+		'total'   => $total,
+		'done'    => $next,
+		'renamed' => $renamed,
+		'applied' => $apply,
+		'next'    => count( $ids ) < $batch ? null : $next,
+	) );
 } );
 
 /** AJAX: index one batch of un-hashed image attachments. */
