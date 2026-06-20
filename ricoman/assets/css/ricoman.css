@@ -1387,7 +1387,7 @@ html,body{overflow-x:clip}
 @media(min-width:1025px){
 	.nav{justify-content:space-between}
 	.brand{margin-right:auto;font-size:.9rem}
-	.rm-logo{height:18px}
+	.rm-logo{height:19px}
 	.rm-nav{margin-right:34px}
 	.nav ul{gap:30px;font-size:.72rem;font-weight:400;letter-spacing:.11em}
 	.nav ul a{color:rgba(255,255,255,.96)}
