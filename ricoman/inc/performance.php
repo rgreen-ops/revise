@@ -46,9 +46,26 @@ add_filter( 'render_block', function ( $content, $block ) {
 	}
 	$name = isset( $block['blockName'] ) ? $block['blockName'] : '';
 	if ( in_array( $name, array( 'core/cover', 'core/post-featured-image' ), true ) && false !== strpos( $content, '<img' ) ) {
+		// Drop native lazy-loading from the hero and prioritise its fetch.
 		$content = str_replace( ' loading="lazy"', '', $content );
-		$content = preg_replace( '/<img (?![^>]*fetchpriority)/', '<img fetchpriority="high" decoding="async" ', $content, 1 );
-		$done    = true;
+		$content = preg_replace(
+			'/<img (?![^>]*fetchpriority)/',
+			'<img fetchpriority="high" decoding="async" loading="eager" data-no-lazy="1" data-skip-lazy ',
+			$content,
+			1
+		);
+		// Add the class names common lazy-load optimisers honour, so caching
+		// plugins (e.g. WPSpeedster) auto-exclude the hero from lazy loading —
+		// no filename list to maintain when the hero image changes. Marks only
+		// the first <img> in the block.
+		if ( false === strpos( $content, 'rm-hero-img' ) ) {
+			if ( preg_match( '/<img[^>]*\sclass="/', $content ) ) {
+				$content = preg_replace( '/(<img[^>]*\sclass=")/', '$1skip-lazy no-lazy rm-hero-img ', $content, 1 );
+			} else {
+				$content = preg_replace( '/<img /', '<img class="skip-lazy no-lazy rm-hero-img" ', $content, 1 );
+			}
+		}
+		$done = true;
 	}
 	return $content;
 }, 9, 2 );
