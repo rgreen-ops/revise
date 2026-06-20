@@ -157,6 +157,12 @@ function rm_mc_render_page() {
 	printf( '<tr><th>%s</th><td id="rm-mc-extra"><strong>%s</strong></td></tr>', esc_html__( 'Removable duplicate files', 'ricoman' ), esc_html( number_format_i18n( $s['extra'] ) ) );
 	echo '</tbody></table>';
 
+	$me = wp_get_current_user();
+	$to = $me && $me->user_email ? $me->user_email : get_option( 'admin_email' );
+	echo '<p><input type="email" id="rm-mc-email-to" value="' . esc_attr( $to ) . '" style="width:240px" placeholder="you@example.com"> '
+		. '<button class="button" id="rm-mc-email">' . esc_html__( 'Email me these stats', 'ricoman' ) . '</button> '
+		. '<span id="rm-mc-email-out" style="margin-left:10px"></span></p>';
+
 	echo '<h2>' . esc_html__( 'Step 1 — Index the library', 'ricoman' ) . '</h2>';
 	echo '<p>' . esc_html__( 'Reads each image once and records a content fingerprint. Safe to re-run; resumes where it left off. Leave this tab open while it works.', 'ricoman' ) . '</p>';
 	echo '<p><button class="button button-primary" id="rm-mc-index">' . esc_html__( 'Start / resume indexing', 'ricoman' ) . '</button> <span id="rm-mc-progress" style="margin-left:10px"></span></p>';
@@ -273,6 +279,17 @@ function rm_mc_render_page() {
 		}
 		rPv.addEventListener('click',function(){ if(rRun)return; rRun=true; rPv.disabled=rGo.disabled=true; rOut.textContent='Checking…'; renameRun(false); });
 		rGo.addEventListener('click',function(){ if(rRun)return; if(!confirm('Rename junk-named images from their context?'))return; rRun=true; rPv.disabled=rGo.disabled=true; rOut.textContent='Renaming…'; renameRun(true); });
+
+		// Email the stats.
+		var em=document.getElementById('rm-mc-email'),emTo=document.getElementById('rm-mc-email-to'),emOut=document.getElementById('rm-mc-email-out');
+		em.addEventListener('click',function(){
+			em.disabled=true; emOut.textContent='Sending…';
+			var b=new URLSearchParams({action:'rm_mc_email',nonce:nonce,to:emTo.value});
+			fetch(ajax,{method:'POST',body:b,credentials:'same-origin'}).then(function(r){return r.json();}).then(function(j){
+				em.disabled=false;
+				emOut.textContent=(j&&j.success)?('Sent to '+j.data.to):('Could not send'+(j&&j.data&&j.data.msg?': '+j.data.msg:'.'));
+			}).catch(function(){ em.disabled=false; emOut.textContent='Network error.'; });
+		});
 	})();
 	</script>
 	<?php
@@ -594,6 +611,43 @@ add_action( 'wp_ajax_rm_mc_rename', function () {
 		'applied' => $apply,
 		'next'    => count( $ids ) < $batch ? null : $next,
 	) );
+} );
+
+/** AJAX: email the current media-cleanup stats. */
+add_action( 'wp_ajax_rm_mc_email', function () {
+	if ( ! current_user_can( 'manage_options' ) || ! check_ajax_referer( 'rm_mc', 'nonce', false ) ) {
+		wp_send_json_error( array( 'msg' => 'Not allowed' ) );
+	}
+	$to = sanitize_email( wp_unslash( $_POST['to'] ?? '' ) );
+	if ( ! is_email( $to ) ) {
+		wp_send_json_error( array( 'msg' => 'Invalid email address' ) );
+	}
+	$s      = rm_mc_stats();
+	$unused = (int) get_option( 'rm_mc_unused_count', 0 );
+	$site   = get_bloginfo( 'name' );
+	$pct    = $s['images'] ? round( $s['indexed'] / $s['images'] * 100 ) : 0;
+	$n      = 'number_format_i18n';
+	$lines  = array(
+		'Media Library cleanup — ' . $site,
+		gmdate( 'Y-m-d H:i' ) . ' UTC',
+		'',
+		'Images in library:        ' . $n( $s['images'] ),
+		'Indexed (hashed):         ' . $n( $s['indexed'] ) . ' (' . $pct . '%)',
+		'Duplicate groups:         ' . $n( $s['groups'] ),
+		'Removable duplicate files:' . ' ' . $n( $s['extra'] ),
+		'Unused images (last scan):' . ' ' . $n( $unused ),
+		'',
+		'Manage: ' . admin_url( 'admin.php?page=ricoman-media-cleanup' ),
+	);
+	if ( $s['indexed'] < $s['images'] ) {
+		$lines[] = '';
+		$lines[] = 'Note: indexing is not complete, so the duplicate figures will rise as it finishes.';
+	}
+	$sent = wp_mail( $to, 'Media cleanup stats — ' . $site, implode( "\n", $lines ) );
+	if ( $sent ) {
+		wp_send_json_success( array( 'to' => $to ) );
+	}
+	wp_send_json_error( array( 'msg' => 'wp_mail failed (check the site can send email)' ) );
 } );
 
 /** AJAX: index one batch of un-hashed image attachments. */
