@@ -18,6 +18,19 @@ if ( ! defined( 'RICOMAN_VERSION' ) ) {
 }
 
 /**
+ * Release any stray PHP session lock. A plugin (e.g. a form plugin) can call
+ * session_start() and leave the session open; the lock then blocks WordPress's
+ * REST API loopback request, which times out (Site Health flags both an "active
+ * PHP session" and a "REST API error"). WordPress recommends session_write_close()
+ * before HTTP requests, so we release it once init has fully run. Reads still work.
+ */
+add_action( 'init', function () {
+	if ( function_exists( 'session_status' ) && PHP_SESSION_ACTIVE === session_status() ) {
+		session_write_close();
+	}
+}, PHP_INT_MAX );
+
+/**
  * Load feature modules. Each file is self-contained and hooks itself in.
  */
 require_once get_theme_file_path( 'inc/image-fallback.php' ); // Missing-media fallback to live origin (staging).
