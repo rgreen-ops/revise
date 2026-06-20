@@ -250,37 +250,3 @@ function ricoman_bim_request() {
 }
 add_action( 'wp_ajax_nopriv_rm_bim_request', 'ricoman_bim_request' );
 add_action( 'wp_ajax_rm_bim_request', 'ricoman_bim_request' );
-
-/* ----------------------------------------------------------- Leads log (admin) */
-
-add_filter( 'manage_lead_posts_columns', function ( $cols ) {
-	return array(
-		'cb'        => isset( $cols['cb'] ) ? $cols['cb'] : '<input type="checkbox" />',
-		'title'     => __( 'Lead', 'ricoman' ),
-		'rm_type'   => __( 'Type', 'ricoman' ),
-		'rm_email'  => __( 'Email', 'ricoman' ),
-		'rm_extra'  => __( 'Product / Company', 'ricoman' ),
-		'rm_source' => __( 'Source', 'ricoman' ),
-		'date'      => __( 'Received', 'ricoman' ),
-	);
-} );
-
-add_action( 'manage_lead_posts_custom_column', function ( $col, $post_id ) {
-	$g = function ( $k ) use ( $post_id ) { return (string) get_post_meta( $post_id, $k, true ); };
-	switch ( $col ) {
-		case 'rm_type':
-			echo esc_html( $g( '_lead_type' ) ? $g( '_lead_type' ) : ( $g( '_lead_role' ) ? $g( '_lead_role' ) : '—' ) );
-			break;
-		case 'rm_email':
-			$e = $g( '_lead_email' );
-			echo $e ? '<a href="mailto:' . esc_attr( $e ) . '">' . esc_html( $e ) . '</a>' : '—';
-			break;
-		case 'rm_extra':
-			$x = $g( '_lead_product' ) ? $g( '_lead_product' ) : $g( '_lead_company' );
-			echo esc_html( $x ? $x : '—' );
-			break;
-		case 'rm_source':
-			echo esc_html( $g( '_lead_source' ) ? $g( '_lead_source' ) : '—' );
-			break;
-	}
-}, 10, 2 );

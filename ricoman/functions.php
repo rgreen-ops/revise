@@ -44,6 +44,7 @@ require_once get_theme_file_path( 'inc/gallery-classify.php' );// Bulk Studio / 
 require_once get_theme_file_path( 'inc/error-page.php' );     // Friendly branded fatal-error page.
 require_once get_theme_file_path( 'inc/login.php' );         // Ricoman-branded wp-login screen.
 require_once get_theme_file_path( 'inc/lead-gate.php' );     // Download lead-gate (gate docs behind name/email/type).
+require_once get_theme_file_path( 'inc/leads-admin.php' );   // Leads CRM: status, filters, conversion tracker.
 require_once get_theme_file_path( 'inc/accounts.php' );      // Customer accounts: name + customer type on register/profile.
 require_once get_theme_file_path( 'inc/project-lists.php' ); // Saved multi-project lists + project-pack ZIP (logged-in).
 require_once get_theme_file_path( 'inc/seo.php' );           // JSON-LD schema & breadcrumbs.
