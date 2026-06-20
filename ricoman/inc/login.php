@@ -36,9 +36,23 @@ add_action( 'login_enqueue_scripts', function () {
 		.login #nav a,.login #backtoblog a{color:rgba(255,255,255,.6)!important}
 		.login #nav a:hover,.login #backtoblog a:hover{color:#fff!important}
 		.login #login_error,.login .message,.login .success{border-radius:10px;border-left-color:#16161a;color:#16161a}
+		/* Match the customer-type <select> to the text inputs (size, weight, font). */
+		.login form select{display:block;width:100%;box-sizing:border-box;height:auto;margin:0;font-family:inherit;font-size:15px;font-weight:400;line-height:1.4;color:#16161a;background:#fff;border:1px solid #d6d6da;border-radius:10px;padding:11px 12px}
+		.login form select:focus{border-color:#16161a;box-shadow:0 0 0 1px #16161a;outline:0}
+		.login form label{font-weight:400}
+		/* Email is the account identifier — hide the Username field on registration. */
+		#registerform p:has(#user_login){display:none}
 		/* Tidy: hide the language switcher on the login screen. */
 		.login .language-switcher{display:none}
 	</style>
+	<?php
+} );
+
+/** Hide the Username field on the registration form (email is the identifier).
+ *  CSS :has() handles modern browsers; this is the safe fallback. */
+add_action( 'login_footer', function () {
+	?>
+	<script>(function(){var rf=document.getElementById('registerform');if(!rf)return;var u=rf.querySelector('#user_login');if(u){var p=u.closest('p');if(p)p.style.display='none';}})();</script>
 	<?php
 } );
 

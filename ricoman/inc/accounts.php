@@ -25,6 +25,27 @@ function ricoman_ctype_options( $current = '' ) {
 
 /* ---------------------------------------------------------------- registration */
 
+/** Email is the identifier — generate the WP username from the email so the
+ *  Username field can be removed from the form. Runs before registration validates. */
+add_action( 'login_init', function () {
+	if ( empty( $_POST['user_login'] ) && ! empty( $_POST['user_email'] ) ) {
+		$email = sanitize_email( wp_unslash( $_POST['user_email'] ) );
+		if ( $email && is_email( $email ) ) {
+			$base = sanitize_user( current( explode( '@', $email ) ), true );
+			if ( '' === $base ) {
+				$base = 'user';
+			}
+			$user = $base;
+			$i    = 1;
+			while ( username_exists( $user ) ) {
+				$user = $base . $i;
+				$i++;
+			}
+			$_POST['user_login'] = $user;
+		}
+	}
+} );
+
 add_action( 'register_form', function () {
 	$first = isset( $_POST['first_name'] ) ? esc_attr( wp_unslash( $_POST['first_name'] ) ) : '';
 	$last  = isset( $_POST['last_name'] ) ? esc_attr( wp_unslash( $_POST['last_name'] ) ) : '';

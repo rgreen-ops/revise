@@ -1451,10 +1451,11 @@ html,body{overflow-x:clip}
 .rm-gate-form input:focus,.rm-gate-form select:focus,.rm-bim-form input:focus,.rm-bim-form select:focus{outline:0;border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
 .rm-gate-form .btn,.rm-bim-form .btn{width:100%;justify-content:center}
 @media(max-width:600px){
-  .rm-gate{padding:10px;align-items:flex-start}
-  .rm-gate-box{padding:22px 16px;border-radius:14px;width:100%;max-width:none;max-height:calc(100vh - 20px);overflow-y:auto;margin:5vh 0}
-  .rm-gate-title{font-size:1.15rem;line-height:1.2}
-  .rm-gate-sub{font-size:.85rem}
+  /* Scroll the overlay (not a tiny inner box) and let the box size to its content. */
+  .rm-gate{padding:12px;align-items:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .rm-gate-box{padding:20px 16px;border-radius:14px;width:100%;max-width:none;max-height:none;overflow:visible;margin:8vh auto}
+  .rm-gate-title{font-size:1.1rem;line-height:1.2;margin-bottom:4px}
+  .rm-gate-sub{font-size:.82rem;margin-bottom:14px}
   .rm-gate-x{top:8px;right:10px}
   .rm-auth-acts{margin-top:14px}
 }
