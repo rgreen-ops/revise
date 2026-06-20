@@ -32,6 +32,32 @@ function ricoman_news_excerpt( $pid, $words = 24 ) {
 	return wp_trim_words( wp_strip_all_tags( $ex ), $words, '…' );
 }
 
+/** Standfirst/dek: manual override, else the first whole sentence(s) of the
+ * body (ends cleanly on a full stop — no mid-sentence ellipsis). */
+function ricoman_news_dek( $pid ) {
+	$man = trim( (string) get_post_meta( $pid, '_rmn_standfirst', true ) );
+	if ( '' !== $man ) {
+		return $man;
+	}
+	$txt = trim( wp_strip_all_tags( (string) get_post_field( 'post_content', $pid ) ) );
+	if ( '' === $txt ) {
+		$txt = trim( (string) get_post_meta( $pid, 'news_bottom_description', true ) );
+	}
+	if ( '' === $txt ) {
+		return '';
+	}
+	$words = preg_split( '/\s+/', $txt );
+	if ( count( $words ) <= 45 ) {
+		return $txt;
+	}
+	$clip = implode( ' ', array_slice( $words, 0, 50 ) );
+	// Trim back to the last sentence end so it never stops mid-thought.
+	if ( preg_match( '/^(.*[.!?])(\s|$)/su', $clip, $m ) ) {
+		return trim( $m[1] );
+	}
+	return rtrim( $clip, " ,;:\xe2\x80\x93\xe2\x80\x94" ) . '.';
+}
+
 /** Estimated read time in minutes from the article body. */
 function ricoman_news_readtime( $pid ) {
 	$words = str_word_count( wp_strip_all_tags( (string) get_post_field( 'post_content', $pid ) ) );
@@ -402,10 +428,7 @@ add_filter( 'the_content', function ( $content ) {
 	}
 	$pid  = get_the_ID();
 	$tag  = (string) get_post_meta( $pid, 'news_tag_line', true );
-	$dek  = (string) get_post_meta( $pid, '_rmn_standfirst', true );
-	if ( '' === trim( $dek ) ) {
-		$dek = ricoman_news_excerpt( $pid, 34 );
-	}
+	$dek  = ricoman_news_dek( $pid );
 
 	$out  = '<div class="rm-section rm-news-head"><div class="rm-pp-wrap rm-news-headin">';
 	$out .= '<div class="rm-pp-crumb">' . do_shortcode( '[ricoman_breadcrumbs]' ) . '</div>';
