@@ -1371,17 +1371,41 @@ function ricoman_products_ver() {
 	return (string) get_option( 'rm_products_ver', '1' );
 }
 
-/** Bump a product's section-cache version when its variants change. */
+/** Pre-build (warm) a product's cache in the background so no visitor ever waits
+ *  for the rebuild — a quick non-blocking loopback request renders the page, which
+ *  populates the section transient (and any page-cache plugin). */
+function ricoman_schedule_warm( $pid ) {
+	$pid = (int) $pid;
+	if ( $pid <= 0 || 'product' !== get_post_type( $pid ) ) {
+		return;
+	}
+	if ( ! wp_next_scheduled( 'ricoman_warm_product', array( $pid ) ) ) {
+		wp_schedule_single_event( time() + 20, 'ricoman_warm_product', array( $pid ) );
+	}
+}
+add_action( 'ricoman_warm_product', function ( $pid ) {
+	$url = get_permalink( (int) $pid );
+	if ( $url ) {
+		wp_remote_get( $url, array( 'timeout' => 0.5, 'blocking' => false, 'sslverify' => false, 'headers' => array( 'X-Ricoman-Warm' => '1' ) ) );
+	}
+} );
+
+/** Bump a product's section-cache version when its variants change, then warm. */
 add_action( 'save_post_variant-product', function ( $vid ) {
 	$parent = (int) get_post_meta( $vid, 'parent_product', true );
 	if ( $parent ) {
 		update_post_meta( $parent, '_rm_secver', time() );
+		ricoman_schedule_warm( $parent );
 	}
 	update_option( 'rm_products_ver', (string) time(), false );
 } );
 add_action( 'save_post_product', function ( $pid ) {
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
 	update_post_meta( $pid, '_rm_secver', time() );
 	update_option( 'rm_products_ver', (string) time(), false );
+	ricoman_schedule_warm( $pid );
 } );
 
 add_shortcode( 'ricoman_product_page', function () {
