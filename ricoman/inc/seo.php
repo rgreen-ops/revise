@@ -303,7 +303,7 @@ function ricoman_breadcrumb_trail() {
 				'url'   => $archive,
 			);
 		}
-	} elseif ( is_singular( 'project' ) || is_post_type_archive( 'project' ) ) {
+	} elseif ( is_singular( 'project' ) || is_post_type_archive( 'project' ) || is_tax( 'project-cat' ) ) {
 		$archive = get_post_type_archive_link( 'project' );
 		if ( $archive ) {
 			$trail[] = array(

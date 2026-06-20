@@ -1,0 +1,20 @@
+<!-- wp:template-part {"slug":"header","tagName":"header"} /-->
+
+<!-- wp:group {"tagName":"main","layout":{"type":"default"}} -->
+<main class="wp-block-group">
+	<!-- wp:group {"align":"full","className":"rm-section rm-sectorhead","layout":{"type":"constrained"}} -->
+	<div class="wp-block-group alignfull rm-section rm-sectorhead">
+		<!-- wp:shortcode -->[ricoman_breadcrumbs]<!-- /wp:shortcode -->
+		<!-- wp:paragraph {"className":"rm-eyebrow rm-sector-eyebrow"} --><p class="rm-eyebrow rm-sector-eyebrow">Projects by sector</p><!-- /wp:paragraph -->
+		<!-- wp:query-title {"type":"archive","showPrefix":false,"className":"rm-sector-title","style":{"typography":{"fontWeight":"500","fontSize":"clamp(2.2rem,5vw,3.6rem)","lineHeight":"1.04","letterSpacing":"-0.02em"}}} /-->
+		<!-- wp:term-description {"className":"rm-sector-desc"} /-->
+	</div>
+	<!-- /wp:group -->
+
+	<!-- wp:shortcode -->[ricoman_sector_projects]<!-- /wp:shortcode -->
+
+	<!-- wp:pattern {"slug":"ricoman/cta"} /-->
+</main>
+<!-- /wp:group -->
+
+<!-- wp:template-part {"slug":"footer","tagName":"footer"} /-->

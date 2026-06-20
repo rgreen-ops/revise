@@ -444,6 +444,12 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-dark .rm-aud-card p{color:rgba(255,255,255,.7)}
 .wp-block-cover .rm-statnum{color:#fff}
 .wp-block-cover .rm-flabel{color:rgba(255,255,255,.7)}
+/* Breadcrumbs — consistent, clearly-clickable links everywhere */
+.ricoman-breadcrumbs{font-family:Poppins;font-size:.82rem;color:var(--muted)}
+.ricoman-breadcrumbs a{color:var(--muted);text-decoration:none;transition:color .15s,text-decoration-color .15s;cursor:pointer}
+.ricoman-breadcrumbs a:hover,.ricoman-breadcrumbs a:focus{color:var(--ink);text-decoration:underline;text-underline-offset:2px}
+.ricoman-breadcrumbs [aria-current="page"]{color:var(--ink);font-weight:500}
+.ricoman-breadcrumbs .sep{color:var(--faint)}
 /* breadcrumbs sitting on a photo/dark hero stay light & legible */
 .wp-block-cover .ricoman-breadcrumbs,.wp-block-cover .ricoman-breadcrumbs a{color:rgba(255,255,255,.78)}
 .wp-block-cover .ricoman-breadcrumbs a:hover{color:#fff}
@@ -708,6 +714,18 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-projq,.rm-newsq{width:100%;font-family:Poppins;font-size:.92rem;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:999px;padding:11px 18px 11px 40px;outline:none;transition:border-color .15s;-webkit-appearance:none;appearance:none}
 .rm-projq:focus,.rm-newsq:focus{border-color:var(--ink)}
 .rm-projq::placeholder,.rm-newsq::placeholder{color:var(--muted)}
+/* Sector landing page (project-cat term archive) — SEO + design */
+.rm-sectorhead{padding-block:clamp(28px,4vw,56px) clamp(16px,2.4vw,28px)!important}
+.rm-sectorhead>*{max-width:860px;margin-inline:auto}
+.rm-sectorhead .rm-pp-crumb,.rm-sectorhead .ricoman-breadcrumbs{margin-bottom:1em}
+.rm-sector-eyebrow{margin:0 0 .6em;color:var(--muted)}
+.rm-sector-title{margin:0 0 .4em}
+.rm-sector-desc{font-size:1.1rem;line-height:1.7;color:var(--muted);max-width:72ch}
+.rm-sector-desc h2,.rm-sector-desc h3{font-family:Poppins;font-weight:600;color:var(--ink);font-size:.72rem;text-transform:uppercase;letter-spacing:.14em;margin:0 0 .6em}
+.rm-sector-desc p{margin:0 0 1em}
+.rm-sector-desc a{color:var(--accent);text-decoration:underline;text-underline-offset:2px}
+.rm-sectorproj{padding-block:clamp(20px,3vw,40px) clamp(32px,4.5vw,64px)!important}
+.rm-sectorproj .rm-shead{max-width:1720px;margin:0 auto clamp(16px,2vw,24px);padding-inline:clamp(20px,4vw,56px)}
 .rm-projchips{display:flex;flex-wrap:wrap;gap:8px;flex:1 1 auto}
 .rm-projchip{font-family:Poppins;font-size:.82rem;font-weight:500;color:var(--ink);background:none;border:1px solid var(--line);border-radius:999px;padding:8px 16px;cursor:pointer;transition:.15s;white-space:nowrap}
 .rm-projchip:hover{border-color:var(--ink)}

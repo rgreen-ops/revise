@@ -368,6 +368,44 @@ add_shortcode( 'ricoman_projects_grid', function ( $atts ) {
 		. '<p class="rm-projempty" hidden>No projects match your search. <button type="button" class="rm-projreset">Clear filters</button></p></div>';
 } );
 
+/** Drop the "Project Category:" / "Archive:" prefix from archive titles. */
+add_filter( 'get_the_archive_title_prefix', '__return_empty_string' );
+
+/** Projects within the current sector term — case-study grid for the landing. */
+add_shortcode( 'ricoman_sector_projects', function () {
+	$term = get_queried_object();
+	if ( ! ( $term instanceof WP_Term ) ) {
+		return '';
+	}
+	$q = new WP_Query( array(
+		'post_type'      => 'project',
+		'post_status'    => 'publish',
+		'posts_per_page' => -1,
+		'no_found_rows'  => true,
+		'orderby'        => array( 'menu_order' => 'ASC', 'date' => 'DESC' ),
+		'tax_query'      => array( array( 'taxonomy' => $term->taxonomy, 'terms' => $term->term_id ) ),
+	) );
+	if ( ! $q->have_posts() ) {
+		return '';
+	}
+	$cards = '';
+	while ( $q->have_posts() ) {
+		$q->the_post();
+		$pid   = get_the_ID();
+		$img   = function_exists( 'ricoman_project_img' ) ? ricoman_project_img( $pid ) : get_the_post_thumbnail_url( $pid, 'large' );
+		$loc   = trim( wp_strip_all_tags( (string) get_post_meta( $pid, 'area', true ) ) );
+		$style = $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '';
+		$cards .= '<a class="rm-projcard" href="' . esc_url( get_permalink() ) . '"' . $style . '><span class="rm-projcard-ov">'
+			. '<span class="rm-projcard-t">' . esc_html( get_the_title() ) . '</span>'
+			. ( $loc ? '<span class="rm-projcard-loc">' . esc_html( $loc ) . '</span>' : '' )
+			. '</span></a>';
+	}
+	wp_reset_postdata();
+	return '<div class="rm-section rm-sectorproj"><div class="rm-projwide">'
+		. '<h2 class="rm-shead">Selected ' . esc_html( $term->name ) . ' projects</h2>'
+		. '<div class="rm-projgrid">' . $cards . '</div></div></div>';
+} );
+
 /** Flat text of the product names used on a project (for search). */
 function ricoman_project_products_text( $pid ) {
 	$txt = '';
