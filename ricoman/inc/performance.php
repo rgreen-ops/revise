@@ -23,7 +23,7 @@ add_filter( 'should_load_separate_core_block_assets', '__return_true' );
 
 /* ---- Preload the two key font weights (body + semibold) ---- */
 add_action( 'wp_head', function () {
-	$weights = array( '400', '600' );
+	$weights = array( '400', '500', '600' );
 	foreach ( $weights as $w ) {
 		$url = get_theme_file_uri( "assets/fonts/poppins-{$w}.woff2" );
 		echo '<link rel="preload" as="font" type="font/woff2" href="' . esc_url( $url ) . '" crossorigin>' . "\n";
@@ -186,7 +186,12 @@ function ricoman_inline_css_file( $rel ) {
 		},
 		$css
 	);
-	return $css;
+	// Conservative minify: strip comments and collapse whitespace runs to a
+	// single space (keeps spaces inside calc() etc. intact, so nothing breaks).
+	$css = preg_replace( '#/\*.*?\*/#s', '', $css );
+	$css = preg_replace( '/\s+/', ' ', $css );
+	$css = str_replace( array( ' { ', '; }', ' }', '{ ', '; ', ': ', ', ' ), array( '{', '}', '}', '{', ';', ':', ',' ), $css );
+	return trim( $css );
 }
 
 add_action( 'wp_enqueue_scripts', function () {
@@ -214,6 +219,26 @@ add_action( 'wp_head', function () {
 		echo "<style id=\"ricoman-inline-css\">" . $css . "</style>\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 }, 9 );
+
+/* ---- TEMP: request-phase timing on the product archive to find the 40s ---- */
+foreach ( array( 'plugins_loaded', 'init', 'wp_loaded', 'wp', 'template_redirect', 'wp_head', 'loop_start', 'loop_end', 'wp_footer' ) as $rm_h ) {
+	add_action( $rm_h, function () use ( $rm_h ) {
+		if ( ! isset( $GLOBALS['rm_perf_marks'][ $rm_h ] ) ) {
+			$GLOBALS['rm_perf_marks'][ $rm_h ] = microtime( true );
+		}
+	}, 1 );
+}
+add_action( 'wp_footer', function () {
+	if ( ! is_post_type_archive( 'product' ) ) {
+		return;
+	}
+	$start = isset( $_SERVER['REQUEST_TIME_FLOAT'] ) ? (float) $_SERVER['REQUEST_TIME_FLOAT'] : 0;
+	$out   = 'REQ=' . round( ( microtime( true ) - $start ) * 1000 ) . 'ms';
+	foreach ( (array) ( $GLOBALS['rm_perf_marks'] ?? array() ) as $k => $t ) {
+		$out .= " {$k}=" . round( ( $t - $start ) * 1000 ) . 'ms';
+	}
+	echo "\n<!-- rm-perf " . esc_html( $out ) . " -->\n";
+}, 99 );
 
 /* ---- Speculative prefetch for near-instant internal navigation ---- */
 add_action( 'wp_footer', function () {
