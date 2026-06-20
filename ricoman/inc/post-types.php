@@ -521,10 +521,12 @@ add_shortcode( 'ricoman_catalogue', function ( $atts ) {
 	// Heavy: queries every category + all products with metrics. Cache the rendered
 	// markup, invalidated whenever a product/variant changes (12h backstop).
 	$ver   = function_exists( 'ricoman_products_ver' ) ? ricoman_products_ver() : '1';
-	$ckey  = 'rm_catalogue_' . md5( $ver );
-	$cache = get_transient( $ckey );
-	if ( false !== $cache ) {
-		return $cache;
+	// Persisted option cache (not a transient): transients were not surviving on
+	// this host, so /products/ rebuilt on every hit. An option in wp_options
+	// always persists. Stored as [ver, html]; served while the version matches.
+	$store = get_option( 'rm_catalogue_cache' );
+	if ( is_array( $store ) && isset( $store['ver'], $store['html'] ) && (string) $store['ver'] === (string) $ver ) {
+		return $store['html'];
 	}
 	$tax   = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
 	$terms = get_terms( array( 'taxonomy' => $tax, 'hide_empty' => true ) );
@@ -575,8 +577,12 @@ add_shortcode( 'ricoman_catalogue', function ( $atts ) {
 				$allfeat[ $f ] = true;
 				$fslug[]       = sanitize_title( $f );
 			}
-			$img   = ricoman_product_img( $pid );
-			$sub   = function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( $pid, 'product_subname' ) : '';
+			// Prefer the precomputed image/subtitle in the metrics record so the
+			// catalogue loop makes no live ACF calls (the old per-product
+			// get_field() calls were the ~40s cost). Fall back to live lookups
+			// only until the background builder has populated the record.
+			$img   = ( isset( $mx['img'] ) && '' !== $mx['img'] ) ? $mx['img'] : ricoman_product_img( $pid );
+			$sub   = isset( $mx['sub'] ) ? $mx['sub'] : ( function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( $pid, 'product_subname' ) : '' );
 			$style = $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '';
 			$meta  = array();
 			if ( $mx['lm'] ) { $meta[] = number_format( $mx['lm'] ) . ' lm'; }
@@ -635,7 +641,7 @@ add_shortcode( 'ricoman_catalogue', function ( $atts ) {
 
 	// Filtering is wired up by the enqueued product-gallery.js (rmCatFilterInit),
 	// keyed off .rm-catwide — reliable regardless of where the markup lands.
-	set_transient( $ckey, $out, 12 * HOUR_IN_SECONDS );
+	update_option( 'rm_catalogue_cache', array( 'ver' => (string) $ver, 'html' => $out ), false );
 	return $out;
 } );
 

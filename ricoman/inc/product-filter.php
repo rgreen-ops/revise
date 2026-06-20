@@ -60,11 +60,42 @@ function ricoman_pf_excluded_features() {
  */
 function ricoman_pf_metrics( $pid ) {
 	static $memo = array();
+	$pid = (int) $pid;
 	if ( isset( $memo[ $pid ] ) ) {
 		return $memo[ $pid ];
 	}
 
-	// Parent ACF text metrics — always fast, computed inline on the request.
+	// Fast path: a precomputed record exists. Building this live means ~5 ACF
+	// get_field() calls per product, which across ~500 products in the catalogue
+	// loop cost ~40s per page load. The full record (lumens, watts, features,
+	// subtitle and image) is precomputed by a background job and read back as a
+	// single meta value here — zero ACF calls on the request.
+	$pre = get_post_meta( $pid, '_rm_pfm', true );
+	if ( is_array( $pre ) && ! empty( $pre['_v'] ) ) {
+		return $memo[ $pid ] = $pre;
+	}
+
+	// Not built (or stored in the old variant-only format): schedule ONE batched
+	// build per request — never a per-product cron event inside the loop, which
+	// rewrote the whole cron-array option ~500× (an O(n^2) storm). Compute live
+	// this once so the page still works until the cron precomputes it.
+	static $sched = false;
+	if ( ! $sched ) {
+		$sched = true;
+		if ( ! wp_next_scheduled( 'ricoman_pf_build_all' ) ) {
+			wp_schedule_single_event( time() + 5, 'ricoman_pf_build_all' );
+		}
+	}
+	return $memo[ $pid ] = ricoman_pf_compute_metrics( $pid );
+}
+
+/**
+ * Live computation of a product's metrics (parent ACF text + variant data).
+ * Heavy (ACF get_field + variant queries) — only ever run in the background
+ * builder or as a one-off fallback, never repeatedly in the catalogue loop.
+ */
+function ricoman_pf_compute_metrics( $pid ) {
+	$pid   = (int) $pid;
 	$lm    = 0;
 	$w     = 0;
 	$feats = array();
@@ -92,40 +123,29 @@ function ricoman_pf_metrics( $pid ) {
 			$feats[ $label ] = true;
 		}
 	}
-
-	// Merge variant-derived lumens/wattage/features. These are pre-computed by a
-	// background job (never on the page request — aggregating thousands of
-	// variants live would time the catalogue out). If not built yet, schedule it.
-	$pre = get_post_meta( $pid, '_rm_pfm', true );
-	if ( is_array( $pre ) ) {
-		$lm = max( $lm, (int) ( $pre['lm'] ?? 0 ) );
-		$w  = max( $w, (int) ( $pre['w'] ?? 0 ) );
-		foreach ( (array) ( $pre['feats'] ?? array() ) as $f ) {
-			$feats[ $f ] = true;
-		}
-	} else {
-		// Metrics not built yet. Do NOT schedule a per-product cron event here:
-		// inside the catalogue loop that rewrites the whole cron-array option once
-		// per product (~500×), an O(n^2) storm that made /products/ take ~40s on
-		// every request. Schedule ONE batched build per request instead.
-		static $sched = false;
-		if ( ! $sched ) {
-			$sched = true;
-			if ( ! wp_next_scheduled( 'ricoman_pf_build_all' ) ) {
-				wp_schedule_single_event( time() + 5, 'ricoman_pf_build_all' );
-			}
-		}
+	// Merge variant-derived lumens/wattage/features.
+	$vm = ricoman_pf_variant_metrics( $pid );
+	$lm = max( $lm, (int) ( $vm['lm'] ?? 0 ) );
+	$w  = max( $w, (int) ( $vm['w'] ?? 0 ) );
+	foreach ( (array) ( $vm['feats'] ?? array() ) as $f => $on ) {
+		// variant_metrics returns feats as label=>true; normalise to label keys.
+		$feats[ is_int( $f ) ? $on : $f ] = true;
 	}
-
-	$res = array( 'lm' => $lm, 'w' => $w, 'feats' => array_keys( $feats ) );
-	return $memo[ $pid ] = $res;
+	return array( 'lm' => $lm, 'w' => $w, 'feats' => array_keys( $feats ) );
 }
 
-/** Compute + store a product's variant metrics on its parent. */
+/**
+ * Compute + store a product's full precomputed catalogue record. Includes the
+ * card subtitle and image URL so the catalogue render needs no ACF calls at all.
+ */
 function ricoman_pf_rebuild( $pid ) {
-	$vm = ricoman_pf_variant_metrics( (int) $pid );
-	update_post_meta( (int) $pid, '_rm_pfm', $vm );
-	return $vm;
+	$pid  = (int) $pid;
+	$rec  = ricoman_pf_compute_metrics( $pid );
+	$rec['sub'] = (string) ( function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( $pid, 'product_subname' ) : '' );
+	$rec['img'] = (string) ( function_exists( 'ricoman_product_img' ) ? ricoman_product_img( $pid ) : '' );
+	$rec['_v']  = 2;
+	update_post_meta( $pid, '_rm_pfm', $rec );
+	return $rec;
 }
 
 /** Background job: build one product's variant metrics (single product). */
