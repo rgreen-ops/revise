@@ -303,7 +303,14 @@ function ricoman_breadcrumb_trail() {
 				'url'   => $archive,
 			);
 		}
-	} elseif ( is_singular( 'project' ) || is_post_type_archive( 'project' ) || is_tax( 'project-cat' ) ) {
+	} elseif ( is_tax( 'project-cat' ) ) {
+		// Sector pages sit under the "Lighting by Sector" hub.
+		$hub = get_page_by_path( 'sectors' );
+		$trail[] = array(
+			'label' => __( 'Sectors', 'ricoman' ),
+			'url'   => $hub ? get_permalink( $hub ) : home_url( '/sectors/' ),
+		);
+	} elseif ( is_singular( 'project' ) || is_post_type_archive( 'project' ) ) {
 		$archive = get_post_type_archive_link( 'project' );
 		if ( $archive ) {
 			$trail[] = array(

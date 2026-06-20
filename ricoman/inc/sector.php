@@ -50,6 +50,61 @@ add_filter( 'ricoman_news_link_map', function ( $map ) {
 	return array_merge( $sector, $map );
 }, 5 );
 
+/** Grid of every sector, linking to its hub. [ricoman_sectors_grid] */
+add_shortcode( 'ricoman_sectors_grid', function () {
+	$tax   = taxonomy_exists( 'project-cat' ) ? 'project-cat' : 'application';
+	$terms = get_terms( array( 'taxonomy' => $tax, 'hide_empty' => true ) );
+	if ( is_wp_error( $terms ) || ! $terms ) {
+		return '';
+	}
+	$cards = '';
+	foreach ( $terms as $t ) {
+		$img = '';
+		$q   = new WP_Query( array(
+			'post_type'      => 'project',
+			'posts_per_page' => 1,
+			'fields'         => 'ids',
+			'no_found_rows'  => true,
+			'tax_query'      => array( array( 'taxonomy' => $tax, 'terms' => $t->term_id ) ),
+		) );
+		if ( $q->posts ) {
+			$img = function_exists( 'ricoman_project_img' ) ? ricoman_project_img( (int) $q->posts[0] ) : get_the_post_thumbnail_url( (int) $q->posts[0], 'large' );
+		}
+		$style  = $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '';
+		$cards .= '<a class="rm-projcard" href="' . esc_url( get_term_link( $t ) ) . '"' . $style . '><span class="rm-projcard-ov">'
+			. '<span class="rm-projcard-t">' . esc_html( $t->name ) . '</span>'
+			. '<span class="rm-projcard-loc">' . (int) $t->count . ' ' . esc_html( _n( 'project', 'projects', (int) $t->count, 'ricoman' ) ) . '</span>'
+			. '</span></a>';
+	}
+	return '<div class="rm-pp-wrap rm-projwide"><div class="rm-projgrid">' . $cards . '</div></div>';
+} );
+
+/** Create the "Lighting by Sector" hub page once (slug: sectors). */
+add_action( 'admin_init', function () {
+	if ( get_option( 'ricoman_sectors_page' ) ) {
+		return;
+	}
+	if ( get_page_by_path( 'sectors' ) ) {
+		update_option( 'ricoman_sectors_page', 1 );
+		return;
+	}
+	$content = '<!-- wp:group {"align":"full","className":"rm-section rm-projintro","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-section rm-projintro">'
+		. '<!-- wp:paragraph {"className":"rm-eyebrow"} --><p class="rm-eyebrow">By Application</p><!-- /wp:paragraph -->'
+		. '<!-- wp:heading {"level":1,"style":{"typography":{"fontWeight":"500"}}} --><h1 class="wp-block-heading" style="font-weight:500">Lighting by sector</h1><!-- /wp:heading -->'
+		. '<!-- wp:paragraph {"className":"rm-projintro-sub","textColor":"muted"} --><p class="rm-projintro-sub has-muted-color has-text-color">From offices and healthcare to retail and industrial — explore our lighting solutions and real project case studies by sector.</p><!-- /wp:paragraph --></div><!-- /wp:group -->'
+		. '<!-- wp:group {"align":"full","className":"rm-section","layout":{"type":"default"}} --><div class="wp-block-group alignfull rm-section"><!-- wp:shortcode -->[ricoman_sectors_grid]<!-- /wp:shortcode --></div><!-- /wp:group -->';
+	$id = wp_insert_post( array(
+		'post_type'    => 'page',
+		'post_status'  => 'publish',
+		'post_title'   => 'Lighting by Sector',
+		'post_name'    => 'sectors',
+		'post_content' => $content,
+	) );
+	if ( $id && ! is_wp_error( $id ) ) {
+		update_option( 'ricoman_sectors_page', 1 );
+	}
+} );
+
 /** Trust / credibility bar for the sector landing (conversion signals). */
 add_shortcode( 'ricoman_sector_trust', function () {
 	$items = array(
