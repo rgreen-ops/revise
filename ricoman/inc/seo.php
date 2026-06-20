@@ -224,7 +224,7 @@ function ricoman_seo_head_meta() {
 
 	// Open Graph.
 	$type = 'website';
-	if ( is_singular( 'post' ) ) {
+	if ( is_singular( array( 'post', 'news' ) ) ) {
 		$type = 'article';
 	} elseif ( is_singular( 'product' ) ) {
 		$type = 'product';
@@ -247,7 +247,7 @@ function ricoman_seo_head_meta() {
 	}
 
 	// Article timestamps.
-	if ( is_singular( 'post' ) ) {
+	if ( is_singular( array( 'post', 'news' ) ) ) {
 		$id      = get_queried_object_id();
 		$out[]   = '<meta property="article:published_time" content="' . esc_attr( get_the_date( 'c', $id ) ) . '">';
 		$out[]   = '<meta property="article:modified_time" content="' . esc_attr( get_the_modified_date( 'c', $id ) ) . '">';
@@ -553,7 +553,7 @@ function ricoman_output_schema() {
 		}
 		$graph[] = $project;
 
-	} elseif ( is_singular( 'post' ) ) {
+	} elseif ( is_singular( array( 'post', 'news' ) ) ) {
 		$id      = get_queried_object_id();
 		$article = array(
 			'@type'            => 'Article',
@@ -649,7 +649,7 @@ add_filter( 'robots_txt', function ( $output ) {
  * ------------------------------------------------------------------------- */
 
 function ricoman_seo_post_types() {
-	return apply_filters( 'ricoman_seo_post_types', array( 'post', 'page', 'product', 'project' ) );
+	return apply_filters( 'ricoman_seo_post_types', array( 'post', 'news', 'page', 'product', 'project' ) );
 }
 
 add_action( 'add_meta_boxes', function () {
