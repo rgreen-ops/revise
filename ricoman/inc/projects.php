@@ -98,10 +98,13 @@ add_filter( 'the_content', function ( $content ) {
 		|| ( 'single-project' === $tpl )
 		|| ( count( $gimgs ) >= 3 );
 
-	// Intro line: ACF excerpt-style field, else the post excerpt.
+	// Intro line: ACF excerpt-style field, else the raw post excerpt. (Use the raw
+	// field, not get_the_excerpt(), which regenerates from the content and would
+	// re-run this the_content filter — infinite recursion / 500 on projects with
+	// no manual excerpt.)
 	$intro = trim( wp_strip_all_tags( $meta( 'pi_description_1' ) ) );
 	if ( '' === $intro ) {
-		$intro = trim( wp_strip_all_tags( get_the_excerpt( $pid ) ) );
+		$intro = trim( wp_strip_all_tags( (string) get_post_field( 'post_excerpt', $pid ) ) );
 	}
 
 	$out = '';
