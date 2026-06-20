@@ -48,7 +48,7 @@ body.rm-hero header.site,body.rm-hero .ricoman-site-header{background:linear-gra
   body.rm-hero header.site,body.rm-hero .ricoman-site-header{position:fixed;top:0;left:0;right:0;z-index:60}
   header.site.rm-stuck,.ricoman-site-header.rm-stuck{background:var(--ink);box-shadow:0 6px 26px rgba(0,0,0,.22)}
 }
-.nav{display:flex;align-items:center;justify-content:space-between;height:80px;color:#fff}
+.nav{display:flex;align-items:center;justify-content:space-between;height:100px;color:#fff}
 .brand{font-family:Poppins;font-weight:700;letter-spacing:.3em;font-size:1.1rem;color:#fff}
 .brand sup{font-size:.5em;top:-1em}
 .nav ul{display:flex;gap:42px;list-style:none;margin:0;padding:0;font-family:Poppins;font-size:.72rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase}
@@ -492,7 +492,7 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 @media(max-width:680px){.rm-fam-list{grid-template-columns:1fr}.rm-facet{grid-template-columns:1fr}}
 
 /* full-screen embedded tool (Flow+ Designer) */
-.rm-tool{display:flex;flex-direction:column;height:calc(100vh - 80px)}
+.rm-tool{display:flex;flex-direction:column;height:calc(100vh - 100px)}
 @media(max-width:1024px){.rm-tool{height:calc(100vh - 54px)}}
 .rm-tool-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;background:var(--ink);color:#fff;padding:10px 18px;font-family:Poppins;font-weight:600;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase}
 .rm-tool-bar a{color:#fff;text-decoration:none}
@@ -537,7 +537,7 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .nav{position:relative}
 .rm-logo{height:24px;width:auto;display:block}
 .rm-nav-right{display:flex;align-items:center;gap:18px}
-.rm-search{display:flex;align-items:center;gap:8px;background:#fff;border-radius:12px;padding:.5em 1em;width:180px;min-width:180px;flex:0 0 180px}
+.rm-search{display:flex;align-items:center;gap:8px;background:#fff;border-radius:12px;padding:.5em 1em;width:150px;min-width:150px;flex:0 0 150px}
 .rm-search-i{color:var(--ink);font-size:.85rem;opacity:.6}
 .rm-search input{border:0;outline:0;background:transparent;font-family:Poppins;font-size:.82rem;color:var(--ink);width:100%}
 .rm-login{font-family:Poppins;font-weight:600;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:#fff;white-space:nowrap}
