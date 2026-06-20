@@ -110,6 +110,14 @@ function ricoman_my_project_url() {
  * @return string
  */
 function ricoman_sc_my_project() {
+	// Logged-in customers get the saved, multi-project manager (server-side).
+	if ( is_user_logged_in() && function_exists( 'ricoman_render_projects_manager' ) ) {
+		return '<div class="ricoman-my-project rm-projwrap">'
+			. '<p class="rm-proj-intro">' . esc_html__( 'Your saved projects. Add products from any page, set quantities, rename a project, and download a full project pack.', 'ricoman' ) . '</p>'
+			. ricoman_render_projects_manager()
+			. '</div>';
+	}
+
 	$sent = isset( $_GET['lead'] ) ? sanitize_key( wp_unslash( $_GET['lead'] ) ) : '';
 
 	ob_start();

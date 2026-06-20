@@ -32,6 +32,7 @@ require_once get_theme_file_path( 'inc/error-page.php' );     // Friendly brande
 require_once get_theme_file_path( 'inc/login.php' );         // Ricoman-branded wp-login screen.
 require_once get_theme_file_path( 'inc/lead-gate.php' );     // Download lead-gate (gate docs behind name/email/type).
 require_once get_theme_file_path( 'inc/accounts.php' );      // Customer accounts: name + customer type on register/profile.
+require_once get_theme_file_path( 'inc/project-lists.php' ); // Saved multi-project lists + project-pack ZIP (logged-in).
 require_once get_theme_file_path( 'inc/seo.php' );           // JSON-LD schema & breadcrumbs.
 require_once get_theme_file_path( 'inc/seo-score.php' );     // SEO scoring + back-office dashboard.
 require_once get_theme_file_path( 'inc/geo.php' );           // Generative SEO (AI search): FAQ, llms.txt.

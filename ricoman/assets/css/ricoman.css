@@ -1447,3 +1447,31 @@ html,body{overflow-x:clip}
 .rm-gate-msg{color:#b32d2e;font-size:.85rem;margin:4px 0 0}
 .rm-gate-alt{font-size:.8rem;color:var(--muted);margin:16px 0 0;line-height:1.5}
 .rm-gate-alt a{color:var(--ink);font-weight:600;text-decoration:underline}
+
+/* ===== Saved project lists (logged-in) ===== */
+.rm-projwrap .rm-proj-intro{color:var(--muted);font-size:.95rem;margin:0 0 18px}
+.rm-proj-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.rm-proj-tab{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 16px;font-family:Poppins;font-size:.85rem;font-weight:500;color:var(--ink);cursor:pointer}
+.rm-proj-tab span{font-size:.72rem;color:var(--muted)}
+.rm-proj-tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.rm-proj-tab.on span{color:rgba(255,255,255,.6)}
+.rm-proj-new{border:1px dashed var(--line);background:none;border-radius:999px;padding:8px 16px;font-family:Poppins;font-size:.85rem;font-weight:500;color:var(--muted);cursor:pointer}
+.rm-proj-new:hover{color:var(--ink);border-color:var(--ink)}
+.rm-proj-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;margin-bottom:14px}
+.rm-proj-title{font-family:Poppins;font-size:1.4rem;font-weight:600;border:0;border-bottom:1px solid transparent;padding:4px 2px;color:var(--ink);background:none;min-width:200px;flex:1}
+.rm-proj-title:hover{border-bottom-color:var(--line)}
+.rm-proj-title:focus{outline:0;border-bottom-color:var(--ink)}
+.rm-proj-headacts{display:flex;gap:8px;flex-wrap:wrap}
+.rm-proj-table{width:100%;border-collapse:collapse}
+.rm-proj-table td{border-top:1px solid var(--line);padding:12px 8px;vertical-align:middle}
+.rm-proj-thumb{width:64px}
+.rm-proj-thumb img{width:56px;height:56px;object-fit:cover;border-radius:8px;background:var(--soft);display:block}
+.rm-proj-name a{font-family:Poppins;font-weight:600;color:var(--ink);text-decoration:none}
+.rm-proj-name a:hover{color:var(--accent)}
+.rm-proj-sku{display:block;font-size:.75rem;color:var(--muted)}
+.rm-proj-qty input{width:64px;border:1px solid var(--line);border-radius:8px;padding:7px 8px;font-family:Poppins;text-align:center}
+.rm-proj-rm button{background:none;border:0;font-size:1.5rem;line-height:1;color:var(--muted);cursor:pointer}
+.rm-proj-rm button:hover{color:#b32d2e}
+.rm-proj-hint{color:var(--muted);font-size:.82rem;margin:14px 0 0}
+.rm-proj-msg{margin-top:10px}
+@media(max-width:600px){.rm-proj-thumb{display:none}.rm-proj-head{flex-direction:column;align-items:stretch}}
