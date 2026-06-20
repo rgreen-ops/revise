@@ -85,6 +85,12 @@ function ricoman_save_ctype_profile( $user_id ) {
 add_action( 'personal_options_update', 'ricoman_save_ctype_profile' );
 add_action( 'edit_user_profile_update', 'ricoman_save_ctype_profile' );
 
+/** Hide the WordPress admin toolbar on the front end for customers (anyone who
+ *  can't edit content) — they shouldn't see the wp-admin bar/icons. Staff keep it. */
+add_filter( 'show_admin_bar', function ( $show ) {
+	return current_user_can( 'edit_posts' ) ? $show : false;
+} );
+
 /** Customers: honour a same-site redirect (e.g. back to the product they were
  *  adding), otherwise send them to the homepage rather than wp-admin. */
 add_filter( 'login_redirect', function ( $redirect_to, $requested, $user ) {
