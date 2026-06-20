@@ -238,7 +238,7 @@ function rm_mc_render_page() {
 		var merging=false,total=0;
 		var mgProg=document.getElementById('rm-mc-merge-prog'),mgBar=document.getElementById('rm-mc-merge-bar'),mgPct=document.getElementById('rm-mc-merge-pct'),mgStart=0,mgT0=Date.now();
 		function mergeBatch(){
-			var b=new URLSearchParams({action:'rm_mc_merge',nonce:nonce,apply:'1',confirm:cf.value,limit:'30'});
+			var b=new URLSearchParams({action:'rm_mc_merge',nonce:nonce,apply:'1',confirm:cf.value,limit:'80'});
 			fetch(ajax,{method:'POST',body:b,credentials:'same-origin'}).then(function(r){return r.json();}).then(function(j){
 				if(!j||!j.success){ mgOut.textContent='Stopped (server busy). Click Merge to resume.'; merging=false; mg.disabled=false; return; }
 				var d=j.data; total+=d.trashed;
@@ -249,7 +249,7 @@ function rm_mc_render_page() {
 				var rate=total/((Date.now()-mgT0)/1000), eta=rate>0?Math.round(d.remaining/rate/60):0;
 				mgPct.textContent='Merged '+total.toLocaleString()+' of '+mgStart.toLocaleString()+' ('+pct+'%) — '+d.remaining.toLocaleString()+' left'+(eta>0?', ~'+eta+' min remaining':'');
 				mgOut.textContent='Working…';
-				if(d.trashed>0 && d.remaining>0){ setTimeout(mergeBatch, 600); }  // pause so the live site isn't hammered
+				if(d.trashed>0 && d.remaining>0){ setTimeout(mergeBatch, 150); }  // brief pause so the live site isn't hammered
 				else { mgBar.style.width='100%'; mgPct.textContent='Done — merged '+total.toLocaleString()+' duplicates to Trash. '+d.remaining.toLocaleString()+' remaining.'; mgOut.textContent='✅ Complete.'; merging=false; mg.disabled=false; }
 			}).catch(function(){ mgOut.textContent='Paused (network/timeout). Click Merge to resume — progress is saved.'; merging=false; mg.disabled=false; });
 		}
@@ -390,8 +390,17 @@ function rm_mc_remap_reference( $from, $to, $apply = false ) {
 	}
 
 	// Content references: wp-image-{id} class + the full-size URL.
-	$from_url = wp_get_attachment_url( $from );
-	$to_url   = wp_get_attachment_url( $to );
+	// Cache URL lookups for the request — this runs once per duplicate and each
+	// wp_get_attachment_url() is several queries + filters.
+	static $url_cache = array();
+	if ( ! array_key_exists( $from, $url_cache ) ) {
+		$url_cache[ $from ] = wp_get_attachment_url( $from );
+	}
+	if ( ! array_key_exists( $to, $url_cache ) ) {
+		$url_cache[ $to ] = wp_get_attachment_url( $to );
+	}
+	$from_url = $url_cache[ $from ];
+	$to_url   = $url_cache[ $to ];
 	$like1    = '%wp-image-' . $from . '%';
 	$like2    = $from_url ? '%' . $wpdb->esc_like( $from_url ) . '%' : null;
 	$where    = "post_content LIKE %s";
@@ -421,7 +430,7 @@ function rm_mc_remap_reference( $from, $to, $apply = false ) {
 function rm_mc_merge_batch( $apply, $limit ) {
 	global $wpdb;
 	$start  = microtime( true );
-	$budget = (float) apply_filters( 'rm_mc_time_budget', 12.0 ); // seconds per request.
+	$budget = (float) apply_filters( 'rm_mc_time_budget', 18.0 ); // seconds per request.
 
 	// Enumerate duplicate groups in ONE pass: each shared hash, its canonical
 	// (lowest ID) and up to 80 of its duplicate IDs. Big groups are whittled
@@ -441,6 +450,7 @@ function rm_mc_merge_batch( $apply, $limit ) {
 	$done = 0;
 	$seen = 0;
 	$out_of_time = false;
+	$trash = array(); // vid => canon, trashed in one bulk pass at the end.
 	foreach ( $groups as $g ) {
 		$canon = (int) $g->canon;
 		foreach ( array_map( 'intval', explode( ',', (string) $g->ids ) ) as $vid ) {
@@ -450,9 +460,7 @@ function rm_mc_merge_batch( $apply, $limit ) {
 			$seen++;
 			$refs += rm_mc_remap_reference( $vid, $canon, $apply );
 			if ( $apply ) {
-				delete_post_meta( $vid, '_rm_sha1' ); // stop it counting as a dup.
-				update_post_meta( $vid, '_rm_merged_into', $canon );
-				wp_trash_post( $vid );                // recoverable; refs already moved.
+				$trash[ $vid ] = $canon;
 				$done++;
 			}
 			if ( microtime( true ) - $start > $budget ) {
@@ -461,12 +469,53 @@ function rm_mc_merge_batch( $apply, $limit ) {
 			}
 		}
 	}
+
+	// Bulk-trash everything in this batch in a handful of set-based queries
+	// instead of a slow wp_trash_post() per image (which fires a cascade of hooks
+	// each time). Still recoverable: we set the same trash meta WordPress uses.
+	if ( $apply && $trash ) {
+		$ids = array_map( 'intval', array_keys( $trash ) );
+		$in  = implode( ',', $ids );
+		$now = time();
+
+		$status_vals = array();
+		$time_vals   = array();
+		$merged_vals = array();
+		foreach ( $trash as $vid => $canon ) {
+			$vid = (int) $vid;
+			$status_vals[] = $wpdb->prepare( '(%d,%s,%s)', $vid, '_wp_trash_meta_status', 'inherit' );
+			$time_vals[]   = $wpdb->prepare( '(%d,%s,%s)', $vid, '_wp_trash_meta_time', (string) $now );
+			$merged_vals[] = $wpdb->prepare( '(%d,%s,%s)', $vid, '_rm_merged_into', (string) (int) $canon );
+		}
+		// Clear any stale copies of these helper metas, then insert fresh.
+		$wpdb->query( "DELETE FROM {$wpdb->postmeta} WHERE post_id IN ($in) AND meta_key IN ('_rm_sha1','_wp_trash_meta_status','_wp_trash_meta_time','_rm_merged_into')" );
+		$wpdb->query( "INSERT INTO {$wpdb->postmeta} (post_id,meta_key,meta_value) VALUES " . implode( ',', $status_vals ) );
+		$wpdb->query( "INSERT INTO {$wpdb->postmeta} (post_id,meta_key,meta_value) VALUES " . implode( ',', $time_vals ) );
+		$wpdb->query( "INSERT INTO {$wpdb->postmeta} (post_id,meta_key,meta_value) VALUES " . implode( ',', $merged_vals ) );
+		$wpdb->query( "UPDATE {$wpdb->posts} SET post_status='trash' WHERE ID IN ($in)" );
+		foreach ( $ids as $vid ) {
+			clean_post_cache( $vid );
+		}
+	}
+
+	// Remaining duplicate count is expensive (GROUP BY across the whole library),
+	// so keep a running tally in a transient and only recompute it from scratch
+	// when the cache is cold — not on every batch.
+	$remaining = get_transient( 'rm_mc_extra' );
+	if ( false === $remaining ) {
+		$remaining = (int) rm_mc_stats()['extra'];
+	}
+	if ( $apply ) {
+		$remaining = max( 0, (int) $remaining - $done );
+	}
+	set_transient( 'rm_mc_extra', $remaining, 300 );
+
 	return array(
 		'processed' => $seen,
 		'refs'      => $refs,
 		'trashed'   => $done,
 		'timed'     => $out_of_time,
-		'remaining' => (int) rm_mc_stats()['extra'],
+		'remaining' => (int) $remaining,
 	);
 }
 
