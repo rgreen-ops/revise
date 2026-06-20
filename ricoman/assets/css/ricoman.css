@@ -544,11 +544,7 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-login:hover{color:#9ec1ff}
 .rm-caret{font-size:.7em;opacity:.7}
 .rm-has-mega{position:static}
-.rm-mega{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--paper);color:var(--ink);border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,.28);padding:clamp(24px,3vw,44px);opacity:0;visibility:hidden;transform:translateY(8px);transition:.22s ease;z-index:70}
-/* Invisible bridge across the gap so the menu doesn't drop as you move to it */
-.rm-mega::before{content:"";position:absolute;left:0;right:0;top:-14px;height:16px}
-/* Keep it open briefly while the cursor is between the link and the panel */
-.rm-has-mega>a{padding-bottom:10px}
+.rm-mega{position:absolute;top:100%;left:0;right:0;background:var(--paper);color:var(--ink);border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,.28);padding:clamp(24px,3vw,44px);opacity:0;visibility:hidden;transform:translateY(8px);transition:.22s ease;z-index:70}
 .rm-has-mega:hover .rm-mega,.rm-has-mega:focus-within .rm-mega{opacity:1;visibility:visible;transform:none}
 .rm-mega-head{display:inline-block;font-family:Poppins;font-weight:700;font-size:1.25rem;letter-spacing:-.02em;color:var(--ink)!important;text-transform:none;text-decoration:underline;text-underline-offset:5px;margin-bottom:1.1em}
 .rm-mega-grid{display:grid;grid-template-columns:1.7fr 1fr;gap:clamp(24px,3vw,48px)}
@@ -1388,9 +1384,10 @@ html,body{overflow-x:clip}
 	.nav{justify-content:space-between}
 	.brand{margin-right:auto;font-size:.9rem}
 	.rm-logo{height:19px}
-	.rm-nav{margin-right:34px}
+	.rm-nav{margin-right:34px;align-self:stretch;align-items:stretch}
 	.nav ul{gap:30px;font-size:.72rem;font-weight:400;letter-spacing:.11em}
 	.nav ul a{color:rgba(255,255,255,.96)}
+	.rm-nav>li{display:flex;align-items:center}
 	.rm-nav>li>a{position:relative;display:inline-flex;align-items:center;gap:.4em;padding-bottom:4px}
 	.rm-nav>li>a::after{content:"\2197";font-size:.78em;opacity:0;transition:opacity .2s ease,transform .2s ease}
 	.rm-nav>li>a:hover::after{opacity:.8;transform:translate(1px,-1px)}
