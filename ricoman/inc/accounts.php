@@ -85,9 +85,16 @@ function ricoman_save_ctype_profile( $user_id ) {
 add_action( 'personal_options_update', 'ricoman_save_ctype_profile' );
 add_action( 'edit_user_profile_update', 'ricoman_save_ctype_profile' );
 
-/** Send users to the homepage after login, not wp-admin (they're customers). */
+/** Customers: honour a same-site redirect (e.g. back to the product they were
+ *  adding), otherwise send them to the homepage rather than wp-admin. */
 add_filter( 'login_redirect', function ( $redirect_to, $requested, $user ) {
 	if ( $user instanceof WP_User && ! user_can( $user, 'edit_posts' ) ) {
+		if ( $requested ) {
+			$safe = wp_validate_redirect( $requested, '' );
+			if ( $safe ) {
+				return $safe;
+			}
+		}
 		return home_url( '/' );
 	}
 	return $redirect_to;

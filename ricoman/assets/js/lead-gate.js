@@ -46,6 +46,29 @@
 		} );
 	} )();
 
+	/* ---- Add-to-project for guests → prompt to sign in / register ---- */
+	( function () {
+		var authgate = document.querySelector( '.rm-authgate' );
+		if ( ! authgate ) { return; }
+		function close() { authgate.hidden = true; document.body.style.overflow = ''; }
+		document.addEventListener( 'click', function ( e ) {
+			var add = e.target.closest( '[data-add-to-project], .ricoman-add-project' );
+			if ( add ) {
+				e.preventDefault();
+				e.stopImmediatePropagation();
+				var id = add.getAttribute( 'data-id' );
+				if ( id ) { document.cookie = 'rm_pending_add=' + id + '; max-age=1800; path=/'; }
+				var ret = encodeURIComponent( window.location.href );
+				var li = authgate.querySelector( '.rm-auth-login' );
+				if ( li && G.login ) { li.href = G.login + ( G.login.indexOf( '?' ) > -1 ? '&' : '?' ) + 'redirect_to=' + ret; }
+				authgate.hidden = false; document.body.style.overflow = 'hidden';
+				return;
+			}
+			if ( ! authgate.hidden && ( e.target === authgate || e.target.classList.contains( 'rm-gate-x' ) ) ) { close(); }
+		}, true );
+		document.addEventListener( 'keydown', function ( e ) { if ( e.key === 'Escape' && ! authgate.hidden ) { close(); } } );
+	} )();
+
 	if ( G.in ) { return; } // Logged in — never show the download gate.
 
 	// File types we treat as gated downloads.

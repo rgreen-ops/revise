@@ -85,4 +85,11 @@
 
 	// Initialise the header badge from the active project.
 	if ( typeof P.count !== 'undefined' ) { setCount( P.count ); }
+
+	// A product a guest tried to add before signing in — add it now.
+	var pend = document.cookie.match( /(?:^|;\s*)rm_pending_add=(\d+)/ );
+	if ( pend ) {
+		document.cookie = 'rm_pending_add=; max-age=0; path=/';
+		post( { op: 'add', product: pend[1] }, function ( data ) { swap( data ); } );
+	}
 } )();

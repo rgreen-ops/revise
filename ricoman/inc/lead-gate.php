@@ -77,6 +77,20 @@ add_action( 'wp_footer', function () {
 	if ( is_user_logged_in() ) {
 		return;
 	}
+	// Auth prompt — shown when a guest tries to add a product to a project.
+	?>
+	<div class="rm-gate rm-authgate" hidden aria-hidden="true">
+		<div class="rm-gate-box" role="dialog" aria-modal="true" aria-labelledby="rm-auth-h">
+			<button type="button" class="rm-gate-x" aria-label="Close">&times;</button>
+			<h3 id="rm-auth-h" class="rm-gate-title"><?php esc_html_e( 'Save it to your project', 'ricoman' ); ?></h3>
+			<p class="rm-gate-sub"><?php esc_html_e( 'Sign in or create a free account to add products to a project, keep multiple projects and download project packs. We’ll add this product as soon as you’re in.', 'ricoman' ); ?></p>
+			<div class="rm-auth-acts">
+				<a class="btn btn-solid rm-auth-login" href="<?php echo esc_url( wp_login_url() ); ?>"><?php esc_html_e( 'Sign in', 'ricoman' ); ?></a>
+				<a class="btn btn-line-d rm-auth-reg" href="<?php echo esc_url( wp_registration_url() ); ?>"><?php esc_html_e( 'Create an account', 'ricoman' ); ?></a>
+			</div>
+		</div>
+	</div>
+	<?php
 	$opts = '<option value="">' . esc_html__( 'Select customer type…', 'ricoman' ) . '</option>';
 	foreach ( ricoman_customer_types() as $t ) {
 		$opts .= '<option value="' . esc_attr( $t ) . '">' . esc_html( $t ) . '</option>';

@@ -1445,10 +1445,12 @@ html,body{overflow-x:clip}
 .rm-gate-x:hover{color:var(--ink)}
 .rm-gate-title{font-family:Poppins;font-weight:600;font-size:1.3rem;margin:0 0 6px;color:var(--ink)}
 .rm-gate-sub{font-size:.9rem;color:var(--muted);margin:0 0 18px}
-.rm-gate-form{display:flex;flex-direction:column;gap:12px}
-.rm-gate-form label{display:flex;flex-direction:column;gap:5px;font-family:Poppins;font-size:.8rem;font-weight:600;color:var(--ink)}
-.rm-gate-form input,.rm-gate-form select{border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-size:15px;font-family:Poppins;background:#fff;color:var(--ink)}
-.rm-gate-form input:focus,.rm-gate-form select:focus{outline:0;border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.rm-gate-form,.rm-bim-form{display:flex;flex-direction:column;gap:12px}
+.rm-gate-form label,.rm-bim-form label{display:flex;flex-direction:column;gap:5px;font-family:Poppins;font-size:.8rem;font-weight:600;color:var(--ink)}
+.rm-gate-form input,.rm-gate-form select,.rm-bim-form input,.rm-bim-form select{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-size:15px;font-family:Poppins;background:#fff;color:var(--ink)}
+.rm-gate-form input:focus,.rm-gate-form select:focus,.rm-bim-form input:focus,.rm-bim-form select:focus{outline:0;border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.rm-gate-form .btn,.rm-bim-form .btn{width:100%;justify-content:center}
+@media(max-width:600px){.rm-gate{padding:12px}.rm-gate-box{padding:24px 18px;border-radius:14px;max-height:90vh;overflow-y:auto}}
 .rm-gate-go{margin-top:6px;justify-content:center}
 .rm-gate-msg{color:#b32d2e;font-size:.85rem;margin:4px 0 0}
 .rm-gate-alt{font-size:.8rem;color:var(--muted);margin:16px 0 0;line-height:1.5}
@@ -1490,3 +1492,7 @@ html,body{overflow-x:clip}
 .rm-dls .rm-dl-lbl{font-weight:600;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rm-dls .rm-dl-sub{color:var(--muted);text-transform:none;letter-spacing:0;font-weight:400;white-space:nowrap}
 @media(max-width:600px){.rm-dls{grid-template-columns:1fr;gap:0}}
+
+/* Auth prompt (add-to-project for guests) */
+.rm-auth-acts{display:flex;flex-direction:column;gap:10px;margin-top:18px}
+.rm-auth-acts .btn{width:100%;justify-content:center}

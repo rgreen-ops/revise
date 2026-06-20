@@ -22,21 +22,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Enqueue the My Project script on the front end.
  */
-function ricoman_my_project_assets() {
-	// Logged-in customers use the server-side projects.js instead of the guest
-	// localStorage list — loading both would fight over the header count badge.
-	if ( is_user_logged_in() ) {
-		return;
-	}
-	wp_enqueue_script(
-		'ricoman-my-project',
-		get_theme_file_uri( 'assets/js/my-project.js' ),
-		array(),
-		RICOMAN_VERSION,
-		true
-	);
-}
-add_action( 'wp_enqueue_scripts', 'ricoman_my_project_assets' );
+// Projects are now account-based: logged-in users use projects.js, and guests are
+// prompted to sign in / register (handled in lead-gate.js) rather than keeping a
+// browser-only list, so the old localStorage script (my-project.js) is no longer
+// enqueued.
 
 /**
  * Add-to-project button.
@@ -123,6 +112,19 @@ function ricoman_sc_my_project() {
 			. '</div>';
 	}
 
+	// Guests: projects are account-based — prompt to sign in / create an account.
+	$login = wp_login_url( ricoman_my_project_url() );
+	$reg   = wp_registration_url();
+	return '<div class="ricoman-my-project rm-projwrap rm-proj-guest">'
+		. '<h2 class="rm-shead">' . esc_html__( 'Start a project', 'ricoman' ) . '</h2>'
+		. '<p class="rm-proj-intro">' . esc_html__( 'Create a free account to save products into named projects, set quantities, and download a full project pack of datasheets, instructions and IES/LDT files. Sign in and your products are kept on your account.', 'ricoman' ) . '</p>'
+		. '<p class="rm-cfg-acts"><a class="btn btn-solid" href="' . esc_url( $login ) . '">' . esc_html__( 'Sign in', 'ricoman' ) . '</a> '
+		. '<a class="btn btn-line-d" href="' . esc_url( $reg ) . '">' . esc_html__( 'Create an account', 'ricoman' ) . '</a></p>'
+		. '</div>';
+}
+
+/** Unused guest branch kept out of the way (projects are now account-based). */
+function ricoman_sc_my_project_legacy_guest() {
 	$sent = isset( $_GET['lead'] ) ? sanitize_key( wp_unslash( $_GET['lead'] ) ) : '';
 
 	ob_start();
