@@ -161,9 +161,16 @@ function rm_mc_render_page() {
 	echo '<p>' . esc_html__( 'Reads each image once and records a content fingerprint. Safe to re-run; resumes where it left off. Leave this tab open while it works.', 'ricoman' ) . '</p>';
 	echo '<p><button class="button button-primary" id="rm-mc-index">' . esc_html__( 'Start / resume indexing', 'ricoman' ) . '</button> <span id="rm-mc-progress" style="margin-left:10px"></span></p>';
 
-	echo '<h2>' . esc_html__( 'Step 2 — Review duplicates', 'ricoman' ) . '</h2>';
-	echo '<p>' . esc_html__( 'Once indexing is complete the "Removable duplicate files" figure above is the number of files that can be safely merged away (each keeps one canonical copy). The destructive merge step is enabled separately once you have a backup.', 'ricoman' ) . '</p>';
-	echo '<p style="color:#b32d2e"><strong>' . esc_html__( 'Before merging:', 'ricoman' ) . '</strong> ' . esc_html__( 'take a full backup of the database and the uploads folder. Merging remaps references and trashes files — it cannot be undone from here.', 'ricoman' ) . '</p>';
+	echo '<h2>' . esc_html__( 'Step 2 — Preview the merge (safe)', 'ricoman' ) . '</h2>';
+	echo '<p>' . esc_html__( 'Runs the merge logic on a sample of duplicates WITHOUT changing anything — it reports how many references would be remapped, so you can sanity-check first.', 'ricoman' ) . '</p>';
+	echo '<p><button class="button" id="rm-mc-preview">' . esc_html__( 'Preview 40 duplicates', 'ricoman' ) . '</button> <span id="rm-mc-preview-out" style="margin-left:10px"></span></p>';
+
+	echo '<h2>' . esc_html__( 'Step 3 — Merge duplicates', 'ricoman' ) . '</h2>';
+	echo '<p style="color:#b32d2e"><strong>' . esc_html__( 'Back up first.', 'ricoman' ) . '</strong> ' . esc_html__( 'This remaps every reference to one canonical copy and moves the duplicates to Trash (recoverable for ~30 days). Take a full database + uploads backup before running.', 'ricoman' ) . '</p>';
+	echo '<p>' . esc_html__( 'Type', 'ricoman' ) . ' <code>MERGE</code> ' . esc_html__( 'to enable, then run. It processes in batches and keeps going until done — leave the tab open.', 'ricoman' ) . '</p>';
+	echo '<p><input type="text" id="rm-mc-confirm" placeholder="Type MERGE" style="width:140px"> '
+		. '<button class="button button-primary" id="rm-mc-merge" disabled>' . esc_html__( 'Merge duplicates (to Trash)', 'ricoman' ) . '</button> '
+		. '<span id="rm-mc-merge-out" style="margin-left:10px"></span></p>';
 
 	$nonce = wp_create_nonce( 'rm_mc' );
 	?>
@@ -187,11 +194,193 @@ function rm_mc_render_page() {
 			}).catch(function(){ prog.textContent='Network error — click to resume.'; running=false; btn.disabled=false; });
 		}
 		btn.addEventListener('click',function(){ if(running)return; running=true; btn.disabled=true; prog.textContent='Starting…'; batch(0); });
+
+		// Preview (dry-run).
+		var pv=document.getElementById('rm-mc-preview'),pvOut=document.getElementById('rm-mc-preview-out');
+		pv.addEventListener('click',function(){
+			pv.disabled=true; pvOut.textContent='Checking…';
+			var b=new URLSearchParams({action:'rm_mc_merge',nonce:nonce,apply:'0',limit:'40'});
+			fetch(ajax,{method:'POST',body:b,credentials:'same-origin'}).then(function(r){return r.json();}).then(function(j){
+				pv.disabled=false;
+				if(!j||!j.success){ pvOut.textContent='Error.'; return; }
+				var d=j.data;
+				pvOut.textContent='Sample of '+d.processed+' duplicates would remap '+d.refs+' reference(s). No changes made.';
+			}).catch(function(){ pv.disabled=false; pvOut.textContent='Network error.'; });
+		});
+
+		// Merge (apply) — gated by typing MERGE.
+		var cf=document.getElementById('rm-mc-confirm'),mg=document.getElementById('rm-mc-merge'),mgOut=document.getElementById('rm-mc-merge-out');
+		cf.addEventListener('input',function(){ mg.disabled=(cf.value.trim().toUpperCase()!=='MERGE'); });
+		var merging=false,total=0;
+		function mergeBatch(){
+			var b=new URLSearchParams({action:'rm_mc_merge',nonce:nonce,apply:'1',confirm:cf.value,limit:'40'});
+			fetch(ajax,{method:'POST',body:b,credentials:'same-origin'}).then(function(r){return r.json();}).then(function(j){
+				if(!j||!j.success){ mgOut.textContent='Error — stopped.'; merging=false; mg.disabled=false; return; }
+				var d=j.data; total+=d.trashed;
+				setStat({extra:d.remaining});
+				mgOut.textContent='Merged '+total.toLocaleString()+' duplicates… '+d.remaining.toLocaleString()+' remaining.';
+				if(d.processed>0 && d.remaining>0){ mergeBatch(); }
+				else { mgOut.textContent='Done — merged '+total.toLocaleString()+' duplicates to Trash. '+d.remaining.toLocaleString()+' remaining.'; merging=false; }
+			}).catch(function(){ mgOut.textContent='Network error — click to resume.'; merging=false; mg.disabled=false; });
+		}
+		mg.addEventListener('click',function(){ if(merging)return; if(cf.value.trim().toUpperCase()!=='MERGE')return;
+			if(!confirm('Merge duplicate images to Trash? Make sure you have a backup.'))return;
+			merging=true; mg.disabled=true; mgOut.textContent='Merging…'; mergeBatch(); });
 	})();
 	</script>
 	<?php
 	echo '</div>';
 }
+
+/* ------------------------------------------------------------------ *
+ * 4. Merge duplicates — remap references to the canonical image, then
+ *    Trash the duplicate. Bounded to image-type meta so unrelated numeric
+ *    meta (parent IDs, menu order, …) is never touched.
+ * ------------------------------------------------------------------ */
+
+/** SQL fragment: meta rows that plausibly hold an image/gallery reference. */
+function rm_mc_image_key_sql( $alias = 'm' ) {
+	return "($alias.meta_key = '_thumbnail_id' OR $alias.meta_key REGEXP '(image|images|diagram|diagrams|gallery|galleries|galary|icon|photo|banner|thumbnail)$')";
+}
+
+/** Replace attachment id $from with $to inside one meta value (plain / CSV /
+ * serialized). Returns array( new_value, changed ). Only exact int matches. */
+function rm_mc_replace_in_value( $value, $from, $to ) {
+	$un = is_string( $value ) ? @unserialize( $value ) : false;
+	if ( false !== $un || 'b:0;' === $value ) {
+		$changed = false;
+		if ( is_array( $un ) ) {
+			array_walk_recursive( $un, function ( &$v ) use ( $from, $to, &$changed ) {
+				if ( ( is_int( $v ) && $v === $from ) || ( is_string( $v ) && ctype_digit( $v ) && (int) $v === $from ) ) {
+					$v = is_int( $v ) ? $to : (string) $to;
+					$changed = true;
+				}
+			} );
+		}
+		return $changed ? array( serialize( $un ), true ) : array( $value, false );
+	}
+	$trim = trim( (string) $value );
+	if ( ctype_digit( $trim ) && (int) $trim === $from ) {
+		return array( (string) $to, true );
+	}
+	if ( false !== strpos( $value, ',' ) ) {
+		$parts   = array_map( 'trim', explode( ',', $value ) );
+		$changed = false;
+		foreach ( $parts as &$p ) {
+			if ( ctype_digit( $p ) && (int) $p === $from ) {
+				$p = (string) $to;
+				$changed = true;
+			}
+		}
+		return $changed ? array( implode( ',', $parts ), true ) : array( $value, false );
+	}
+	return array( $value, false );
+}
+
+/** Remap every reference of attachment $from to $to. Dry-run unless $apply.
+ * Returns the number of references found/changed. */
+function rm_mc_remap_reference( $from, $to, $apply = false ) {
+	global $wpdb;
+	$from = (int) $from;
+	$to   = (int) $to;
+	$n    = 0;
+
+	// Meta references (image-type keys only).
+	$rows = $wpdb->get_results( $wpdb->prepare(
+		"SELECT m.meta_id, m.meta_value FROM {$wpdb->postmeta} m
+		 WHERE " . rm_mc_image_key_sql( 'm' ) . "
+		   AND m.meta_value REGEXP %s",
+		'(^|[^0-9])' . $from . '([^0-9]|$)'
+	) );
+	foreach ( $rows as $r ) {
+		list( $new, $changed ) = rm_mc_replace_in_value( $r->meta_value, $from, $to );
+		if ( $changed ) {
+			$n++;
+			if ( $apply ) {
+				$wpdb->update( $wpdb->postmeta, array( 'meta_value' => $new ), array( 'meta_id' => (int) $r->meta_id ) );
+			}
+		}
+	}
+
+	// Content references: wp-image-{id} class + the full-size URL.
+	$from_url = wp_get_attachment_url( $from );
+	$to_url   = wp_get_attachment_url( $to );
+	$like1    = '%wp-image-' . $from . '%';
+	$like2    = $from_url ? '%' . $wpdb->esc_like( $from_url ) . '%' : null;
+	$where    = "post_content LIKE %s";
+	$params   = array( $like1 );
+	if ( $like2 ) {
+		$where   .= " OR post_content LIKE %s";
+		$params[] = $like2;
+	}
+	$posts = $wpdb->get_results( $wpdb->prepare( "SELECT ID, post_content FROM {$wpdb->posts} WHERE $where", $params ) );
+	foreach ( $posts as $p ) {
+		$new = str_replace( 'wp-image-' . $from, 'wp-image-' . $to, $p->post_content );
+		if ( $from_url && $to_url ) {
+			$new = str_replace( $from_url, $to_url, $new );
+		}
+		if ( $new !== $p->post_content ) {
+			$n++;
+			if ( $apply ) {
+				$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => (int) $p->ID ) );
+				clean_post_cache( (int) $p->ID );
+			}
+		}
+	}
+	return $n;
+}
+
+/** Process one batch of duplicates: remap + (optionally) trash. */
+function rm_mc_merge_batch( $apply, $limit ) {
+	global $wpdb;
+	// Duplicate attachments = image attachments whose hash is shared by an
+	// earlier (lower-ID) attachment. The earliest in each group is the canon.
+	$dupes = $wpdb->get_results( $wpdb->prepare(
+		"SELECT m.post_id AS id, m.meta_value AS hash FROM {$wpdb->postmeta} m
+		 INNER JOIN {$wpdb->posts} p ON p.ID = m.post_id AND p.post_status <> 'trash'
+		 WHERE m.meta_key='_rm_sha1' AND m.meta_value NOT IN ('', 'missing')
+		   AND EXISTS (
+		     SELECT 1 FROM {$wpdb->postmeta} m2
+		     WHERE m2.meta_key='_rm_sha1' AND m2.meta_value = m.meta_value AND m2.post_id < m.post_id
+		   )
+		 ORDER BY m.post_id ASC LIMIT %d",
+		(int) $limit
+	) );
+	$refs = 0;
+	$done = 0;
+	foreach ( $dupes as $d ) {
+		$canon = rm_mc_canonical_for_hash( $d->hash, (int) $d->id );
+		if ( ! $canon || $canon === (int) $d->id ) {
+			continue;
+		}
+		$refs += rm_mc_remap_reference( (int) $d->id, (int) $canon, $apply );
+		if ( $apply ) {
+			delete_post_meta( (int) $d->id, '_rm_sha1' ); // so it stops counting as a dup.
+			update_post_meta( (int) $d->id, '_rm_merged_into', (int) $canon );
+			wp_trash_post( (int) $d->id ); // recoverable; references already moved.
+			$done++;
+		}
+	}
+	return array(
+		'processed' => count( $dupes ),
+		'refs'      => $refs,
+		'trashed'   => $done,
+		'remaining' => (int) rm_mc_stats()['extra'],
+	);
+}
+
+/** AJAX: merge a batch (dry-run unless apply=1 with the confirm token). */
+add_action( 'wp_ajax_rm_mc_merge', function () {
+	if ( ! current_user_can( 'manage_options' ) || ! check_ajax_referer( 'rm_mc', 'nonce', false ) ) {
+		wp_send_json_error();
+	}
+	$apply = isset( $_POST['apply'] ) && '1' === $_POST['apply']
+		&& isset( $_POST['confirm'] ) && 'MERGE' === strtoupper( trim( wp_unslash( $_POST['confirm'] ) ) );
+	$limit = max( 5, min( 100, (int) ( $_POST['limit'] ?? 40 ) ) );
+	$res   = rm_mc_merge_batch( $apply, $limit );
+	$res['applied'] = $apply;
+	wp_send_json_success( $res );
+} );
 
 /** AJAX: index one batch of un-hashed image attachments. */
 add_action( 'wp_ajax_rm_mc_index', function () {
