@@ -146,11 +146,32 @@ function ricoman_projects_apply( $user_id, $op, $args ) {
 				}
 			}
 			break;
+		case 'addcustom':
+			// A saved custom design (e.g. a Flow+ run from the designer tool).
+			if ( '' !== $args['name'] || '' !== $args['summary'] ) {
+				if ( '' !== $args['pid'] && $find( $args['pid'] ) >= 0 ) {
+					$active = $args['pid'];
+				}
+				$i = $find( $active );
+				if ( $i < 0 ) {
+					$i      = 0;
+					$active = $projects[0]['id'];
+				}
+				$projects[ $i ]['items'][] = array(
+					'id'      => 'c' . substr( uniqid( '', true ), -10 ),
+					'custom'  => true,
+					'type'    => $args['ctype'] ? $args['ctype'] : 'custom',
+					'name'    => $args['name'] ? $args['name'] : __( 'Custom design', 'ricoman' ),
+					'summary' => $args['summary'],
+					'qty'     => 1,
+				);
+			}
+			break;
 		case 'remove':
 			$i = $find( '' !== $args['pid'] ? $args['pid'] : $active );
 			if ( $i >= 0 ) {
 				foreach ( $projects[ $i ]['items'] as $k => $it ) {
-					if ( (int) $it['id'] === (int) $args['product'] ) {
+					if ( (string) $it['id'] === (string) $args['product'] ) {
 						array_splice( $projects[ $i ]['items'], $k, 1 );
 						break;
 					}
@@ -162,7 +183,7 @@ function ricoman_projects_apply( $user_id, $op, $args ) {
 			if ( $i >= 0 ) {
 				$qty = max( 1, (int) $args['qty'] );
 				foreach ( $projects[ $i ]['items'] as $k => $it ) {
-					if ( (int) $it['id'] === (int) $args['product'] ) {
+					if ( (string) $it['id'] === (string) $args['product'] ) {
 						$projects[ $i ]['items'][ $k ]['qty'] = $qty;
 						break;
 					}
@@ -204,11 +225,23 @@ function ricoman_render_projects_manager( $user_id = 0 ) {
 	$rows = '';
 	if ( $cur && $cur['items'] ) {
 		foreach ( $cur['items'] as $it ) {
+			$qty = max( 1, (int) $it['qty'] );
+			// Custom saved designs (e.g. a Flow+ run from the designer).
+			if ( ! empty( $it['custom'] ) ) {
+				$cid     = (string) $it['id'];
+				$cname   = $it['name'] ? $it['name'] : __( 'Custom design', 'ricoman' );
+				$csum    = isset( $it['summary'] ) ? (string) $it['summary'] : '';
+				$rows   .= '<tr><td class="rm-proj-thumb"><span class="rm-proj-custico" aria-hidden="true">✎</span></td>'
+					. '<td class="rm-proj-name"><strong>' . esc_html( $cname ) . '</strong>'
+					. ( $csum ? '<span class="rm-proj-sku">' . esc_html( wp_trim_words( $csum, 18 ) ) . '</span>' : '' ) . '</td>'
+					. '<td class="rm-proj-qty"><input type="number" min="1" value="' . $qty . '" data-proj-qty="' . esc_attr( $cid ) . '"></td>'
+					. '<td class="rm-proj-rm"><button type="button" data-proj-remove="' . esc_attr( $cid ) . '" aria-label="Remove">&times;</button></td></tr>';
+				continue;
+			}
 			$pid = (int) $it['id'];
 			if ( 'product' !== get_post_type( $pid ) ) {
 				continue;
 			}
-			$qty   = max( 1, (int) $it['qty'] );
 			$img   = function_exists( 'ricoman_product_img' ) ? ricoman_product_img( $pid ) : get_the_post_thumbnail_url( $pid, 'thumbnail' );
 			$sku   = (string) get_post_meta( $pid, '_ricoman_sku', true );
 			$rows .= '<tr><td class="rm-proj-thumb">' . ( $img ? '<img src="' . esc_url( $img ) . '" alt="">' : '' ) . '</td>'
@@ -271,15 +304,17 @@ add_action( 'wp_ajax_rm_proj', function () {
 		wp_send_json_success( array( 'projects' => $out, 'active' => ricoman_active_project_id() ) );
 	}
 
-	if ( ! in_array( $op, array( 'create', 'rename', 'delete', 'switch', 'add', 'remove', 'qty' ), true ) ) {
+	if ( ! in_array( $op, array( 'create', 'rename', 'delete', 'switch', 'add', 'addcustom', 'remove', 'qty' ), true ) ) {
 		wp_send_json_error();
 	}
 	$args = array(
 		'name'    => isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '',
 		'newname' => isset( $_POST['newname'] ) ? sanitize_text_field( wp_unslash( $_POST['newname'] ) ) : '',
 		'pid'     => isset( $_POST['pid'] ) ? sanitize_text_field( wp_unslash( $_POST['pid'] ) ) : '',
-		'product' => isset( $_POST['product'] ) ? (int) $_POST['product'] : 0,
+		'product' => isset( $_POST['product'] ) ? sanitize_text_field( wp_unslash( $_POST['product'] ) ) : '',
 		'qty'     => isset( $_POST['qty'] ) ? (int) $_POST['qty'] : 1,
+		'summary' => isset( $_POST['summary'] ) ? sanitize_textarea_field( wp_unslash( $_POST['summary'] ) ) : '',
+		'ctype'   => isset( $_POST['ctype'] ) ? sanitize_key( $_POST['ctype'] ) : '',
 	);
 	ricoman_projects_apply( get_current_user_id(), $op, $args );
 	wp_send_json_success( array(
@@ -381,6 +416,16 @@ add_action( 'template_redirect', function () {
 	$index = 'PROJECT: ' . $proj['name'] . "\n" . str_repeat( '=', 50 ) . "\n\n";
 	$n     = 0;
 	foreach ( $proj['items'] as $it ) {
+		// Custom saved designs (Flow+ runs etc.) — include their spec as a text file.
+		if ( ! empty( $it['custom'] ) ) {
+			$n++;
+			$cname  = $it['name'] ? $it['name'] : __( 'Custom design', 'ricoman' );
+			$qty    = max( 1, (int) $it['qty'] );
+			$index .= sprintf( "%d. %s — qty %d  [custom design]\n\n", $n, $cname, $qty );
+			$folder = sanitize_file_name( $cname );
+			$zip->addFromString( $folder . '/design-spec.txt', $cname . "\n" . str_repeat( '-', 40 ) . "\n\n" . ( isset( $it['summary'] ) ? $it['summary'] : '' ) . "\n" );
+			continue;
+		}
 		$pid = (int) $it['id'];
 		if ( 'product' !== get_post_type( $pid ) ) {
 			continue;

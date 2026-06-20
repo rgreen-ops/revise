@@ -153,4 +153,22 @@
 		document.cookie = 'rm_pending_add=; max-age=0; path=/';
 		post( { op: 'add', product: pend[1] }, function ( data ) { swap( data ); } );
 	}
+
+	// A Flow+ design saved before signing in — add it now.
+	try {
+		var pf = window.localStorage.getItem( 'rm_pending_flow' );
+		if ( pf ) {
+			window.localStorage.removeItem( 'rm_pending_flow' );
+			var dz = JSON.parse( pf );
+			post( { op: 'addcustom', ctype: 'flow', name: dz.name || 'Flow+ run', summary: dz.summary || '' }, function ( data ) { swap( data ); } );
+		}
+	} catch ( e ) {}
+
+	// Flow designer (iframe) → save the current design as a custom project item.
+	window.addEventListener( 'message', function ( ev ) {
+		var d = ev.data;
+		if ( ! d || d.type !== 'rm_flow_save' || ! d.design ) { return; }
+		post( { op: 'addcustom', ctype: 'flow', name: d.design.name || 'Flow+ run', summary: d.design.summary || '' }, function ( data ) { swap( data ); } );
+		if ( ev.source ) { ev.source.postMessage( { type: 'rm_flow_saved', ok: true }, '*' ); }
+	} );
 } )();

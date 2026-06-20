@@ -806,6 +806,7 @@
     <button class="btn desktop-only" id="btn-import-cad">Import CAD</button>
     <button class="btn desktop-only" id="btn-clear">Clear</button>
     <button class="btn desktop-only" id="btn-export-bom">Export Take Off</button>
+    <button class="btn primary" id="btn-save-project">Save to My Project</button>
     <button class="btn primary desktop-only" id="btn-export">Export PNG</button>
   </div>
   <button class="insp-toggle" id="insp-toggle" aria-label="Open inspector">⋮</button>
@@ -6666,9 +6667,7 @@ async function exportCadReport() {
   }, 'image/png');
 }
 
-document.getElementById('btn-export-bom').onclick = () => {
-  if (state.pieces.length === 0) { alert('No parts on the canvas.'); return; }
-
+function rmFlowTakeOffRows() {
   // Pieces
   const counts = new Map();
   let totalW=0, totalLm=0, totalLit=0;
@@ -6769,7 +6768,12 @@ document.getElementById('btn-export-bom').onclick = () => {
   if (state.emergencyPerRun) {
     rows.push(['Emergency packs', state.emergencyDali ? 'DALI addressable per run' : 'Standard per run','','','','']);
   }
+  return rows;
+}
 
+document.getElementById('btn-export-bom').onclick = () => {
+  if (state.pieces.length === 0) { alert('No parts on the canvas.'); return; }
+  const rows = rmFlowTakeOffRows();
   const csv = rows.map(r => r.map(c => `"${String(c == null ? '' : c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob = new Blob([csv], { type:'text/csv' });
   const a = document.createElement('a');
@@ -6778,6 +6782,27 @@ document.getElementById('btn-export-bom').onclick = () => {
   a.click();
   showToast('Take Off exported');
 };
+
+/* ---- Save the current design into the customer's project (parent window) ---- */
+function rmFlowSummary() {
+  const rows = rmFlowTakeOffRows();
+  return rows.map(r => r.filter(c => c !== '' && c != null).join('  ')).filter(function (l) { return l.length; }).join('\n');
+}
+(function () {
+  var save = document.getElementById('btn-save-project');
+  if (save) {
+    save.onclick = function () {
+      if (state.pieces.length === 0) { alert('Add parts to the canvas first, then save.'); return; }
+      var name = 'Flow+ run — ' + new Date().toLocaleDateString();
+      window.parent.postMessage({ type: 'rm_flow_save', design: { name: name, summary: rmFlowSummary() } }, '*');
+      showToast('Saving to your project…');
+    };
+  }
+  window.addEventListener('message', function (ev) {
+    var d = ev.data;
+    if ( d && d.type === 'rm_flow_saved' ) { showToast( d.ok ? 'Saved to your project ✓' : 'Sign in to save — opening…' ); }
+  });
+})();
 
 document.getElementById('btn-clear').onclick = () => {
   if (state.pieces.length === 0 && !state.cadImage && !state.room) return;

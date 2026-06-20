@@ -67,6 +67,18 @@
 			if ( ! authgate.hidden && ( e.target === authgate || e.target.classList.contains( 'rm-gate-x' ) ) ) { close(); }
 		}, true );
 		document.addEventListener( 'keydown', function ( e ) { if ( e.key === 'Escape' && ! authgate.hidden ) { close(); } } );
+
+		// Flow designer (iframe) save while logged out → stash design + prompt auth.
+		window.addEventListener( 'message', function ( ev ) {
+			var d = ev.data;
+			if ( ! d || d.type !== 'rm_flow_save' || ! d.design ) { return; }
+			try { window.localStorage.setItem( 'rm_pending_flow', JSON.stringify( d.design ) ); } catch ( e ) {}
+			var ret = encodeURIComponent( window.location.href );
+			var li = authgate.querySelector( '.rm-auth-login' );
+			if ( li && G.login ) { li.href = G.login + ( G.login.indexOf( '?' ) > -1 ? '&' : '?' ) + 'redirect_to=' + ret; }
+			authgate.hidden = false; document.body.style.overflow = 'hidden';
+			if ( ev.source ) { ev.source.postMessage( { type: 'rm_flow_saved', ok: false, auth: true }, '*' ); }
+		} );
 	} )();
 
 	if ( G.in ) { return; } // Logged in — never show the download gate.

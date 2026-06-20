@@ -1515,3 +1515,6 @@ html,body{overflow-x:clip}
 .rm-pick-item{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;text-align:left;border:1px solid var(--line);background:#fff;border-radius:10px;padding:13px 14px;font-family:Poppins;font-weight:600;font-size:.9rem;color:var(--ink);cursor:pointer}
 .rm-pick-item:hover{border-color:var(--ink);background:var(--soft)}
 .rm-pick-item .rm-pick-c{font-size:.72rem;font-weight:500;color:var(--muted);background:var(--soft);border-radius:999px;min-width:22px;text-align:center;padding:2px 7px}
+
+/* Custom (saved design) row in a project */
+.rm-proj-custico{display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:8px;background:var(--ink);color:#fff;font-size:1.2rem}
