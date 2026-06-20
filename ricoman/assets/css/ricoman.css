@@ -765,6 +765,8 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-secprod-card:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(0,0,0,.1)}
 .rm-secprod-img{display:block;aspect-ratio:16/11;background:#e4e4e4 center/cover no-repeat}
 .rm-secprod-body{display:block;padding:16px 18px}
+.rm-secprod--alt{background:#fff}
+.rm-secprod-sub{display:block;font-family:Poppins;font-size:.6rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:0 0 .35em}
 .rm-secprod-t{display:block;font-family:Poppins;font-weight:600;font-size:1.05rem}
 .rm-secprod-go{display:block;font-family:Poppins;font-size:.8rem;color:var(--accent);margin-top:.35em}
 .rm-secprod-all{margin:clamp(18px,2.4vw,26px) 0 0}

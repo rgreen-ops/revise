@@ -19,6 +19,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/** Let products be tagged with sectors too — adds a "Sectors" tick-box panel to
+ * the product editor, so the team controls which products feature on each
+ * sector page. (The taxonomy itself is registered for projects in post-types.) */
+add_action( 'init', function () {
+	if ( taxonomy_exists( 'project-cat' ) ) {
+		register_taxonomy_for_object_type( 'project-cat', 'product' );
+	}
+}, 12 );
+
 /* Redirects are managed in inc/redirects.php (Ricoman → Links & Redirects). */
 
 /**
@@ -259,20 +268,20 @@ add_shortcode( 'ricoman_sector_trust', function () {
 /** Product-category slugs to recommend for a sector (filterable). */
 function ricoman_sector_product_cats( $sector_slug ) {
 	$map = array(
-		'office-lighting'                => array( 'led-linear-lighting', 'led-panel-lights', 'led-downlights' ),
-		'hospitality-leisure-lighting'   => array( 'pendants', 'led-track-lights', 'led-downlights' ),
-		'education-lighting'             => array( 'led-panel-lights', 'led-linear-lighting', 'led-emergency' ),
-		'healthcare-lighting'            => array( 'led-panel-lights', 'led-downlights', 'led-emergency' ),
-		'care-home-lighting'             => array( 'led-downlights', 'led-panel-lights', 'led-emergency' ),
-		'industrial-warehouse-lighting'  => array( 'industrial-led-lighting', 'led-linear-lighting', 'led-bulkheads' ),
-		'warehouse-lighting'             => array( 'industrial-led-lighting', 'led-linear-lighting' ),
-		'factory-lighting'               => array( 'industrial-led-lighting', 'led-linear-lighting' ),
-		'retail-lighting'                => array( 'led-track-lights', 'led-downlights', 'pendants' ),
-		'gym-lighting'                   => array( 'led-linear-lighting', 'industrial-led-lighting', 'led-panel-lights' ),
-		'residential-lighting'           => array( 'led-downlights', 'pendants', 'led-strip' ),
-		'refrigeration-lighting'         => array( 'led-linear-lighting', 'led-strip' ),
+		'office-lighting'                => array( 'led-linear-lighting', 'led-panel-lights', 'led-downlights', 'led-track-lights', 'pendants', 'led-emergency' ),
+		'hospitality-leisure-lighting'   => array( 'pendants', 'led-track-lights', 'led-downlights', 'led-linear-lighting', 'led-strip', 'led-emergency' ),
+		'education-lighting'             => array( 'led-panel-lights', 'led-linear-lighting', 'led-downlights', 'led-emergency', 'led-bulkheads', 'led-track-lights' ),
+		'healthcare-lighting'            => array( 'led-panel-lights', 'led-downlights', 'led-linear-lighting', 'led-emergency', 'led-bulkheads', 'led-track-lights' ),
+		'care-home-lighting'             => array( 'led-downlights', 'led-panel-lights', 'led-linear-lighting', 'led-emergency', 'pendants', 'led-bulkheads' ),
+		'industrial-warehouse-lighting'  => array( 'industrial-led-lighting', 'led-linear-lighting', 'led-bulkheads', 'led-emergency', 'led-panel-lights', 'outdoor-exterior-lighting' ),
+		'warehouse-lighting'             => array( 'industrial-led-lighting', 'led-linear-lighting', 'led-bulkheads', 'led-emergency', 'led-panel-lights', 'outdoor-exterior-lighting' ),
+		'factory-lighting'               => array( 'industrial-led-lighting', 'led-linear-lighting', 'led-bulkheads', 'led-emergency', 'led-panel-lights', 'led-downlights' ),
+		'retail-lighting'                => array( 'led-track-lights', 'led-downlights', 'pendants', 'led-linear-lighting', 'led-strip', 'led-panel-lights' ),
+		'gym-lighting'                   => array( 'led-linear-lighting', 'industrial-led-lighting', 'led-panel-lights', 'led-downlights', 'led-strip', 'led-emergency' ),
+		'residential-lighting'           => array( 'led-downlights', 'pendants', 'led-strip', 'led-linear-lighting', 'led-track-lights', 'outdoor-exterior-lighting' ),
+		'refrigeration-lighting'         => array( 'led-linear-lighting', 'led-strip', 'led-bulkheads', 'led-panel-lights' ),
 	);
-	$cats = isset( $map[ $sector_slug ] ) ? $map[ $sector_slug ] : array( 'led-linear-lighting', 'led-downlights', 'led-panel-lights' );
+	$cats = isset( $map[ $sector_slug ] ) ? $map[ $sector_slug ] : array( 'led-linear-lighting', 'led-downlights', 'led-panel-lights', 'led-track-lights', 'pendants', 'led-emergency' );
 	return apply_filters( 'ricoman_sector_product_cats', $cats, $sector_slug );
 }
 
@@ -292,13 +301,45 @@ function ricoman_pcat_image( $term ) {
 	return '';
 }
 
-/** Recommended product ranges for the current sector. [ricoman_sector_products] */
+/** Recommended products + ranges for the current sector. [ricoman_sector_products] */
 add_shortcode( 'ricoman_sector_products', function () {
 	$term = get_queried_object();
 	if ( ! ( $term instanceof WP_Term ) ) {
 		return '';
 	}
-	$ptax = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
+	$out = '';
+
+	// 1) Products tagged to this sector (tick a product's "Sectors" box to feature
+	//    it here). Shown first when present.
+	$pq = new WP_Query( array(
+		'post_type'      => 'product',
+		'post_status'    => 'publish',
+		'posts_per_page' => 8,
+		'no_found_rows'  => true,
+		'orderby'        => array( 'menu_order' => 'ASC', 'date' => 'DESC' ),
+		'tax_query'      => array( array( 'taxonomy' => $term->taxonomy, 'terms' => $term->term_id ) ),
+	) );
+	if ( $pq->have_posts() ) {
+		$cards = '';
+		foreach ( $pq->posts as $p ) {
+			$img   = function_exists( 'ricoman_product_img' ) ? ricoman_product_img( $p->ID ) : get_the_post_thumbnail_url( $p->ID, 'large' );
+			$sub   = function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( $p->ID, 'product_subname' ) : '';
+			$style = $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '';
+			$cards .= '<a class="rm-secprod-card" href="' . esc_url( get_permalink( $p ) ) . '">'
+				. '<span class="rm-secprod-img"' . $style . '></span>'
+				. '<span class="rm-secprod-body">'
+				. ( $sub ? '<span class="rm-secprod-sub">' . esc_html( $sub ) . '</span>' : '' )
+				. '<span class="rm-secprod-t">' . esc_html( get_the_title( $p ) ) . '</span>'
+				. '<span class="rm-secprod-go">View product →</span></span></a>';
+		}
+		$out .= '<div class="rm-section rm-secprod"><div class="rm-pp-wrap">'
+			. '<p class="rm-eyebrow">Specified for this sector</p>'
+			. '<h2 class="rm-shead">Recommended products for ' . esc_html( $term->name ) . '</h2>'
+			. '<div class="rm-secprod-grid">' . $cards . '</div></div></div>';
+	}
+
+	// 2) Recommended ranges (product categories) — always shown as a quick way in.
+	$ptax  = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
 	$cards = '';
 	foreach ( ricoman_sector_product_cats( $term->slug ) as $slug ) {
 		$pterm = get_term_by( 'slug', $slug, $ptax );
@@ -312,15 +353,15 @@ add_shortcode( 'ricoman_sector_products', function () {
 			. '<span class="rm-secprod-body"><span class="rm-secprod-t">' . esc_html( $pterm->name ) . '</span>'
 			. '<span class="rm-secprod-go">View range →</span></span></a>';
 	}
-	if ( '' === $cards ) {
-		return '';
+	if ( '' !== $cards ) {
+		$out .= '<div class="rm-section rm-secprod' . ( $pq->have_posts() ? ' rm-secprod--alt' : '' ) . '"><div class="rm-pp-wrap">'
+			. '<p class="rm-eyebrow">Specify with confidence</p>'
+			. '<h2 class="rm-shead">' . esc_html( $pq->have_posts() ? 'Explore the ranges' : 'Recommended ranges for ' . $term->name ) . '</h2>'
+			. '<div class="rm-secprod-grid">' . $cards . '</div>'
+			. '<p class="rm-secprod-all"><a href="/products/">Browse the full product range →</a></p>'
+			. '</div></div>';
 	}
-	return '<div class="rm-section rm-secprod"><div class="rm-pp-wrap">'
-		. '<p class="rm-eyebrow">Specify with confidence</p>'
-		. '<h2 class="rm-shead">Recommended ranges for ' . esc_html( $term->name ) . '</h2>'
-		. '<div class="rm-secprod-grid">' . $cards . '</div>'
-		. '<p class="rm-secprod-all"><a href="/products/">Browse the full product range →</a></p>'
-		. '</div></div>';
+	return $out;
 } );
 
 /** Compact name/email lead capture + lighting-design CTA. [ricoman_sector_leadgen] */
