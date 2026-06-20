@@ -19,27 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/**
- * Vanity short-URL → canonical target 301 redirects (path => target). Lets the
- * clean /office-lighting/ URL send its authority to the commercial sector hub.
- * Runs early so it wins over a 404; filterable so the team can add more.
- */
-function ricoman_vanity_redirects() {
-	return apply_filters( 'ricoman_vanity_redirects', array(
-		'office-lighting' => '/sector/office-lighting/',
-	) );
-}
-add_action( 'template_redirect', function () {
-	if ( is_admin() ) {
-		return;
-	}
-	$path = trim( (string) wp_parse_url( $_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH ), '/' );
-	$map  = ricoman_vanity_redirects();
-	if ( '' !== $path && isset( $map[ $path ] ) ) {
-		wp_safe_redirect( home_url( $map[ $path ] ), 301 );
-		exit;
-	}
-}, 0 );
+/* Redirects are managed in inc/redirects.php (Ricoman → Links & Redirects). */
 
 /**
  * Funnel news articles to the sector hubs: add every sector's phrase to the

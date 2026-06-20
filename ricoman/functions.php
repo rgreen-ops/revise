@@ -46,6 +46,7 @@ require_once get_theme_file_path( 'inc/variant-specs.php' );  // Variant Specifi
 require_once get_theme_file_path( 'inc/acf-pages.php' );      // Render migrated ACF content pages natively (no Elementor).
 require_once get_theme_file_path( 'inc/news.php' );           // News master listing + single article.
 require_once get_theme_file_path( 'inc/sector.php' );         // Sector landing pages (SEO + conversion + lead-gen).
+require_once get_theme_file_path( 'inc/redirects.php' );      // Links & Redirects manager + 404 watch.
 require_once get_theme_file_path( 'inc/projects.php' );       // Project single (short/long) from ACF.
 require_once get_theme_file_path( 'inc/product-filter.php' ); // Category archive grid + faceted filters (lumens/watts/features).
 require_once get_theme_file_path( 'inc/configurator.php' );   // Live variant configurator (RICOBOT price/options).

@@ -177,6 +177,9 @@ function rm_mc_render_page() {
 	echo '<p><input type="text" id="rm-mc-confirm" placeholder="Type MERGE" style="width:140px"> '
 		. '<button class="button button-primary" id="rm-mc-merge" disabled>' . esc_html__( 'Merge duplicates (to Trash)', 'ricoman' ) . '</button> '
 		. '<span id="rm-mc-merge-out" style="margin-left:10px"></span></p>';
+	echo '<div id="rm-mc-merge-prog" style="max-width:640px;display:none">'
+		. '<div style="background:#e2e4e7;border-radius:10px;height:18px;overflow:hidden"><div id="rm-mc-merge-bar" style="background:#2271b1;height:100%;width:0;transition:width .3s"></div></div>'
+		. '<p id="rm-mc-merge-pct" style="font-weight:600;margin:6px 0 0"></p></div>';
 
 	echo '<h2>' . esc_html__( 'Step 4 — Find unused images (report only)', 'ricoman' ) . '</h2>';
 	echo '<p>' . esc_html__( 'Scans for images with no reference we can detect and tags them, so you can review them in the Media Library before deciding. Nothing is deleted.', 'ricoman' ) . '</p>';
@@ -233,15 +236,21 @@ function rm_mc_render_page() {
 		var cf=document.getElementById('rm-mc-confirm'),mg=document.getElementById('rm-mc-merge'),mgOut=document.getElementById('rm-mc-merge-out');
 		cf.addEventListener('input',function(){ mg.disabled=(cf.value.trim().toUpperCase()!=='MERGE'); });
 		var merging=false,total=0;
+		var mgProg=document.getElementById('rm-mc-merge-prog'),mgBar=document.getElementById('rm-mc-merge-bar'),mgPct=document.getElementById('rm-mc-merge-pct'),mgStart=0,mgT0=Date.now();
 		function mergeBatch(){
 			var b=new URLSearchParams({action:'rm_mc_merge',nonce:nonce,apply:'1',confirm:cf.value,limit:'30'});
 			fetch(ajax,{method:'POST',body:b,credentials:'same-origin'}).then(function(r){return r.json();}).then(function(j){
 				if(!j||!j.success){ mgOut.textContent='Stopped (server busy). Click Merge to resume.'; merging=false; mg.disabled=false; return; }
 				var d=j.data; total+=d.trashed;
+				if(mgStart===0){ mgStart=total+d.remaining; mgProg.style.display='block'; }
 				setStat({extra:d.remaining});
-				mgOut.textContent='Merged '+total.toLocaleString()+' to Trash… '+d.remaining.toLocaleString()+' remaining.';
+				var pctNum=mgStart?Math.min(100,(total/mgStart*100)):0, pct=pctNum.toFixed(1);
+				mgBar.style.width=pct+'%';
+				var rate=total/((Date.now()-mgT0)/1000), eta=rate>0?Math.round(d.remaining/rate/60):0;
+				mgPct.textContent='Merged '+total.toLocaleString()+' of '+mgStart.toLocaleString()+' ('+pct+'%) — '+d.remaining.toLocaleString()+' left'+(eta>0?', ~'+eta+' min remaining':'');
+				mgOut.textContent='Working…';
 				if(d.trashed>0 && d.remaining>0){ setTimeout(mergeBatch, 600); }  // pause so the live site isn't hammered
-				else { mgOut.textContent='Done — merged '+total.toLocaleString()+' duplicates to Trash. '+d.remaining.toLocaleString()+' remaining.'; merging=false; mg.disabled=false; }
+				else { mgBar.style.width='100%'; mgPct.textContent='Done — merged '+total.toLocaleString()+' duplicates to Trash. '+d.remaining.toLocaleString()+' remaining.'; mgOut.textContent='✅ Complete.'; merging=false; mg.disabled=false; }
 			}).catch(function(){ mgOut.textContent='Paused (network/timeout). Click Merge to resume — progress is saved.'; merging=false; mg.disabled=false; });
 		}
 		mg.addEventListener('click',function(){ if(merging)return; if(cf.value.trim().toUpperCase()!=='MERGE')return;
