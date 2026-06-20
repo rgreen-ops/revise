@@ -1343,4 +1343,8 @@ add_filter( 'the_content', function ( $content ) {
 		return ricoman_pe_render_layout( $pid );
 	}
 	return do_shortcode( '[ricoman_product_page]' );
-}, 9 );
+	// Priority 11: render AFTER wpautop (priority 10) so it can't wrap our
+	// hand-built hero markup (e.g. the loose gallery <img>) in stray <p> tags,
+	// which broke the gallery image height on mobile. The injected HTML already
+	// has its shortcodes expanded, so running late is safe.
+}, 11 );

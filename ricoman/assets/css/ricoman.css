@@ -1347,7 +1347,10 @@ a.rm-projhead-sectorlink:hover{color:var(--ink)}
 .rm-pdp-gallery .rm-cfg-viz{position:relative;height:min(56vh,520px);border-radius:12px;background:#e4e4e4;overflow:hidden}
 /* Photos fill the window (no grey); transparent product cut-outs get the grey
    backdrop + padding via .rm-cutout (added by JS when the image has alpha). */
-.rm-pdp-gallery .rm-cfg-img{width:100%;height:100%;object-fit:cover;padding:0}
+/* Absolutely fill the sized viz so the image height never depends on a wrapper
+   (wpautop can wrap the loose <img> in a <p>, which otherwise let it render at
+   natural height and blew up the gallery on mobile). */
+.rm-pdp-gallery .rm-cfg-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;padding:0}
 .rm-pdp-gallery .rm-cfg-img.rm-cutout{object-fit:contain;padding:3%}
 .rm-pdp-gallery .rm-pdp-sw{position:absolute;top:16px;right:16px;left:auto;display:flex;flex-direction:column;gap:8px;margin:0;z-index:2;width:auto}
 .rm-pdp-gallery .rm-pdp-sw .rm-cv-sw{width:auto;height:auto;border-radius:999px;background:#5b626d!important;background-image:none!important;color:#fff;border:0;padding:.5em 1em;font-size:.66rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;justify-content:center}
