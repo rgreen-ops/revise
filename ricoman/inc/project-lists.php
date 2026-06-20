@@ -120,6 +120,14 @@ function ricoman_projects_apply( $user_id, $op, $args ) {
 		case 'add':
 			$prod = (int) $args['product'];
 			if ( $prod && 'product' === get_post_type( $prod ) ) {
+				// Target a specific project, a brand-new one, or the active one.
+				if ( '' !== $args['newname'] ) {
+					$rec        = ricoman_new_project_record( $args['newname'] );
+					$projects[] = $rec;
+					$active     = $rec['id'];
+				} elseif ( '' !== $args['pid'] && $find( $args['pid'] ) >= 0 ) {
+					$active = $args['pid'];
+				}
 				$i = $find( $active );
 				if ( $i < 0 ) {
 					$i      = 0;
@@ -249,11 +257,26 @@ add_action( 'wp_ajax_rm_proj', function () {
 		wp_send_json_error();
 	}
 	$op = isset( $_POST['op'] ) ? sanitize_key( $_POST['op'] ) : '';
+
+	// Read-only: list the user's projects (for the "add to which project?" picker).
+	if ( 'list' === $op ) {
+		$out = array();
+		foreach ( ricoman_get_projects() as $p ) {
+			$n = 0;
+			foreach ( $p['items'] as $it ) {
+				$n += max( 1, (int) $it['qty'] );
+			}
+			$out[] = array( 'id' => $p['id'], 'name' => $p['name'], 'count' => $n );
+		}
+		wp_send_json_success( array( 'projects' => $out, 'active' => ricoman_active_project_id() ) );
+	}
+
 	if ( ! in_array( $op, array( 'create', 'rename', 'delete', 'switch', 'add', 'remove', 'qty' ), true ) ) {
 		wp_send_json_error();
 	}
 	$args = array(
 		'name'    => isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '',
+		'newname' => isset( $_POST['newname'] ) ? sanitize_text_field( wp_unslash( $_POST['newname'] ) ) : '',
 		'pid'     => isset( $_POST['pid'] ) ? sanitize_text_field( wp_unslash( $_POST['pid'] ) ) : '',
 		'product' => isset( $_POST['product'] ) ? (int) $_POST['product'] : 0,
 		'qty'     => isset( $_POST['qty'] ) ? (int) $_POST['qty'] : 1,

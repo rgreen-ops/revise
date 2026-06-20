@@ -74,8 +74,57 @@
 		}
 	} );
 
-	// ---- "Add to My Project" → active server project (capture phase so the guest
-	//      localStorage handler never fires for logged-in users). ----
+	// ---- Project picker modal (shown when the user has more than one project) ----
+	var picker = null;
+	function buildPicker() {
+		if ( picker ) { return picker; }
+		picker = document.createElement( 'div' );
+		picker.className = 'rm-gate rm-pickgate';
+		picker.hidden = true;
+		picker.innerHTML = '<div class="rm-gate-box" role="dialog" aria-modal="true">'
+			+ '<button type="button" class="rm-gate-x" aria-label="Close">&times;</button>'
+			+ '<h3 class="rm-gate-title">Add to which project?</h3>'
+			+ '<div class="rm-pick-list"></div>'
+			+ '<button type="button" class="btn btn-line-d rm-pick-new" style="width:100%;justify-content:center;margin-top:10px">＋ New project</button>'
+			+ '</div>';
+		document.body.appendChild( picker );
+		picker.addEventListener( 'click', function ( e ) {
+			if ( e.target === picker || e.target.classList.contains( 'rm-gate-x' ) ) { closePicker(); }
+		} );
+		return picker;
+	}
+	function closePicker() { if ( picker ) { picker.hidden = true; document.body.style.overflow = ''; } }
+	function openPicker( productId, projects, btn, label ) {
+		var p = buildPicker();
+		var list = p.querySelector( '.rm-pick-list' );
+		list.innerHTML = '';
+		projects.forEach( function ( pr ) {
+			var b = document.createElement( 'button' );
+			b.type = 'button';
+			b.className = 'rm-pick-item';
+			b.innerHTML = '<span>' + ( pr.name || 'Project' ).replace( /[<>&]/g, '' ) + '</span><span class="rm-pick-c">' + ( pr.count || 0 ) + '</span>';
+			b.addEventListener( 'click', function () {
+				post( { op: 'add', product: productId, pid: pr.id }, function ( data ) { added( btn, label ); swap( data ); } );
+				closePicker();
+			} );
+			list.appendChild( b );
+		} );
+		p.querySelector( '.rm-pick-new' ).onclick = function () {
+			var name = window.prompt( 'Name the new project:', '' );
+			if ( name === null ) { return; }
+			post( { op: 'add', product: productId, newname: name || 'Untitled project' }, function ( data ) { added( btn, label ); swap( data ); } );
+			closePicker();
+		};
+		p.hidden = false; document.body.style.overflow = 'hidden';
+	}
+	function added( btn, label ) {
+		if ( ! btn ) { return; }
+		btn.textContent = '✓ Added to project';
+		setTimeout( function () { btn.textContent = label; }, 1600 );
+	}
+	document.addEventListener( 'keydown', function ( e ) { if ( e.key === 'Escape' ) { closePicker(); } } );
+
+	// ---- "Add to My Project" → choose a project when there's more than one ----
 	document.addEventListener( 'click', function ( e ) {
 		var btn = e.target.closest( '[data-add-to-project], .ricoman-add-project' );
 		if ( ! btn ) { return; }
@@ -84,10 +133,14 @@
 		var id = btn.getAttribute( 'data-id' );
 		if ( ! id ) { return; }
 		var label = btn.textContent;
-		post( { op: 'add', product: id }, function ( data ) {
-			btn.textContent = '✓ Added to project';
-			setTimeout( function () { btn.textContent = label; }, 1600 );
-			swap( data );
+		// Look up the user's projects first; one project = add straight away.
+		post( { op: 'list' }, null ).then( function ( j ) {
+			var projects = ( j && j.success && j.data.projects ) || [];
+			if ( projects.length > 1 ) {
+				openPicker( id, projects, btn, label );
+			} else {
+				post( { op: 'add', product: id }, function ( data ) { added( btn, label ); swap( data ); } );
+			}
 		} );
 	}, true );
 
