@@ -537,7 +537,7 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .nav{position:relative}
 .rm-logo{height:24px;width:auto;display:block}
 .rm-nav-right{display:flex;align-items:center;gap:18px}
-.rm-search{display:flex;align-items:center;gap:8px;background:#fff;border-radius:999px;padding:.4em .9em;min-width:150px;max-width:190px}
+.rm-search{display:flex;align-items:center;gap:8px;background:#fff;border-radius:12px;padding:.5em 1em;min-width:160px;max-width:200px}
 .rm-search-i{color:var(--ink);font-size:.85rem;opacity:.6}
 .rm-search input{border:0;outline:0;background:transparent;font-family:Poppins;font-size:.82rem;color:var(--ink);width:100%}
 .rm-login{font-family:Poppins;font-weight:600;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:#fff;white-space:nowrap}
