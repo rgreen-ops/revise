@@ -1129,6 +1129,20 @@ function ricoman_pf_sections( $pid ) {
 	if ( isset( $cache[ $pid ] ) ) {
 		return $cache[ $pid ];
 	}
+	// Persistent cache of the built section HTML — the variant table alone queries
+	// up to 300 variant posts per view, so this saves real server time. Skipped in
+	// the live builder preview and for editors (so they always see fresh edits).
+	// Keyed by the product's modified time + a bump-able version (variant edits),
+	// so it self-invalidates; 12h TTL as a backstop.
+	$cacheable = empty( $GLOBALS['rm_pe_preview'] ) && ! ( is_user_logged_in() && current_user_can( 'edit_post', $pid ) );
+	$tkey      = 'rm_pfsec_' . $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true );
+	if ( $cacheable ) {
+		$pre = get_transient( $tkey );
+		if ( is_array( $pre ) ) {
+			$cache[ $pid ] = $pre;
+			return $pre;
+		}
+	}
 	$title   = get_the_title( $pid );
 	$subname = ricoman_pf_get( $pid, 'product_subname' );
 	$sortd   = ricoman_pf_get( $pid, 'product_sort_description' );
@@ -1345,8 +1359,30 @@ function ricoman_pf_sections( $pid ) {
 		'related'     => $related,
 		'cta'         => $cta,
 	);
+	if ( $cacheable ) {
+		set_transient( $tkey, $cache[ $pid ], 12 * HOUR_IN_SECONDS );
+	}
 	return $cache[ $pid ];
 }
+
+/** A global version stamp for product-derived caches (catalogue, category cards,
+ *  archives). Bumped whenever any product or variant changes. */
+function ricoman_products_ver() {
+	return (string) get_option( 'rm_products_ver', '1' );
+}
+
+/** Bump a product's section-cache version when its variants change. */
+add_action( 'save_post_variant-product', function ( $vid ) {
+	$parent = (int) get_post_meta( $vid, 'parent_product', true );
+	if ( $parent ) {
+		update_post_meta( $parent, '_rm_secver', time() );
+	}
+	update_option( 'rm_products_ver', (string) time(), false );
+} );
+add_action( 'save_post_product', function ( $pid ) {
+	update_post_meta( $pid, '_rm_secver', time() );
+	update_option( 'rm_products_ver', (string) time(), false );
+} );
 
 add_shortcode( 'ricoman_product_page', function () {
 	$pid = get_the_ID();

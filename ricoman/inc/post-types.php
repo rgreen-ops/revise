@@ -518,6 +518,14 @@ function ricoman_product_img( $pid ) {
  * category. Powers the /products/ archive. [ricoman_catalogue]
  */
 add_shortcode( 'ricoman_catalogue', function ( $atts ) {
+	// Heavy: queries every category + all products with metrics. Cache the rendered
+	// markup, invalidated whenever a product/variant changes (12h backstop).
+	$ver   = function_exists( 'ricoman_products_ver' ) ? ricoman_products_ver() : '1';
+	$ckey  = 'rm_catalogue_' . md5( $ver );
+	$cache = get_transient( $ckey );
+	if ( false !== $cache ) {
+		return $cache;
+	}
 	$tax   = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
 	$terms = get_terms( array( 'taxonomy' => $tax, 'hide_empty' => true ) );
 
@@ -627,6 +635,7 @@ add_shortcode( 'ricoman_catalogue', function ( $atts ) {
 
 	// Filtering is wired up by the enqueued product-gallery.js (rmCatFilterInit),
 	// keyed off .rm-catwide — reliable regardless of where the markup lands.
+	set_transient( $ckey, $out, 12 * HOUR_IN_SECONDS );
 	return $out;
 } );
 
