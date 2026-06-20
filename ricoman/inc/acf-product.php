@@ -1044,6 +1044,15 @@ function ricoman_pf_gallery_block( $pid, $title, $code, $sw_html ) {
 		}
 	}
 	$studio = array_values( array_unique( array_filter( (array) $studio ) ) );
+	// Products without a dedicated studio gallery (e.g. the feature ranges built
+	// in the Product Builder) still get a hero image: fall back to the featured
+	// image so the standard gallery isn't a blank placeholder.
+	if ( ! $studio ) {
+		$feat_img = get_the_post_thumbnail_url( $pid, 'large' );
+		if ( $feat_img ) {
+			$studio[] = $feat_img;
+		}
+	}
 	$insitu = ricoman_pf_insitu_images( $pid );
 	$main   = $studio ? $studio[0] : ( $insitu ? $insitu[0] : esc_url( get_theme_file_uri( 'assets/images/ceiling.webp' ) ) );
 
@@ -1193,7 +1202,12 @@ function ricoman_pf_sections( $pid ) {
 	// Hero highlights — prefer the Paragraph Info Section (rich "Title: desc"
 	// items); fall back to the first key features. Full key features go in the
 	// Features accordion.
+	// Migrated ACF products use `key_features`; products built in the Product
+	// Builder (Flow, Estrella…) store them as `_ricoman_features`.
 	$kfraw      = ricoman_pf_get( $pid, 'key_features' );
+	if ( '' === $kfraw || array() === $kfraw ) {
+		$kfraw = ricoman_pf_get( $pid, '_ricoman_features' );
+	}
 	$paras      = ricoman_pf_paragraphs( $pid );
 	$highlights = $paras ? ricoman_pf_highlights( $paras, 4 ) : ricoman_pf_highlights( $kfraw, 4 );
 	$feat_full  = ricoman_pf_features_list( $kfraw );
@@ -1219,10 +1233,23 @@ function ricoman_pf_sections( $pid ) {
 
 	$jump = ''; // In-hero jump links removed.
 
+	// Short description — fall back through the Builder tagline/lead and the post
+	// excerpt so feature ranges still get a line under the title.
 	$desc = $sortd ? $sortd : $subname;
+	if ( '' === (string) $desc ) {
+		$desc = (string) ricoman_pf_get( $pid, '_ricoman_tagline' );
+	}
+	if ( '' === (string) $desc ) {
+		$desc = (string) ricoman_pf_get( $pid, '_ricoman_lead' );
+	}
+	if ( '' === (string) $desc ) {
+		$desc = get_the_excerpt( $pid );
+	}
 
 	// ---- Hero: tabbed gallery (All/Studio/In-situ) + main image | panel ----
 	// The hero carries the gallery script so it works even when dropped in alone.
+	// The panel shows the standard CTAs (Add to My Project / Lighting Design /
+	// Trade) and the Downloads list beside the images on every product page.
 	$hero_html = ( $crumb ? '<div class="rm-section rm-pp-crumbwrap"><div class="rm-pp-wrap rm-pp-crumb">' . $crumb . '</div></div>' : '' )
 		. '<div class="rm-cfghero-wrap"><div class="rm-cfghero rm-pdp">'
 		. ricoman_pf_gallery_block( $pid, $title, $code, $sw )
@@ -1230,8 +1257,8 @@ function ricoman_pf_sections( $pid ) {
 		. '<h1 class="rm-cfg-name">' . esc_html( $title ) . '</h1>'
 		. ( $desc ? '<p class="rm-cfg-desc">' . esc_html( $desc ) . '</p>' : '' )
 		. $highlights
-		. '<div class="rm-cfg-acts"><a class="btn btn-solid" href="' . esc_url( $ldu ) . '">' . esc_html( $ld ) . ' →</a>'
-		. ' <a class="btn btn-line-d" href="' . esc_url( $tru ) . '">' . esc_html( $tr ) . ' →</a></div>'
+		. $acts
+		. $downloads
 		. $jump
 		. '</div></div></div>'
 		. ricoman_pf_gallery_js();

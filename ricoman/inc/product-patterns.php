@@ -47,8 +47,14 @@ add_action( 'init', function () {
 <div class="wp-block-cover alignfull has-base-color has-text-color has-custom-content-position is-position-bottom-left" style="min-height:70vh"><span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-50 has-background-dim"></span><div class="wp-block-cover__inner-container"><!-- wp:shortcode -->[ricoman_breadcrumbs]<!-- /wp:shortcode --><!-- wp:post-terms {"term":"product-cat","className":"rm-eyebrow"} /--><!-- wp:post-title {"level":1,"style":{"typography":{"fontWeight":"500","fontSize":"clamp(2.4rem, 6vw, 5rem)","lineHeight":"1"}}} /-->' . $sc( 'ricoman_product_tagline' ) . '</div></div>
 <!-- /wp:cover -->' );
 
-	// Split hero — live gallery preview + configurator (matches the preview).
-	$p['product-confighero'] = array( 'Product · Configurator hero (split, live)', '<!-- wp:group {"align":"full","className":"rm-cfghero-wrap","layout":{"type":"default"}} --><div class="wp-block-group alignfull rm-cfghero-wrap"><!-- wp:shortcode -->[ricoman_configurator_hero]<!-- /wp:shortcode --></div><!-- /wp:group -->' );
+	// Split hero — standard product hero (tabbed gallery + title/desc/features +
+	// CTAs + downloads), identical to every other product page so feature ranges
+	// (Flow, Estrella, Neptune) share the same top section.
+	$p['product-confighero'] = array( 'Product · Hero (gallery + panel)', '<!-- wp:shortcode -->[ricoman_section_hero]<!-- /wp:shortcode -->' );
+
+	// The interactive configurator hero is kept available as its own pattern for
+	// products that still want the live build-a-variant split hero.
+	$p['product-confighero-live'] = array( 'Product · Configurator hero (split, live)', '<!-- wp:group {"align":"full","className":"rm-cfghero-wrap","layout":{"type":"default"}} --><div class="wp-block-group alignfull rm-cfghero-wrap"><!-- wp:shortcode -->[ricoman_configurator_hero]<!-- /wp:shortcode --></div><!-- /wp:group -->' );
 
 	$p['product-gallery'] = array( 'Product · Gallery', $sec( $sc( 'ricoman_product_gallery' ) ) );
 

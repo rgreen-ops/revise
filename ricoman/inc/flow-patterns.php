@@ -39,8 +39,11 @@ add_action( 'init', function () {
 
 	$p = array();
 
-	// Default Flow hero — cover with editable buttons (edit inline in the page).
-	$p['flow-hero'] = array( 'Flow · Hero', $cover( $u( 'bf-flow3.webp' ),
+	// Flow hero — the standard product hero (tabbed gallery + title/desc/features
+	// + CTAs + downloads) so Flow+ shares the same top section as every other
+	// product page. The bespoke cover hero is kept below as "Flow · Cover hero".
+	$p['flow-hero'] = array( 'Flow · Hero', '<!-- wp:shortcode -->[ricoman_section_hero]<!-- /wp:shortcode -->' );
+	$p['flow-hero-cover'] = array( 'Flow · Cover hero (image + buttons)', $cover( $u( 'bf-flow3.webp' ),
 		$eyebrow( 'Linear Lighting — Flexible System' ) .
 		'<!-- wp:heading {"level":1,"style":{"typography":{"fontSize":"clamp(3rem, 8vw, 6rem)","fontWeight":"500","lineHeight":"1"}}} --><h1 class="wp-block-heading" style="font-size:clamp(3rem, 8vw, 6rem);font-weight:500;line-height:1">Flow+</h1><!-- /wp:heading -->' .
 		$para( 'A flexible linear system that bends to any architectural line — continuous, dot-free and made to order in Manchester.' ) .
