@@ -610,15 +610,18 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
   .rm-mega-col ul{display:flex!important;flex-direction:column!important}
   .rm-mega-sub{color:rgba(255,255,255,.6)!important}
   .rm-mega-cards{display:none}
-  .rm-nav-right{position:fixed;left:0;right:0;top:54px;bottom:auto;background:var(--ink);padding:16px var(--pad);flex-direction:column;align-items:stretch;gap:12px;transform:translateX(100%);transition:transform .35s ease;z-index:56;border-bottom:1px solid rgba(255,255,255,.12)}
+  .rm-nav-right{position:fixed;left:0;right:0;top:54px;bottom:auto;background:var(--ink);padding:6px var(--pad) 14px;flex-direction:column;align-items:stretch;gap:0;transform:translateX(100%);transition:transform .35s ease;z-index:56;border-bottom:1px solid rgba(255,255,255,.12);max-height:calc(100vh - 54px);overflow-y:auto}
   .rm-navtoggle:checked ~ .rm-nav-right{transform:none}
-  /* My Project (with the count) sits at the very top of the open menu. */
-  .rm-nav-right .rm-myproj{order:-1;font-size:1.05rem;letter-spacing:.04em;padding:8px 0;justify-content:flex-start}
+  /* Each account item on its own line with room to breathe. */
+  .rm-nav-right > *{padding:14px 2px;border-bottom:1px solid rgba(255,255,255,.10);margin:0}
+  .rm-nav-right > *:last-child{border-bottom:0}
+  .rm-nav-right .rm-myproj{order:-1;font-size:1.1rem;letter-spacing:.04em;justify-content:flex-start;gap:10px}
   .rm-nav-right .rm-myproj .ricoman-mp-count{min-width:22px;height:22px;font-size:.72rem}
-  /* Push the nav list down so it clears the top panel. */
-  .rm-navtoggle:checked ~ ul{padding-top:190px;justify-content:flex-start}
+  .rm-nav-right .rm-login,.rm-nav-right .rm-logout{display:block;width:100%;text-align:left;font-size:1rem;letter-spacing:.08em}
+  .rm-nav-right .rm-search{order:5}
+  /* Push the nav list clear of the (taller) account panel; scroll if needed. */
+  .rm-navtoggle:checked ~ ul{padding-top:330px;justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch}
   .rm-search{flex:0 0 auto;width:auto;min-width:0}
-  .rm-login{text-align:center}
 }
 
 /* brand film video block */

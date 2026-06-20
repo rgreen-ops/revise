@@ -400,45 +400,42 @@ function ricoman_rrmdir( $dir ) {
 /**
  * Build a ZIP from a list of entries and return its path (or false). Each entry:
  * [ 'path' => 'in/zip/name.ext', 'file' => absolute|null, 'data' => string|null ].
- * Uses ZipArchive when available, else WordPress's bundled PclZip — so packs work
- * even on servers without the Zip PHP extension.
+ * Uses WordPress's bundled PclZip (pure PHP, always available — no Zip extension
+ * needed). Stages files into a temp dir, then zips it. Never throws.
  */
 function ricoman_build_pack_zip( $entries ) {
-	$base = wp_tempnam( 'rm-pack' );
-	@unlink( $base );
-	$dir = $base . '-files';
-	wp_mkdir_p( $dir );
-	foreach ( $entries as $e ) {
-		$target = $dir . '/' . ltrim( $e['path'], '/' );
-		wp_mkdir_p( dirname( $target ) );
-		if ( ! empty( $e['file'] ) && is_file( $e['file'] ) ) {
-			@copy( $e['file'], $target );
-		} else {
-			@file_put_contents( $target, isset( $e['data'] ) ? $e['data'] : '' );
+	$GLOBALS['rm_pack_err'] = '';
+	try {
+		$base = wp_tempnam( 'rm-pack' );
+		@unlink( $base );
+		$dir = $base . '-files';
+		if ( ! wp_mkdir_p( $dir ) ) {
+			$GLOBALS['rm_pack_err'] = 'could not create temp dir';
+			return false;
 		}
-	}
-	$zipfile = $base . '.zip';
-	$ok      = false;
-	if ( class_exists( 'ZipArchive' ) ) {
-		$z = new ZipArchive();
-		if ( true === $z->open( $zipfile, ZipArchive::CREATE | ZipArchive::OVERWRITE ) ) {
-			$it = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $dir, FilesystemIterator::SKIP_DOTS ) );
-			foreach ( $it as $f ) {
-				$z->addFile( $f->getPathname(), substr( $f->getPathname(), strlen( $dir ) + 1 ) );
+		foreach ( $entries as $e ) {
+			$target = $dir . '/' . ltrim( $e['path'], '/' );
+			wp_mkdir_p( dirname( $target ) );
+			if ( ! empty( $e['file'] ) && is_file( $e['file'] ) ) {
+				@copy( $e['file'], $target );
+			} else {
+				@file_put_contents( $target, isset( $e['data'] ) ? $e['data'] : '' );
 			}
-			$z->close();
-			$ok = is_file( $zipfile );
 		}
-	}
-	if ( ! $ok ) {
+		$zipfile = $base . '.zip';
 		require_once ABSPATH . 'wp-admin/includes/class-pclzip.php';
-		$pz = new PclZip( $zipfile );
-		if ( 0 !== $pz->create( $dir, PCLZIP_OPT_REMOVE_PATH, $dir ) ) {
-			$ok = is_file( $zipfile );
+		$pz  = new PclZip( $zipfile );
+		$res = $pz->create( $dir . '/', PCLZIP_OPT_REMOVE_PATH, $dir );
+		ricoman_rrmdir( $dir );
+		if ( 0 === $res || ! is_file( $zipfile ) ) {
+			$GLOBALS['rm_pack_err'] = 'pclzip: ' . ( isset( $pz->error_string ) ? $pz->error_string : 'unknown' );
+			return false;
 		}
+		return $zipfile;
+	} catch ( \Throwable $t ) {
+		$GLOBALS['rm_pack_err'] = $t->getMessage() . ' @ ' . basename( $t->getFile() ) . ':' . $t->getLine();
+		return false;
 	}
-	ricoman_rrmdir( $dir );
-	return $ok ? $zipfile : false;
 }
 
 add_action( 'template_redirect', function () {
@@ -449,6 +446,7 @@ add_action( 'template_redirect', function () {
 		auth_redirect();
 		exit;
 	}
+	try {
 	$want = sanitize_text_field( wp_unslash( $_GET['rm_pack'] ) );
 	$proj = null;
 	foreach ( ricoman_get_projects() as $p ) {
@@ -512,7 +510,8 @@ add_action( 'template_redirect', function () {
 
 	$zipfile = ricoman_build_pack_zip( $entries );
 	if ( ! $zipfile ) {
-		wp_die( esc_html__( 'Sorry, the project pack could not be built. Please try again.', 'ricoman' ) );
+		$why = ( current_user_can( 'manage_options' ) && ! empty( $GLOBALS['rm_pack_err'] ) ) ? ' [' . $GLOBALS['rm_pack_err'] . ']' : '';
+		wp_die( esc_html__( 'Sorry, the project pack could not be built. Please try again.', 'ricoman' ) . esc_html( $why ) );
 	}
 
 	// Clear any buffered output so the ZIP isn't corrupted by stray markup.
@@ -527,4 +526,11 @@ add_action( 'template_redirect', function () {
 	readfile( $zipfile ); // phpcs:ignore
 	@unlink( $zipfile );
 	exit;
+	} catch ( \Throwable $t ) {
+		while ( ob_get_level() ) {
+			ob_end_clean();
+		}
+		$why = current_user_can( 'manage_options' ) ? ' [' . $t->getMessage() . ' @ ' . basename( $t->getFile() ) . ':' . $t->getLine() . ']' : '';
+		wp_die( esc_html__( 'Sorry, the project pack could not be built.', 'ricoman' ) . esc_html( $why ) );
+	}
 } );
