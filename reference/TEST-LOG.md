@@ -97,6 +97,18 @@ them off as you go. Grouped by feature. Staging: https://staging.ricoman.com
 - Estrella Pro product pages (previously 500) all return 200.
 - Full sitemap crawl results: see notes appended below.
 
+## Round 2 fixes (verify)
+- [ ] **Project pack downloads** — now builds via ZipArchive *or* PclZip fallback
+      (works even if the server has no Zip extension). Click "Download project pack"
+      on a project with items → a ZIP downloads.
+- [ ] **Registration is email-only** — no Username field; the "I am a…" select now
+      matches the other inputs. Register with email → username is auto-generated;
+      log in with the email.
+- [ ] **Add-to-Project popup** fits on mobile (scrolls the overlay, not a tiny box).
+- [ ] **Customer admin bar hidden** — signed-in customers no longer see the WP
+      toolbar (the "speedometer"); admins still do.
+- [ ] **Mobile menu** shows "My Project" + count at the **top** of the open menu.
+
 ## Issues found & fixed (this session)
 - **All Project case-study pages were 500** (34 of them) — `get_the_excerpt()`
   recursion in the project `the_content` filter. FIXED (raw excerpt). Re-crawl clean.
