@@ -1390,6 +1390,24 @@ add_action( 'ricoman_warm_product', function ( $pid ) {
 	}
 } );
 
+/** Nightly maintenance: precompute any missing product variant metrics and warm
+ *  the heaviest pages (homepage + catalogue) so the first visitor of the day
+ *  never triggers a cold rebuild. */
+add_action( 'init', function () {
+	if ( ! wp_next_scheduled( 'ricoman_nightly_maint' ) ) {
+		wp_schedule_event( time() + 300, 'daily', 'ricoman_nightly_maint' );
+	}
+} );
+add_action( 'ricoman_nightly_maint', function () {
+	if ( function_exists( 'ricoman_pf_build_all' ) ) {
+		ricoman_pf_build_all();
+	}
+	// Hit the heavy pages once to rebuild their caches in the background.
+	foreach ( array( home_url( '/' ), home_url( '/products/' ) ) as $u ) {
+		wp_remote_get( $u, array( 'timeout' => 1, 'blocking' => false, 'sslverify' => false, 'headers' => array( 'X-Ricoman-Warm' => '1' ) ) );
+	}
+} );
+
 /** Bump a product's section-cache version when its variants change, then warm. */
 add_action( 'save_post_variant-product', function ( $vid ) {
 	$parent = (int) get_post_meta( $vid, 'parent_product', true );

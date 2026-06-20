@@ -103,8 +103,18 @@ function ricoman_pf_metrics( $pid ) {
 		foreach ( (array) ( $pre['feats'] ?? array() ) as $f ) {
 			$feats[ $f ] = true;
 		}
-	} elseif ( ! wp_next_scheduled( 'ricoman_pf_build', array( (int) $pid ) ) ) {
-		wp_schedule_single_event( time() + 5, 'ricoman_pf_build', array( (int) $pid ) );
+	} else {
+		// Metrics not built yet. Do NOT schedule a per-product cron event here:
+		// inside the catalogue loop that rewrites the whole cron-array option once
+		// per product (~500×), an O(n^2) storm that made /products/ take ~40s on
+		// every request. Schedule ONE batched build per request instead.
+		static $sched = false;
+		if ( ! $sched ) {
+			$sched = true;
+			if ( ! wp_next_scheduled( 'ricoman_pf_build_all' ) ) {
+				wp_schedule_single_event( time() + 5, 'ricoman_pf_build_all' );
+			}
+		}
 	}
 
 	$res = array( 'lm' => $lm, 'w' => $w, 'feats' => array_keys( $feats ) );
@@ -118,10 +128,44 @@ function ricoman_pf_rebuild( $pid ) {
 	return $vm;
 }
 
-/** Background job: build one product's variant metrics. */
+/** Background job: build one product's variant metrics (single product). */
 add_action( 'ricoman_pf_build', function ( $pid ) {
 	ricoman_pf_rebuild( (int) $pid );
 } );
+
+/**
+ * Background job: build variant metrics for every product still missing them,
+ * in capped batches so a single cron run never blows the time limit. Reschedules
+ * itself until the whole catalogue is precomputed, then stops. Replaces the old
+ * one-event-per-product scheduling that overwhelmed the cron array.
+ */
+add_action( 'ricoman_pf_build_all', 'ricoman_pf_build_all' );
+function ricoman_pf_build_all() {
+	$ids = get_posts( array(
+		'post_type'      => 'product',
+		'post_status'    => 'publish',
+		'posts_per_page' => 80,
+		'fields'         => 'ids',
+		'no_found_rows'  => true,
+		'cache_results'  => false,
+		'orderby'        => 'ID',
+		'order'          => 'ASC',
+		'meta_query'     => array(
+			array( 'key' => '_rm_pfm', 'compare' => 'NOT EXISTS' ),
+		),
+	) );
+	foreach ( $ids as $pid ) {
+		ricoman_pf_rebuild( (int) $pid );
+	}
+	// More still missing? Come back for the next batch shortly.
+	if ( count( $ids ) >= 80 && ! wp_next_scheduled( 'ricoman_pf_build_all' ) ) {
+		wp_schedule_single_event( time() + 30, 'ricoman_pf_build_all' );
+	}
+	// New products since this option means the catalogue's facet ranges changed.
+	if ( $ids ) {
+		update_option( 'rm_products_ver', (string) time(), false );
+	}
+}
 
 /**
  * Aggregate lumens / wattage / feature flags from a product's variants.
