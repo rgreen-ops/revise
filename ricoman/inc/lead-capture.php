@@ -191,22 +191,27 @@ function ricoman_handle_lead() {
 		'submitted' => current_time( 'mysql' ),
 	);
 
+	// Lead type from the source (project list vs general enquiry).
+	$lead_type = ( false !== stripos( $source, 'project' ) ) ? __( 'Project enquiry', 'ricoman' ) : __( 'Enquiry', 'ricoman' );
+	$attr      = function_exists( 'ricoman_lead_attribution' ) ? ricoman_lead_attribution() : array();
+
 	// 1. Store as a private `lead` post.
 	$lead_id = wp_insert_post(
 		array(
 			'post_type'   => 'lead',
 			'post_status' => 'private',
 			'post_title'  => sprintf( '%s — %s', $name, $company ? $company : $role ),
-			'meta_input'  => array(
+			'meta_input'  => array_merge( array(
 				'_lead_name'    => $name,
 				'_lead_email'   => $email,
 				'_lead_company' => $company,
 				'_lead_phone'   => $phone,
 				'_lead_role'    => $role,
+				'_lead_type'    => $lead_type,
 				'_lead_message' => $message,
 				'_lead_source'  => $source,
 				'_lead_items'   => $project_items,
-			),
+			), $attr ),
 		)
 	);
 

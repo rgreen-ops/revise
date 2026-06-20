@@ -31,6 +31,54 @@ function ricoman_customer_types() {
 	) );
 }
 
+/**
+ * First-touch traffic attribution for the current visitor, from the rm_attr cookie
+ * (set by lead-gate.js) + the request. Returns source (Organic / Direct / PPC /
+ * Social / Referral / Campaign), the page they acted on, the referrer and any UTM.
+ */
+function ricoman_lead_attribution() {
+	$raw = isset( $_COOKIE['rm_attr'] ) ? wp_unslash( $_COOKIE['rm_attr'] ) : '';
+	$a   = $raw ? json_decode( $raw, true ) : array();
+	if ( ! is_array( $a ) ) {
+		$a = array();
+	}
+	$ref  = isset( $a['ref'] ) ? (string) $a['ref'] : '';
+	$us   = isset( $a['us'] ) ? sanitize_text_field( $a['us'] ) : '';
+	$um   = strtolower( isset( $a['um'] ) ? sanitize_text_field( $a['um'] ) : '' );
+	$uc   = isset( $a['uc'] ) ? sanitize_text_field( $a['uc'] ) : '';
+	$paid = ! empty( $a['g'] ) || ! empty( $a['f'] ) || ! empty( $a['msc'] ) || in_array( $um, array( 'cpc', 'ppc', 'paid', 'paidsearch', 'paid-search', 'paid_social' ), true );
+	$rh   = $ref ? strtolower( (string) wp_parse_url( $ref, PHP_URL_HOST ) ) : '';
+	$home = strtolower( (string) wp_parse_url( home_url(), PHP_URL_HOST ) );
+
+	if ( $paid ) {
+		$source = 'PPC';
+	} elseif ( $us || $um ) {
+		$source = 'Campaign' . ( $us ? ' · ' . $us : '' );
+	} elseif ( '' === $rh ) {
+		$source = 'Direct';
+	} elseif ( preg_match( '/google|bing|yahoo|duckduckgo|ecosia|baidu|yandex|search/', $rh ) ) {
+		$source = 'Organic';
+	} elseif ( preg_match( '/facebook|fb\.|instagram|linkedin|twitter|t\.co|x\.com|pinterest|youtube|tiktok|reddit/', $rh ) ) {
+		$source = 'Social';
+	} elseif ( $home && false !== strpos( $rh, $home ) ) {
+		$source = 'Direct';
+	} else {
+		$source = 'Referral';
+	}
+
+	$page = isset( $_SERVER['HTTP_REFERER'] ) ? esc_url_raw( wp_unslash( $_SERVER['HTTP_REFERER'] ) ) : '';
+	if ( '' === $page && isset( $a['land'] ) ) {
+		$page = esc_url_raw( $a['land'] );
+	}
+	return array(
+		'_lead_attr_source' => $source,
+		'_lead_page'        => $page,
+		'_lead_referrer'    => esc_url_raw( $ref ),
+		'_lead_utm'         => trim( $us . ( $um ? ' / ' . $um : '' ) . ( $uc ? ' / ' . $uc : '' ), ' /' ),
+		'_lead_landing'     => isset( $a['land'] ) ? esc_url_raw( $a['land'] ) : '',
+	);
+}
+
 /** Enqueue the gate script + state for non-logged-in visitors. */
 add_action( 'wp_enqueue_scripts', function () {
 	$src = get_theme_file_path( 'assets/js/lead-gate.js' );
@@ -146,12 +194,13 @@ function ricoman_gate_capture() {
 		'post_type'   => 'lead',
 		'post_status' => 'private',
 		'post_title'  => sprintf( '%s — %s', $name, $type ? $type : __( 'Download', 'ricoman' ) ),
-		'meta_input'  => array(
+		'meta_input'  => array_merge( array(
 			'_lead_name'   => $name,
 			'_lead_email'  => $email,
 			'_lead_role'   => $type,
+			'_lead_type'   => __( 'Download', 'ricoman' ),
 			'_lead_source' => $src,
-		),
+		), ricoman_lead_attribution() ),
 	) );
 
 	/** Reuse the same hook the enquiry form fires (Sheets sync, CRM, etc.). */
@@ -205,14 +254,14 @@ function ricoman_bim_request() {
 		'post_type'   => 'lead',
 		'post_status' => 'private',
 		'post_title'  => sprintf( '%s — BIM: %s', $name, $product ? $product : __( 'product', 'ricoman' ) ),
-		'meta_input'  => array(
+		'meta_input'  => array_merge( array(
 			'_lead_name'    => $name,
 			'_lead_email'   => $email,
 			'_lead_company' => $company,
 			'_lead_type'    => 'BIM request',
 			'_lead_product' => $product,
 			'_lead_source'  => 'BIM request',
-		),
+		), ricoman_lead_attribution() ),
 	) );
 
 	// 2. Thank-you to the requester.

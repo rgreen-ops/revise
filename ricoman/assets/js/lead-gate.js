@@ -12,6 +12,24 @@
 
 	var G = window.rmGate || {};
 
+	/* ---- First-touch traffic attribution (captured once, kept 90 days) ---- */
+	( function () {
+		function ck( n ) { var m = document.cookie.match( '(?:^|;\\s*)' + n + '=([^;]*)' ); return m ? m[1] : ''; }
+		if ( ck( 'rm_attr' ) ) { return; }
+		var p = new URLSearchParams( window.location.search );
+		var d = {
+			ref:  document.referrer || '',
+			land: window.location.href.split( '#' )[0],
+			us:   p.get( 'utm_source' ) || '',
+			um:   p.get( 'utm_medium' ) || '',
+			uc:   p.get( 'utm_campaign' ) || '',
+			g:    ( p.get( 'gclid' ) || p.get( 'gad_source' ) || p.get( 'gbraid' ) || p.get( 'wbraid' ) ) ? 1 : 0,
+			f:    p.get( 'fbclid' ) ? 1 : 0,
+			msc:  p.get( 'msclkid' ) ? 1 : 0
+		};
+		document.cookie = 'rm_attr=' + encodeURIComponent( JSON.stringify( d ) ) + '; max-age=' + ( 60 * 60 * 24 * 90 ) + '; path=/';
+	} )();
+
 	/* ---- BIM / Revit request (runs for everyone, incl. logged-in) ---- */
 	( function () {
 		var modal = document.querySelector( '.rm-bimgate' );
