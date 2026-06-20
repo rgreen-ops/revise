@@ -71,6 +71,49 @@ GLOBAL: [ ] Header / mega-menu  [ ] Footer
 - Branch: `claude/wordpress-theme-s5u19q`. NO PRICING anywhere. Don't put the
   model id in commits/PRs/code.
 
+## Lead-gen system (built — `inc/lead-gate.php`, `accounts.php`, `project-lists.php`)
+- **Download gate** (`inc/lead-gate.php` + `assets/js/lead-gate.js`): logged-out
+  visitors clicking any doc download get a popup (name + email + customer type, or
+  sign in / register). Captured once per visitor (cookie `rm_dl_gate`, 30 days) →
+  feeds the `lead` post type + `ricoman_lead_captured` hook (Sheets sync). Gating is
+  client-side by file extension / downloads-area, so it covers all links.
+- **Customer types**: `ricoman_customer_types()` (filterable) — shared by gate,
+  registration and enquiry form.
+- **BIM is request-only** (files don't exist yet): every product shows "BIM / Revit
+  (RFA) — request"; submitting logs a lead, emails the requester a thank-you, and
+  emails **lightingdesign@ricoman.com** (`ricoman_bim_inbox()` filter) the product +
+  details. Works logged-in or out.
+- **Accounts** (`inc/accounts.php`): first/last name + customer type on register +
+  profile (`_ricoman_customer_type`); logged-in users bypass the gate; non-admins
+  redirect home after login. Branded wp-login in `inc/login.php`.
+- **Saved projects** (`inc/project-lists.php` + `assets/js/projects.js`): logged-in
+  users get multiple named/renamable projects (user meta `_ricoman_projects`,
+  `_ricoman_active_project`); My Project page is the manager; "Add to My Project"
+  routes to the active server project (guests keep localStorage list in
+  `my-project.js`, which is NOT loaded for logged-in users).
+- **Project packs**: `?rm_pack=<projectId>` streams a ZIP (per-product folders of
+  datasheet/instructions/IES-LDT files + a product-list index). Header has a My
+  Project link w/ count + account/log-out.
+- **Leads log**: `lead` CPT now has admin columns (Type · Email · Product/Company ·
+  Source · Received).
+
+## Media Cleanup (`inc/media-cleanup.php`) — now fast
+- Merge dedup was ~30h; fixed via: one-time referenced-ID index (skip the
+  per-duplicate postmeta/post_content scan for unreferenced orphans), bulk-trash via
+  set-based SQL (not wp_trash_post per item), accurate per-batch remaining count.
+- **Step 3b — permanent delete**: batched, resumable, gated by typing DELETE.
+  Deletes merged dupes' own files (incl. sub-sizes) to reclaim space; preserves any
+  file a kept attachment still shares. (Run after a backup to shrink the 248 GB.)
+- Trashed attachments excluded from the image count.
+
+## RICOBOT parked (roadmap step 5) — switch to re-enable
+- The old "product API" + family loader are gated behind `apply_filters(
+  'ricoman_use_product_api', false )`. While off, product pages render from migrated
+  ACF (`ricoman_pf_sections`) and `[ricoman_family]` renders the migrated variant
+  table. Flip the filter true when RICOBOT is reconnected.
+- `the_content` product render runs at **priority 11** (after wpautop) to avoid
+  stray `<p>` wrapping the gallery image.
+
 ## Constraints
 - Develop/push only to the branch above; never create PRs unless asked.
 - Content must persist across theme updates (installer is create-once).
