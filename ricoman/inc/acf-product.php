@@ -1243,7 +1243,12 @@ function ricoman_pf_sections( $pid ) {
 		$desc = (string) ricoman_pf_get( $pid, '_ricoman_lead' );
 	}
 	if ( '' === (string) $desc ) {
-		$desc = get_the_excerpt( $pid );
+		// Use the raw excerpt field only — get_the_excerpt() would regenerate it
+		// from the content, re-running the_content and recursing into this render.
+		$ex = (string) get_post_field( 'post_excerpt', $pid );
+		if ( '' !== trim( $ex ) ) {
+			$desc = $ex;
+		}
 	}
 
 	// ---- Hero: tabbed gallery (All/Studio/In-situ) + main image | panel ----
