@@ -258,6 +258,53 @@
 	}
 	if ( document.readyState !== 'loading' ) { rmCatFilterInit(); } else { document.addEventListener( 'DOMContentLoaded', rmCatFilterInit ); }
 
+	/* ---- News listing: search + topic chips ---- */
+	function rmNewsFilter( w ) {
+		var q = w.querySelector( '.rm-newsq' );
+		var chips = [].slice.call( w.querySelectorAll( '.rm-newschip' ) );
+		var cards = [].slice.call( w.querySelectorAll( '.rm-newscard' ) );
+		var none = w.querySelector( '.rm-newsnone' );
+		if ( ! cards.length ) { return; }
+		function apply() {
+			var qv = ( q && q.value || '' ).trim().toLowerCase();
+			var active = w.querySelector( '.rm-newschip.on' );
+			var tag = active ? active.getAttribute( 'data-tag' ) : '';
+			var shown = 0;
+			cards.forEach( function ( c ) {
+				var tags = ( c.getAttribute( 'data-tags' ) || '' ).split( ' ' );
+				var hay = c.getAttribute( 'data-search' ) || '';
+				var ok = ( ! tag || tags.indexOf( tag ) > -1 ) && ( ! qv || hay.indexOf( qv ) > -1 );
+				c.style.display = ok ? '' : 'none';
+				var lead = c.closest( '.rm-news-lead' );
+				if ( lead ) { lead.style.display = ok ? '' : 'none'; }
+				if ( ok ) { shown++; }
+			} );
+			if ( none ) { none.hidden = shown !== 0; }
+		}
+		if ( q ) { q.addEventListener( 'input', apply ); }
+		chips.forEach( function ( c ) {
+			c.addEventListener( 'click', function () {
+				chips.forEach( function ( x ) { x.classList.remove( 'on' ); } );
+				c.classList.add( 'on' ); apply();
+			} );
+		} );
+		var reset = w.querySelector( '.rm-newsreset' );
+		if ( reset ) {
+			reset.addEventListener( 'click', function () {
+				if ( q ) { q.value = ''; }
+				chips.forEach( function ( x ) { x.classList.remove( 'on' ); } );
+				if ( chips[0] ) { chips[0].classList.add( 'on' ); }
+				apply();
+			} );
+		}
+	}
+	function rmNewsInit() {
+		document.querySelectorAll( '.rm-newswrap' ).forEach( function ( w ) {
+			if ( w.dataset.rmnf ) { return; } w.dataset.rmnf = '1'; rmNewsFilter( w );
+		} );
+	}
+	if ( document.readyState !== 'loading' ) { rmNewsInit(); } else { document.addEventListener( 'DOMContentLoaded', rmNewsInit ); }
+
 	/* ---- Variant spec popup ---- */
 	function openVariant( row ) {
 		var vp = row.closest( '.rm-vp' ); if ( ! vp ) { return; }

@@ -43,7 +43,8 @@ function ricoman_news_card( $pid, $featured = false ) {
 	$img = ricoman_news_img( $pid, $featured ? 'large' : 'medium_large' );
 	$tag = (string) get_post_meta( $pid, 'news_tag_line', true );
 	$cls = $featured ? 'rm-newscard rm-newscard--lead' : 'rm-newscard';
-	return '<a class="' . $cls . '" href="' . esc_url( get_permalink( $pid ) ) . '">'
+	$hay = strtolower( get_the_title( $pid ) . ' ' . $tag . ' ' . ricoman_news_excerpt( $pid, 30 ) );
+	return '<a class="' . $cls . '" data-tags="' . esc_attr( sanitize_title( $tag ) ) . '" data-search="' . esc_attr( $hay ) . '" href="' . esc_url( get_permalink( $pid ) ) . '">'
 		. '<span class="rm-newscard-img"' . ( $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '' ) . '></span>'
 		. '<span class="rm-newscard-body">'
 		. ( $tag ? '<span class="rm-eyebrow">' . esc_html( $tag ) . '</span>' : '' )
@@ -72,8 +73,29 @@ add_shortcode( 'ricoman_news_grid', function ( $atts ) {
 	$ids = wp_list_pluck( $q->posts, 'ID' );
 	wp_reset_postdata();
 
-	$out  = '<div class="rm-pp-wrap rm-newswrap">';
-	$lead = '';
+	// Distinct topic tags for the filter chips (from the article tag line).
+	$tags = array();
+	foreach ( $ids as $pid ) {
+		$t = trim( (string) get_post_meta( $pid, 'news_tag_line', true ) );
+		if ( '' !== $t ) {
+			$tags[ sanitize_title( $t ) ] = $t;
+		}
+	}
+	asort( $tags );
+
+	$tools = '<div class="rm-newstools">'
+		. '<div class="rm-projsearch"><svg class="rm-projsearch-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'
+		. '<input type="search" class="rm-newsq" placeholder="Search articles…" aria-label="Search articles"></div>';
+	if ( $tags ) {
+		$tools .= '<div class="rm-newschips"><button type="button" class="rm-newschip on" data-tag="">All</button>';
+		foreach ( $tags as $slug => $label ) {
+			$tools .= '<button type="button" class="rm-newschip" data-tag="' . esc_attr( $slug ) . '">' . esc_html( $label ) . '</button>';
+		}
+		$tools .= '</div>';
+	}
+	$tools .= '</div>';
+
+	$out  = '<div class="rm-pp-wrap rm-newswrap">' . $tools;
 	if ( '1' === (string) $atts['featured'] && count( $ids ) > 0 ) {
 		$lead = array_shift( $ids );
 		$out .= '<div class="rm-news-lead">' . ricoman_news_card( $lead, true ) . '</div>';
@@ -85,6 +107,7 @@ add_shortcode( 'ricoman_news_grid', function ( $atts ) {
 		}
 		$out .= '</div>';
 	}
+	$out .= '<p class="rm-newsnone" hidden>No articles match your search. <button type="button" class="rm-newsreset">Clear</button></p>';
 	return $out . '</div>';
 } );
 
