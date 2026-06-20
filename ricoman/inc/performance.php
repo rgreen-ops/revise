@@ -97,17 +97,46 @@ add_action( 'wp_enqueue_scripts', function () {
 	}
 }, 100 );
 
-/* ---- Defer theme JavaScript ---- */
+/* ---- Defer theme JavaScript (all ricoman-* scripts are non-critical) ---- */
 add_filter( 'script_loader_tag', function ( $tag, $handle ) {
 	if ( is_admin() ) {
 		return $tag;
 	}
-	$defer = array( 'ricoman-anim', 'ricoman-configurator', 'ricoman-my-project' );
-	if ( in_array( $handle, $defer, true ) && false === strpos( $tag, ' defer' ) ) {
+	$defer = ( 0 === strpos( $handle, 'ricoman' ) );
+	if ( $defer && false === strpos( $tag, ' defer' ) && false === strpos( $tag, ' async' ) ) {
 		$tag = str_replace( ' src=', ' defer src=', $tag );
 	}
 	return $tag;
 }, 10, 2 );
+
+/* ---- Drop form-plugin CSS/JS on pages that don't contain a form ----
+ * Contact Form 7 / WPForms load their assets site-wide by default. Only load
+ * them where a form shortcode/block is actually present. */
+add_action( 'wp_enqueue_scripts', function () {
+	if ( is_admin() ) {
+		return;
+	}
+	$needs_forms = false;
+	if ( is_singular() ) {
+		$p = get_post();
+		if ( $p instanceof WP_Post ) {
+			$c = (string) $p->post_content;
+			if ( has_shortcode( $c, 'contact-form-7' ) || has_shortcode( $c, 'wpforms' )
+				|| false !== strpos( $c, 'wp:contact-form-7' ) || false !== strpos( $c, 'wp:wpforms' )
+				|| false !== strpos( $c, 'wpforms-' ) ) {
+				$needs_forms = true;
+			}
+		}
+	}
+	$needs_forms = apply_filters( 'ricoman_page_needs_forms', $needs_forms );
+	if ( $needs_forms ) {
+		return;
+	}
+	foreach ( array( 'contact-form-7', 'wpcf7-recaptcha', 'wpforms-full', 'wpforms-base', 'wpforms-modern-full' ) as $h ) {
+		wp_dequeue_style( $h );
+		wp_dequeue_script( $h );
+	}
+}, 200 );
 
 /* ---- Speculative prefetch for near-instant internal navigation ---- */
 add_action( 'wp_footer', function () {

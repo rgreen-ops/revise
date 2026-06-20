@@ -435,6 +435,12 @@ function ricoman_category_image( $term_id, $tax = 'product-cat' ) {
  */
 add_shortcode( 'ricoman_category_cards', function ( $atts ) {
 	$atts = shortcode_atts( array( 'limit' => 8, 'exclude' => 'Accessories' ), $atts, 'ricoman_category_cards' );
+	// Cache the rendered cards (image lookups query products) for an hour.
+	$ckey   = 'rm_catcards_' . md5( wp_json_encode( $atts ) );
+	$cached = get_transient( $ckey );
+	if ( false !== $cached ) {
+		return $cached;
+	}
 	$tax  = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
 	$terms = get_terms( array(
 		'taxonomy'   => $tax,
@@ -466,5 +472,7 @@ add_shortcode( 'ricoman_category_cards', function ( $atts ) {
 			break;
 		}
 	}
-	return $cards ? '<div class="rm-catcards">' . $cards . '</div>' : '';
+	$out = $cards ? '<div class="rm-catcards">' . $cards . '</div>' : '';
+	set_transient( $ckey, $out, HOUR_IN_SECONDS );
+	return $out;
 } );
