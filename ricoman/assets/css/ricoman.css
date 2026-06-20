@@ -983,6 +983,10 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 
 /* Catalogue: wide grid + horizontal filter bar on /products/ */
 .rm-catwide{padding-top:clamp(10px,2vw,24px)}
+/* Products landing: drop the empty <p> wpautop leaves around the shortcode and
+   tighten the big gap the rm-section padding opens under the hero. */
+.rm-section>p:empty{display:none}
+.rm-section:has(.rm-catwide){padding-block:clamp(20px,3vw,36px)}
 .rm-prodgrid{grid-template-columns:repeat(4,1fr)}
 @media(max-width:1200px){.rm-prodgrid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:860px){.rm-prodgrid{grid-template-columns:1fr 1fr}}
