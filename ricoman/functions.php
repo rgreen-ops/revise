@@ -26,6 +26,7 @@ require_once get_theme_file_path( 'inc/acf-fields.php' );     // Original ricoma
 require_once get_theme_file_path( 'inc/meta.php' );          // Product specs & variants.
 require_once get_theme_file_path( 'inc/performance.php' );   // Speed: fonts, bloat removal, prefetch.
 require_once get_theme_file_path( 'inc/images.php' );        // Auto web-ready images (AVIF/WebP, alt text).
+require_once get_theme_file_path( 'inc/media-cleanup.php' );  // Media library de-duplication toolkit.
 require_once get_theme_file_path( 'inc/seo.php' );           // JSON-LD schema & breadcrumbs.
 require_once get_theme_file_path( 'inc/seo-score.php' );     // SEO scoring + back-office dashboard.
 require_once get_theme_file_path( 'inc/geo.php' );           // Generative SEO (AI search): FAQ, llms.txt.
