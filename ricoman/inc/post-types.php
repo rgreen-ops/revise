@@ -520,14 +520,16 @@ function ricoman_product_img( $pid ) {
 add_shortcode( 'ricoman_catalogue', function ( $atts ) {
 	// Heavy: queries every category + all products with metrics. Cache the rendered
 	// markup, invalidated whenever a product/variant changes (12h backstop).
+	$t0    = microtime( true );
 	$ver   = function_exists( 'ricoman_products_ver' ) ? ricoman_products_ver() : '1';
 	// Persisted option cache (not a transient): transients were not surviving on
 	// this host, so /products/ rebuilt on every hit. An option in wp_options
 	// always persists. Stored as [ver, html]; served while the version matches.
 	$store = get_option( 'rm_catalogue_cache' );
 	if ( is_array( $store ) && isset( $store['ver'], $store['html'] ) && (string) $store['ver'] === (string) $ver ) {
-		return $store['html'];
+		return $store['html'] . "\n<!-- rm-cat HIT ver=" . esc_html( (string) $ver ) . " -->";
 	}
+	$store_ver = is_array( $store ) && isset( $store['ver'] ) ? (string) $store['ver'] : 'none';
 	$tax   = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
 	$terms = get_terms( array( 'taxonomy' => $tax, 'hide_empty' => true ) );
 
@@ -642,6 +644,7 @@ add_shortcode( 'ricoman_catalogue', function ( $atts ) {
 	// Filtering is wired up by the enqueued product-gallery.js (rmCatFilterInit),
 	// keyed off .rm-catwide — reliable regardless of where the markup lands.
 	update_option( 'rm_catalogue_cache', array( 'ver' => (string) $ver, 'html' => $out ), false );
-	return $out;
+	$ms = round( ( microtime( true ) - $t0 ) * 1000 );
+	return $out . "\n<!-- rm-cat MISS build={$ms}ms total=" . (int) $total . " ver=" . esc_html( (string) $ver ) . " hadver=" . esc_html( $store_ver ) . " -->";
 } );
 
