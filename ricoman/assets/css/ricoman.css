@@ -1386,12 +1386,14 @@ html,body{overflow-x:clip}
 .brand{font-weight:500;letter-spacing:.16em;font-size:1rem}
 @media(min-width:1025px){
 	.nav{justify-content:space-between}
-	.brand{margin-right:auto}
+	.brand{margin-right:auto;font-size:.9rem}
+	.rm-logo{height:24px}
 	.rm-nav{margin-right:34px}
-	.nav ul{gap:30px;font-size:.7rem;font-weight:500;letter-spacing:.13em}
+	.nav ul{gap:30px;font-size:.72rem;font-weight:400;letter-spacing:.11em}
+	.nav ul a{color:rgba(255,255,255,.96)}
 	.rm-nav>li>a{position:relative;display:inline-flex;align-items:center;gap:.4em;padding-bottom:4px}
-	.rm-nav>li>a::after{content:"\2197";font-size:.78em;opacity:.38;transition:opacity .2s ease,transform .2s ease}
-	.rm-nav>li>a:hover::after{opacity:1;transform:translate(1px,-1px)}
+	.rm-nav>li>a::after{content:"\2197";font-size:.78em;opacity:0;transition:opacity .2s ease,transform .2s ease}
+	.rm-nav>li>a:hover::after{opacity:.8;transform:translate(1px,-1px)}
 	.rm-nav>li.rm-has-mega>a::after{content:none}
 	.rm-nav>li>a::before{content:"";position:absolute;left:0;bottom:0;height:1.5px;width:0;background:#fff;transition:width .28s ease}
 	.rm-nav>li>a:hover::before{width:100%}
