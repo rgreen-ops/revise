@@ -353,6 +353,37 @@
 		if ( row ) { openVariant( row ); }
 	} );
 
+	/* ---- Content image lightbox (article / news / project body images) ---- */
+	function rmImgLb() {
+		var lb = document.getElementById( 'rm-imglb' );
+		if ( ! lb ) {
+			lb = document.createElement( 'div' );
+			lb.id = 'rm-imglb';
+			lb.className = 'rm-imglb';
+			lb.hidden = true;
+			lb.innerHTML = '<button type="button" class="rm-imglb-x" aria-label="Close">&times;</button><img class="rm-imglb-img" alt="">';
+			document.body.appendChild( lb );
+			lb.addEventListener( 'click', function ( e ) {
+				if ( e.target === lb || e.target.classList.contains( 'rm-imglb-x' ) ) {
+					lb.hidden = true; document.body.style.overflow = '';
+				}
+			} );
+		}
+		return lb;
+	}
+	document.addEventListener( 'click', function ( e ) {
+		var img = e.target.closest( '.rm-news-body img, .rm-apage-gallery img, .rm-apage-wysiwyg img, .rm-proj-body img, .rm-projgal-feature img, .rm-projgal-simple img' );
+		if ( ! img || img.closest( 'a' ) ) { return; }
+		var lb = rmImgLb(), li = lb.querySelector( '.rm-imglb-img' );
+		li.src = img.currentSrc || img.src;
+		lb.hidden = false; document.body.style.overflow = 'hidden';
+	} );
+	document.addEventListener( 'keydown', function ( e ) {
+		if ( e.key !== 'Escape' ) { return; }
+		var lb = document.getElementById( 'rm-imglb' );
+		if ( lb && ! lb.hidden ) { lb.hidden = true; document.body.style.overflow = ''; }
+	} );
+
 	/* Transparent cut-out detection: photos fill, cut-outs keep the grey frame. */
 	function applyFit( img ) {
 		if ( ! img || ! img.naturalWidth ) { return; }
