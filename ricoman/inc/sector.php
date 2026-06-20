@@ -50,6 +50,22 @@ add_filter( 'ricoman_news_link_map', function ( $map ) {
 	return array_merge( $sector, $map );
 }, 5 );
 
+/** Trust / credibility bar for the sector landing (conversion signals). */
+add_shortcode( 'ricoman_sector_trust', function () {
+	$items = array(
+		array( 'UK manufactured', 'Designed &amp; built in Manchester' ),
+		array( '5-year warranty', 'On every luminaire, as standard' ),
+		array( 'Free lighting design', 'Fully specified scheme in 3–5 days' ),
+		array( 'UK stock', 'Short lead times, held in Manchester' ),
+	);
+	$cells = '';
+	foreach ( $items as $it ) {
+		$cells .= '<div class="rm-sectrust-item"><span class="rm-sectrust-h">' . wp_kses_post( $it[0] ) . '</span>'
+			. '<span class="rm-sectrust-s">' . wp_kses_post( $it[1] ) . '</span></div>';
+	}
+	return '<div class="rm-section rm-sectrust"><div class="rm-pp-wrap"><div class="rm-sectrust-row">' . $cells . '</div></div></div>';
+} );
+
 /** Product-category slugs to recommend for a sector (filterable). */
 function ricoman_sector_product_cats( $sector_slug ) {
 	$map = array(
@@ -138,7 +154,7 @@ add_shortcode( 'ricoman_sector_leadgen', function () {
 			. '</form>'
 			. '<p class="rm-secld-small">No spam — just expert ' . esc_html( strtolower( $label ) ) . ' guidance from our UK design team.</p>';
 
-	return '<div class="rm-section rm-secld"><div class="rm-pp-wrap"><div class="rm-secld-in">'
+	return '<div class="rm-section rm-secld" id="enquire"><div class="rm-pp-wrap"><div class="rm-secld-in">'
 		. '<div class="rm-secld-copy"><p class="rm-eyebrow" style="color:rgba(255,255,255,.7)">Free help</p>'
 		. '<h2 class="rm-secld-h">Planning ' . esc_html( strtolower( $label ) ) . '?</h2>'
 		. '<p class="rm-secld-p">Tell us where to send it and our in-house designers will help you specify the right scheme — beam, output, finish and controls. Prefer to send drawings? <a href="/lighting-design/">Request a free lighting design →</a></p></div>'

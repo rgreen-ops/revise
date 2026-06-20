@@ -714,6 +714,14 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-projq,.rm-newsq{width:100%;font-family:Poppins;font-size:.92rem;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:999px;padding:11px 18px 11px 40px;outline:none;transition:border-color .15s;-webkit-appearance:none;appearance:none}
 .rm-projq:focus,.rm-newsq:focus{border-color:var(--ink)}
 .rm-projq::placeholder,.rm-newsq::placeholder{color:var(--muted)}
+/* Sector landing: header CTA + trust bar */
+.rm-sector-cta{margin-top:clamp(20px,2.6vw,30px)}
+.rm-sectrust{padding-block:clamp(16px,2vw,24px)!important;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:#fff}
+.rm-sectrust-row{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(14px,2vw,28px)}
+@media(max-width:760px){.rm-sectrust-row{grid-template-columns:1fr 1fr;gap:18px}}
+.rm-sectrust-item{display:flex;flex-direction:column;gap:2px;padding-left:16px;border-left:2px solid var(--accent)}
+.rm-sectrust-h{font-family:Poppins;font-weight:600;font-size:1rem;color:var(--ink);letter-spacing:-.01em}
+.rm-sectrust-s{font-family:Poppins;font-size:.84rem;color:var(--muted);line-height:1.4}
 /* Sector landing: recommended product ranges */
 .rm-secprod{padding-block:clamp(28px,4vw,56px)!important;background:var(--soft)}
 .rm-secprod .rm-eyebrow{color:var(--muted)}
