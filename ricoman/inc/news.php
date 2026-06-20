@@ -235,6 +235,88 @@ add_filter( 'wpseo_schema_article_post_types', function ( $types ) {
 	return $types;
 } );
 
+/**
+ * Curated keyword => URL map for in-article internal links. These point at
+ * product categories / feature pages, so links double as conversion paths.
+ * Editable via the filter.
+ */
+function ricoman_news_link_map() {
+	return apply_filters( 'ricoman_news_link_map', array(
+		'human centric lighting' => '/human-centric-lighting/',
+		'emergency lighting'     => '/product-category/led-emergency/',
+		'linear lighting'        => '/product-category/led-linear-lighting/',
+		'track lighting'         => '/product-category/led-track-lights/',
+		'panel lights'           => '/product-category/led-panel-lights/',
+		'led downlights'         => '/product-category/led-downlights/',
+		'downlights'             => '/product-category/led-downlights/',
+		'lighting design'        => '/lighting-design/',
+		'tunable white'          => '/human-centric-lighting/',
+		'pendants'               => '/product-category/pendants/',
+		'Casambi'                => '/casambi/',
+		'Flow+'                  => '/product-category/led-linear-lighting/',
+	) );
+}
+
+/**
+ * Add a few internal links to an article body — first occurrence of each
+ * curated term only, capped, skipping headings + existing links. Restrained on
+ * purpose: relevant internal links help SEO + send readers to product pages,
+ * but over-linking ("keyword stuffing") hurts both, so we keep it light.
+ */
+function ricoman_news_autolink( $html ) {
+	$map = ricoman_news_link_map();
+	if ( '' === trim( (string) $html ) || ! $map || ! class_exists( 'DOMDocument' ) ) {
+		return $html;
+	}
+	$max  = (int) apply_filters( 'ricoman_news_autolink_max', 5 );
+	$keys = array_keys( $map );
+	usort( $keys, function ( $a, $b ) { return strlen( $b ) - strlen( $a ); } );
+
+	$doc = new DOMDocument();
+	libxml_use_internal_errors( true );
+	$doc->loadHTML( '<?xml encoding="utf-8"?><div id="rmroot">' . $html . '</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
+	libxml_clear_errors();
+	$xpath = new DOMXPath( $doc );
+	$count = 0;
+
+	foreach ( $keys as $kw ) {
+		if ( $count >= $max ) {
+			break;
+		}
+		$nodes = $xpath->query( '//text()[not(ancestor::a) and not(ancestor::h1) and not(ancestor::h2) and not(ancestor::h3) and not(ancestor::h4) and not(ancestor::button)]' );
+		foreach ( $nodes as $node ) {
+			$text = $node->nodeValue;
+			if ( preg_match( '/(?<![\w])' . preg_quote( $kw, '/' ) . '(?![\w])/i', $text, $m, PREG_OFFSET_CAPTURE ) ) {
+				$pos     = $m[0][1];
+				$matched = $m[0][0];
+				$before  = substr( $text, 0, $pos );
+				$after   = substr( $text, $pos + strlen( $matched ) );
+				$a       = $doc->createElement( 'a' );
+				$a->setAttribute( 'href', $map[ $kw ] );
+				$a->setAttribute( 'class', 'rm-news-ilink' );
+				$a->appendChild( $doc->createTextNode( $matched ) );
+				$parent = $node->parentNode;
+				$parent->insertBefore( $doc->createTextNode( $before ), $node );
+				$parent->insertBefore( $a, $node );
+				$parent->insertBefore( $doc->createTextNode( $after ), $node );
+				$parent->removeChild( $node );
+				$count++;
+				break; // first occurrence of this term only.
+			}
+		}
+	}
+
+	$root = $doc->getElementById( 'rmroot' );
+	if ( ! $root ) {
+		return $html;
+	}
+	$out = '';
+	foreach ( $root->childNodes as $c ) {
+		$out .= $doc->saveHTML( $c );
+	}
+	return $out;
+}
+
 /** Conversion CTA band shared by article + (optionally) the listing. */
 function ricoman_news_cta( $pid ) {
 	$head = (string) get_post_meta( $pid, '_rmn_cta_head', true );
@@ -250,7 +332,8 @@ function ricoman_news_cta( $pid ) {
 		. '<h2 class="rm-news-cta-h">' . esc_html( $head ) . '</h2>'
 		. '<p class="rm-news-cta-p">' . esc_html( $sub ) . '</p>'
 		. '<a class="btn btn-solid" href="' . esc_url( $url ) . '">' . esc_html( $btn ) . '</a>'
-		. ' <a class="btn btn-line-d" href="/contact/">Talk to the team</a>'
+		. ' <a class="btn btn-line-d" href="/products/">Browse the product range →</a>'
+		. '<p class="rm-news-cta-alt"><a href="/contact/">Or talk to the team →</a></p>'
 		. '</div></aside>';
 }
 
@@ -360,7 +443,7 @@ add_filter( 'the_content', function ( $content ) {
 	}
 
 	if ( '' !== trim( wp_strip_all_tags( (string) $content ) ) ) {
-		$out .= '<div class="rm-news-body">' . $content . '</div>';
+		$out .= '<div class="rm-news-body">' . ricoman_news_autolink( $content ) . '</div>';
 	}
 
 	// Optional bottom heading/description + gallery from "News Others Info".
