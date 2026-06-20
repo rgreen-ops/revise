@@ -108,6 +108,15 @@ add_filter( 'the_content', function ( $content ) {
 	return $content . $grid;
 }, 8 );
 
+/** Tell Yoast (if active) to treat news posts as Article schema, not WebPage. */
+add_filter( 'wpseo_schema_article_post_types', function ( $types ) {
+	$types = (array) $types;
+	if ( ! in_array( 'news', $types, true ) ) {
+		$types[] = 'news';
+	}
+	return $types;
+} );
+
 /** Conversion CTA band shared by article + (optionally) the listing. */
 function ricoman_news_cta( $pid ) {
 	$head = (string) get_post_meta( $pid, '_rmn_cta_head', true );
