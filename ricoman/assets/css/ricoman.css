@@ -714,6 +714,47 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-projq,.rm-newsq{width:100%;font-family:Poppins;font-size:.92rem;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:999px;padding:11px 18px 11px 40px;outline:none;transition:border-color .15s;-webkit-appearance:none;appearance:none}
 .rm-projq:focus,.rm-newsq:focus{border-color:var(--ink)}
 .rm-projq::placeholder,.rm-newsq::placeholder{color:var(--muted)}
+/* Sector landing: recommended product ranges */
+.rm-secprod{padding-block:clamp(28px,4vw,56px)!important;background:var(--soft)}
+.rm-secprod .rm-eyebrow{color:var(--muted)}
+.rm-secprod .rm-shead{margin:.2em 0 clamp(18px,2.4vw,28px)}
+.rm-secprod-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2vw,24px)}
+@media(max-width:820px){.rm-secprod-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.rm-secprod-grid{grid-template-columns:1fr}}
+.rm-secprod-card{display:block;text-decoration:none;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;transition:transform .25s,box-shadow .25s}
+.rm-secprod-card:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(0,0,0,.1)}
+.rm-secprod-img{display:block;aspect-ratio:16/11;background:#e4e4e4 center/cover no-repeat}
+.rm-secprod-body{display:block;padding:16px 18px}
+.rm-secprod-t{display:block;font-family:Poppins;font-weight:600;font-size:1.05rem}
+.rm-secprod-go{display:block;font-family:Poppins;font-size:.8rem;color:var(--accent);margin-top:.35em}
+.rm-secprod-all{margin:clamp(18px,2.4vw,26px) 0 0}
+.rm-secprod-all a{font-family:Poppins;font-weight:600;color:var(--ink);text-decoration:underline;text-underline-offset:3px}
+/* Sector landing: lead-gen band */
+.rm-secld{padding-block:clamp(36px,5vw,72px)!important;background:var(--ink);color:#fff}
+.rm-secld-in{display:grid;grid-template-columns:1.1fr 1fr;gap:clamp(28px,4vw,64px);align-items:center}
+@media(max-width:820px){.rm-secld-in{grid-template-columns:1fr;gap:24px}}
+.rm-secld-h{color:#fff;font-family:Poppins;font-weight:500;font-size:clamp(1.6rem,3vw,2.4rem);letter-spacing:-.02em;margin:.2em 0 .4em}
+.rm-secld-p{color:rgba(255,255,255,.74);font-size:1.05rem;line-height:1.65;margin:0;max-width:54ch}
+.rm-secld-p a{color:#fff;text-decoration:underline;text-underline-offset:3px}
+.rm-secld-form{display:flex;flex-wrap:wrap;gap:10px}
+.rm-secld-form input{flex:1 1 180px;font-family:Poppins;font-size:.95rem;padding:13px 16px;border:1px solid rgba(255,255,255,.25);border-radius:10px;background:rgba(255,255,255,.06);color:#fff;outline:none}
+.rm-secld-form input::placeholder{color:rgba(255,255,255,.55)}
+.rm-secld-form input:focus{border-color:#fff}
+.rm-secld-form .btn{flex:1 1 100%;justify-content:center;border:0}
+.rm-secld-small{color:rgba(255,255,255,.5);font-size:.8rem;margin:.9em 0 0}
+.rm-secld-thanks{font-family:Poppins;font-size:1.1rem;color:#fff;background:rgba(255,255,255,.08);border-radius:12px;padding:24px}
+/* Sector landing: FAQ */
+.rm-faq{padding-block:clamp(32px,4.5vw,64px)!important}
+.rm-faq-in{max-width:840px;margin:0 auto}
+.rm-faq .rm-shead{margin:0 0 clamp(16px,2vw,24px)}
+.rm-faq-item{border-top:1px solid var(--line);padding:6px 0}
+.rm-faq-item:last-child{border-bottom:1px solid var(--line)}
+.rm-faq-item summary{font-family:Poppins;font-weight:600;font-size:1.08rem;color:var(--ink);cursor:pointer;list-style:none;padding:16px 36px 16px 0;position:relative}
+.rm-faq-item summary::-webkit-details-marker{display:none}
+.rm-faq-item summary::after{content:"+";position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:1.4rem;font-weight:400;color:var(--muted)}
+.rm-faq-item[open] summary::after{content:"–"}
+.rm-faq-a{color:var(--muted);font-size:1.02rem;line-height:1.7;padding:0 0 16px}
+.rm-faq-a a{color:var(--accent);text-decoration:underline;text-underline-offset:2px}
 /* Sector landing page (project-cat term archive) — SEO + design */
 .rm-sectorhead{padding-block:clamp(28px,4vw,56px) clamp(16px,2.4vw,28px)!important}
 .rm-sectorhead>*{max-width:860px;margin-inline:auto}
