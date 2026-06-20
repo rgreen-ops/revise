@@ -39,10 +39,16 @@ GLOBAL: [ ] Header / mega-menu  [ ] Footer
 
 
 ## Key facts established
-- **MARKETING STAT (for Richard's report):** the old media library held
-  **75,911 images, of which 69,315 (91%) are exact duplicates** — created by the
-  old WooCommerce variant import adding a new image per variant. Cleaned up via
-  the theme's Media Cleanup tool.
+- **MARKETING STATS (for Richard's report on the new website):**
+  - Old media library held **75,911 images, of which 69,315 (91%) are exact
+    duplicates** — from the old WooCommerce variant import adding a new image per
+    variant. Removed via the new site's Media Cleanup tool.
+  - That bloat also **broke the hosting backups**: Plesk scheduled backups had
+    been **failing since ~Oct 2025**, ballooned to **248 GB**. Cleaning the
+    duplicates shrinks backups and makes them reliable again.
+  - Angle: the new website doesn't just look better — it **fixes years of hidden
+    technical debt** (storage bloat, failing backups), and is **faster, cheaper
+    to host, and more reliable** as a result.
 - Old products store everything in **ACF**; post types: `product`, `project`,
   `news`, `home_slider`, `lighting_sectors`, `variant-product`, `lead`.
 - Real taxonomies: `product-cat`, `applycation-type`, `project-cat` (+ many
