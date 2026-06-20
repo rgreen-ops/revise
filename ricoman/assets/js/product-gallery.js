@@ -219,8 +219,11 @@
 			cards.forEach( function ( c ) {
 				var clm = +c.dataset.lm || 0, cw = +c.dataset.w || 0, cf = ( c.dataset.feat || '' ).split( ' ' );
 				var ok = true;
-				if ( ! lmFull && clm > 0 && ( clm < loLm || clm > hiLm ) ) { ok = false; }
-				if ( ! wFull && cw > 0 && ( cw < loW || cw > hiW ) ) { ok = false; }
+				// When a range filter is active, products without that metric
+				// (accessories, track housing, etc.) are excluded — they can't
+				// satisfy a lumen/wattage requirement.
+				if ( ! lmFull && ( clm <= 0 || clm < loLm || clm > hiLm ) ) { ok = false; }
+				if ( ! wFull && ( cw <= 0 || cw < loW || cw > hiW ) ) { ok = false; }
 				want.forEach( function ( f ) { if ( cf.indexOf( f ) < 0 ) { ok = false; } } );
 				c.hidden = ! ok; if ( ok ) { shown++; }
 			} );
