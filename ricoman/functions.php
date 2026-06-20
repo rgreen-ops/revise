@@ -17,6 +17,17 @@ if ( ! defined( 'RICOMAN_VERSION' ) ) {
 	define( 'RICOMAN_VERSION', '1.1.0' );
 }
 
+// TEMP DIAGNOSTIC (remove): ?rm_trace=lights surfaces the last fatal as an HTML comment.
+if ( isset( $_GET['rm_trace'] ) && 'lights' === $_GET['rm_trace'] ) {
+	error_reporting( E_ALL );
+	register_shutdown_function( function () {
+		$e = error_get_last();
+		if ( $e && in_array( $e['type'], array( E_ERROR, E_PARSE, E_COMPILE_ERROR, E_CORE_ERROR ), true ) ) {
+			echo "\n<!--RM_FATAL: " . $e['message'] . ' @ ' . $e['file'] . ':' . $e['line'] . "-->\n";
+		}
+	} );
+}
+
 /**
  * Load feature modules. Each file is self-contained and hooks itself in.
  */
