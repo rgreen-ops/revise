@@ -554,10 +554,11 @@ add_shortcode( 'ricoman_catalogue', function ( $atts ) {
 	$maxlm = $maxlm > 0 ? (int) ( ceil( $maxlm / 500 ) * 500 ) : 0;
 	$maxw  = $maxw > 0 ? (int) ( ceil( $maxw / 5 ) * 5 ) : 0;
 	ksort( $allfeat );
-	$ticks = '';
+	$excluded = function_exists( 'ricoman_pf_excluded_features' ) ? ricoman_pf_excluded_features() : array();
+	$ticks    = '';
 	foreach ( array_keys( $allfeat ) as $f ) {
-		// Skip junk labels (numbers / single chars) — only real feature words.
-		if ( ! preg_match( '/[a-z]{2,}/i', (string) $f ) ) {
+		// Skip junk labels (numbers / single chars) and the excluded set.
+		if ( ! preg_match( '/[a-z]{2,}/i', (string) $f ) || in_array( $f, $excluded, true ) ) {
 			continue;
 		}
 		$ticks .= '<label class="rm-ftick"><input type="checkbox" value="' . esc_attr( sanitize_title( $f ) ) . '"> ' . esc_html( $f ) . '</label>';

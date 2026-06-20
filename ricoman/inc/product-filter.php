@@ -39,6 +39,17 @@ function ricoman_pf_feature_map() {
 }
 
 /**
+ * Feature labels to hide from the catalogue / category filters (kept in one
+ * filterable place). They may still appear elsewhere (e.g. product spec lists);
+ * this only removes them as filter tick-boxes.
+ */
+function ricoman_pf_excluded_features() {
+	return apply_filters( 'ricoman_pf_excluded_features', array(
+		'Acoustic', 'CCT Switchable', 'DALI', 'Dimmable', 'IP66', 'Switchable',
+	) );
+}
+
+/**
  * Light output (lumens) + power (watts) + feature flags for a product.
  *
  * The real ricoman.com catalogue keeps lumens/wattage on the per-variant
@@ -274,11 +285,12 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 	$maxlm = $maxlm > 0 ? (int) ( ceil( $maxlm / 500 ) * 500 ) : 0;
 	$maxw  = $maxw > 0 ? (int) ( ceil( $maxw / 5 ) * 5 ) : 0;
 
-	// Feature tick-boxes (skip junk numeric/single-char labels).
+	// Feature tick-boxes (skip junk labels + the excluded set).
 	ksort( $allfeat );
-	$ticks = '';
+	$excluded = ricoman_pf_excluded_features();
+	$ticks    = '';
 	foreach ( array_keys( $allfeat ) as $f ) {
-		if ( ! preg_match( '/[a-z]{2,}/i', (string) $f ) ) {
+		if ( ! preg_match( '/[a-z]{2,}/i', (string) $f ) || in_array( $f, $excluded, true ) ) {
 			continue;
 		}
 		$slug   = sanitize_title( $f );
