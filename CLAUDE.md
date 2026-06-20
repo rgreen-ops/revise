@@ -39,6 +39,10 @@ GLOBAL: [ ] Header / mega-menu  [ ] Footer
 
 
 ## Key facts established
+- **MARKETING STAT (for Richard's report):** the old media library held
+  **75,911 images, of which 69,315 (91%) are exact duplicates** — created by the
+  old WooCommerce variant import adding a new image per variant. Cleaned up via
+  the theme's Media Cleanup tool.
 - Old products store everything in **ACF**; post types: `product`, `project`,
   `news`, `home_slider`, `lighting_sectors`, `variant-product`, `lead`.
 - Real taxonomies: `product-cat`, `applycation-type`, `project-cat` (+ many

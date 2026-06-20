@@ -234,15 +234,15 @@ function rm_mc_render_page() {
 		cf.addEventListener('input',function(){ mg.disabled=(cf.value.trim().toUpperCase()!=='MERGE'); });
 		var merging=false,total=0;
 		function mergeBatch(){
-			var b=new URLSearchParams({action:'rm_mc_merge',nonce:nonce,apply:'1',confirm:cf.value,limit:'40'});
+			var b=new URLSearchParams({action:'rm_mc_merge',nonce:nonce,apply:'1',confirm:cf.value,limit:'30'});
 			fetch(ajax,{method:'POST',body:b,credentials:'same-origin'}).then(function(r){return r.json();}).then(function(j){
-				if(!j||!j.success){ mgOut.textContent='Error — stopped.'; merging=false; mg.disabled=false; return; }
+				if(!j||!j.success){ mgOut.textContent='Stopped (server busy). Click Merge to resume.'; merging=false; mg.disabled=false; return; }
 				var d=j.data; total+=d.trashed;
 				setStat({extra:d.remaining});
-				mgOut.textContent='Merged '+total.toLocaleString()+' duplicates… '+d.remaining.toLocaleString()+' remaining.';
-				if(d.processed>0 && d.remaining>0){ mergeBatch(); }
-				else { mgOut.textContent='Done — merged '+total.toLocaleString()+' duplicates to Trash. '+d.remaining.toLocaleString()+' remaining.'; merging=false; }
-			}).catch(function(){ mgOut.textContent='Network error — click to resume.'; merging=false; mg.disabled=false; });
+				mgOut.textContent='Merged '+total.toLocaleString()+' to Trash… '+d.remaining.toLocaleString()+' remaining.';
+				if(d.trashed>0 && d.remaining>0){ setTimeout(mergeBatch, 600); }  // pause so the live site isn't hammered
+				else { mgOut.textContent='Done — merged '+total.toLocaleString()+' duplicates to Trash. '+d.remaining.toLocaleString()+' remaining.'; merging=false; mg.disabled=false; }
+			}).catch(function(){ mgOut.textContent='Paused (network/timeout). Click Merge to resume — progress is saved.'; merging=false; mg.disabled=false; });
 		}
 		mg.addEventListener('click',function(){ if(merging)return; if(cf.value.trim().toUpperCase()!=='MERGE')return;
 			if(!confirm('Merge duplicate images to Trash? Make sure you have a backup.'))return;
@@ -302,9 +302,23 @@ function rm_mc_render_page() {
  *    meta (parent IDs, menu order, …) is never touched.
  * ------------------------------------------------------------------ */
 
-/** SQL fragment: meta rows that plausibly hold an image/gallery reference. */
+/** Known image/gallery meta keys (filterable). Used with an indexed meta_key
+ * lookup so reference searches don't full-scan a huge postmeta table. */
+function rm_mc_image_meta_keys() {
+	return apply_filters( 'rm_mc_image_meta_keys', array(
+		'_thumbnail_id',
+		'product_gallery_image', 'product_main_image', 'product_diagram', 'product_image',
+		'insitu_gallery', 'dimension_diagrams',
+		'project_image', 'project_banner_image', 'project_gallery',
+		'news_bottom_image', 'galary_image', 'gallery', 'image', 'icon',
+		'banner_image', 'main_image', 'thumbnail',
+	) );
+}
+
+/** SQL fragment: meta_key IN (image keys) — uses the meta_key index. */
 function rm_mc_image_key_sql( $alias = 'm' ) {
-	return "($alias.meta_key = '_thumbnail_id' OR $alias.meta_key REGEXP '(image|images|diagram|diagrams|gallery|galleries|galary|icon|photo|banner|thumbnail)$')";
+	$keys = array_map( 'esc_sql', rm_mc_image_meta_keys() );
+	return "$alias.meta_key IN ('" . implode( "','", $keys ) . "')";
 }
 
 /** Replace attachment id $from with $to inside one meta value (plain / CSV /
@@ -349,12 +363,12 @@ function rm_mc_remap_reference( $from, $to, $apply = false ) {
 	$to   = (int) $to;
 	$n    = 0;
 
-	// Meta references (image-type keys only).
+	// Meta references (indexed meta_key lookup + LIKE; exact match verified in PHP).
 	$rows = $wpdb->get_results( $wpdb->prepare(
 		"SELECT m.meta_id, m.meta_value FROM {$wpdb->postmeta} m
 		 WHERE " . rm_mc_image_key_sql( 'm' ) . "
-		   AND m.meta_value REGEXP %s",
-		'(^|[^0-9])' . $from . '([^0-9]|$)'
+		   AND m.meta_value LIKE %s",
+		'%' . $wpdb->esc_like( (string) $from ) . '%'
 	) );
 	foreach ( $rows as $r ) {
 		list( $new, $changed ) = rm_mc_replace_in_value( $r->meta_value, $from, $to );
@@ -397,38 +411,52 @@ function rm_mc_remap_reference( $from, $to, $apply = false ) {
 /** Process one batch of duplicates: remap + (optionally) trash. */
 function rm_mc_merge_batch( $apply, $limit ) {
 	global $wpdb;
-	// Duplicate attachments = image attachments whose hash is shared by an
-	// earlier (lower-ID) attachment. The earliest in each group is the canon.
-	$dupes = $wpdb->get_results( $wpdb->prepare(
-		"SELECT m.post_id AS id, m.meta_value AS hash FROM {$wpdb->postmeta} m
-		 INNER JOIN {$wpdb->posts} p ON p.ID = m.post_id AND p.post_status <> 'trash'
-		 WHERE m.meta_key='_rm_sha1' AND m.meta_value NOT IN ('', 'missing')
-		   AND EXISTS (
-		     SELECT 1 FROM {$wpdb->postmeta} m2
-		     WHERE m2.meta_key='_rm_sha1' AND m2.meta_value = m.meta_value AND m2.post_id < m.post_id
-		   )
-		 ORDER BY m.post_id ASC LIMIT %d",
+	$start  = microtime( true );
+	$budget = (float) apply_filters( 'rm_mc_time_budget', 12.0 ); // seconds per request.
+
+	// Enumerate duplicate groups in ONE pass: each shared hash, its canonical
+	// (lowest ID) and up to 80 of its duplicate IDs. Big groups are whittled
+	// across successive calls. (Cheap — no per-duplicate lookups.)
+	$wpdb->query( 'SET SESSION group_concat_max_len = 200000' );
+	$groups = $wpdb->get_results( $wpdb->prepare(
+		"SELECT MIN(post_id) AS canon,
+		        SUBSTRING_INDEX(GROUP_CONCAT(post_id ORDER BY post_id ASC), ',', 80) AS ids
+		 FROM {$wpdb->postmeta}
+		 WHERE meta_key='_rm_sha1' AND meta_value NOT IN ('', 'missing')
+		 GROUP BY meta_value HAVING COUNT(*) > 1
+		 LIMIT %d",
 		(int) $limit
 	) );
+
 	$refs = 0;
 	$done = 0;
-	foreach ( $dupes as $d ) {
-		$canon = rm_mc_canonical_for_hash( $d->hash, (int) $d->id );
-		if ( ! $canon || $canon === (int) $d->id ) {
-			continue;
-		}
-		$refs += rm_mc_remap_reference( (int) $d->id, (int) $canon, $apply );
-		if ( $apply ) {
-			delete_post_meta( (int) $d->id, '_rm_sha1' ); // so it stops counting as a dup.
-			update_post_meta( (int) $d->id, '_rm_merged_into', (int) $canon );
-			wp_trash_post( (int) $d->id ); // recoverable; references already moved.
-			$done++;
+	$seen = 0;
+	$out_of_time = false;
+	foreach ( $groups as $g ) {
+		$canon = (int) $g->canon;
+		foreach ( array_map( 'intval', explode( ',', (string) $g->ids ) ) as $vid ) {
+			if ( $vid === $canon || $vid <= 0 ) {
+				continue;
+			}
+			$seen++;
+			$refs += rm_mc_remap_reference( $vid, $canon, $apply );
+			if ( $apply ) {
+				delete_post_meta( $vid, '_rm_sha1' ); // stop it counting as a dup.
+				update_post_meta( $vid, '_rm_merged_into', $canon );
+				wp_trash_post( $vid );                // recoverable; refs already moved.
+				$done++;
+			}
+			if ( microtime( true ) - $start > $budget ) {
+				$out_of_time = true;
+				break 2;
+			}
 		}
 	}
 	return array(
-		'processed' => count( $dupes ),
+		'processed' => $seen,
 		'refs'      => $refs,
 		'trashed'   => $done,
+		'timed'     => $out_of_time,
 		'remaining' => (int) rm_mc_stats()['extra'],
 	);
 }
@@ -457,11 +485,15 @@ function rm_mc_is_referenced( $id ) {
 	if ( $wpdb->get_var( $wpdb->prepare( "SELECT 1 FROM {$wpdb->postmeta} WHERE meta_key='_thumbnail_id' AND meta_value=%d LIMIT 1", $id ) ) ) {
 		return true;
 	}
-	if ( $wpdb->get_var( $wpdb->prepare(
-		"SELECT 1 FROM {$wpdb->postmeta} m WHERE " . rm_mc_image_key_sql( 'm' ) . " AND m.meta_value REGEXP %s LIMIT 1",
-		'(^|[^0-9])' . $id . '([^0-9]|$)'
-	) ) ) {
-		return true;
+	$mrows = $wpdb->get_results( $wpdb->prepare(
+		"SELECT m.meta_value FROM {$wpdb->postmeta} m WHERE " . rm_mc_image_key_sql( 'm' ) . " AND m.meta_value LIKE %s LIMIT 50",
+		'%' . $wpdb->esc_like( (string) $id ) . '%'
+	) );
+	foreach ( $mrows as $mr ) {
+		list( , $hit ) = rm_mc_replace_in_value( $mr->meta_value, $id, $id );
+		if ( $hit ) {
+			return true;
+		}
 	}
 	if ( $wpdb->get_var( $wpdb->prepare( "SELECT 1 FROM {$wpdb->posts} WHERE post_content LIKE %s LIMIT 1", '%wp-image-' . $id . '%' ) ) ) {
 		return true;
@@ -489,10 +521,17 @@ function rm_mc_owner_post( $id ) {
 	if ( $owner ) {
 		return $owner;
 	}
-	return (int) $wpdb->get_var( $wpdb->prepare(
-		"SELECT post_id FROM {$wpdb->postmeta} m WHERE " . rm_mc_image_key_sql( 'm' ) . " AND m.meta_value REGEXP %s LIMIT 1",
-		'(^|[^0-9])' . $id . '([^0-9]|$)'
+	$rows = $wpdb->get_results( $wpdb->prepare(
+		"SELECT m.post_id, m.meta_value FROM {$wpdb->postmeta} m WHERE " . rm_mc_image_key_sql( 'm' ) . " AND m.meta_value LIKE %s LIMIT 50",
+		'%' . $wpdb->esc_like( (string) $id ) . '%'
 	) );
+	foreach ( $rows as $r ) {
+		list( , $hit ) = rm_mc_replace_in_value( $r->meta_value, $id, $id );
+		if ( $hit ) {
+			return (int) $r->post_id;
+		}
+	}
+	return 0;
 }
 
 /** Does this attachment have a junk / meaningless title? */
