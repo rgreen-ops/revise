@@ -41,6 +41,13 @@ body:not(.rm-hero) header.site,body:not(.rm-hero) .ricoman-site-header{position:
 /* on hero pages the header overlays the image — a soft top gradient keeps the
    white menu legible over ANY content (so it's never an invisible white-on-white) */
 body.rm-hero header.site,body.rm-hero .ricoman-site-header{background:linear-gradient(180deg,rgba(0,0,0,.5) 0%,rgba(0,0,0,.14) 55%,rgba(0,0,0,0) 100%)}
+/* Sticky header on scroll (desktop) — solid bar once you move down the page */
+@media(min-width:1025px){
+  header.site,.ricoman-site-header{transition:background .25s ease,box-shadow .25s ease}
+  body:not(.rm-hero) header.site,body:not(.rm-hero) .ricoman-site-header{position:sticky;top:0;z-index:60}
+  body.rm-hero header.site,body.rm-hero .ricoman-site-header{position:fixed;top:0;left:0;right:0;z-index:60}
+  header.site.rm-stuck,.ricoman-site-header.rm-stuck{background:var(--ink);box-shadow:0 6px 26px rgba(0,0,0,.22)}
+}
 .nav{display:flex;align-items:center;justify-content:space-between;height:88px;color:#fff}
 .brand{font-family:Poppins;font-weight:700;letter-spacing:.3em;font-size:1.1rem;color:#fff}
 .brand sup{font-size:.5em;top:-1em}
@@ -485,7 +492,8 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 @media(max-width:680px){.rm-fam-list{grid-template-columns:1fr}.rm-facet{grid-template-columns:1fr}}
 
 /* full-screen embedded tool (Flow+ Designer) */
-.rm-tool{display:flex;flex-direction:column;height:100vh}
+.rm-tool{display:flex;flex-direction:column;height:calc(100vh - 88px)}
+@media(max-width:1024px){.rm-tool{height:calc(100vh - 54px)}}
 .rm-tool-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;background:var(--ink);color:#fff;padding:10px 18px;font-family:Poppins;font-weight:600;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase}
 .rm-tool-bar a{color:#fff;text-decoration:none}
 .rm-tool-bar a:hover{color:#9ec1ff}
