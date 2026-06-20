@@ -220,7 +220,10 @@ function ricoman_render_projects_manager( $user_id = 0 ) {
 		</div>
 		<?php if ( $cur ) : ?>
 		<div class="rm-proj-head">
-			<input type="text" class="rm-proj-title" value="<?php echo esc_attr( $cur['name'] ); ?>" data-proj-rename aria-label="<?php esc_attr_e( 'Project name', 'ricoman' ); ?>">
+			<div class="rm-proj-titlewrap">
+				<input type="text" class="rm-proj-title" value="<?php echo esc_attr( $cur['name'] ); ?>" data-proj-rename aria-label="<?php esc_attr_e( 'Project name', 'ricoman' ); ?>">
+				<button type="button" class="rm-proj-edit" data-proj-editname aria-label="<?php esc_attr_e( 'Rename project', 'ricoman' ); ?>" title="<?php esc_attr_e( 'Rename', 'ricoman' ); ?>">&#9998;</button>
+			</div>
 			<div class="rm-proj-headacts">
 				<a class="btn btn-solid" href="<?php echo esc_url( add_query_arg( 'rm_pack', $cur['id'], home_url( '/' ) ) ); ?>"><?php esc_html_e( 'Download project pack', 'ricoman' ); ?> &darr;</a>
 				<button type="button" class="btn btn-line-d" data-proj-delete="<?php echo esc_attr( $cur['id'] ); ?>"><?php esc_html_e( 'Delete', 'ricoman' ); ?></button>

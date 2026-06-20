@@ -54,6 +54,14 @@
 		}
 		var rm = e.target.closest( '[data-proj-remove]' );
 		if ( rm ) { post( { op: 'remove', product: rm.getAttribute( 'data-proj-remove' ) }, swap ); return; }
+
+		var ed = e.target.closest( '[data-proj-editname]' );
+		if ( ed ) {
+			var wrap = ed.closest( '.rm-proj-titlewrap' );
+			var input = wrap && wrap.querySelector( '.rm-proj-title' );
+			if ( input ) { input.focus(); input.select(); }
+			return;
+		}
 	} );
 
 	document.addEventListener( 'change', function ( e ) {

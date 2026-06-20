@@ -1503,3 +1503,9 @@ html,body{overflow-x:clip}
 /* Auth prompt (add-to-project for guests) */
 .rm-auth-acts{display:flex;flex-direction:column;gap:10px;margin-top:18px}
 .rm-auth-acts .btn{width:100%;justify-content:center}
+
+/* Project title rename (pencil) */
+.rm-proj-titlewrap{display:flex;align-items:center;gap:6px;flex:1;min-width:200px}
+.rm-proj-edit{background:none;border:0;cursor:pointer;color:var(--muted);font-size:1rem;line-height:1;padding:4px}
+.rm-proj-edit:hover{color:var(--ink)}
+.rm-proj-title{cursor:text}
