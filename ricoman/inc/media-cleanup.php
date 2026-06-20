@@ -556,24 +556,16 @@ function rm_mc_merge_batch( $apply, $limit ) {
 		}
 	}
 
-	// Remaining duplicate count is expensive (GROUP BY across the whole library),
-	// so keep a running tally in a transient and only recompute it from scratch
-	// when the cache is cold — not on every batch.
-	$remaining = get_transient( 'rm_mc_extra' );
-	if ( false === $remaining ) {
-		$remaining = (int) rm_mc_stats()['extra'];
-	}
-	if ( $apply ) {
-		$remaining = max( 0, (int) $remaining - $done );
-	}
-	set_transient( 'rm_mc_extra', $remaining, 300 );
+	// Accurate remaining count. Cheap now that the per-duplicate reference scan is
+	// gone, and always truthful — so the run never stops early on a stale tally.
+	$remaining = (int) rm_mc_stats()['extra'];
 
 	return array(
 		'processed' => $seen,
 		'refs'      => $refs,
 		'trashed'   => $done,
 		'timed'     => $out_of_time,
-		'remaining' => (int) $remaining,
+		'remaining' => $remaining,
 	);
 }
 
