@@ -11,7 +11,42 @@
 	'use strict';
 
 	var G = window.rmGate || {};
-	if ( G.in ) { return; } // Logged in — never gate.
+
+	/* ---- BIM / Revit request (runs for everyone, incl. logged-in) ---- */
+	( function () {
+		var modal = document.querySelector( '.rm-bimgate' );
+		if ( ! modal ) { return; }
+		var form = modal.querySelector( '.rm-bim-form' );
+		var msg = modal.querySelector( '.rm-gate-msg' );
+		function open( product ) {
+			form.product.value = product || '';
+			if ( G.name && ! form.name.value ) { form.name.value = G.name; }
+			if ( G.email && ! form.email.value ) { form.email.value = G.email; }
+			if ( msg ) { msg.hidden = true; }
+			modal.hidden = false; document.body.style.overflow = 'hidden';
+		}
+		function close() { modal.hidden = true; document.body.style.overflow = ''; }
+		document.addEventListener( 'click', function ( e ) {
+			var req = e.target.closest && e.target.closest( '.rm-bim-req' );
+			if ( req ) { e.preventDefault(); open( req.getAttribute( 'data-product' ) ); return; }
+			if ( ! modal.hidden && ( e.target === modal || e.target.classList.contains( 'rm-gate-x' ) ) ) { close(); }
+		}, true );
+		document.addEventListener( 'keydown', function ( e ) { if ( e.key === 'Escape' && ! modal.hidden ) { close(); } } );
+		form.addEventListener( 'submit', function ( e ) {
+			e.preventDefault();
+			var btn = form.querySelector( '.rm-bim-go' );
+			var body = new URLSearchParams( { action: 'rm_bim_request', nonce: G.nonce || '', name: form.name.value, email: form.email.value, company: form.company.value, product: form.product.value } );
+			if ( btn ) { btn.disabled = true; }
+			if ( msg ) { msg.hidden = true; }
+			fetch( G.ajax, { method: 'POST', body: body, credentials: 'same-origin' } ).then( function ( r ) { return r.json(); } ).then( function ( j ) {
+				if ( btn ) { btn.disabled = false; }
+				if ( ! j || ! j.success ) { if ( msg ) { msg.textContent = ( j && j.data && j.data.msg ) || 'Something went wrong — please try again.'; msg.hidden = false; } return; }
+				form.innerHTML = '<p class="rm-gate-sub" style="margin:0">Thanks — your BIM request is in. Our lighting team will email the file shortly.</p>';
+			} ).catch( function () { if ( btn ) { btn.disabled = false; } if ( msg ) { msg.textContent = 'Network error — please try again.'; msg.hidden = false; } } );
+		} );
+	} )();
+
+	if ( G.in ) { return; } // Logged in — never show the download gate.
 
 	// File types we treat as gated downloads.
 	var EXT = /\.(pdf|ies|ldt|rfa|rvt|dwg|dxf|step|stp|zip|3ds|skp|docx?|xlsx?)(\?|#|$)/i;
@@ -30,7 +65,7 @@
 		return !! a.closest( '.rm-dls, .rm-prod-downloads, .rm-acc-dl, .vt-dl, .rm-cfg-dl' );
 	}
 
-	var gate = document.querySelector( '.rm-gate' );
+	var gate = document.querySelector( '.rm-dlgate' );
 	var pending = null;
 
 	function openGate() {

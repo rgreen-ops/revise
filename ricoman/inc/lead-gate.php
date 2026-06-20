@@ -41,17 +41,39 @@ add_action( 'wp_enqueue_scripts', function () {
 		file_exists( $src ) ? (string) filemtime( $src ) : ( defined( 'RICOMAN_VERSION' ) ? RICOMAN_VERSION : '1' ),
 		true
 	);
+	$u = wp_get_current_user();
 	wp_localize_script( 'ricoman-lead-gate', 'rmGate', array(
 		'in'       => is_user_logged_in() ? 1 : 0,
 		'ajax'     => admin_url( 'admin-ajax.php' ),
 		'nonce'    => wp_create_nonce( 'rm_gate' ),
 		'login'    => wp_login_url(),
 		'register' => wp_registration_url(),
+		'name'     => $u && $u->exists() ? $u->display_name : '',
+		'email'    => $u && $u->exists() ? $u->user_email : '',
 	) );
 } );
 
-/** The gate modal markup (only needed for logged-out visitors). */
+/** The download-gate + BIM-request modals. */
 add_action( 'wp_footer', function () {
+	// BIM / Revit request modal — shown to everyone (even logged-in users, since
+	// BIM files are made to order). Pre-filled for signed-in users via JS.
+	?>
+	<div class="rm-gate rm-bimgate" hidden aria-hidden="true">
+		<div class="rm-gate-box" role="dialog" aria-modal="true" aria-labelledby="rm-bim-h">
+			<button type="button" class="rm-gate-x" aria-label="Close">&times;</button>
+			<h3 id="rm-bim-h" class="rm-gate-title"><?php esc_html_e( 'Request a BIM / Revit file', 'ricoman' ); ?></h3>
+			<p class="rm-gate-sub"><?php esc_html_e( 'BIM files are produced on request by our lighting team. Leave your details and we’ll email the file for this product to you.', 'ricoman' ); ?></p>
+			<form class="rm-bim-form">
+				<input type="hidden" name="product" value="">
+				<label><span><?php esc_html_e( 'Name', 'ricoman' ); ?> *</span><input type="text" name="name" required></label>
+				<label><span><?php esc_html_e( 'Email', 'ricoman' ); ?> *</span><input type="email" name="email" required></label>
+				<label><span><?php esc_html_e( 'Company', 'ricoman' ); ?></span><input type="text" name="company"></label>
+				<button type="submit" class="btn btn-solid rm-bim-go"><?php esc_html_e( 'Request BIM file', 'ricoman' ); ?></button>
+				<p class="rm-gate-msg" hidden></p>
+			</form>
+		</div>
+	</div>
+	<?php
 	if ( is_user_logged_in() ) {
 		return;
 	}
@@ -60,7 +82,7 @@ add_action( 'wp_footer', function () {
 		$opts .= '<option value="' . esc_attr( $t ) . '">' . esc_html( $t ) . '</option>';
 	}
 	?>
-	<div class="rm-gate" hidden aria-hidden="true">
+	<div class="rm-gate rm-dlgate" hidden aria-hidden="true">
 		<div class="rm-gate-box" role="dialog" aria-modal="true" aria-labelledby="rm-gate-h">
 			<button type="button" class="rm-gate-x" aria-label="Close">&times;</button>
 			<h3 id="rm-gate-h" class="rm-gate-title"><?php esc_html_e( 'Download this resource', 'ricoman' ); ?></h3>
@@ -128,3 +150,123 @@ function ricoman_gate_capture() {
 }
 add_action( 'wp_ajax_nopriv_rm_lead_gate', 'ricoman_gate_capture' );
 add_action( 'wp_ajax_rm_lead_gate', 'ricoman_gate_capture' );
+
+/** Where BIM requests are sent. */
+function ricoman_bim_inbox() {
+	return apply_filters( 'ricoman_bim_inbox', 'lightingdesign@ricoman.com' );
+}
+
+/**
+ * AJAX: a BIM / Revit file request. BIM files are made to order, so this logs a
+ * lead, emails the requester a thank-you, and emails the lighting team the
+ * product + the requester's details.
+ */
+function ricoman_bim_request() {
+	if ( ! check_ajax_referer( 'rm_gate', 'nonce', false ) ) {
+		wp_send_json_error( array( 'msg' => __( 'Please refresh and try again.', 'ricoman' ) ) );
+	}
+	$name    = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
+	$email   = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
+	$company = isset( $_POST['company'] ) ? sanitize_text_field( wp_unslash( $_POST['company'] ) ) : '';
+	$product = isset( $_POST['product'] ) ? sanitize_text_field( wp_unslash( $_POST['product'] ) ) : '';
+	if ( '' === $name || ! is_email( $email ) ) {
+		wp_send_json_error( array( 'msg' => __( 'Please enter your name and a valid email.', 'ricoman' ) ) );
+	}
+
+	$site = get_bloginfo( 'name' );
+
+	// 1. Log it as a lead (shows in the Leads back end).
+	$data = array(
+		'name'      => $name,
+		'email'     => $email,
+		'company'   => $company,
+		'phone'     => '',
+		'role'      => '',
+		'message'   => 'BIM / Revit file requested',
+		'source'    => 'BIM request',
+		'items'     => $product,
+		'submitted' => current_time( 'mysql' ),
+	);
+	$lead_id = wp_insert_post( array(
+		'post_type'   => 'lead',
+		'post_status' => 'private',
+		'post_title'  => sprintf( '%s — BIM: %s', $name, $product ? $product : __( 'product', 'ricoman' ) ),
+		'meta_input'  => array(
+			'_lead_name'    => $name,
+			'_lead_email'   => $email,
+			'_lead_company' => $company,
+			'_lead_type'    => 'BIM request',
+			'_lead_product' => $product,
+			'_lead_source'  => 'BIM request',
+		),
+	) );
+
+	// 2. Thank-you to the requester.
+	wp_mail(
+		$email,
+		sprintf( __( 'Your BIM file request — %s', 'ricoman' ), $site ),
+		sprintf(
+			"Hi %s,\n\nThanks for requesting the BIM / Revit file for %s.\n\nOur lighting team produces these on request and will email it to you shortly. If you need anything else in the meantime, just reply to this email.\n\n— %s",
+			$name,
+			$product ? $product : __( 'your selected product', 'ricoman' ),
+			$site
+		),
+		array( 'Reply-To: ' . ricoman_bim_inbox() )
+	);
+
+	// 3. Notify the lighting team with the product + requester details.
+	wp_mail(
+		ricoman_bim_inbox(),
+		sprintf( '[%s] BIM request: %s', $site, $product ? $product : __( 'product', 'ricoman' ) ),
+		sprintf(
+			"New BIM / Revit file request.\n\nProduct: %s\n\nName: %s\nEmail: %s\nCompany: %s\n\nLead logged in the back end (#%s).",
+			$product,
+			$name,
+			$email,
+			$company,
+			is_wp_error( $lead_id ) ? '—' : (int) $lead_id
+		),
+		array( 'Reply-To: ' . $name . ' <' . $email . '>' )
+	);
+
+	/** Same hook the other capture points use (Sheets sync, CRM…). */
+	do_action( 'ricoman_lead_captured', $data, is_wp_error( $lead_id ) ? 0 : $lead_id );
+
+	wp_send_json_success();
+}
+add_action( 'wp_ajax_nopriv_rm_bim_request', 'ricoman_bim_request' );
+add_action( 'wp_ajax_rm_bim_request', 'ricoman_bim_request' );
+
+/* ----------------------------------------------------------- Leads log (admin) */
+
+add_filter( 'manage_lead_posts_columns', function ( $cols ) {
+	return array(
+		'cb'        => isset( $cols['cb'] ) ? $cols['cb'] : '<input type="checkbox" />',
+		'title'     => __( 'Lead', 'ricoman' ),
+		'rm_type'   => __( 'Type', 'ricoman' ),
+		'rm_email'  => __( 'Email', 'ricoman' ),
+		'rm_extra'  => __( 'Product / Company', 'ricoman' ),
+		'rm_source' => __( 'Source', 'ricoman' ),
+		'date'      => __( 'Received', 'ricoman' ),
+	);
+} );
+
+add_action( 'manage_lead_posts_custom_column', function ( $col, $post_id ) {
+	$g = function ( $k ) use ( $post_id ) { return (string) get_post_meta( $post_id, $k, true ); };
+	switch ( $col ) {
+		case 'rm_type':
+			echo esc_html( $g( '_lead_type' ) ? $g( '_lead_type' ) : ( $g( '_lead_role' ) ? $g( '_lead_role' ) : '—' ) );
+			break;
+		case 'rm_email':
+			$e = $g( '_lead_email' );
+			echo $e ? '<a href="mailto:' . esc_attr( $e ) . '">' . esc_html( $e ) . '</a>' : '—';
+			break;
+		case 'rm_extra':
+			$x = $g( '_lead_product' ) ? $g( '_lead_product' ) : $g( '_lead_company' );
+			echo esc_html( $x ? $x : '—' );
+			break;
+		case 'rm_source':
+			echo esc_html( $g( '_lead_source' ) ? $g( '_lead_source' ) : '—' );
+			break;
+	}
+}, 10, 2 );
