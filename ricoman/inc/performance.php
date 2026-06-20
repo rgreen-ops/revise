@@ -269,26 +269,6 @@ add_action( 'wp_head', function () {
 	}
 }, 9 );
 
-/* ---- TEMP: request-phase timing on the product archive to find the 40s ---- */
-foreach ( array( 'plugins_loaded', 'init', 'wp_loaded', 'wp', 'template_redirect', 'wp_head', 'loop_start', 'loop_end', 'wp_footer' ) as $rm_h ) {
-	add_action( $rm_h, function () use ( $rm_h ) {
-		if ( ! isset( $GLOBALS['rm_perf_marks'][ $rm_h ] ) ) {
-			$GLOBALS['rm_perf_marks'][ $rm_h ] = microtime( true );
-		}
-	}, 1 );
-}
-add_action( 'wp_footer', function () {
-	if ( ! is_post_type_archive( 'product' ) ) {
-		return;
-	}
-	$start = isset( $_SERVER['REQUEST_TIME_FLOAT'] ) ? (float) $_SERVER['REQUEST_TIME_FLOAT'] : 0;
-	$out   = 'REQ=' . round( ( microtime( true ) - $start ) * 1000 ) . 'ms';
-	foreach ( (array) ( $GLOBALS['rm_perf_marks'] ?? array() ) as $k => $t ) {
-		$out .= " {$k}=" . round( ( $t - $start ) * 1000 ) . 'ms';
-	}
-	echo "\n<!-- rm-perf " . esc_html( $out ) . " -->\n";
-}, 99 );
-
 /* ---- Speculative prefetch for near-instant internal navigation ---- */
 add_action( 'wp_footer', function () {
 	if ( is_admin_bar_showing() && is_user_logged_in() ) {
