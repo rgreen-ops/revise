@@ -83,10 +83,22 @@ add_shortcode( 'ricoman_header', function () {
 	if ( '1' === (string) ricoman_opt( 'show_search' ) ) {
 		$search = '<form class="rm-search" role="search" method="get" action="' . esc_url( home_url( '/' ) ) . '"><span class="rm-search-i" aria-hidden="true">&#9906;</span><input type="search" name="s" placeholder="Search" aria-label="Search"></form>';
 	}
-	$login       = '';
-	$login_label = ricoman_opt( 'login_label' );
-	if ( '' !== trim( (string) $login_label ) ) {
-		$login_url = ricoman_opt( 'login_url' );
+	// My Project link with a live count (server count for logged-in, JS updates it).
+	$mp_url   = function_exists( 'ricoman_my_project_url' ) ? ricoman_my_project_url() : home_url( '/my-project/' );
+	$mp_count = ( is_user_logged_in() && function_exists( 'ricoman_active_project_count' ) ) ? (int) ricoman_active_project_count() : 0;
+	$myproj   = '<a class="rm-myproj" href="' . esc_url( $mp_url ) . '">' . esc_html__( 'My Project', 'ricoman' )
+		. ' <span class="ricoman-mp-count" data-mp-count data-empty="' . ( $mp_count > 0 ? 'false' : 'true' ) . '">' . $mp_count . '</span></a>';
+
+	// Account: name + logout when signed in, otherwise the login link.
+	if ( is_user_logged_in() ) {
+		$u     = wp_get_current_user();
+		$nm    = $u->first_name ? $u->first_name : $u->display_name;
+		$login = '<a class="rm-login" href="' . esc_url( $mp_url ) . '">' . esc_html( $nm ) . '</a>'
+			. '<a class="rm-logout" href="' . esc_url( wp_logout_url( home_url( '/' ) ) ) . '">' . esc_html__( 'Log out', 'ricoman' ) . '</a>';
+	} else {
+		$login_label = ricoman_opt( 'login_label' );
+		$login_label = '' !== trim( (string) $login_label ) ? $login_label : __( 'Login', 'ricoman' );
+		$login_url   = ricoman_opt( 'login_url' );
 		if ( '' === trim( (string) $login_url ) ) {
 			$login_url = wp_login_url();
 		}
@@ -118,7 +130,7 @@ add_shortcode( 'ricoman_header', function () {
 		. '<input type="checkbox" id="rm-navtoggle" class="rm-navtoggle" hidden>'
 		. '<label for="rm-navtoggle" class="rm-burger" aria-label="Menu"><span></span><span></span><span></span></label>'
 		. '<ul class="rm-nav">' . $items . '</ul>'
-		. '<div class="rm-nav-right">' . $search . $login . '</div>'
+		. '<div class="rm-nav-right">' . $search . $myproj . $login . '</div>'
 		. '</div></header>';
 } );
 

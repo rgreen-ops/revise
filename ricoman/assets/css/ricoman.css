@@ -542,6 +542,12 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-search input{border:0;outline:0;background:transparent;font-family:Poppins;font-size:.82rem;color:var(--ink);width:100%}
 .rm-login{font-family:Poppins;font-weight:600;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:#fff;white-space:nowrap}
 .rm-login:hover{color:#9ec1ff}
+.rm-myproj{font-family:Poppins;font-weight:600;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:#fff;white-space:nowrap;display:inline-flex;align-items:center;gap:7px}
+.rm-myproj:hover{color:#9ec1ff}
+.rm-myproj .ricoman-mp-count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#fff;color:var(--ink);font-size:.62rem;letter-spacing:0}
+.rm-myproj .ricoman-mp-count[data-empty="true"]{background:rgba(255,255,255,.22);color:#fff}
+.rm-logout{font-family:Poppins;font-weight:500;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.55);white-space:nowrap}
+.rm-logout:hover{color:#fff}
 .rm-caret{font-size:.7em;opacity:.7}
 .rm-has-mega{position:static}
 .rm-mega{position:absolute;top:100%;left:0;right:0;background:var(--paper);color:var(--ink);border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,.28);padding:clamp(24px,3vw,44px);opacity:0;visibility:hidden;transform:translateY(8px);transition:.22s ease;z-index:70}
