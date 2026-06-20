@@ -176,7 +176,13 @@ function ricoman_inline_css_file( $rel ) {
 			if ( '' === $u || preg_match( '#^(data:|https?:|//|/|\#)#i', $u ) ) {
 				return $m[0];
 			}
-			return 'url(' . esc_url( $base . $u ) . ')';
+			$abs = $base . $u;
+			// Collapse "/segment/../" so the URL matches the clean preload path
+			// (otherwise the font preload doesn't match and the file downloads twice).
+			do {
+				$abs = preg_replace( '#/[^/]+/\.\./#', '/', $abs, -1, $count );
+			} while ( $count );
+			return 'url(' . esc_url( $abs ) . ')';
 		},
 		$css
 	);
