@@ -87,6 +87,16 @@ them off as you go. Grouped by feature. Staging: https://staging.ricoman.com
 - Sitemap crawl: 294 URLs checked (all pages, categories, news, projects + product
   sample). After fixes, the only issues were the project 500s, now resolved.
 
+## Crawl status (after fixes)
+- ✅ All 86 project pages: 200 (were all 500).
+- ✅ Pages, products (247), product categories, application types, project
+  categories, news: all clean.
+- ✅ 404 page is branded (header/footer present).
+- Legal pages present: /privacy-policy/, /cookie-policy/, /terms/, /contact/,
+  /about/, /downloads/, /lighting-design/.
+- ⚠️ `/trade/` 404 and `/terms-and-conditions/` 404 — confirm intended slugs / whether
+  a Trade page is needed (the "Trade" template is still on the Step-1 checklist).
+
 ## Launch / SEO to decide (flagged, not changed)
 - **Two SEO systems active**: Yoast SEO *and* the theme's SEO module. `robots.txt`
   has two blocks and references two sitemaps (`wp-sitemap.xml` + Yoast
