@@ -151,7 +151,6 @@
 		return {
 			tools: tools, grid: grid,
 			q: tools.querySelector( '.rm-projq' ),
-			sel: tools.querySelector( '.rm-projsel' ),
 			count: tools.querySelector( '.rm-projcount' ),
 			empty: n.querySelector( '.rm-projempty' )
 		};
@@ -159,7 +158,8 @@
 	function projApply( s ) {
 		if ( ! s ) { return; }
 		var q = ( s.q && s.q.value || '' ).trim().toLowerCase();
-		var cat = s.sel && s.sel.value || '';
+		var active = s.tools.querySelector( '.rm-projchip.on' );
+		var cat = active ? active.getAttribute( 'data-cat' ) : '';
 		var shown = 0;
 		s.grid.querySelectorAll( '.rm-projcard' ).forEach( function ( card ) {
 			var cats = ( card.getAttribute( 'data-cats' ) || '' ).split( ' ' );
@@ -179,10 +179,15 @@
 	document.addEventListener( 'input', function ( e ) {
 		if ( e.target.closest( '.rm-projq' ) ) { projApply( projScope( e.target ) ); }
 	} );
-	document.addEventListener( 'change', function ( e ) {
-		if ( e.target.closest( '.rm-projsel' ) ) { projApply( projScope( e.target ) ); }
-	} );
 	document.addEventListener( 'click', function ( e ) {
+		var chip = e.target.closest( '.rm-projchip' );
+		if ( chip ) {
+			var bar = chip.closest( '.rm-projtools' );
+			if ( bar ) { bar.querySelectorAll( '.rm-projchip' ).forEach( function ( x ) { x.classList.remove( 'on' ); } ); }
+			chip.classList.add( 'on' );
+			projApply( projScope( chip ) );
+			return;
+		}
 		if ( ! e.target.closest( '.rm-projreset' ) ) { return; }
 		var wide = e.target.closest( '.rm-projwide' );
 		var tools = wide && wide.previousElementSibling;
@@ -190,7 +195,9 @@
 		var s = tools && projScope( tools.querySelector( '.rm-projq' ) || tools );
 		if ( ! s ) { return; }
 		if ( s.q ) { s.q.value = ''; }
-		if ( s.sel ) { s.sel.value = ''; }
+		s.tools.querySelectorAll( '.rm-projchip' ).forEach( function ( x ) { x.classList.remove( 'on' ); } );
+		var all = s.tools.querySelector( '.rm-projchip' );
+		if ( all ) { all.classList.add( 'on' ); }
 		projApply( s );
 	} );
 
@@ -272,7 +279,7 @@
 		upd(); setTimeout( upd, 250 );
 	}
 	function rmEdgeInit() {
-		document.querySelectorAll( '.rm-newschips, .rm-catnav' ).forEach( function ( el ) {
+		document.querySelectorAll( '.rm-newschips, .rm-catnav, .rm-projchips' ).forEach( function ( el ) {
 			if ( el.dataset.rmedge ) { return; } el.dataset.rmedge = '1'; rmEdgeScroller( el );
 		} );
 	}

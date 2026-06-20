@@ -112,7 +112,24 @@ add_filter( 'the_content', function ( $content ) {
 		$out .= do_shortcode( '[ricoman_breadcrumbs]' );
 	}
 	if ( $sector ) {
-		$out .= '<p class="rm-eyebrow rm-projhead-eyebrow">' . esc_html( $sector ) . '</p>';
+		// Link the sector to its archive of projects.
+		$sector_link = '';
+		foreach ( array( 'project-cat', 'application' ) as $stax ) {
+			if ( ! taxonomy_exists( $stax ) ) {
+				continue;
+			}
+			$sterms = get_the_terms( $pid, $stax );
+			if ( $sterms && ! is_wp_error( $sterms ) ) {
+				$tl = get_term_link( $sterms[0] );
+				if ( ! is_wp_error( $tl ) ) {
+					$sector_link = $tl;
+				}
+				break;
+			}
+		}
+		$out .= $sector_link
+			? '<a class="rm-eyebrow rm-projhead-eyebrow rm-projhead-sectorlink" href="' . esc_url( $sector_link ) . '">' . esc_html( $sector ) . ' &rsaquo;</a>'
+			: '<p class="rm-eyebrow rm-projhead-eyebrow">' . esc_html( $sector ) . '</p>';
 	}
 	$out .= '<h1 class="rm-apage-title rm-projhead-title">' . esc_html( $title ) . '</h1>';
 	if ( '' !== $intro ) {
@@ -153,10 +170,13 @@ add_filter( 'the_content', function ( $content ) {
 	// ---- Body -------------------------------------------------------------
 	$out .= '<div class="rm-section rm-projbody-sec"><div class="rm-pp-wrap rm-proj-single">';
 	$body = $meta( 'pi_description_2' );
+	$autolink = function ( $html ) {
+		return function_exists( 'ricoman_news_autolink' ) ? ricoman_news_autolink( $html ) : $html;
+	};
 	if ( '' !== trim( wp_strip_all_tags( $body ) ) ) {
-		$out .= '<div class="rm-apage-wysiwyg rm-proj-body">' . wp_kses_post( $body ) . '</div>';
+		$out .= '<div class="rm-apage-wysiwyg rm-proj-body">' . $autolink( wp_kses_post( $body ) ) . '</div>';
 	} elseif ( '' !== trim( wp_strip_all_tags( (string) $content ) ) ) {
-		$out .= '<div class="rm-proj-body">' . $content . '</div>';
+		$out .= '<div class="rm-proj-body">' . $autolink( $content ) . '</div>';
 	}
 
 	// Feature: customer quote (pulled up so it breaks the text nicely).

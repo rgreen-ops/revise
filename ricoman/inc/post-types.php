@@ -324,12 +324,12 @@ add_shortcode( 'ricoman_projects_grid', function ( $atts ) {
 	}
 	$tax = taxonomy_exists( 'project-cat' ) ? 'project-cat' : 'application';
 
-	// Sector dropdown — cleaner than a wall of chips when there are many sectors.
-	$opts  = '';
+	// Sector filter chips.
+	$chips = '';
 	$terms = get_terms( array( 'taxonomy' => $tax, 'hide_empty' => true ) );
 	if ( ! is_wp_error( $terms ) && $terms ) {
 		foreach ( $terms as $t ) {
-			$opts .= '<option value="' . esc_attr( $t->slug ) . '">' . esc_html( $t->name ) . '</option>';
+			$chips .= '<button type="button" class="rm-projchip" data-cat="' . esc_attr( $t->slug ) . '">' . esc_html( $t->name ) . '</button>';
 		}
 	}
 
@@ -360,7 +360,7 @@ add_shortcode( 'ricoman_projects_grid', function ( $atts ) {
 	$tools = '<div class="rm-projtools">'
 		. '<div class="rm-projsearch"><svg class="rm-projsearch-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'
 		. '<input type="search" class="rm-projq" placeholder="Search projects, sectors or products…" aria-label="Search projects"></div>'
-		. ( $opts ? '<div class="rm-projselwrap"><select class="rm-projsel" aria-label="Filter by sector"><option value="">All sectors</option>' . $opts . '</select></div>' : '' )
+		. ( $chips ? '<div class="rm-projchips"><button type="button" class="rm-projchip on" data-cat="">All</button>' . $chips . '</div>' : '' )
 		. '<span class="rm-projcount" data-total="' . (int) $total . '">' . (int) $total . ' projects</span>'
 		. '</div>';
 
