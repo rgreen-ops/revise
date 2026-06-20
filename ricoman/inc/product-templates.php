@@ -204,7 +204,7 @@ add_action( 'save_post_product', function ( $pid ) {
 
 add_action( 'admin_menu', function () {
 	add_submenu_page(
-		'ricoman-site',
+		'ricoman-hub',
 		__( 'Product Templates', 'ricoman' ),
 		__( 'Product Templates', 'ricoman' ),
 		'edit_posts',

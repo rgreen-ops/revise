@@ -29,6 +29,7 @@ require_once get_theme_file_path( 'inc/images.php' );        // Auto web-ready i
 require_once get_theme_file_path( 'inc/media-cleanup.php' );  // Media library de-duplication toolkit.
 require_once get_theme_file_path( 'inc/gallery-classify.php' );// Bulk Studio / In-situ image sorter.
 require_once get_theme_file_path( 'inc/error-page.php' );     // Friendly branded fatal-error page.
+require_once get_theme_file_path( 'inc/login.php' );         // Ricoman-branded wp-login screen.
 require_once get_theme_file_path( 'inc/seo.php' );           // JSON-LD schema & breadcrumbs.
 require_once get_theme_file_path( 'inc/seo-score.php' );     // SEO scoring + back-office dashboard.
 require_once get_theme_file_path( 'inc/geo.php' );           // Generative SEO (AI search): FAQ, llms.txt.

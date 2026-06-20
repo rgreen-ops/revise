@@ -99,18 +99,11 @@ function ricoman_opt_lines( $key ) {
 /* ------------------------------------------------------------------ admin */
 
 add_action( 'admin_menu', function () {
-	add_menu_page(
-		__( 'Ricoman Site', 'ricoman' ),
-		__( 'Ricoman', 'ricoman' ),
-		'manage_options',
-		'ricoman-site',
-		'ricoman_settings_page',
-		'dashicons-lightbulb',
-		3
-	);
-	add_submenu_page( 'ricoman-site', __( 'Header & Mega Menu', 'ricoman' ), __( 'Header & Menu', 'ricoman' ), 'manage_options', 'ricoman-site', 'ricoman_settings_page' );
-	add_submenu_page( 'ricoman-site', __( 'Edit Header / Footer layout', 'ricoman' ), __( 'Edit layout (Site Editor)', 'ricoman' ), 'edit_theme_options', 'site-editor.php?path=/patterns' );
-} );
+	// Nest under the single "Ricoman" hub (registered in admin.php at priority 9)
+	// instead of a second top-level "Ricoman" menu.
+	add_submenu_page( 'ricoman-hub', __( 'Header & Mega Menu', 'ricoman' ), __( 'Header & Menu', 'ricoman' ), 'manage_options', 'ricoman-site', 'ricoman_settings_page' );
+	add_submenu_page( 'ricoman-hub', __( 'Edit Header / Footer layout', 'ricoman' ), __( 'Edit layout (Site Editor)', 'ricoman' ), 'edit_theme_options', 'site-editor.php?path=/patterns' );
+}, 11 );
 
 add_action( 'admin_init', function () {
 	register_setting( 'ricoman_settings_group', 'ricoman_settings', 'ricoman_sanitize_settings' );
