@@ -381,7 +381,7 @@ function ricoman_project_simple_content( $pr ) {
  * the page intact, and only if it still holds the original demo markup.
  */
 add_action( 'wp_loaded', function () {
-	if ( get_option( 'ricoman_home_range_v2' ) ) {
+	if ( get_option( 'ricoman_home_range_v3' ) ) {
 		return;
 	}
 	$home_id = (int) get_option( 'page_on_front' );
@@ -391,19 +391,28 @@ add_action( 'wp_loaded', function () {
 	$c = (string) get_post_field( 'post_content', $home_id );
 	$anchor = 'A luminaire for every commercial interior';
 	if ( '' === $c || false === strpos( $c, $anchor ) || false !== strpos( $c, '[ricoman_category_cards' ) ) {
-		update_option( 'ricoman_home_range_v2', 1 );
+		update_option( 'ricoman_home_range_v3', 1 );
 		return;
 	}
+	// Replace the two <!-- wp:columns --> grids (the range cards) after the heading
+	// with the dynamic shortcode. Target the columns directly so the nested card
+	// groups don't trip the boundary detection.
 	$ap       = strpos( $c, $anchor );
 	$colStart = strpos( $c, '<!-- wp:columns', $ap );
-	$grpEnd   = strpos( $c, '<!-- /wp:group -->', $ap );
-	if ( false !== $colStart && false !== $grpEnd && $colStart < $grpEnd ) {
-		$lastColEnd = strrpos( substr( $c, 0, $grpEnd ), '<!-- /wp:columns -->' );
-		if ( false !== $lastColEnd && $lastColEnd > $colStart ) {
-			$end = $lastColEnd + strlen( '<!-- /wp:columns -->' );
+	if ( false !== $colStart ) {
+		$tag = '<!-- /wp:columns -->';
+		$c1  = strpos( $c, $tag, $colStart );
+		$c2  = ( false !== $c1 ) ? strpos( $c, $tag, $c1 + 1 ) : false;
+		$end = false;
+		if ( false !== $c2 ) {
+			$end = $c2 + strlen( $tag );
+		} elseif ( false !== $c1 ) {
+			$end = $c1 + strlen( $tag );
+		}
+		if ( false !== $end ) {
 			$new = substr( $c, 0, $colStart ) . '<!-- wp:shortcode -->[ricoman_category_cards limit="8"]<!-- /wp:shortcode -->' . substr( $c, $end );
 			wp_update_post( array( 'ID' => $home_id, 'post_content' => $new ) );
 		}
 	}
-	update_option( 'ricoman_home_range_v2', 1 );
+	update_option( 'ricoman_home_range_v3', 1 );
 }, 20 );
