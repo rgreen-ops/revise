@@ -53,8 +53,8 @@ function ricoman_news_topic_map() {
 	) );
 }
 
-/** Topic slugs that match an article (from its title + body). */
-function ricoman_news_topics( $pid ) {
+/** Topic slugs matched purely from an article's title + body (keyword map). */
+function ricoman_news_topics_derived( $pid ) {
 	$hay = strtolower( get_the_title( $pid ) . ' ' . wp_strip_all_tags( (string) get_post_field( 'post_content', $pid ) ) );
 	$out = array();
 	foreach ( ricoman_news_topic_map() as $slug => $def ) {
@@ -68,13 +68,78 @@ function ricoman_news_topics( $pid ) {
 	return $out;
 }
 
+/**
+ * Editable News "Topics" taxonomy (hierarchical so it gets category-style
+ * checkboxes + Quick/Bulk Edit — the fastest way to tag a big back-catalogue).
+ */
+add_action( 'init', function () {
+	register_taxonomy( 'news-cat', 'news', array(
+		'labels'             => array(
+			'name'          => __( 'Topics', 'ricoman' ),
+			'singular_name' => __( 'Topic', 'ricoman' ),
+			'menu_name'     => __( 'Topics', 'ricoman' ),
+			'all_items'     => __( 'All Topics', 'ricoman' ),
+			'edit_item'     => __( 'Edit Topic', 'ricoman' ),
+			'add_new_item'  => __( 'Add New Topic', 'ricoman' ),
+			'new_item_name' => __( 'New Topic Name', 'ricoman' ),
+			'search_items'  => __( 'Search Topics', 'ricoman' ),
+		),
+		'public'             => true,
+		'hierarchical'       => true,
+		'show_admin_column'  => true,
+		'show_in_quick_edit' => true,
+		'show_in_rest'       => true,
+		'rewrite'            => array( 'slug' => 'news-topic', 'with_front' => false ),
+	) );
+}, 9 );
+
+/** Seed the Topics taxonomy once with the default topic set. */
+add_action( 'init', function () {
+	if ( get_option( 'ricoman_news_terms_seeded' ) || ! taxonomy_exists( 'news-cat' ) ) {
+		return;
+	}
+	foreach ( ricoman_news_topic_map() as $slug => $def ) {
+		if ( ! term_exists( $slug, 'news-cat' ) ) {
+			wp_insert_term( $def[0], 'news-cat', array( 'slug' => $slug ) );
+		}
+	}
+	update_option( 'ricoman_news_terms_seeded', 1 );
+}, 12 );
+
+/**
+ * Topics for an article as slug => label. Prefers the assigned taxonomy terms;
+ * falls back to the keyword-derived topics until an article is tagged — so the
+ * listing filter always works, and gets more accurate as you tag.
+ */
+function ricoman_news_topic_terms( $pid ) {
+	$out   = array();
+	$terms = get_the_terms( $pid, 'news-cat' );
+	if ( $terms && ! is_wp_error( $terms ) ) {
+		foreach ( $terms as $t ) {
+			$out[ $t->slug ] = $t->name;
+		}
+		return $out;
+	}
+	$map = ricoman_news_topic_map();
+	foreach ( ricoman_news_topics_derived( $pid ) as $slug ) {
+		if ( isset( $map[ $slug ] ) ) {
+			$out[ $slug ] = $map[ $slug ][0];
+		}
+	}
+	return $out;
+}
+
 /** One news card (used for the grid and the featured lead). */
 function ricoman_news_card( $pid, $featured = false ) {
-	$img = ricoman_news_img( $pid, $featured ? 'large' : 'medium_large' );
-	$tag = (string) get_post_meta( $pid, 'news_tag_line', true );
-	$cls = $featured ? 'rm-newscard rm-newscard--lead' : 'rm-newscard';
-	$hay   = strtolower( get_the_title( $pid ) . ' ' . $tag . ' ' . ricoman_news_excerpt( $pid, 30 ) );
-	$tagsl = implode( ' ', ricoman_news_topics( $pid ) );
+	$img    = ricoman_news_img( $pid, $featured ? 'large' : 'medium_large' );
+	$topics = ricoman_news_topic_terms( $pid );
+	$tag    = (string) get_post_meta( $pid, 'news_tag_line', true );
+	if ( '' === trim( $tag ) && $topics ) {
+		$tag = reset( $topics ); // show the first topic as the card eyebrow.
+	}
+	$cls    = $featured ? 'rm-newscard rm-newscard--lead' : 'rm-newscard';
+	$hay    = strtolower( get_the_title( $pid ) . ' ' . implode( ' ', $topics ) . ' ' . ricoman_news_excerpt( $pid, 30 ) );
+	$tagsl  = implode( ' ', array_keys( $topics ) );
 	return '<a class="' . $cls . '" data-tags="' . esc_attr( $tagsl ) . '" data-search="' . esc_attr( $hay ) . '" href="' . esc_url( get_permalink( $pid ) ) . '">'
 		. '<span class="rm-newscard-img"' . ( $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '' ) . '></span>'
 		. '<span class="rm-newscard-body">'
@@ -104,20 +169,14 @@ add_shortcode( 'ricoman_news_grid', function ( $atts ) {
 	$ids = wp_list_pluck( $q->posts, 'ID' );
 	wp_reset_postdata();
 
-	// Topic chips derived from the articles themselves (only topics with hits).
-	$map  = ricoman_news_topic_map();
-	$seen = array();
-	foreach ( $ids as $pid ) {
-		foreach ( ricoman_news_topics( $pid ) as $slug ) {
-			$seen[ $slug ] = true;
-		}
-	}
+	// Topic chips — union of each article's topics (assigned terms, else derived).
 	$tags = array();
-	foreach ( $map as $slug => $def ) {
-		if ( isset( $seen[ $slug ] ) ) {
-			$tags[ $slug ] = $def[0];
+	foreach ( $ids as $pid ) {
+		foreach ( ricoman_news_topic_terms( $pid ) as $slug => $label ) {
+			$tags[ $slug ] = $label;
 		}
 	}
+	asort( $tags );
 
 	$tools = '<div class="rm-newstools">'
 		. '<div class="rm-projsearch"><svg class="rm-projsearch-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'
@@ -385,4 +444,78 @@ add_action( 'save_post_news', function ( $post_id ) {
 			update_post_meta( $post_id, $k, sanitize_text_field( wp_unslash( $_POST[ $k ] ) ) );
 		}
 	}
+} );
+
+/* ----------------------------------------------------------------------- *
+ * Admin: News Topics helper — one-click auto-tag the whole back-catalogue
+ * from article content, then refine with Quick/Bulk Edit.
+ * ----------------------------------------------------------------------- */
+add_action( 'admin_menu', function () {
+	add_submenu_page(
+		'edit.php?post_type=news',
+		__( 'Auto-tag Topics', 'ricoman' ),
+		__( 'Auto-tag Topics', 'ricoman' ),
+		'manage_categories',
+		'ricoman-news-autotag',
+		'ricoman_news_autotag_page'
+	);
+} );
+
+function ricoman_news_autotag_page() {
+	$all = (int) wp_count_posts( 'news' )->publish;
+	// Count how many are already in at least one topic.
+	$tagged = (int) ( new WP_Query( array(
+		'post_type'      => 'news',
+		'post_status'    => 'publish',
+		'posts_per_page' => -1,
+		'fields'         => 'ids',
+		'no_found_rows'  => true,
+		'tax_query'      => array( array( 'taxonomy' => 'news-cat', 'operator' => 'EXISTS' ) ),
+	) ) )->post_count;
+
+	echo '<div class="wrap"><h1>' . esc_html__( 'Auto-tag News Topics', 'ricoman' ) . '</h1>';
+	if ( isset( $_GET['tagged'] ) ) {
+		echo '<div class="notice notice-success is-dismissible"><p>'
+			. sprintf( esc_html__( 'Auto-tagged %d article(s) from their content.', 'ricoman' ), (int) $_GET['tagged'] )
+			. '</p></div>';
+	}
+	echo '<p>' . esc_html__( 'This reads each article\'s title and body and assigns matching Topics (Guides & how-to, Linear, Controls & dimming, By sector, etc.). It only adds topics — it never removes ones you set by hand — so it\'s safe to run on the whole catalogue and then refine.', 'ricoman' ) . '</p>';
+	echo '<p><strong>' . esc_html( sprintf( __( '%1$d of %2$d published articles currently have a topic.', 'ricoman' ), $tagged, $all ) ) . '</strong></p>';
+	echo '<p>' . wp_kses_post( __( 'Tip: to tag by hand, use the <strong>Topics</strong> column on the <a href="edit.php?post_type=news">News list</a> — tick boxes via <em>Quick Edit</em>, or select several articles and use <em>Bulk actions → Edit</em> to add a topic to many at once.', 'ricoman' ) ) . '</p>';
+	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" onsubmit="return confirm(\'' . esc_js( __( 'Auto-tag every published article from its content?', 'ricoman' ) ) . '\');">';
+	echo '<input type="hidden" name="action" value="ricoman_news_autotag">';
+	wp_nonce_field( 'ricoman_news_autotag' );
+	submit_button( __( 'Auto-tag all articles now', 'ricoman' ), 'primary' );
+	echo '</form></div>';
+}
+
+add_action( 'admin_post_ricoman_news_autotag', function () {
+	if ( ! current_user_can( 'manage_categories' ) || ! check_admin_referer( 'ricoman_news_autotag' ) ) {
+		wp_die( esc_html__( 'Not allowed.', 'ricoman' ) );
+	}
+	$ids = get_posts( array(
+		'post_type'      => 'news',
+		'post_status'    => 'publish',
+		'posts_per_page' => -1,
+		'fields'         => 'ids',
+		'no_found_rows'  => true,
+	) );
+	$n = 0;
+	foreach ( $ids as $pid ) {
+		$slugs = ricoman_news_topics_derived( $pid );
+		if ( ! $slugs ) {
+			continue;
+		}
+		// Ensure the terms exist, then append (never wipe manual tags).
+		$map = ricoman_news_topic_map();
+		foreach ( $slugs as $slug ) {
+			if ( ! term_exists( $slug, 'news-cat' ) && isset( $map[ $slug ] ) ) {
+				wp_insert_term( $map[ $slug ][0], 'news-cat', array( 'slug' => $slug ) );
+			}
+		}
+		wp_set_object_terms( $pid, $slugs, 'news-cat', true );
+		$n++;
+	}
+	wp_safe_redirect( add_query_arg( 'tagged', $n, admin_url( 'edit.php?post_type=news&page=ricoman-news-autotag' ) ) );
+	exit;
 } );

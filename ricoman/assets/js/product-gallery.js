@@ -258,6 +258,26 @@
 	}
 	if ( document.readyState !== 'loading' ) { rmCatFilterInit(); } else { document.addEventListener( 'DOMContentLoaded', rmCatFilterInit ); }
 
+	/* ---- Horizontal-scroll affordance: fade edges that have more content ---- */
+	function rmEdgeScroller( el ) {
+		function upd() {
+			var max = el.scrollWidth - el.clientWidth;
+			if ( max <= 2 ) { el.classList.remove( 'rm-fade-l', 'rm-fade-r' ); return; }
+			el.classList.toggle( 'rm-fade-l', el.scrollLeft > 4 );
+			el.classList.toggle( 'rm-fade-r', el.scrollLeft < max - 4 );
+		}
+		el.addEventListener( 'scroll', upd, { passive: true } );
+		window.addEventListener( 'resize', upd );
+		// Recheck after layout/fonts settle.
+		upd(); setTimeout( upd, 250 );
+	}
+	function rmEdgeInit() {
+		document.querySelectorAll( '.rm-newschips, .rm-catnav' ).forEach( function ( el ) {
+			if ( el.dataset.rmedge ) { return; } el.dataset.rmedge = '1'; rmEdgeScroller( el );
+		} );
+	}
+	if ( document.readyState !== 'loading' ) { rmEdgeInit(); } else { document.addEventListener( 'DOMContentLoaded', rmEdgeInit ); }
+
 	/* ---- News listing: search + topic chips ---- */
 	function rmNewsFilter( w ) {
 		var q = w.querySelector( '.rm-newsq' );

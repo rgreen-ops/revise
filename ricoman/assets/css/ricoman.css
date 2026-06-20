@@ -1100,6 +1100,10 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-newschip{font-family:Poppins;font-size:.8rem;font-weight:500;color:var(--ink);background:none;border:1px solid var(--line);border-radius:999px;padding:7px 16px;cursor:pointer;transition:.15s;white-space:nowrap}
 .rm-newschip:hover{border-color:var(--ink)}
 .rm-newschip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+/* Horizontal-scroll edge fade — signals "more chips this way" */
+.rm-newschips.rm-fade-r,.rm-catnav.rm-fade-r{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 30px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 30px),transparent)}
+.rm-newschips.rm-fade-l,.rm-catnav.rm-fade-l{-webkit-mask-image:linear-gradient(to right,transparent,#000 30px);mask-image:linear-gradient(to right,transparent,#000 30px)}
+.rm-newschips.rm-fade-l.rm-fade-r,.rm-catnav.rm-fade-l.rm-fade-r{-webkit-mask-image:linear-gradient(to right,transparent,#000 30px,#000 calc(100% - 30px),transparent);mask-image:linear-gradient(to right,transparent,#000 30px,#000 calc(100% - 30px),transparent)}
 .rm-newsnone{text-align:center;color:var(--muted);font-family:Poppins;padding:40px 0}
 .rm-newsreset{font-family:Poppins;font-weight:600;color:var(--ink);background:none;border:0;border-bottom:1px solid var(--ink);cursor:pointer}
 @media(max-width:600px){.rm-newschips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;margin:0 calc(-1*var(--pad));padding-inline:var(--pad)}.rm-newschips::-webkit-scrollbar{display:none}.rm-newstools .rm-projsearch{flex-basis:100%}}
