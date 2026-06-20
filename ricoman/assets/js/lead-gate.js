@@ -81,7 +81,7 @@
 		} );
 	} )();
 
-	if ( G.in ) { return; } // Logged in — never show the download gate.
+	if ( '1' === String( G.in ) ) { return; } // Logged in — never show the download gate.
 
 	// File types we treat as gated downloads.
 	var EXT = /\.(pdf|ies|ldt|rfa|rvt|dwg|dxf|step|stp|zip|3ds|skp|docx?|xlsx?)(\?|#|$)/i;
