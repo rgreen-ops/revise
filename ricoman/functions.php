@@ -17,6 +17,23 @@ if ( ! defined( 'RICOMAN_VERSION' ) ) {
 	define( 'RICOMAN_VERSION', '1.1.0' );
 }
 
+// TEMP DIAGNOSTIC (remove): ?rm_trace=lights reports the last fatal; ?rm_novt=1
+// skips the variant table to isolate it as the memory hog.
+if ( isset( $_GET['rm_trace'] ) && 'lights' === $_GET['rm_trace'] ) {
+	error_reporting( E_ALL );
+	if ( ! empty( $_GET['rm_novt'] ) ) {
+		$GLOBALS['rm_skip_vtable'] = true;
+	}
+	register_shutdown_function( function () {
+		$e = error_get_last();
+		if ( $e && in_array( $e['type'], array( E_ERROR, E_PARSE, E_COMPILE_ERROR, E_CORE_ERROR ), true ) ) {
+			echo "\n<!--RM_FATAL: " . $e['message'] . ' @ ' . $e['file'] . ':' . $e['line'] . "-->\n";
+		} else {
+			echo "\n<!--RM_OK peak=" . round( memory_get_peak_usage( true ) / 1048576 ) . "MB-->\n";
+		}
+	} );
+}
+
 /**
  * Load feature modules. Each file is self-contained and hooks itself in.
  */

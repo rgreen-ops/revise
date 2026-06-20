@@ -829,6 +829,9 @@ function ricoman_pf_variant_table( $pid ) {
 	if ( ! post_type_exists( 'variant-product' ) ) {
 		return '';
 	}
+	if ( ! empty( $GLOBALS['rm_skip_vtable'] ) ) {
+		return ''; // TEMP diagnostic.
+	}
 	$q = new WP_Query( array(
 		'post_type'      => 'variant-product',
 		'post_status'    => 'publish',
