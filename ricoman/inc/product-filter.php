@@ -385,3 +385,86 @@ add_action( 'admin_post_ricoman_rebuild_filters', function () {
 	wp_safe_redirect( add_query_arg( 'built', $built, admin_url( 'admin.php?page=ricoman-filter-data' ) ) );
 	exit;
 } );
+
+/**
+ * A representative image URL for a product category: the term's own image meta if
+ * set, else the first in-category product's image. Cached per request.
+ */
+function ricoman_category_image( $term_id, $tax = 'product-cat' ) {
+	static $cache = array();
+	if ( isset( $cache[ $term_id ] ) ) {
+		return $cache[ $term_id ];
+	}
+	$img = '';
+	foreach ( array( 'thumbnail_id', 'image_id', 'image' ) as $k ) {
+		$v = get_term_meta( $term_id, $k, true );
+		if ( $v && is_numeric( $v ) ) {
+			$img = wp_get_attachment_image_url( (int) $v, 'large' );
+			if ( $img ) {
+				break;
+			}
+		} elseif ( is_string( $v ) && false !== strpos( $v, '://' ) ) {
+			$img = $v;
+			break;
+		}
+	}
+	if ( ! $img ) {
+		$ids = get_posts( array(
+			'post_type'      => 'product',
+			'post_status'    => 'publish',
+			'posts_per_page' => 12,
+			'fields'         => 'ids',
+			'no_found_rows'  => true,
+			'tax_query'      => array( array( 'taxonomy' => $tax, 'terms' => (int) $term_id ) ),
+		) );
+		foreach ( $ids as $pid ) {
+			$cand = function_exists( 'ricoman_product_img' ) ? ricoman_product_img( $pid ) : get_the_post_thumbnail_url( $pid, 'large' );
+			if ( $cand ) {
+				$img = $cand;
+				break;
+			}
+		}
+	}
+	$cache[ $term_id ] = $img;
+	return $img;
+}
+
+/**
+ * Dynamic category cards (real categories + real images) for the homepage range
+ * grid, replacing the old hard-coded placeholder cards.
+ */
+add_shortcode( 'ricoman_category_cards', function ( $atts ) {
+	$atts = shortcode_atts( array( 'limit' => 8, 'exclude' => 'Accessories' ), $atts, 'ricoman_category_cards' );
+	$tax  = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
+	$terms = get_terms( array(
+		'taxonomy'   => $tax,
+		'hide_empty' => true,
+		'orderby'    => 'count',
+		'order'      => 'DESC',
+	) );
+	if ( is_wp_error( $terms ) || ! $terms ) {
+		return '';
+	}
+	$excl  = array_filter( array_map( 'trim', explode( ',', (string) $atts['exclude'] ) ) );
+	$limit = (int) $atts['limit'];
+	$cards = '';
+	$n     = 0;
+	foreach ( $terms as $t ) {
+		if ( in_array( $t->name, $excl, true ) ) {
+			continue;
+		}
+		$img = ricoman_category_image( $t->term_id, $tax );
+		if ( ! $img ) {
+			$img = get_theme_file_uri( 'assets/images/ceiling.webp' );
+		}
+		$cards .= '<a class="rm-catcard" href="' . esc_url( get_term_link( $t ) ) . '">'
+			. '<span class="rm-catcard-img" style="background-image:url(' . esc_url( $img ) . ')"></span>'
+			. '<span class="rm-catcard-meta"><span class="rm-catcard-t">' . esc_html( $t->name ) . '</span>'
+			. '<span class="rm-catcard-c">' . esc_html( sprintf( _n( '%d product', '%d products', $t->count, 'ricoman' ), $t->count ) ) . '</span></span></a>';
+		$n++;
+		if ( $limit && $n >= $limit ) {
+			break;
+		}
+	}
+	return $cards ? '<div class="rm-catcards">' . $cards . '</div>' : '';
+} );

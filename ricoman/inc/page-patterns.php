@@ -61,8 +61,7 @@ add_action( 'init', function () {
 	$p['home-statement'] = array( 'Home · Statement', $sec( '<!-- wp:heading {"level":2,"style":{"typography":{"fontWeight":"500","fontSize":"clamp(1.9rem,5vw,4rem)","lineHeight":"1.08"}}} --><h2 class="wp-block-heading" style="font-size:clamp(1.9rem,5vw,4rem);font-weight:500;line-height:1.08">We believe great light is felt, not noticed. So we design and make commercial lighting in Britain that lets architects and designers shape how a space looks, feels and performs — delivered on spec, on time, on budget.</h2><!-- /wp:heading -->' ) );
 
 	$p['home-range'] = array( 'Home · Range grid', $sec( $shead( 'A luminaire for every commercial interior' ) .
-		'<!-- wp:columns --><div class="wp-block-columns">' . $rcard( $u( 'arch-line.webp' ), 'Linear Lighting', 'Continuous runs &amp; profile systems', '/products/' ) . $rcard( $u( 'ceiling.webp' ), 'Downlights', 'Fire-rated, switchable CCT', '/products/' ) . $rcard( $u( 'pendant.webp' ), 'Pendants', 'Architectural &amp; decorative', '/products/' ) . '</div><!-- /wp:columns -->' .
-		'<!-- wp:columns --><div class="wp-block-columns">' . $rcard( $u( 'retail.webp' ), 'Track &amp; Spotlights', 'Retail &amp; gallery accent', '/products/' ) . $rcard( $u( 'office5.webp' ), 'Biophilic Lighting', 'Human-centric, tunable', '/products/' ) . $rcard( $u( 'office3.webp' ), 'Modular Recessed', 'Offices, schools, healthcare', '/products/' ) . '</div><!-- /wp:columns -->' ) );
+		'<!-- wp:shortcode -->[ricoman_category_cards limit="8"]<!-- /wp:shortcode -->' ) );
 
 	$p['home-featured'] = array( 'Home · Featured (dark)', '<!-- wp:group {"align":"full","backgroundColor":"ink","textColor":"base","className":"rm-dark","style":{"spacing":{"padding":{"top":"var:preset|spacing|70","bottom":"var:preset|spacing|70","left":"var:preset|spacing|50","right":"var:preset|spacing|50"}}},"layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-dark has-base-color has-ink-background-color has-text-color has-background" style="padding-top:var(--wp--preset--spacing--70);padding-bottom:var(--wp--preset--spacing--70);padding-left:var(--wp--preset--spacing--50);padding-right:var(--wp--preset--spacing--50)"><!-- wp:columns {"verticalAlignment":"center"} --><div class="wp-block-columns are-vertically-aligned-center"><!-- wp:column {"verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center">' . $eyebrow( 'Featured · Linear' ) . $shead( 'Flow+ — seamless curves of light' ) . $para( 'A flexible linear system that bends to any architectural line, continuous and dot-free. Made to order in Manchester, to your exact geometry.' ) . $buttons( $btn( 'View Flow+', '/products/flow-plus/' ) . $btn( 'Design your run', '/flow-designer/' ) ) . '</div><!-- /wp:column --><!-- wp:column {"verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center">' . $image( $u( 'arch-line.webp' ), '', 'Flow+ continuous architectural linear lighting' ) . '</div><!-- /wp:column --></div><!-- /wp:columns --></div><!-- /wp:group -->' );
 
@@ -374,3 +373,37 @@ function ricoman_project_simple_content( $pr ) {
 	}
 	return $out;
 }
+
+/**
+ * One-time: swap the homepage's baked placeholder range grid for the dynamic
+ * [ricoman_category_cards] shortcode (real categories + images). Surgical — only
+ * replaces the columns inside the "A luminaire…" range group, leaving the rest of
+ * the page intact, and only if it still holds the original demo markup.
+ */
+add_action( 'wp_loaded', function () {
+	if ( get_option( 'ricoman_home_range_v2' ) ) {
+		return;
+	}
+	$home_id = (int) get_option( 'page_on_front' );
+	if ( ! $home_id ) {
+		return; // try again later once the front page is set.
+	}
+	$c = (string) get_post_field( 'post_content', $home_id );
+	$anchor = 'A luminaire for every commercial interior';
+	if ( '' === $c || false === strpos( $c, $anchor ) || false !== strpos( $c, '[ricoman_category_cards' ) ) {
+		update_option( 'ricoman_home_range_v2', 1 );
+		return;
+	}
+	$ap       = strpos( $c, $anchor );
+	$colStart = strpos( $c, '<!-- wp:columns', $ap );
+	$grpEnd   = strpos( $c, '<!-- /wp:group -->', $ap );
+	if ( false !== $colStart && false !== $grpEnd && $colStart < $grpEnd ) {
+		$lastColEnd = strrpos( substr( $c, 0, $grpEnd ), '<!-- /wp:columns -->' );
+		if ( false !== $lastColEnd && $lastColEnd > $colStart ) {
+			$end = $lastColEnd + strlen( '<!-- /wp:columns -->' );
+			$new = substr( $c, 0, $colStart ) . '<!-- wp:shortcode -->[ricoman_category_cards limit="8"]<!-- /wp:shortcode -->' . substr( $c, $end );
+			wp_update_post( array( 'ID' => $home_id, 'post_content' => $new ) );
+		}
+	}
+	update_option( 'ricoman_home_range_v2', 1 );
+}, 20 );
