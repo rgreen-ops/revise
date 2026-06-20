@@ -155,6 +155,60 @@ add_action( 'wp_enqueue_scripts', function () {
 	}
 }, 200 );
 
+/* ---- Inline the theme's stylesheets to kill render-blocking CSS ----
+ * The hero heading is the LCP element and was delayed ~2.7s waiting on the CSS
+ * request chain (style.css, shared.css, ricoman.css, fonts.css). Inlining them
+ * into <head> removes those blocking requests so the hero paints immediately.
+ * Combined size is small (~5KB brotli) and the HTML is page-cached, so there's
+ * no real per-request cost. Relative url() paths are rewritten to absolute so
+ * fonts/background images still resolve once the CSS lives in the document. */
+function ricoman_inline_css_file( $rel ) {
+	$path = get_theme_file_path( $rel );
+	if ( ! is_readable( $path ) ) {
+		return '';
+	}
+	$css  = (string) file_get_contents( $path );
+	$base = trailingslashit( dirname( get_theme_file_uri( $rel ) ) );
+	$css  = preg_replace_callback(
+		'/url\(\s*([\'"]?)([^\'")]+)\1\s*\)/i',
+		function ( $m ) use ( $base ) {
+			$u = trim( $m[2] );
+			if ( '' === $u || preg_match( '#^(data:|https?:|//|/|\#)#i', $u ) ) {
+				return $m[0];
+			}
+			return 'url(' . esc_url( $base . $u ) . ')';
+		},
+		$css
+	);
+	return $css;
+}
+
+add_action( 'wp_enqueue_scripts', function () {
+	if ( is_admin() ) {
+		return;
+	}
+	// Drop the linked versions; they're inlined in wp_head instead.
+	foreach ( array( 'ricoman-style', 'ricoman-shared', 'ricoman-design', 'ricoman-fonts' ) as $h ) {
+		wp_dequeue_style( $h );
+	}
+}, 999 );
+
+add_action( 'wp_head', function () {
+	if ( is_admin() ) {
+		return;
+	}
+	// Same cascade order as the original enqueue (style → shared → design),
+	// with fonts first so @font-face is declared before use. Printed after core
+	// block styles so the theme still overrides defaults.
+	$css = '';
+	foreach ( array( 'assets/css/fonts.css', 'style.css', 'assets/css/shared.css', 'assets/css/ricoman.css' ) as $rel ) {
+		$css .= ricoman_inline_css_file( $rel );
+	}
+	if ( '' !== trim( $css ) ) {
+		echo "<style id=\"ricoman-inline-css\">" . $css . "</style>\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+}, 9 );
+
 /* ---- Speculative prefetch for near-instant internal navigation ---- */
 add_action( 'wp_footer', function () {
 	if ( is_admin_bar_showing() && is_user_logged_in() ) {
