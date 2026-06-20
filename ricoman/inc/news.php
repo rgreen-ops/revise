@@ -108,28 +108,134 @@ add_filter( 'the_content', function ( $content ) {
 	return $content . $grid;
 }, 8 );
 
-/** Single news article body (title + featured image come from the template). */
+/** Conversion CTA band shared by article + (optionally) the listing. */
+function ricoman_news_cta( $pid ) {
+	$head = (string) get_post_meta( $pid, '_rmn_cta_head', true );
+	$sub  = (string) get_post_meta( $pid, '_rmn_cta_sub', true );
+	$btn  = (string) get_post_meta( $pid, '_rmn_cta_btn', true );
+	$url  = (string) get_post_meta( $pid, '_rmn_cta_url', true );
+	// Sensible conversion defaults so every article drives an enquiry.
+	if ( '' === trim( $head ) ) { $head = 'Planning a lighting scheme?'; }
+	if ( '' === trim( $sub ) ) { $sub = 'Send us your drawings or a finishes schedule and our in-house designers will return a fully specified scheme — usually within 3–5 days.'; }
+	if ( '' === trim( $btn ) ) { $btn = 'Request a free lighting design'; }
+	if ( '' === trim( $url ) ) { $url = '/lighting-design/'; }
+	return '<aside class="rm-news-cta"><div class="rm-news-cta-in">'
+		. '<h2 class="rm-news-cta-h">' . esc_html( $head ) . '</h2>'
+		. '<p class="rm-news-cta-p">' . esc_html( $sub ) . '</p>'
+		. '<a class="btn btn-solid" href="' . esc_url( $url ) . '">' . esc_html( $btn ) . '</a>'
+		. ' <a class="btn btn-line-d" href="/contact/">Talk to the team</a>'
+		. '</div></aside>';
+}
+
+/** Related products picked on the article (one product name or URL per line). */
+function ricoman_news_related_products( $pid ) {
+	$raw = trim( (string) get_post_meta( $pid, '_rmn_products', true ) );
+	if ( '' === $raw ) {
+		return '';
+	}
+	$cards = '';
+	foreach ( preg_split( '/\r\n|\r|\n/', $raw ) as $line ) {
+		$line = trim( $line );
+		if ( '' === $line ) {
+			continue;
+		}
+		$url   = '';
+		$name  = $line;
+		if ( preg_match( '#^https?://#i', $line ) ) {
+			$url = $line;
+			$pp  = url_to_postid( $line );
+			$name = $pp ? get_the_title( $pp ) : $line;
+		} else {
+			$url = function_exists( 'ricoman_find_product_url' ) ? ricoman_find_product_url( $line ) : '';
+		}
+		if ( '' === $url ) {
+			continue;
+		}
+		$img   = '';
+		$ppid  = url_to_postid( $url );
+		if ( $ppid && function_exists( 'ricoman_product_img' ) ) {
+			$img = ricoman_product_img( $ppid );
+		}
+		$inner = ( $img ? '<div class="rm-acard-img" style="background-image:url(' . esc_url( $img ) . ')"></div>' : '' )
+			. '<div class="rm-acard-body"><h3>' . esc_html( $name ) . '</h3></div>';
+		$cards .= '<a class="rm-acard" href="' . esc_url( $url ) . '">' . $inner . '</a>';
+	}
+	return $cards ? '<div class="rm-news-prod"><h2 class="rm-shead">Products in this article</h2><div class="rm-acards">' . $cards . '</div></div>' : '';
+}
+
+/** More articles (most recent, excluding the current one). */
+function ricoman_news_related_articles( $pid, $n = 3 ) {
+	$q = new WP_Query( array(
+		'post_type'      => 'news',
+		'post_status'    => 'publish',
+		'posts_per_page' => $n,
+		'post__not_in'   => array( $pid ),
+		'orderby'        => 'date',
+		'order'          => 'DESC',
+		'no_found_rows'  => true,
+	) );
+	if ( ! $q->have_posts() ) {
+		return '';
+	}
+	$cards = '';
+	foreach ( $q->posts as $p ) {
+		$cards .= ricoman_news_card( $p->ID, false );
+	}
+	wp_reset_postdata();
+	return '<div class="rm-news-more"><h2 class="rm-shead">More from the journal</h2><div class="rm-newsgrid">' . $cards . '</div></div>';
+}
+
+/** Single news article — editorial layout + conversion blocks. */
 add_filter( 'the_content', function ( $content ) {
 	if ( is_admin() || ! is_singular( 'news' ) || ! in_the_loop() || ! is_main_query() ) {
 		return $content;
 	}
 	$pid  = get_the_ID();
 	$tag  = (string) get_post_meta( $pid, 'news_tag_line', true );
-	$out  = '<div class="rm-pp-wrap rm-news-single">';
+	$dek  = (string) get_post_meta( $pid, '_rmn_standfirst', true );
+	if ( '' === trim( $dek ) ) {
+		$dek = ricoman_news_excerpt( $pid, 34 );
+	}
+
+	$out  = '<div class="rm-section rm-news-head"><div class="rm-pp-wrap rm-news-headin">';
 	$out .= '<div class="rm-pp-crumb">' . do_shortcode( '[ricoman_breadcrumbs]' ) . '</div>';
 	if ( $tag ) {
 		$out .= '<p class="rm-eyebrow">' . esc_html( $tag ) . '</p>';
 	}
 	$out .= '<h1 class="rm-news-title">' . esc_html( get_the_title() ) . '</h1>';
-	$out .= '<p class="rm-news-date">' . esc_html( get_the_date() ) . '</p>';
-	$hero = get_the_post_thumbnail_url( $pid, 'large' );
-	if ( $hero ) {
-		$out .= '<figure class="rm-news-hero"><img src="' . esc_url( $hero ) . '" alt="' . esc_attr( get_the_title() ) . '"></figure>';
+	if ( '' !== trim( $dek ) ) {
+		$out .= '<p class="rm-news-standfirst">' . esc_html( $dek ) . '</p>';
 	}
-	// The article body (classic content stored on the post).
+	$out .= '<p class="rm-news-byline"><span>' . esc_html( get_the_date() ) . '</span>'
+		. '<span class="rm-news-readt">' . (int) ricoman_news_readtime( $pid ) . ' min read</span></p>';
+	$out .= '</div></div>';
+
+	$hero = ricoman_news_img( $pid, 'large' );
+	if ( $hero ) {
+		$out .= '<div class="rm-section rm-news-herosec"><div class="rm-pp-wrap"><figure class="rm-news-hero"><img src="' . esc_url( $hero ) . '" alt="' . esc_attr( get_the_title() ) . '"></figure></div></div>';
+	}
+
+	$out .= '<div class="rm-section rm-news-bodysec"><div class="rm-pp-wrap rm-news-single">';
+
+	// Key takeaways box (great for SEO snippets + scannability).
+	$take = trim( (string) get_post_meta( $pid, '_rmn_takeaways', true ) );
+	if ( '' !== $take ) {
+		$li = '';
+		foreach ( preg_split( '/\r\n|\r|\n/', $take ) as $t ) {
+			$t = trim( $t );
+			if ( '' !== $t ) {
+				$li .= '<li>' . esc_html( $t ) . '</li>';
+			}
+		}
+		if ( $li ) {
+			$out .= '<div class="rm-news-takeaways"><p class="rm-news-takeaways-h">Key takeaways</p><ul>' . $li . '</ul></div>';
+		}
+	}
+
 	if ( '' !== trim( wp_strip_all_tags( (string) $content ) ) ) {
 		$out .= '<div class="rm-news-body">' . $content . '</div>';
 	}
+
 	// Optional bottom heading/description + gallery from "News Others Info".
 	$bh = (string) get_post_meta( $pid, 'news_bottom_heading', true );
 	$bd = (string) get_post_meta( $pid, 'news_bottom_description', true );
@@ -150,5 +256,65 @@ add_filter( 'the_content', function ( $content ) {
 			$out .= '<div class="rm-apage-gallery">' . $g . '</div>';
 		}
 	}
-	return $out . '</div>';
+
+	$out .= ricoman_news_related_products( $pid );
+	$out .= ricoman_news_cta( $pid );
+	$out .= '</div></div>';
+
+	$out .= '<div class="rm-section rm-news-moresec"><div class="rm-pp-wrap">' . ricoman_news_related_articles( $pid ) . '</div></div>';
+
+	return $out;
 }, 9 );
+
+/* ----------------------------------------------------------------------- *
+ * News editor: conversion + SEO fields (standfirst, takeaways, CTA band,
+ * related products). Lets the team turn landing traffic into enquiries.
+ * ----------------------------------------------------------------------- */
+add_action( 'add_meta_boxes', function () {
+	add_meta_box( 'ricoman_news_conv', __( 'Article content & conversion (Ricoman)', 'ricoman' ), 'ricoman_news_metabox', 'news', 'normal', 'high' );
+} );
+
+function ricoman_news_metabox( $post ) {
+	wp_nonce_field( 'ricoman_news_meta', 'ricoman_news_meta_nonce' );
+	$f = function ( $k ) use ( $post ) { return esc_textarea( (string) get_post_meta( $post->ID, $k, true ) ); };
+	$v = function ( $k ) use ( $post ) { return esc_attr( (string) get_post_meta( $post->ID, $k, true ) ); };
+	echo '<style>.rmn-fld{margin:0 0 16px}.rmn-fld label{display:block;font-weight:600;margin:0 0 4px}.rmn-fld .desc{color:#666;font-weight:400;font-size:12px}.rmn-fld input[type=text],.rmn-fld textarea{width:100%}.rmn-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}</style>';
+
+	echo '<div class="rmn-fld"><label>Standfirst / intro <span class="desc">— the bold dek under the title (also used as the listing excerpt and meta fallback). Leave blank to auto-generate.</span></label>';
+	echo '<textarea name="_rmn_standfirst" rows="2">' . $f( '_rmn_standfirst' ) . '</textarea></div>';
+
+	echo '<div class="rmn-fld"><label>Key takeaways <span class="desc">— one per line. Shown as a scannable box near the top (good for SEO snippets).</span></label>';
+	echo '<textarea name="_rmn_takeaways" rows="4">' . $f( '_rmn_takeaways' ) . '</textarea></div>';
+
+	echo '<div class="rmn-fld"><label>Products in this article <span class="desc">— one product name or full URL per line. Renders linked product cards.</span></label>';
+	echo '<textarea name="_rmn_products" rows="3">' . $f( '_rmn_products' ) . '</textarea></div>';
+
+	echo '<hr><p><strong>' . esc_html__( 'Conversion CTA band', 'ricoman' ) . '</strong> <span class="desc">(shown at the end of the article — leave blank to use the sensible defaults)</span></p>';
+	echo '<div class="rmn-grid">';
+	echo '<div class="rmn-fld"><label>CTA heading</label><input type="text" name="_rmn_cta_head" value="' . $v( '_rmn_cta_head' ) . '" placeholder="Planning a lighting scheme?"></div>';
+	echo '<div class="rmn-fld"><label>Button label</label><input type="text" name="_rmn_cta_btn" value="' . $v( '_rmn_cta_btn' ) . '" placeholder="Request a free lighting design"></div>';
+	echo '</div>';
+	echo '<div class="rmn-fld"><label>CTA sub-text</label><textarea name="_rmn_cta_sub" rows="2" placeholder="Send us your drawings…">' . $f( '_rmn_cta_sub' ) . '</textarea></div>';
+	echo '<div class="rmn-fld"><label>Button URL</label><input type="text" name="_rmn_cta_url" value="' . $v( '_rmn_cta_url' ) . '" placeholder="/lighting-design/"></div>';
+}
+
+add_action( 'save_post_news', function ( $post_id ) {
+	if ( ! isset( $_POST['ricoman_news_meta_nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['ricoman_news_meta_nonce'] ), 'ricoman_news_meta' ) ) {
+		return;
+	}
+	if ( wp_is_post_autosave( $post_id ) || wp_is_post_revision( $post_id ) || ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+	$text = array( '_rmn_standfirst', '_rmn_takeaways', '_rmn_products', '_rmn_cta_sub' );
+	foreach ( $text as $k ) {
+		if ( isset( $_POST[ $k ] ) ) {
+			update_post_meta( $post_id, $k, sanitize_textarea_field( wp_unslash( $_POST[ $k ] ) ) );
+		}
+	}
+	$line = array( '_rmn_cta_head', '_rmn_cta_btn', '_rmn_cta_url' );
+	foreach ( $line as $k ) {
+		if ( isset( $_POST[ $k ] ) ) {
+			update_post_meta( $post_id, $k, sanitize_text_field( wp_unslash( $_POST[ $k ] ) ) );
+		}
+	}
+} );
