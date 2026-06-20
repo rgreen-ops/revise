@@ -49,6 +49,16 @@ GLOBAL: [ ] Header / mega-menu  [ ] Footer
   - Angle: the new website doesn't just look better — it **fixes years of hidden
     technical debt** (storage bloat, failing backups), and is **faster, cheaper
     to host, and more reliable** as a result.
+  - **Self-serve product pages:** custom back-end Product Page Builder lets the
+    team edit the spec/variant tables (incl. choosing which columns show) and
+    drop content elements into product pages — no developer needed.
+  - **Automatic SEO link-building + tagging:** news articles and project case
+    studies auto-link relevant terms to product / category / sector pages
+    (internal backlinks for SEO + conversion); news auto-tags by Topic and
+    projects link to their sector hubs — all automatic.
+  - **Spec filtering:** category pages let customers filter products by light
+    output (lumens) and power (wattage), pulled live from the real variant data
+    — easier for specifiers to find the right fitting.
 - Old products store everything in **ACF**; post types: `product`, `project`,
   `news`, `home_slider`, `lighting_sectors`, `variant-product`, `lead`.
 - Real taxonomies: `product-cat`, `applycation-type`, `project-cat` (+ many
