@@ -277,10 +277,14 @@
 	/* ---- Horizontal-scroll affordance: fade edges that have more content ---- */
 	function rmEdgeScroller( el ) {
 		function upd() {
-			var max = el.scrollWidth - el.clientWidth;
-			if ( max <= 2 ) { el.classList.remove( 'rm-fade-l', 'rm-fade-r' ); return; }
-			el.classList.toggle( 'rm-fade-l', el.scrollLeft > 4 );
-			el.classList.toggle( 'rm-fade-r', el.scrollLeft < max - 4 );
+			// Read layout inside rAF so it doesn't force a synchronous reflow
+			// during the load task (reads happen after the browser's own layout).
+			requestAnimationFrame( function () {
+				var max = el.scrollWidth - el.clientWidth;
+				if ( max <= 2 ) { el.classList.remove( 'rm-fade-l', 'rm-fade-r' ); return; }
+				el.classList.toggle( 'rm-fade-l', el.scrollLeft > 4 );
+				el.classList.toggle( 'rm-fade-r', el.scrollLeft < max - 4 );
+			} );
 		}
 		el.addEventListener( 'scroll', upd, { passive: true } );
 		window.addEventListener( 'resize', upd );

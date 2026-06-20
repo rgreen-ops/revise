@@ -162,14 +162,8 @@ add_action( 'wp_enqueue_scripts', function () {
  * Combined size is small (~5KB brotli) and the HTML is page-cached, so there's
  * no real per-request cost. Relative url() paths are rewritten to absolute so
  * fonts/background images still resolve once the CSS lives in the document. */
-function ricoman_inline_css_file( $rel ) {
-	$path = get_theme_file_path( $rel );
-	if ( ! is_readable( $path ) ) {
-		return '';
-	}
-	$css  = (string) file_get_contents( $path );
-	$base = trailingslashit( dirname( get_theme_file_uri( $rel ) ) );
-	$css  = preg_replace_callback(
+function ricoman_inline_css_raw( $css, $base ) {
+	$css = preg_replace_callback(
 		'/url\(\s*([\'"]?)([^\'")]+)\1\s*\)/i',
 		function ( $m ) use ( $base ) {
 			$u = trim( $m[2] );
@@ -184,7 +178,7 @@ function ricoman_inline_css_file( $rel ) {
 			} while ( $count );
 			return 'url(' . esc_url( $abs ) . ')';
 		},
-		$css
+		(string) $css
 	);
 	// Conservative minify: strip comments and collapse whitespace runs to a
 	// single space (keeps spaces inside calc() etc. intact, so nothing breaks).
@@ -193,6 +187,61 @@ function ricoman_inline_css_file( $rel ) {
 	$css = str_replace( array( ' { ', '; }', ' }', '{ ', '; ', ': ', ', ' ), array( '{', '}', '}', '{', ';', ':', ',' ), $css );
 	return trim( $css );
 }
+
+function ricoman_inline_css_file( $rel ) {
+	$path = get_theme_file_path( $rel );
+	if ( ! is_readable( $path ) ) {
+		return '';
+	}
+	$base = trailingslashit( dirname( get_theme_file_uri( $rel ) ) );
+	return ricoman_inline_css_raw( (string) file_get_contents( $path ), $base );
+}
+
+/* ---- Inline WordPress core block stylesheets too (e.g. cover/style.min.css) ----
+ * With separate-block-assets on, small core block CSS files load as individual
+ * render-blocking requests in <head>. Inline their content (and dequeue them)
+ * so they no longer block the first paint. Runs before wp_print_styles (8). */
+add_action( 'wp_head', function () {
+	if ( is_admin() ) {
+		return;
+	}
+	$styles = wp_styles();
+	if ( empty( $styles->queue ) ) {
+		return;
+	}
+	$inc = includes_url();
+	$out = '';
+	foreach ( (array) $styles->queue as $h ) {
+		if ( empty( $styles->registered[ $h ] ) ) {
+			continue;
+		}
+		$src = (string) $styles->registered[ $h ]->src;
+		if ( '' === $src ) {
+			continue;
+		}
+		$clean = preg_replace( '/\?.*$/', '', $src );
+		// Core block styles only, served from wp-includes/blocks/.
+		if ( 0 !== strpos( $clean, $inc ) || false === strpos( $clean, '/blocks/' ) ) {
+			continue;
+		}
+		$path = ABSPATH . WPINC . '/' . substr( $clean, strlen( $inc ) );
+		if ( ! is_readable( $path ) ) {
+			continue;
+		}
+		$base = trailingslashit( dirname( $clean ) );
+		$out .= ricoman_inline_css_raw( (string) file_get_contents( $path ), $base );
+		if ( ! empty( $styles->registered[ $h ]->extra['after'] ) ) {
+			foreach ( (array) $styles->registered[ $h ]->extra['after'] as $after ) {
+				$out .= (string) $after;
+			}
+		}
+		wp_dequeue_style( $h );
+		$styles->done[] = $h;
+	}
+	if ( '' !== trim( $out ) ) {
+		echo "<style id=\"ricoman-core-blocks-css\">" . $out . "</style>\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+}, 7 );
 
 add_action( 'wp_enqueue_scripts', function () {
 	if ( is_admin() ) {
