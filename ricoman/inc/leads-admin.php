@@ -306,3 +306,199 @@ add_action( 'save_post_lead', function ( $post_id ) {
 		update_post_meta( $post_id, '_lead_notes', sanitize_textarea_field( wp_unslash( $_POST['rm_lead_notes'] ) ) );
 	}
 } );
+
+/* ============================================================ Leads dashboard */
+
+add_action( 'admin_menu', function () {
+	add_submenu_page(
+		'edit.php?post_type=lead',
+		__( 'Leads Dashboard', 'ricoman' ),
+		'📊 ' . __( 'Dashboard', 'ricoman' ),
+		'edit_posts',
+		'ricoman-leads-dashboard',
+		'ricoman_leads_dashboard_page'
+	);
+}, 5 );
+
+/** Make the gamified dashboard the first thing under Leads. */
+add_action( 'admin_menu', function () {
+	global $submenu;
+	if ( isset( $submenu['edit.php?post_type=lead'] ) ) {
+		$items = $submenu['edit.php?post_type=lead'];
+		usort( $items, function ( $a, $b ) {
+			$ad = false !== strpos( $a[2], 'ricoman-leads-dashboard' ) ? 0 : 1;
+			$bd = false !== strpos( $b[2], 'ricoman-leads-dashboard' ) ? 0 : 1;
+			return $ad - $bd;
+		} );
+		$submenu['edit.php?post_type=lead'] = $items; // phpcs:ignore WordPress.WP.GlobalVariablesOverride
+	}
+}, 999 );
+
+function ricoman_leads_dashboard_page() {
+	global $wpdb;
+	$statuses = ricoman_lead_statuses();
+
+	$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type='lead' AND post_status NOT IN ('trash','auto-draft')" );
+
+	$sc = array();
+	foreach ( $wpdb->get_results( "SELECT meta_value s, COUNT(*) c FROM {$wpdb->postmeta} WHERE meta_key='_lead_status' GROUP BY meta_value" ) as $r ) {
+		$sc[ $r->s ] = (int) $r->c;
+	}
+	$sc['logged'] = ( isset( $sc['logged'] ) ? $sc['logged'] : 0 ) + max( 0, $total - array_sum( $sc ) );
+
+	$src = array();
+	foreach ( $wpdb->get_results( "SELECT meta_value s, COUNT(*) c FROM {$wpdb->postmeta} WHERE meta_key='_lead_attr_source' AND meta_value<>'' GROUP BY meta_value ORDER BY c DESC" ) as $r ) {
+		$src[ $r->s ] = (int) $r->c;
+	}
+	$typ = array();
+	foreach ( $wpdb->get_results( "SELECT meta_value s, COUNT(*) c FROM {$wpdb->postmeta} WHERE meta_key='_lead_type' AND meta_value<>'' GROUP BY meta_value ORDER BY c DESC" ) as $r ) {
+		$typ[ $r->s ] = (int) $r->c;
+	}
+
+	$this_month = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type='lead' AND post_status NOT IN ('trash','auto-draft') AND post_date>=%s", gmdate( 'Y-m-01 00:00:00' ) ) );
+	$last_month = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type='lead' AND post_status NOT IN ('trash','auto-draft') AND post_date>=%s AND post_date<%s", gmdate( 'Y-m-01 00:00:00', strtotime( 'first day of last month' ) ), gmdate( 'Y-m-01 00:00:00' ) ) );
+	$week = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type='lead' AND post_status NOT IN ('trash','auto-draft') AND post_date>=%s", gmdate( 'Y-m-d 00:00:00', strtotime( '-7 days' ) ) ) );
+
+	$won      = isset( $sc['won'] ) ? $sc['won'] : 0;
+	$open     = ( isset( $sc['contacted'] ) ? $sc['contacted'] : 0 ) + ( isset( $sc['quoted'] ) ? $sc['quoted'] : 0 );
+	$rate     = $total > 0 ? round( $won / $total * 100, 1 ) : 0;
+	$delta    = $this_month - $last_month;
+	$goal     = (int) apply_filters( 'ricoman_leads_monthly_goal', (int) get_option( 'ricoman_leads_goal', 50 ) );
+	$goal     = max( 1, $goal );
+	$goal_pct = min( 100, round( $this_month / $goal * 100 ) );
+
+	$recent = get_posts( array( 'post_type' => 'lead', 'posts_per_page' => 8, 'post_status' => array( 'private', 'publish', 'draft' ) ) );
+
+	$trend = $delta > 0 ? '<span class="rm-up">▲ ' . (int) $delta . '</span>' : ( $delta < 0 ? '<span class="rm-down">▼ ' . abs( (int) $delta ) . '</span>' : '<span class="rm-flat">— 0</span>' );
+
+	// Conversion gauge (SVG donut).
+	$circ = 2 * M_PI * 52;
+	$dash = $circ * ( $rate / 100 );
+	?>
+	<style>
+	.rm-dash{max-width:1200px;margin:18px 20px 40px 0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+	.rm-dash *{box-sizing:border-box}
+	.rm-dash-hero{background:linear-gradient(120deg,#4f46e5,#7c3aed 55%,#a21caf);border-radius:20px;padding:26px 30px;color:#fff;display:flex;justify-content:space-between;align-items:center;gap:24px;box-shadow:0 16px 40px rgba(79,70,229,.28)}
+	.rm-dash-hero h1{color:#fff;font-size:1.7rem;margin:0 0 4px;font-weight:700}
+	.rm-dash-hero p{color:rgba(255,255,255,.82);margin:0;font-size:.95rem}
+	.rm-gauge{position:relative;flex:0 0 auto;text-align:center}
+	.rm-gauge svg{transform:rotate(-90deg)}
+	.rm-gauge .rm-gauge-n{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+	.rm-gauge .rm-gauge-n b{font-size:1.5rem;line-height:1}
+	.rm-gauge .rm-gauge-n span{font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;opacity:.85}
+	.rm-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-top:18px}
+	.rm-kpi{background:#fff;border-radius:16px;padding:18px;box-shadow:0 4px 18px rgba(0,0,0,.06);border-top:4px solid #4f46e5;position:relative}
+	.rm-kpi .rm-kpi-ic{font-size:1.2rem}
+	.rm-kpi .rm-kpi-v{font-size:2rem;font-weight:800;line-height:1.1;margin:6px 0 2px;color:#16161a}
+	.rm-kpi .rm-kpi-l{font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:#646970;font-weight:600}
+	.rm-kpi.green{border-top-color:#1a7f37}.rm-kpi.amber{border-top-color:#d68100}.rm-kpi.blue{border-top-color:#2271b1}.rm-kpi.pink{border-top-color:#a21caf}
+	.rm-up{color:#1a7f37;font-weight:700;font-size:.8rem}.rm-down{color:#b32d2e;font-weight:700;font-size:.8rem}.rm-flat{color:#646970;font-size:.8rem}
+	.rm-grid2{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-top:16px}
+	.rm-card{background:#fff;border-radius:16px;padding:20px 22px;box-shadow:0 4px 18px rgba(0,0,0,.06)}
+	.rm-card h2{font-size:1.05rem;margin:0 0 14px;color:#16161a}
+	.rm-bar-row{display:flex;align-items:center;gap:12px;margin:10px 0}
+	.rm-bar-row .rm-bl{flex:0 0 120px;font-size:.85rem;font-weight:600;color:#16161a;display:flex;align-items:center;gap:7px}
+	.rm-bar-row .rm-dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+	.rm-bar-track{flex:1;background:#eef0f4;border-radius:999px;height:14px;overflow:hidden}
+	.rm-bar-fill{height:100%;border-radius:999px;transition:width 1s ease}
+	.rm-bar-row .rm-bn{flex:0 0 46px;text-align:right;font-weight:700;font-size:.9rem}
+	.rm-goal{margin-top:16px;background:linear-gradient(120deg,#0f172a,#1e293b);color:#fff;border-radius:16px;padding:20px 22px}
+	.rm-goal h2{color:#fff}
+	.rm-goal-track{background:rgba(255,255,255,.15);border-radius:999px;height:22px;overflow:hidden;margin-top:6px}
+	.rm-goal-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#22c55e,#86efac);display:flex;align-items:center;justify-content:flex-end;padding-right:10px;color:#06310f;font-weight:800;font-size:.75rem;transition:width 1.1s ease}
+	.rm-recent{margin-top:16px}
+	.rm-recent table{width:100%;border-collapse:collapse}
+	.rm-recent td{padding:11px 6px;border-top:1px solid #eef0f4;font-size:.88rem}
+	.rm-badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;color:#fff}
+	@media(max-width:1100px){.rm-kpis{grid-template-columns:repeat(2,1fr)}.rm-grid2{grid-template-columns:1fr}.rm-dash-hero{flex-direction:column;align-items:flex-start}}
+	</style>
+	<div class="wrap rm-dash">
+		<div class="rm-dash-hero">
+			<div>
+				<h1>🚀 <?php esc_html_e( 'Leads Dashboard', 'ricoman' ); ?></h1>
+				<p><?php echo esc_html( sprintf( __( '%1$d leads all-time · %2$d this month · %3$d won', 'ricoman' ), $total, $this_month, $won ) ); ?></p>
+			</div>
+			<div class="rm-gauge">
+				<svg width="128" height="128"><circle cx="64" cy="64" r="52" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="12"/>
+				<circle cx="64" cy="64" r="52" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round" stroke-dasharray="<?php echo esc_attr( round( $dash, 1 ) . ' ' . round( $circ, 1 ) ); ?>"/></svg>
+				<div class="rm-gauge-n"><b><?php echo esc_html( $rate ); ?>%</b><span><?php esc_html_e( 'Won', 'ricoman' ); ?></span></div>
+			</div>
+		</div>
+
+		<div class="rm-kpis">
+			<div class="rm-kpi blue"><div class="rm-kpi-ic">📥</div><div class="rm-kpi-v"><?php echo esc_html( number_format_i18n( $total ) ); ?></div><div class="rm-kpi-l"><?php esc_html_e( 'Total leads', 'ricoman' ); ?></div></div>
+			<div class="rm-kpi"><div class="rm-kpi-ic">📆</div><div class="rm-kpi-v"><?php echo esc_html( $this_month ); ?></div><div class="rm-kpi-l"><?php esc_html_e( 'This month', 'ricoman' ); ?> <?php echo $trend; // phpcs:ignore ?></div></div>
+			<div class="rm-kpi amber"><div class="rm-kpi-ic">🔥</div><div class="rm-kpi-v"><?php echo esc_html( $week ); ?></div><div class="rm-kpi-l"><?php esc_html_e( 'Last 7 days', 'ricoman' ); ?></div></div>
+			<div class="rm-kpi pink"><div class="rm-kpi-ic">🤝</div><div class="rm-kpi-v"><?php echo esc_html( $open ); ?></div><div class="rm-kpi-l"><?php esc_html_e( 'In pipeline', 'ricoman' ); ?></div></div>
+			<div class="rm-kpi green"><div class="rm-kpi-ic">🏆</div><div class="rm-kpi-v"><?php echo esc_html( $won ); ?></div><div class="rm-kpi-l"><?php esc_html_e( 'Won', 'ricoman' ); ?></div></div>
+		</div>
+
+		<div class="rm-grid2">
+			<div class="rm-card">
+				<h2><?php esc_html_e( 'Pipeline', 'ricoman' ); ?></h2>
+				<?php
+				$max = max( 1, max( array_values( $sc ) ) );
+				foreach ( $statuses as $k => $info ) {
+					$n = isset( $sc[ $k ] ) ? $sc[ $k ] : 0;
+					$w = round( $n / $max * 100 );
+					echo '<div class="rm-bar-row"><span class="rm-bl"><span class="rm-dot" style="background:' . esc_attr( $info[1] ) . '"></span>' . esc_html( $info[0] ) . '</span>'
+						. '<span class="rm-bar-track"><span class="rm-bar-fill" style="width:' . (int) $w . '%;background:' . esc_attr( $info[1] ) . '"></span></span>'
+						. '<span class="rm-bn">' . (int) $n . '</span></div>';
+				}
+				?>
+			</div>
+			<div class="rm-card">
+				<h2><?php esc_html_e( 'Where leads come from', 'ricoman' ); ?></h2>
+				<?php
+				if ( $src ) {
+					$smax    = max( 1, max( array_values( $src ) ) );
+					$palette = array( 'Organic' => '#1a7f37', 'Direct' => '#646970', 'PPC' => '#d68100', 'Social' => '#a21caf', 'Referral' => '#2271b1' );
+					foreach ( $src as $s => $n ) {
+						$key = preg_replace( '/\s*·.*/', '', $s );
+						$col = isset( $palette[ $key ] ) ? $palette[ $key ] : '#7c3aed';
+						$w   = round( $n / $smax * 100 );
+						echo '<div class="rm-bar-row"><span class="rm-bl" title="' . esc_attr( $s ) . '">' . esc_html( $s ) . '</span>'
+							. '<span class="rm-bar-track"><span class="rm-bar-fill" style="width:' . (int) $w . '%;background:' . esc_attr( $col ) . '"></span></span>'
+							. '<span class="rm-bn">' . (int) $n . '</span></div>';
+					}
+				} else {
+					echo '<p style="color:#646970">' . esc_html__( 'Source data appears here as new leads come in.', 'ricoman' ) . '</p>';
+				}
+				?>
+			</div>
+		</div>
+
+		<div class="rm-goal">
+			<h2>🎯 <?php echo esc_html( sprintf( __( 'Monthly goal — %1$d of %2$d leads', 'ricoman' ), $this_month, $goal ) ); ?></h2>
+			<div class="rm-goal-track"><div class="rm-goal-fill" style="width:<?php echo (int) $goal_pct; ?>%"><?php echo (int) $goal_pct; ?>%</div></div>
+			<p style="margin:10px 0 0;color:rgba(255,255,255,.75);font-size:.85rem"><?php echo $goal_pct >= 100 ? esc_html__( '🎉 Smashed it! Goal reached this month.', 'ricoman' ) : esc_html( sprintf( __( '%d to go to hit this month’s target.', 'ricoman' ), max( 0, $goal - $this_month ) ) ); ?></p>
+		</div>
+
+		<div class="rm-card rm-recent">
+			<h2><?php esc_html_e( 'Recent leads', 'ricoman' ); ?></h2>
+			<table><tbody>
+			<?php
+			if ( $recent ) {
+				foreach ( $recent as $L ) {
+					$st   = ricoman_lead_status( $L->ID );
+					$info = $statuses[ $st ];
+					$nm   = get_post_meta( $L->ID, '_lead_name', true );
+					$ty   = get_post_meta( $L->ID, '_lead_type', true );
+					$so   = get_post_meta( $L->ID, '_lead_attr_source', true );
+					echo '<tr><td><strong>' . esc_html( $nm ? $nm : __( '(no name)', 'ricoman' ) ) . '</strong></td>'
+						. '<td>' . esc_html( $ty ? $ty : '—' ) . '</td>'
+						. '<td>' . esc_html( $so ? $so : '—' ) . '</td>'
+						. '<td><span class="rm-badge" style="background:' . esc_attr( $info[1] ) . '">' . esc_html( $info[0] ) . '</span></td>'
+						. '<td style="color:#646970">' . esc_html( get_the_date( 'j M', $L ) ) . '</td>'
+						. '<td><a href="' . esc_url( get_edit_post_link( $L->ID ) ) . '">' . esc_html__( 'View', 'ricoman' ) . '</a></td></tr>';
+				}
+			} else {
+				echo '<tr><td>' . esc_html__( 'No leads yet.', 'ricoman' ) . '</td></tr>';
+			}
+			?>
+			</tbody></table>
+			<p style="margin-top:14px"><a class="button" href="<?php echo esc_url( admin_url( 'edit.php?post_type=lead' ) ); ?>"><?php esc_html_e( 'View all leads', 'ricoman' ); ?> →</a></p>
+		</div>
+	</div>
+	<?php
+}
