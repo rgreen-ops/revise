@@ -119,9 +119,17 @@
 		if ( ! pending ) { return; }
 		var a = pending; pending = null;
 		var url = a.getAttribute( 'href' );
-		var tgt = a.getAttribute( 'target' );
-		if ( tgt === '_blank' || a.hasAttribute( 'download' ) ) { window.open( url, tgt || '_blank' ); }
-		else { window.location.href = url; }
+		// Trigger a download and keep the visitor on the current page (instead of
+		// opening the PDF in a new tab). 'download' forces a save for same-origin
+		// files; the server sends the file inline otherwise.
+		var dl = document.createElement( 'a' );
+		dl.href = url;
+		dl.setAttribute( 'download', '' );
+		dl.rel = 'noopener';
+		dl.style.display = 'none';
+		document.body.appendChild( dl );
+		dl.click();
+		setTimeout( function () { document.body.removeChild( dl ); }, 0 );
 	}
 
 	document.addEventListener( 'click', function ( e ) {

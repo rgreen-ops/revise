@@ -1216,7 +1216,7 @@ function ricoman_pf_sections( $pid ) {
 			}
 		}
 		$sub = trim( ( $typ ? '(' . $typ . ')' : '' ) . ( $sz ? ( $typ ? ' · ' : '' ) . $sz : '' ) );
-		$dl .= '<a href="' . esc_url( $url ) . '" target="_blank" rel="noopener"><span class="rm-dl-lbl">' . esc_html( $label ) . '</span>'
+		$dl .= '<a href="' . esc_url( $url ) . '" download rel="noopener"><span class="rm-dl-lbl">' . esc_html( $label ) . '</span>'
 			. ( $sub ? ' <span class="rm-dl-sub">' . esc_html( $sub ) . '</span>' : '' ) . '</a>';
 	}
 	// BIM / Revit is a made-to-request file (built by the lighting team on demand),
