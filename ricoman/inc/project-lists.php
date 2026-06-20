@@ -384,6 +384,63 @@ function ricoman_product_pack_files( $pid ) {
 }
 
 /** Stream a project-pack ZIP for the current user. */
+/** Recursively delete a directory (pack staging area). */
+function ricoman_rrmdir( $dir ) {
+	if ( ! is_dir( $dir ) ) {
+		return;
+	}
+	$items = array_diff( (array) scandir( $dir ), array( '.', '..' ) );
+	foreach ( $items as $it ) {
+		$p = $dir . '/' . $it;
+		is_dir( $p ) ? ricoman_rrmdir( $p ) : @unlink( $p );
+	}
+	@rmdir( $dir );
+}
+
+/**
+ * Build a ZIP from a list of entries and return its path (or false). Each entry:
+ * [ 'path' => 'in/zip/name.ext', 'file' => absolute|null, 'data' => string|null ].
+ * Uses ZipArchive when available, else WordPress's bundled PclZip — so packs work
+ * even on servers without the Zip PHP extension.
+ */
+function ricoman_build_pack_zip( $entries ) {
+	$base = wp_tempnam( 'rm-pack' );
+	@unlink( $base );
+	$dir = $base . '-files';
+	wp_mkdir_p( $dir );
+	foreach ( $entries as $e ) {
+		$target = $dir . '/' . ltrim( $e['path'], '/' );
+		wp_mkdir_p( dirname( $target ) );
+		if ( ! empty( $e['file'] ) && is_file( $e['file'] ) ) {
+			@copy( $e['file'], $target );
+		} else {
+			@file_put_contents( $target, isset( $e['data'] ) ? $e['data'] : '' );
+		}
+	}
+	$zipfile = $base . '.zip';
+	$ok      = false;
+	if ( class_exists( 'ZipArchive' ) ) {
+		$z = new ZipArchive();
+		if ( true === $z->open( $zipfile, ZipArchive::CREATE | ZipArchive::OVERWRITE ) ) {
+			$it = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $dir, FilesystemIterator::SKIP_DOTS ) );
+			foreach ( $it as $f ) {
+				$z->addFile( $f->getPathname(), substr( $f->getPathname(), strlen( $dir ) + 1 ) );
+			}
+			$z->close();
+			$ok = is_file( $zipfile );
+		}
+	}
+	if ( ! $ok ) {
+		require_once ABSPATH . 'wp-admin/includes/class-pclzip.php';
+		$pz = new PclZip( $zipfile );
+		if ( 0 !== $pz->create( $dir, PCLZIP_OPT_REMOVE_PATH, $dir ) ) {
+			$ok = is_file( $zipfile );
+		}
+	}
+	ricoman_rrmdir( $dir );
+	return $ok ? $zipfile : false;
+}
+
 add_action( 'template_redirect', function () {
 	if ( empty( $_GET['rm_pack'] ) ) {
 		return;
@@ -391,9 +448,6 @@ add_action( 'template_redirect', function () {
 	if ( ! is_user_logged_in() ) {
 		auth_redirect();
 		exit;
-	}
-	if ( ! class_exists( 'ZipArchive' ) ) {
-		wp_die( esc_html__( 'Project packs need the Zip extension enabled on the server.', 'ricoman' ) );
 	}
 	$want = sanitize_text_field( wp_unslash( $_GET['rm_pack'] ) );
 	$proj = null;
@@ -407,23 +461,30 @@ add_action( 'template_redirect', function () {
 		wp_die( esc_html__( 'Project not found.', 'ricoman' ) );
 	}
 
-	$tmp = wp_tempnam( 'rm-pack' );
-	$zip = new ZipArchive();
-	if ( true !== $zip->open( $tmp, ZipArchive::OVERWRITE ) ) {
-		wp_die( esc_html__( 'Could not build the pack.', 'ricoman' ) );
-	}
+	$entries = array();
+	$index   = 'PROJECT: ' . $proj['name'] . "\n" . str_repeat( '=', 50 ) . "\n\n";
+	$n       = 0;
+	$used    = array();
+	$uniq    = function ( $name ) use ( &$used ) {
+		$base = $name ? $name : 'item';
+		$try  = $base;
+		$i    = 2;
+		while ( isset( $used[ strtolower( $try ) ] ) ) {
+			$try = $base . ' ' . $i;
+			$i++;
+		}
+		$used[ strtolower( $try ) ] = true;
+		return $try;
+	};
 
-	$index = 'PROJECT: ' . $proj['name'] . "\n" . str_repeat( '=', 50 ) . "\n\n";
-	$n     = 0;
 	foreach ( $proj['items'] as $it ) {
-		// Custom saved designs (Flow+ runs etc.) — include their spec as a text file.
 		if ( ! empty( $it['custom'] ) ) {
 			$n++;
-			$cname  = $it['name'] ? $it['name'] : __( 'Custom design', 'ricoman' );
-			$qty    = max( 1, (int) $it['qty'] );
-			$index .= sprintf( "%d. %s — qty %d  [custom design]\n\n", $n, $cname, $qty );
-			$folder = sanitize_file_name( $cname );
-			$zip->addFromString( $folder . '/design-spec.txt', $cname . "\n" . str_repeat( '-', 40 ) . "\n\n" . ( isset( $it['summary'] ) ? $it['summary'] : '' ) . "\n" );
+			$cname     = $it['name'] ? $it['name'] : __( 'Custom design', 'ricoman' );
+			$qty       = max( 1, (int) $it['qty'] );
+			$index    .= sprintf( "%d. %s — qty %d  [custom design]\n\n", $n, $cname, $qty );
+			$folder    = $uniq( sanitize_file_name( $cname ) );
+			$entries[] = array( 'path' => $folder . '/design-spec.txt', 'data' => $cname . "\n" . str_repeat( '-', 40 ) . "\n\n" . ( isset( $it['summary'] ) ? $it['summary'] : '' ) . "\n" );
 			continue;
 		}
 		$pid = (int) $it['id'];
@@ -435,27 +496,35 @@ add_action( 'template_redirect', function () {
 		$title  = get_the_title( $pid );
 		$sku    = (string) get_post_meta( $pid, '_ricoman_sku', true );
 		$index .= sprintf( "%d. %s%s — qty %d\n   %s\n", $n, $title, $sku ? " ($sku)" : '', $qty, get_permalink( $pid ) );
-		$folder = sanitize_file_name( ( $sku ? $sku . ' - ' : '' ) . $title );
+		$folder = $uniq( sanitize_file_name( ( $sku ? $sku . ' - ' : '' ) . $title ) );
 		$files  = ricoman_product_pack_files( $pid );
 		if ( $files ) {
 			foreach ( $files as $path ) {
-				$zip->addFile( $path, $folder . '/' . sanitize_file_name( basename( $path ) ) );
+				$entries[] = array( 'path' => $folder . '/' . sanitize_file_name( basename( $path ) ), 'file' => $path );
 			}
 		} else {
 			$index .= "   (no documents on file yet)\n";
 		}
 		$index .= "\n";
 	}
-	$index .= "\nGenerated " . date_i18n( 'j M Y H:i' ) . ' — ' . get_bloginfo( 'name' ) . "\n";
-	$zip->addFromString( '00 - Product list.txt', $index );
-	$zip->close();
+	$index    .= "\nGenerated " . date_i18n( 'j M Y H:i' ) . ' — ' . get_bloginfo( 'name' ) . "\n";
+	$entries[] = array( 'path' => '00 - Product list.txt', 'data' => $index );
 
-	$fname = sanitize_file_name( $proj['name'] ) . ' - project pack.zip';
+	$zipfile = ricoman_build_pack_zip( $entries );
+	if ( ! $zipfile ) {
+		wp_die( esc_html__( 'Sorry, the project pack could not be built. Please try again.', 'ricoman' ) );
+	}
+
+	// Clear any buffered output so the ZIP isn't corrupted by stray markup.
+	while ( ob_get_level() ) {
+		ob_end_clean();
+	}
+	$fname = sanitize_file_name( $proj['name'] ? $proj['name'] : 'project' ) . ' - project pack.zip';
 	nocache_headers();
 	header( 'Content-Type: application/zip' );
 	header( 'Content-Disposition: attachment; filename="' . $fname . '"' );
-	header( 'Content-Length: ' . filesize( $tmp ) );
-	readfile( $tmp ); // phpcs:ignore
-	@unlink( $tmp );
+	header( 'Content-Length: ' . filesize( $zipfile ) );
+	readfile( $zipfile ); // phpcs:ignore
+	@unlink( $zipfile );
 	exit;
 } );
