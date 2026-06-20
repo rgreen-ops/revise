@@ -714,6 +714,23 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-projq,.rm-newsq{width:100%;font-family:Poppins;font-size:.92rem;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:999px;padding:11px 18px 11px 40px;outline:none;transition:border-color .15s;-webkit-appearance:none;appearance:none}
 .rm-projq:focus,.rm-newsq:focus{border-color:var(--ink)}
 .rm-projq::placeholder,.rm-newsq::placeholder{color:var(--muted)}
+/* Sector landing: big visual hero (lead with the work) */
+.rm-sechero{position:relative;display:flex;align-items:flex-end;min-height:clamp(420px,62vh,640px);background:#1c1c1e center/cover no-repeat;color:#fff;overflow:hidden}
+.rm-sechero-scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.25) 0%,rgba(0,0,0,.15) 40%,rgba(0,0,0,.78) 100%)}
+.rm-sechero-in{position:relative;z-index:1;width:100%;padding-block:clamp(28px,4vw,56px)}
+.rm-sechero-crumb{margin:0 0 1.2em}
+.rm-sechero-crumb .ricoman-breadcrumbs,.rm-sechero-crumb .ricoman-breadcrumbs a{color:rgba(255,255,255,.82)}
+.rm-sechero-crumb .ricoman-breadcrumbs a:hover{color:#fff}
+.rm-sechero-crumb .ricoman-breadcrumbs [aria-current="page"]{color:#fff}
+.rm-sechero-eyebrow{color:rgba(255,255,255,.85);margin:0 0 .6em}
+.rm-sechero-title{font-family:Poppins;font-weight:500;font-size:clamp(2.4rem,6vw,4.8rem);letter-spacing:-.025em;line-height:1;color:#fff;margin:0 0 .3em;max-width:16ch}
+.rm-sechero-hook{font-size:clamp(1.05rem,1.7vw,1.35rem);line-height:1.5;color:rgba(255,255,255,.9);max-width:60ch;margin:0 0 1.4em}
+.rm-sechero-cta{display:flex;flex-wrap:wrap;gap:12px}
+.rm-sechero-cta .btn-line{border-color:rgba(255,255,255,.5);color:#fff}
+.rm-sechero-cta .btn-line:hover{background:#fff;color:var(--ink)}
+/* Sector intro / selling copy (below the visuals) */
+.rm-sectorintro{padding-block:clamp(28px,4vw,56px)!important}
+.rm-sectorintro-in{max-width:820px;margin:0 auto}
 /* Sector landing: header CTA + trust bar */
 .rm-sector-cta{margin-top:clamp(20px,2.6vw,30px)}
 .rm-sectrust{padding-block:clamp(16px,2vw,24px)!important;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:#fff}

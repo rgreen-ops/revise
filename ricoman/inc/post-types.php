@@ -401,7 +401,7 @@ add_shortcode( 'ricoman_sector_projects', function () {
 			. '</span></a>';
 	}
 	wp_reset_postdata();
-	return '<div class="rm-section rm-sectorproj"><div class="rm-projwide">'
+	return '<div class="rm-section rm-sectorproj" id="projects"><div class="rm-projwide">'
 		. '<h2 class="rm-shead">Selected ' . esc_html( $term->name ) . ' projects</h2>'
 		. '<div class="rm-projgrid">' . $cards . '</div></div></div>';
 } );

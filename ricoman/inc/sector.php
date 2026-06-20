@@ -50,6 +50,58 @@ add_filter( 'ricoman_news_link_map', function ( $map ) {
 	return array_merge( $sector, $map );
 }, 5 );
 
+/** Big visual hero for a sector — leads with real project imagery. [ricoman_sector_hero] */
+add_shortcode( 'ricoman_sector_hero', function () {
+	$term = get_queried_object();
+	if ( ! ( $term instanceof WP_Term ) ) {
+		return '';
+	}
+	$img = '';
+	$q   = new WP_Query( array(
+		'post_type'      => 'project',
+		'posts_per_page' => 1,
+		'fields'         => 'ids',
+		'no_found_rows'  => true,
+		'orderby'        => array( 'menu_order' => 'ASC', 'date' => 'DESC' ),
+		'tax_query'      => array( array( 'taxonomy' => $term->taxonomy, 'terms' => $term->term_id ) ),
+	) );
+	if ( $q->posts && function_exists( 'ricoman_project_img' ) ) {
+		$img = ricoman_project_img( (int) $q->posts[0] );
+	}
+	if ( ! $img ) {
+		$img = get_theme_file_uri( 'assets/images/office1.webp' );
+	}
+	$hook  = sprintf( 'See how we light %s across the UK — specified, manufactured and delivered by our Manchester team.', strtolower( $term->name ) );
+	$crumb = function_exists( 'ricoman_breadcrumbs_html' ) ? ricoman_breadcrumbs_html() : '';
+	return '<div class="rm-sechero" style="background-image:url(' . esc_url( $img ) . ')">'
+		. '<span class="rm-sechero-scrim" aria-hidden="true"></span>'
+		. '<div class="rm-pp-wrap rm-sechero-in">'
+		. ( $crumb ? '<div class="rm-sechero-crumb">' . $crumb . '</div>' : '' )
+		. '<p class="rm-eyebrow rm-sechero-eyebrow">Projects by sector</p>'
+		. '<h1 class="rm-sechero-title">' . esc_html( $term->name ) . '</h1>'
+		. '<p class="rm-sechero-hook">' . esc_html( $hook ) . '</p>'
+		. '<div class="rm-sechero-cta"><a class="btn btn-solid" href="#enquire">Get free lighting advice</a> '
+		. '<a class="btn btn-line" href="#projects">See the projects ↓</a></div>'
+		. '</div></div>';
+} );
+
+/** Sector intro / selling copy — term description, else a useful default. [ricoman_sector_intro] */
+add_shortcode( 'ricoman_sector_intro', function () {
+	$term = get_queried_object();
+	if ( ! ( $term instanceof WP_Term ) ) {
+		return '';
+	}
+	$desc = trim( (string) term_description( $term ) );
+	if ( '' === $desc ) {
+		$name = strtolower( $term->name );
+		$desc = '<p>' . esc_html( sprintf( 'Lighting for %s has to perform — the right output and comfort for the people using the space, low glare, and fittings that last. As a UK manufacturer, Ricoman designs, makes and delivers complete %s schemes: photometrically specified, delivered on short lead times and backed by a 5-year warranty.', $name, $name ) ) . '</p>'
+			. '<p>' . esc_html( sprintf( 'Explore the ranges and real %s projects below — or tell us about your scheme and our in-house designers will spec it for you, free of charge.', $name ) ) . '</p>';
+	}
+	return '<div class="rm-section rm-sectorintro"><div class="rm-pp-wrap rm-sectorintro-in">'
+		. '<div class="rm-sector-desc">' . wp_kses_post( $desc ) . '</div>'
+		. '</div></div>';
+} );
+
 /** Grid of every sector, linking to its hub. [ricoman_sectors_grid] */
 add_shortcode( 'ricoman_sectors_grid', function () {
 	$tax   = taxonomy_exists( 'project-cat' ) ? 'project-cat' : 'application';

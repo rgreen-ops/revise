@@ -21,7 +21,7 @@ function ricoman_settings_defaults() {
 		'mega_heading_url' => '/products/',
 		'mega_categories'  => "Linear | /products/\nPendants | /products/\nDownlight | /products/\nAcoustic | /products/\nBiophilic | /products/\nEmergency | /products/\nExterior | /products/\nBulkhead | /products/\nPanel | /products/\nTrack Lighting | /products/\nIndustrial | /products/",
 		'mega_collections' => "Astrowave | Flexible 360° Rope Light System | /products/\nEstrella Pro | Linear Lighting Solutions | /products/estrella/\nFlow + | Curved Linear | /products/flow-plus/\nZodiac | 48V Track | /products/",
-		'mega_apps'        => "Gym | /projects/\nIndustrial | /projects/\nOffice | /projects/\nResidential | /projects/\nRetail | /projects/",
+		'mega_apps'        => "Office | /sector/office-lighting/\nRetail | /sector/retail-lighting/\nHospitality | /sector/hospitality-leisure-lighting/\nHealthcare | /sector/healthcare-lighting/\nEducation | /sector/education-lighting/\nIndustrial | /sector/industrial-warehouse-lighting/\nGym | /sector/gym-lighting/\nAll sectors → | /sectors/",
 		'mega_card1_img'   => get_theme_file_uri( 'assets/images/rico-soundslikelight.webp' ),
 		'mega_card1_title' => 'Sounds Like Light — Acoustic Pendants',
 		'mega_card1_url'   => '/products/',
@@ -43,7 +43,7 @@ function ricoman_settings_defaults() {
 		'soc_youtube'      => '',
 		'foot_col_about'   => "Made in Britain | /manufacturing/\nSustainability | /sustainability/\nLighting Design | /lighting-design/\nCustom Lighting Solutions | /customisation/",
 		'foot_col_products'=> "Linear Lighting | /products/\nAcoustic Solutions | /products/\nBiophilic Lighting | /products/\nDownlights | /products/\nTrack Lighting | /products/\nRecessed Modular | /products/\nOutdoor | /products/\nPendants | /products/",
-		'foot_col_projects'=> "Office | /projects/\nRetail | /projects/\nGym | /projects/\nResidential | /projects/\nIndustrial | /projects/",
+		'foot_col_projects'=> "Office | /sector/office-lighting/\nRetail | /sector/retail-lighting/\nHospitality | /sector/hospitality-leisure-lighting/\nIndustrial | /sector/industrial-warehouse-lighting/\nHealthcare | /sector/healthcare-lighting/\nAll sectors | /sectors/",
 		'foot_col_other'   => "News | /news/\nDownloads | /downloads/\nCasambi | /casambi/\nHuman Centric Lighting | /human-centric-lighting/\nAntimicrobial Protection | /antimicrobial-protection/\nProduct Warranty | /product-warranty/",
 		'foot_legal'       => "Terms & Conditions | /terms/\nCookie Policy | /cookie-policy/\nPrivacy Policy | /privacy-policy/\nE-mail Notice | /email-notice/\nSlavery & Human Trafficking Statement | /modern-slavery-statement/\nSite Map | /site-map/",
 		'code_head'        => '',
@@ -51,6 +51,27 @@ function ricoman_settings_defaults() {
 		'code_footer'      => '',
 	);
 }
+
+/** One-time: repoint saved By-Application / footer links to the sector hubs
+ * (only if they still hold the old "/projects/" placeholders). Stays editable. */
+add_action( 'admin_init', function () {
+	if ( get_option( 'ricoman_sector_links_migrated' ) ) {
+		return;
+	}
+	$opts = get_option( 'ricoman_settings', array() );
+	$def  = ricoman_settings_defaults();
+	$changed = false;
+	foreach ( array( 'mega_apps', 'foot_col_projects' ) as $key ) {
+		if ( ! empty( $opts[ $key ] ) && false !== strpos( $opts[ $key ], '| /projects/' ) ) {
+			$opts[ $key ] = $def[ $key ];
+			$changed = true;
+		}
+	}
+	if ( $changed ) {
+		update_option( 'ricoman_settings', $opts );
+	}
+	update_option( 'ricoman_sector_links_migrated', 1 );
+} );
 
 /** Read one setting (falls back to the default). */
 function ricoman_opt( $key ) {
