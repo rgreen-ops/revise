@@ -518,16 +518,34 @@ function ricoman_product_img( $pid ) {
  * category. Powers the /products/ archive. [ricoman_catalogue]
  */
 add_shortcode( 'ricoman_catalogue', function ( $atts ) {
-	// Heavy: queries every category + all products with metrics. Cache the rendered
-	// markup, invalidated whenever a product/variant changes (12h backstop).
 	$ver   = function_exists( 'ricoman_products_ver' ) ? ricoman_products_ver() : '1';
-	// Persisted option cache (not a transient): transients were not surviving on
-	// this host, so /products/ rebuilt on every hit. An option in wp_options
-	// always persists. Stored as [ver, html]; served while the version matches.
+	// Persisted option cache (not a transient — transients were not surviving on
+	// this host). Stored as [ver, html].
 	$store = get_option( 'rm_catalogue_cache' );
-	if ( is_array( $store ) && isset( $store['ver'], $store['html'] ) && (string) $store['ver'] === (string) $ver ) {
+	$have  = is_array( $store ) && isset( $store['html'] );
+
+	// Fresh — serve it.
+	if ( $have && (string) ( $store['ver'] ?? '' ) === (string) $ver ) {
 		return $store['html'];
 	}
+	// Stale-while-revalidate: NEVER rebuild the whole catalogue (every category +
+	// all ~500 products) on a visitor request — that synchronous build is the
+	// ~40s hit. Serve the last-good HTML instantly and rebuild in the background.
+	// Build inline only the very first time, when nothing is cached yet.
+	if ( $have ) {
+		if ( ! wp_next_scheduled( 'ricoman_catalogue_rebuild' ) ) {
+			wp_schedule_single_event( time() + 2, 'ricoman_catalogue_rebuild' );
+		}
+		return $store['html'];
+	}
+	return ricoman_catalogue_build_and_store();
+} );
+
+/** Rebuild the catalogue HTML and persist it. Heavy (every category + product);
+ *  only runs in the background (cron) or once on the very first uncached request. */
+add_action( 'ricoman_catalogue_rebuild', 'ricoman_catalogue_build_and_store' );
+function ricoman_catalogue_build_and_store() {
+	$ver   = function_exists( 'ricoman_products_ver' ) ? ricoman_products_ver() : '1';
 	$tax   = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
 	$terms = get_terms( array( 'taxonomy' => $tax, 'hide_empty' => true ) );
 
@@ -643,5 +661,5 @@ add_shortcode( 'ricoman_catalogue', function ( $atts ) {
 	// keyed off .rm-catwide — reliable regardless of where the markup lands.
 	update_option( 'rm_catalogue_cache', array( 'ver' => (string) $ver, 'html' => $out ), false );
 	return $out;
-} );
+}
 
