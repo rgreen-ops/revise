@@ -30,6 +30,14 @@ them off as you go. Grouped by feature. Staging: https://staging.ricoman.com
 - [ ] After login a normal customer lands on the homepage (not wp-admin).
 - [ ] Logged-in: the download gate no longer appears; downloads open instantly.
 
+## Add to Project — guest auth prompt (NEW behaviour)
+- [ ] Logged OUT, click "Add to My Project" on a product → popup prompts Sign in /
+      Create account (no more silent local list).
+- [ ] After signing in you're returned to the product AND it's auto-added to your
+      project (pending-add cookie). Check the header count.
+- [ ] Guest My Project page shows a "Start a project / Sign in / Create account"
+      prompt rather than an empty list.
+
 ## Saved projects (logged-in)
 - [ ] Header shows "My Project" with a count, plus your name + Log out.
 - [ ] On a product, "Add to My Project" → button shows "✓ Added to project" and the
@@ -71,5 +79,20 @@ them off as you go. Grouped by feature. Staging: https://staging.ricoman.com
 - Estrella Pro product pages (previously 500) all return 200.
 - Full sitemap crawl results: see notes appended below.
 
-## Issues found / to investigate
-_(appended as found during crawling)_
+## Issues found & fixed (this session)
+- **All Project case-study pages were 500** (34 of them) — `get_the_excerpt()`
+  recursion in the project `the_content` filter. FIXED (raw excerpt). Re-crawl clean.
+- **BIM request modal unstyled on mobile** — used `.rm-bim-form` which had no CSS.
+  FIXED (shares gate-form styles + mobile rule).
+- Sitemap crawl: 294 URLs checked (all pages, categories, news, projects + product
+  sample). After fixes, the only issues were the project 500s, now resolved.
+
+## Launch / SEO to decide (flagged, not changed)
+- **Two SEO systems active**: Yoast SEO *and* the theme's SEO module. `robots.txt`
+  has two blocks and references two sitemaps (`wp-sitemap.xml` + Yoast
+  `sitemap_index.xml`). Pick one before launch to avoid conflicts.
+- **Staging is indexable** (robots allows all, no `noindex`). Set staging to
+  "Discourage search engines" so Google doesn't index the staging copy.
+- **Missing meta descriptions** on Home / Products archive / News (products have
+  them) — handle in the SEO pass (likely Yoast settings).
+- **Email deliverability**: confirm SMTP so gate/BIM/lead emails actually send.
