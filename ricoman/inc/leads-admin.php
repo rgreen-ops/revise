@@ -300,26 +300,50 @@ function ricoman_leads_dashboard_render() {
 	global $wpdb;
 	$statuses = ricoman_lead_statuses();
 
-	$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type='lead' AND post_status NOT IN ('trash','auto-draft')" );
-
-	$sc = array();
-	foreach ( $wpdb->get_results( "SELECT meta_value s, COUNT(*) c FROM {$wpdb->postmeta} WHERE meta_key='_lead_status' GROUP BY meta_value" ) as $r ) {
-		$sc[ $r->s ] = (int) $r->c;
+	// --- Date range (scopes the dashboard metrics) ---
+	$range = isset( $_GET['rm_range'] ) ? sanitize_key( $_GET['rm_range'] ) : 'all';
+	$now   = current_time( 'timestamp' );
+	$from  = '';
+	$to    = '';
+	switch ( $range ) {
+		case 'mtd': $from = gmdate( 'Y-m-01 00:00:00', $now ); break;
+		case '30d': $from = gmdate( 'Y-m-d 00:00:00', strtotime( '-30 days', $now ) ); break;
+		case 'qtd': $qm = ( (int) floor( ( (int) gmdate( 'n', $now ) - 1 ) / 3 ) * 3 ) + 1; $from = gmdate( sprintf( 'Y-%02d-01 00:00:00', $qm ), $now ); break;
+		case 'ytd': $from = gmdate( 'Y-01-01 00:00:00', $now ); break;
+		case 'custom':
+			$from = ! empty( $_GET['rm_from'] ) ? sanitize_text_field( wp_unslash( $_GET['rm_from'] ) ) . ' 00:00:00' : '';
+			$to   = ! empty( $_GET['rm_to'] ) ? sanitize_text_field( wp_unslash( $_GET['rm_to'] ) ) . ' 23:59:59' : '';
+			break;
+		default: $range = 'all';
 	}
+	$date_sql = '';
+	if ( $from ) {
+		$date_sql .= $wpdb->prepare( ' AND p.post_date >= %s', $from );
+	}
+	if ( $to ) {
+		$date_sql .= $wpdb->prepare( ' AND p.post_date <= %s', $to );
+	}
+
+	$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->posts} p WHERE p.post_type='lead' AND p.post_status NOT IN ('trash','auto-draft')" . $date_sql ); // phpcs:ignore WordPress.DB.PreparedSQL
+
+	$metaq = function ( $key ) use ( $wpdb, $date_sql ) {
+		$rows = $wpdb->get_results( $wpdb->prepare(
+			"SELECT m.meta_value s, COUNT(*) c FROM {$wpdb->postmeta} m JOIN {$wpdb->posts} p ON p.ID = m.post_id
+			 WHERE m.meta_key = %s AND m.meta_value <> '' AND p.post_type='lead' AND p.post_status NOT IN ('trash','auto-draft')" . $date_sql . "
+			 GROUP BY m.meta_value ORDER BY c DESC", $key ) ); // phpcs:ignore WordPress.DB.PreparedSQL
+		$out = array();
+		foreach ( $rows as $r ) {
+			$out[ $r->s ] = (int) $r->c;
+		}
+		return $out;
+	};
+	$sc           = $metaq( '_lead_status' );
 	$sc['logged'] = ( isset( $sc['logged'] ) ? $sc['logged'] : 0 ) + max( 0, $total - array_sum( $sc ) );
+	$src          = $metaq( '_lead_attr_source' );
 
-	$src = array();
-	foreach ( $wpdb->get_results( "SELECT meta_value s, COUNT(*) c FROM {$wpdb->postmeta} WHERE meta_key='_lead_attr_source' AND meta_value<>'' GROUP BY meta_value ORDER BY c DESC" ) as $r ) {
-		$src[ $r->s ] = (int) $r->c;
-	}
-	$typ = array();
-	foreach ( $wpdb->get_results( "SELECT meta_value s, COUNT(*) c FROM {$wpdb->postmeta} WHERE meta_key='_lead_type' AND meta_value<>'' GROUP BY meta_value ORDER BY c DESC" ) as $r ) {
-		$typ[ $r->s ] = (int) $r->c;
-	}
-
-	$this_month = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type='lead' AND post_status NOT IN ('trash','auto-draft') AND post_date>=%s", gmdate( 'Y-m-01 00:00:00' ) ) );
-	$last_month = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type='lead' AND post_status NOT IN ('trash','auto-draft') AND post_date>=%s AND post_date<%s", gmdate( 'Y-m-01 00:00:00', strtotime( 'first day of last month' ) ), gmdate( 'Y-m-01 00:00:00' ) ) );
-	$week = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type='lead' AND post_status NOT IN ('trash','auto-draft') AND post_date>=%s", gmdate( 'Y-m-d 00:00:00', strtotime( '-7 days' ) ) ) );
+	$this_month = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type='lead' AND post_status NOT IN ('trash','auto-draft') AND post_date>=%s", gmdate( 'Y-m-01 00:00:00', $now ) ) );
+	$last_month = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type='lead' AND post_status NOT IN ('trash','auto-draft') AND post_date>=%s AND post_date<%s", gmdate( 'Y-m-01 00:00:00', strtotime( 'first day of last month', $now ) ), gmdate( 'Y-m-01 00:00:00', $now ) ) );
+	$week       = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type='lead' AND post_status NOT IN ('trash','auto-draft') AND post_date>=%s", gmdate( 'Y-m-d 00:00:00', strtotime( '-7 days', $now ) ) ) );
 
 	$won      = isset( $sc['won'] ) ? $sc['won'] : 0;
 	$open     = ( isset( $sc['contacted'] ) ? $sc['contacted'] : 0 ) + ( isset( $sc['quoted'] ) ? $sc['quoted'] : 0 );
@@ -328,6 +352,16 @@ function ricoman_leads_dashboard_render() {
 	$goal     = (int) apply_filters( 'ricoman_leads_monthly_goal', (int) get_option( 'ricoman_leads_goal', 50 ) );
 	$goal     = max( 1, $goal );
 	$goal_pct = min( 100, round( $this_month / $goal * 100 ) );
+
+	$range_labels = array(
+		'all' => __( 'All time', 'ricoman' ),
+		'mtd' => __( 'This month', 'ricoman' ),
+		'30d' => __( 'Last 30 days', 'ricoman' ),
+		'qtd' => __( 'This quarter', 'ricoman' ),
+		'ytd' => __( 'This year', 'ricoman' ),
+		'custom' => __( 'Custom', 'ricoman' ),
+	);
+	$range_label = isset( $range_labels[ $range ] ) ? $range_labels[ $range ] : $range_labels['all'];
 
 	$trend = $delta > 0 ? '<span class="rm-up">▲ ' . (int) $delta . '</span>' : ( $delta < 0 ? '<span class="rm-down">▼ ' . abs( (int) $delta ) . '</span>' : '<span class="rm-flat">— 0</span>' );
 
@@ -370,13 +404,20 @@ function ricoman_leads_dashboard_render() {
 	.rm-recent table{width:100%;border-collapse:collapse}
 	.rm-recent td{padding:11px 6px;border-top:1px solid #eef0f4;font-size:.88rem}
 	.rm-badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;color:#fff}
+	.rm-daterow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:16px}
+	.rm-dr-label{font-weight:600;color:#16161a;margin-right:2px}
+	.rm-chip{display:inline-block;padding:6px 14px;border-radius:999px;background:#fff;border:1px solid #dcdde1;color:#16161a;text-decoration:none;font-size:.82rem;font-weight:600}
+	.rm-chip:hover{border-color:#4f46e5;color:#4f46e5}
+	.rm-chip.on{background:#4f46e5;border-color:#4f46e5;color:#fff}
+	.rm-dr-custom{display:inline-flex;align-items:center;gap:6px;margin-left:6px}
+	.rm-dr-custom input[type=date]{padding:4px 8px;border-radius:8px;border:1px solid #dcdde1}
 	@media(max-width:1100px){.rm-kpis{grid-template-columns:repeat(2,1fr)}.rm-grid2{grid-template-columns:1fr}.rm-dash-hero{flex-direction:column;align-items:flex-start}}
 	</style>
 	<div class="rm-dash">
 		<div class="rm-dash-hero">
 			<div>
 				<div class="rm-dash-title">🚀 <?php esc_html_e( 'Leads', 'ricoman' ); ?></div>
-				<p><?php echo esc_html( sprintf( __( '%1$d leads all-time · %2$d this month · %3$d won', 'ricoman' ), $total, $this_month, $won ) ); ?></p>
+				<p><?php echo esc_html( sprintf( __( '%1$s · %2$d leads · %3$d won · %4$s%% conversion', 'ricoman' ), $range_label, $total, $won, $rate ) ); ?></p>
 			</div>
 			<div class="rm-gauge">
 				<svg width="128" height="128"><circle cx="64" cy="64" r="52" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="12"/>
@@ -385,8 +426,24 @@ function ricoman_leads_dashboard_render() {
 			</div>
 		</div>
 
+		<?php $base_url = admin_url( 'edit.php?post_type=lead' ); ?>
+		<div class="rm-daterow">
+			<span class="rm-dr-label">📅 <?php esc_html_e( 'Period:', 'ricoman' ); ?></span>
+			<?php foreach ( array( 'all', 'mtd', '30d', 'qtd', 'ytd' ) as $rk ) : ?>
+				<a class="rm-chip<?php echo $range === $rk ? ' on' : ''; ?>" href="<?php echo esc_url( add_query_arg( 'rm_range', $rk, $base_url ) ); ?>"><?php echo esc_html( $range_labels[ $rk ] ); ?></a>
+			<?php endforeach; ?>
+			<form method="get" class="rm-dr-custom">
+				<input type="hidden" name="post_type" value="lead">
+				<input type="hidden" name="rm_range" value="custom">
+				<input type="date" name="rm_from" value="<?php echo esc_attr( isset( $_GET['rm_from'] ) ? sanitize_text_field( wp_unslash( $_GET['rm_from'] ) ) : '' ); ?>">
+				<span>–</span>
+				<input type="date" name="rm_to" value="<?php echo esc_attr( isset( $_GET['rm_to'] ) ? sanitize_text_field( wp_unslash( $_GET['rm_to'] ) ) : '' ); ?>">
+				<button class="button button-small"><?php esc_html_e( 'Apply', 'ricoman' ); ?></button>
+			</form>
+		</div>
+
 		<div class="rm-kpis">
-			<div class="rm-kpi blue"><div class="rm-kpi-ic">📥</div><div class="rm-kpi-v"><?php echo esc_html( number_format_i18n( $total ) ); ?></div><div class="rm-kpi-l"><?php esc_html_e( 'Total leads', 'ricoman' ); ?></div></div>
+			<div class="rm-kpi blue"><div class="rm-kpi-ic">📥</div><div class="rm-kpi-v"><?php echo esc_html( number_format_i18n( $total ) ); ?></div><div class="rm-kpi-l"><?php echo esc_html( __( 'Leads', 'ricoman' ) . ' · ' . $range_label ); ?></div></div>
 			<div class="rm-kpi"><div class="rm-kpi-ic">📆</div><div class="rm-kpi-v"><?php echo esc_html( $this_month ); ?></div><div class="rm-kpi-l"><?php esc_html_e( 'This month', 'ricoman' ); ?> <?php echo $trend; // phpcs:ignore ?></div></div>
 			<div class="rm-kpi amber"><div class="rm-kpi-ic">🔥</div><div class="rm-kpi-v"><?php echo esc_html( $week ); ?></div><div class="rm-kpi-l"><?php esc_html_e( 'Last 7 days', 'ricoman' ); ?></div></div>
 			<div class="rm-kpi pink"><div class="rm-kpi-ic">🤝</div><div class="rm-kpi-v"><?php echo esc_html( $open ); ?></div><div class="rm-kpi-l"><?php esc_html_e( 'In pipeline', 'ricoman' ); ?></div></div>
@@ -410,19 +467,29 @@ function ricoman_leads_dashboard_render() {
 			<div class="rm-card">
 				<h2><?php esc_html_e( 'Where leads come from', 'ricoman' ); ?></h2>
 				<?php
-				if ( $src ) {
-					$smax    = max( 1, max( array_values( $src ) ) );
-					$palette = array( 'Organic' => '#1a7f37', 'Direct' => '#646970', 'PPC' => '#d68100', 'Social' => '#a21caf', 'Referral' => '#2271b1' );
-					foreach ( $src as $s => $n ) {
-						$key = preg_replace( '/\s*·.*/', '', $s );
-						$col = isset( $palette[ $key ] ) ? $palette[ $key ] : '#7c3aed';
-						$w   = round( $n / $smax * 100 );
-						echo '<div class="rm-bar-row"><span class="rm-bl" title="' . esc_attr( $s ) . '">' . esc_html( $s ) . '</span>'
-							. '<span class="rm-bar-track"><span class="rm-bar-fill" style="width:' . (int) $w . '%;background:' . esc_attr( $col ) . '"></span></span>'
-							. '<span class="rm-bn">' . (int) $n . '</span></div>';
+				$palette = array( 'Organic' => '#1a7f37', 'Direct' => '#646970', 'PPC' => '#d68100', 'Social' => '#a21caf', 'Referral' => '#2271b1' );
+				// Always show the standard channels (even at 0), plus any campaign sources.
+				$src_display = array();
+				foreach ( array_keys( $palette ) as $chan ) {
+					$src_display[ $chan ] = isset( $src[ $chan ] ) ? $src[ $chan ] : 0;
+				}
+				foreach ( $src as $s => $n ) {
+					if ( ! isset( $src_display[ $s ] ) ) {
+						$src_display[ $s ] = $n;
 					}
-				} else {
-					echo '<p style="color:#646970">' . esc_html__( 'Source data appears here as new leads come in.', 'ricoman' ) . '</p>';
+				}
+				$smax    = max( 1, max( array_values( $src_display ) ) );
+				$has_any = array_sum( $src_display ) > 0;
+				foreach ( $src_display as $s => $n ) {
+					$key = preg_replace( '/\s*·.*/', '', $s );
+					$col = isset( $palette[ $key ] ) ? $palette[ $key ] : '#7c3aed';
+					$w   = round( $n / $smax * 100 );
+					echo '<div class="rm-bar-row"><span class="rm-bl" title="' . esc_attr( $s ) . '">' . esc_html( $s ) . '</span>'
+						. '<span class="rm-bar-track"><span class="rm-bar-fill" style="width:' . (int) $w . '%;background:' . esc_attr( $col ) . '"></span></span>'
+						. '<span class="rm-bn">' . (int) $n . '</span></div>';
+				}
+				if ( ! $has_any ) {
+					echo '<p style="color:#646970;margin-top:10px;font-size:.82rem">' . esc_html__( 'Channels fill in as new leads arrive (existing leads predate source tracking).', 'ricoman' ) . '</p>';
 				}
 				?>
 			</div>
