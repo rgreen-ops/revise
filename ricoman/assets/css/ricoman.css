@@ -892,6 +892,28 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-dual-track input[type=range]::-moz-range-thumb{pointer-events:auto;width:18px;height:18px;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3);cursor:pointer}
 .rm-catsec[hidden]{display:none}
 .rm-fcard[hidden]{display:none}
+/* Collapsible filter (toggle on mobile, always open on desktop) */
+.rm-catfilter-d{margin:0 0 22px}
+.rm-catfilter-sum{display:none}
+.rm-catfilter-d>.rm-catfilter{margin-bottom:0}
+@media(min-width:821px){
+  details.rm-catfilter-d>.rm-catfilter{display:flex!important}
+}
+@media(max-width:820px){
+  .rm-catfilter-sum{display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;list-style:none;font-family:Poppins;font-weight:600;font-size:.9rem;color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:13px 18px}
+  .rm-catfilter-sum::-webkit-details-marker{display:none}
+  .rm-catfilter-caret::after{content:"";display:inline-block;width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .2s}
+  details[open] .rm-catfilter-caret::after{transform:rotate(-135deg)}
+  .rm-catfilter-d[open]>.rm-catfilter{margin-top:14px}
+  /* Compact hero so products are reachable on one screen */
+  body.post-type-archive-product main>.wp-block-cover:first-child{min-height:24vh!important}
+  body.post-type-archive-product main>.wp-block-cover:first-child .wp-block-cover__inner-container p.has-text-color{display:none}
+  body.post-type-archive-product main>.wp-block-cover:first-child h1{font-size:1.55rem!important}
+  /* Category chips: one swipeable row instead of a tall block */
+  .rm-catnav{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;margin:0 calc(-1*var(--pad)) clamp(16px,3vw,22px);padding:0 var(--pad) 6px}
+  .rm-catnav::-webkit-scrollbar{display:none}
+  .rm-catnav-item{flex:0 0 auto}
+}
 
 /* ============ Product page (PDP) — matches ricoman.com ============ */
 /* Hero: vertical thumbnail rail + main image on light grey */

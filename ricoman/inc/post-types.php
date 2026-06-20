@@ -572,10 +572,15 @@ add_shortcode( 'ricoman_catalogue', function ( $atts ) {
 		. '<div class="rm-dual-track">'
 		. '<input type="range" class="rm-w-min" min="0" max="' . $maxw . '" step="1" value="0">'
 		. '<input type="range" class="rm-w-max" min="0" max="' . $maxw . '" step="1" value="' . $maxw . '"></div></div>' : '';
-	$bar = ( $lmS || $wS || $ticks )
+	$filter = ( $lmS || $wS || $ticks )
 		? '<div class="rm-catfilter"><div class="rm-catfilter-ranges">' . $lmS . $wS . '</div>'
 			. ( $ticks ? '<div class="rm-catfilter-ticks"><span class="rm-facets-sub">Features</span>' . $ticks . '</div>' : '' )
 			. '<button type="button" class="rm-fclear">Clear</button></div>'
+		: '';
+	// Collapsible on mobile (open by default on desktop via CSS), so the product
+	// grid is reachable without scrolling past the whole filter panel.
+	$bar = $filter
+		? '<details class="rm-catfilter-d"><summary class="rm-catfilter-sum"><span>Filter products</span><span class="rm-catfilter-caret" aria-hidden="true"></span></summary>' . $filter . '</details>'
 		: '';
 
 	$out  = '<div class="rm-pp-wrap rm-catwide">' . $nav . $bar
