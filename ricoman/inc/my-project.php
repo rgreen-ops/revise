@@ -23,6 +23,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Enqueue the My Project script on the front end.
  */
 function ricoman_my_project_assets() {
+	// Logged-in customers use the server-side projects.js instead of the guest
+	// localStorage list — loading both would fight over the header count badge.
+	if ( is_user_logged_in() ) {
+		return;
+	}
 	wp_enqueue_script(
 		'ricoman-my-project',
 		get_theme_file_uri( 'assets/js/my-project.js' ),
