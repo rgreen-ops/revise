@@ -330,6 +330,58 @@ function rm_mc_image_key_sql( $alias = 'm' ) {
 	return "$alias.meta_key IN ('" . implode( "','", $keys ) . "')";
 }
 
+/**
+ * Set of attachment IDs referenced anywhere we'd need to remap (featured image,
+ * gallery/ACF image meta, and wp-image-{id} in content). Built with a couple of
+ * one-time scans and cached, so the merge can skip the expensive per-image
+ * reference scan for the vast majority of duplicates that aren't referenced at
+ * all. (Trashing an attachment post leaves its file on disk, so URL references
+ * keep working — only ID references matter here.)
+ *
+ * @return array<int,true> id => true
+ */
+function rm_mc_referenced_ids() {
+	$cached = get_transient( 'rm_mc_refset' );
+	if ( is_array( $cached ) ) {
+		return $cached;
+	}
+	global $wpdb;
+	$set = array();
+
+	// Image-reference meta (thumbnail / galleries / ACF image fields). One scan;
+	// pull every integer id out of each value (plain, CSV or serialized).
+	$vals = $wpdb->get_col( "SELECT meta_value FROM {$wpdb->postmeta} m WHERE " . rm_mc_image_key_sql( 'm' ) . " AND m.meta_value <> ''" );
+	foreach ( $vals as $value ) {
+		$un = is_string( $value ) ? @unserialize( $value ) : false;
+		if ( is_array( $un ) ) {
+			array_walk_recursive( $un, function ( $v ) use ( &$set ) {
+				if ( is_int( $v ) || ( is_string( $v ) && ctype_digit( $v ) ) ) {
+					$set[ (int) $v ] = true;
+				}
+			} );
+		} else {
+			foreach ( preg_split( '/[^0-9]+/', (string) $value ) as $n ) {
+				if ( '' !== $n ) {
+					$set[ (int) $n ] = true;
+				}
+			}
+		}
+	}
+
+	// Content references by the wp-image-{id} class (one scan).
+	$contents = $wpdb->get_col( "SELECT post_content FROM {$wpdb->posts} WHERE post_content LIKE '%wp-image-%'" );
+	foreach ( $contents as $c ) {
+		if ( preg_match_all( '/wp-image-(\d+)/', (string) $c, $mm ) ) {
+			foreach ( $mm[1] as $id ) {
+				$set[ (int) $id ] = true;
+			}
+		}
+	}
+
+	set_transient( 'rm_mc_refset', $set, 600 );
+	return $set;
+}
+
 /** Replace attachment id $from with $to inside one meta value (plain / CSV /
  * serialized). Returns array( new_value, changed ). Only exact int matches. */
 function rm_mc_replace_in_value( $value, $from, $to ) {
@@ -446,6 +498,8 @@ function rm_mc_merge_batch( $apply, $limit ) {
 		(int) $limit
 	) );
 
+	$refset = rm_mc_referenced_ids();
+
 	$refs = 0;
 	$done = 0;
 	$seen = 0;
@@ -458,7 +512,11 @@ function rm_mc_merge_batch( $apply, $limit ) {
 				continue;
 			}
 			$seen++;
-			$refs += rm_mc_remap_reference( $vid, $canon, $apply );
+			// Only the (rare) duplicates that are actually referenced need the
+			// expensive reference remap; the orphaned import duplicates don't.
+			if ( isset( $refset[ $vid ] ) ) {
+				$refs += rm_mc_remap_reference( $vid, $canon, $apply );
+			}
 			if ( $apply ) {
 				$trash[ $vid ] = $canon;
 				$done++;
