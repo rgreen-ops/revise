@@ -372,11 +372,17 @@ function ricoman_pf_gallery( $pid ) {
  * switch. Returns null if unavailable (then we fall back to reading ACF/meta).
  */
 function ricoman_pf_endpoint( $slug ) {
-	if ( ! $slug || ! function_exists( 'rest_do_request' ) ) {
+	// PARKED: the resolved "product API" (the old RICOBOT/ricomanled REST
+	// endpoint) is switched off — product pages render from the migrated ACF
+	// data via ricoman_pf_sections(), per the roadmap (RICOBOT sync is step 5).
+	// It also resolved very heavy data for products with many variants, which
+	// exhausted PHP's memory limit and 500'd those pages. Re-enable by returning
+	// true from the 'ricoman_use_product_api' filter once RICOBOT is reconnected.
+	if ( ! apply_filters( 'ricoman_use_product_api', false ) ) {
 		return null;
 	}
-	if ( ! empty( $GLOBALS['rm_force_sections'] ) ) {
-		return null; // TEMP diagnostic: force the ACF/sections fallback.
+	if ( ! $slug || ! function_exists( 'rest_do_request' ) ) {
+		return null;
 	}
 	$req = new WP_REST_Request( 'GET', '/wp/v2/get_product_details_data' );
 	$req->set_param( 'slug', $slug );

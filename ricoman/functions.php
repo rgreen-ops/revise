@@ -17,45 +17,6 @@ if ( ! defined( 'RICOMAN_VERSION' ) ) {
 	define( 'RICOMAN_VERSION', '1.1.0' );
 }
 
-// TEMP DIAGNOSTIC (remove): surface the last fatal when ?rm_trace=lights is set.
-if ( isset( $_GET['rm_trace'] ) && 'lights' === $_GET['rm_trace'] ) {
-	@ini_set( 'display_errors', '1' );
-	@ini_set( 'memory_limit', '512M' );
-	error_reporting( E_ALL );
-	if ( 'sections' === ( $_GET['rm_path'] ?? '' ) ) {
-		$GLOBALS['rm_force_sections'] = true; // Force the ACF/sections fallback.
-	}
-	register_shutdown_function( function () {
-		$e = error_get_last();
-		if ( $e && in_array( $e['type'], array( E_ERROR, E_PARSE, E_COMPILE_ERROR, E_CORE_ERROR ), true ) ) {
-			echo "\n<!--RM_FATAL: " . $e['message'] . ' @ ' . $e['file'] . ':' . $e['line'] . "-->\n";
-		}
-		if ( ! empty( $GLOBALS['rm_reentry'] ) ) {
-			echo "\n<!--RM_REENTRY depth=" . (int) $GLOBALS['rm_reentry_max'] . ' :: ' . $GLOBALS['rm_reentry'] . "-->\n";
-		}
-	} );
-	// Detect the_content re-entrancy (recursion) and snapshot the call path.
-	// Increment at the very start of each the_content application (priority 1) and
-	// decrement at the very end (priority 99999); a nested apply therefore raises
-	// the depth while an outer one is still mid-flight.
-	add_filter( 'the_content', function ( $c ) {
-		$GLOBALS['rm_reentry_depth'] = (int) ( $GLOBALS['rm_reentry_depth'] ?? 0 ) + 1;
-		$GLOBALS['rm_reentry_max']   = max( (int) ( $GLOBALS['rm_reentry_max'] ?? 0 ), $GLOBALS['rm_reentry_depth'] );
-		if ( $GLOBALS['rm_reentry_depth'] >= 3 && empty( $GLOBALS['rm_reentry'] ) ) {
-			$path = array();
-			foreach ( debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 50 ) as $f ) {
-				$path[] = ( isset( $f['file'] ) ? basename( $f['file'] ) : '?' ) . ':' . ( $f['line'] ?? '?' ) . ' ' . ( $f['function'] ?? '' );
-			}
-			$GLOBALS['rm_reentry'] = implode( ' | ', $path );
-		}
-		return $c;
-	}, 1 );
-	add_filter( 'the_content', function ( $c ) {
-		$GLOBALS['rm_reentry_depth'] = (int) ( $GLOBALS['rm_reentry_depth'] ?? 1 ) - 1;
-		return $c;
-	}, 99999 );
-}
-
 /**
  * Load feature modules. Each file is self-contained and hooks itself in.
  */
@@ -67,6 +28,7 @@ require_once get_theme_file_path( 'inc/performance.php' );   // Speed: fonts, bl
 require_once get_theme_file_path( 'inc/images.php' );        // Auto web-ready images (AVIF/WebP, alt text).
 require_once get_theme_file_path( 'inc/media-cleanup.php' );  // Media library de-duplication toolkit.
 require_once get_theme_file_path( 'inc/gallery-classify.php' );// Bulk Studio / In-situ image sorter.
+require_once get_theme_file_path( 'inc/error-page.php' );     // Friendly branded fatal-error page.
 require_once get_theme_file_path( 'inc/seo.php' );           // JSON-LD schema & breadcrumbs.
 require_once get_theme_file_path( 'inc/seo-score.php' );     // SEO scoring + back-office dashboard.
 require_once get_theme_file_path( 'inc/geo.php' );           // Generative SEO (AI search): FAQ, llms.txt.
