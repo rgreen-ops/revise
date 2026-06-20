@@ -97,6 +97,15 @@ them off as you go. Grouped by feature. Staging: https://staging.ricoman.com
 - Estrella Pro product pages (previously 500) all return 200.
 - Full sitemap crawl results: see notes appended below.
 
+## Round 3 fixes (verify)
+- [ ] **Download gate now actually fires** — it was short-circuiting for everyone
+      (a string-truthiness bug: `rmGate.in` was `"0"`, which is truthy in JS). Test
+      in a **fresh incognito window (logged out, no prior capture)**: click a
+      datasheet/brochure/LDT → the name/email/customer-type popup must appear; after
+      submitting once, downloads are free for 30 days. Logged-in users bypass.
+- [ ] **Project pack download** now works (pure-PHP ZIP). ✅ confirmed.
+- [ ] **Homepage range** shows real categories + images. ✅ confirmed.
+
 ## Round 2 fixes (verify)
 - [ ] **Project pack downloads** — now builds via ZipArchive *or* PclZip fallback
       (works even if the server has no Zip extension). Click "Download project pack"
