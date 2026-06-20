@@ -191,40 +191,23 @@ add_action( 'edited_project-cat', function ( $term_id ) {
 
 /** Build/refresh the "Lighting by Sector" showcase page (slug: sectors). */
 add_action( 'admin_init', function () {
-	$version = 2; // bump to rebuild the page design once.
+	$version = 3; // bump to rebuild the page design once.
 	$cur     = (int) get_option( 'ricoman_sectors_page', 0 );
 	if ( $cur >= $version ) {
 		return;
 	}
-	$hero = esc_url( get_theme_file_uri( 'assets/images/office6.webp' ) );
 	$cta  = esc_url( get_theme_file_uri( 'assets/images/office1.webp' ) );
 	$cover = function ( $url, $inner, $min, $dim, $pos = 'bottom left' ) {
 		$poscls = 'center center' === $pos ? '' : ' has-custom-content-position is-position-' . str_replace( ' ', '-', $pos );
 		return '<!-- wp:cover {"url":"' . $url . '","dimRatio":' . $dim . ',"overlayColor":"ink","minHeight":' . $min . ',"minHeightUnit":"vh","contentPosition":"' . $pos . '","align":"full","textColor":"base"} --><div class="wp-block-cover alignfull has-base-color has-text-color' . $poscls . '" style="min-height:' . $min . 'vh"><span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-' . $dim . ' has-background-dim"></span><img class="wp-block-cover__image-background" alt="" src="' . $url . '" data-object-fit="cover"/><div class="wp-block-cover__inner-container">' . $inner . '</div></div><!-- /wp:cover -->';
 	};
-	$callout = function ( $h, $p ) {
-		return '<!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"rm-aud-card","layout":{"type":"constrained"}} --><div class="wp-block-group rm-aud-card"><!-- wp:heading {"level":3} --><h3 class="wp-block-heading">' . $h . '</h3><!-- /wp:heading --><!-- wp:paragraph {"textColor":"muted"} --><p class="has-muted-color has-text-color">' . $p . '</p><!-- /wp:paragraph --></div><!-- /wp:group --></div><!-- /wp:column -->';
-	};
 
-	$content = $cover(
-		$hero,
-		'<!-- wp:paragraph {"className":"rm-eyebrow"} --><p class="rm-eyebrow">Lighting by sector</p><!-- /wp:paragraph -->'
-		. '<!-- wp:heading {"level":1,"style":{"typography":{"fontWeight":"500","fontSize":"clamp(2.6rem,6vw,5rem)","lineHeight":"1"}}} --><h1 class="wp-block-heading" style="font-size:clamp(2.6rem,6vw,5rem);font-weight:500;line-height:1">Light that elevates every space.</h1><!-- /wp:heading -->'
-		. '<!-- wp:paragraph {"style":{"typography":{"fontSize":"clamp(1.1rem,1.8vw,1.4rem)"}}} --><p style="font-size:clamp(1.1rem,1.8vw,1.4rem)">From workplace and hospitality to healthcare and retail — see what\'s possible, then let our UK design team specify it for you.</p><!-- /wp:paragraph -->'
-		. '<!-- wp:buttons --><div class="wp-block-buttons"><!-- wp:button {"className":"is-style-outline-light"} --><div class="wp-block-button is-style-outline-light"><a class="wp-block-button__link wp-element-button" href="/lighting-design/">Request a free lighting design</a></div><!-- /wp:button --></div><!-- /wp:buttons -->',
-		64, 52
-	);
-
-	$content .= '<!-- wp:group {"align":"full","className":"rm-section","layout":{"type":"default"}} --><div class="wp-block-group alignfull rm-section"><!-- wp:shortcode -->[ricoman_sectors_showcase]<!-- /wp:shortcode --></div><!-- /wp:group -->';
-
-	$content .= '<!-- wp:group {"align":"full","className":"rm-section rm-soft","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-section rm-soft">'
-		. '<!-- wp:paragraph {"className":"rm-eyebrow"} --><p class="rm-eyebrow">Why specify Ricoman</p><!-- /wp:paragraph -->'
-		. '<!-- wp:heading {"level":2,"className":"rm-shead"} --><h2 class="wp-block-heading rm-shead">Made for the people who design great spaces</h2><!-- /wp:heading -->'
-		. '<!-- wp:columns --><div class="wp-block-columns">'
-		. $callout( 'Free lighting design', 'Send drawings or a finishes schedule — we return a fully specified, photometric scheme, usually within 3–5 days.' )
-		. $callout( 'UK manufactured', 'Designed, built and finished in Manchester. Full control of quality, bespoke detail and lead times.' )
-		. $callout( 'Specifier-first', 'Clean photometrics, honest lead times and a 5-year warranty — a spec you can stand behind.' )
-		. '</div><!-- /wp:columns --></div><!-- /wp:group -->';
+	// Match the Projects screen: editorial header + masonry card grid + CTA.
+	$content  = '<!-- wp:group {"align":"full","className":"rm-section rm-projintro","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-section rm-projintro">'
+		. '<!-- wp:paragraph {"className":"rm-eyebrow"} --><p class="rm-eyebrow">By Application</p><!-- /wp:paragraph -->'
+		. '<!-- wp:heading {"level":1,"className":"rm-projintro-h","style":{"typography":{"fontWeight":"500","fontSize":"clamp(2.4rem,5vw,4rem)","lineHeight":"1.02","letterSpacing":"-0.02em"}}} --><h1 class="wp-block-heading rm-projintro-h" style="font-size:clamp(2.4rem,5vw,4rem);font-weight:500;letter-spacing:-0.02em;line-height:1.02">Lighting by sector</h1><!-- /wp:heading -->'
+		. '<!-- wp:paragraph {"className":"rm-projintro-sub","textColor":"muted"} --><p class="rm-projintro-sub has-muted-color has-text-color">From workplace and hospitality to healthcare, retail and industrial — explore our lighting solutions and real project case studies by sector.</p><!-- /wp:paragraph --></div><!-- /wp:group -->';
+	$content .= '<!-- wp:group {"align":"full","className":"rm-section rm-projwide-outer","layout":{"type":"default"}} --><div class="wp-block-group alignfull rm-section rm-projwide-outer"><!-- wp:shortcode -->[ricoman_sectors_grid]<!-- /wp:shortcode --></div><!-- /wp:group -->';
 
 	$content .= $cover(
 		$cta,
