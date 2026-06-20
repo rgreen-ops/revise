@@ -38,6 +38,24 @@ them off as you go. Grouped by feature. Staging: https://staging.ricoman.com
 - [ ] Guest My Project page shows a "Start a project / Sign in / Create account"
       prompt rather than an empty list.
 
+## Add to Project — choose a project (NEW)
+- [ ] With ONE project, "Add to My Project" adds straight away.
+- [ ] With TWO+ projects, it opens a picker: choose a project or "＋ New project".
+- [ ] Picking / creating adds the product to that project and updates the count.
+
+## Project rename (NEW)
+- [ ] On My Project, click the pencil next to the project name → the name field
+      focuses; edit it → it saves (persists on reload).
+
+## Flow+ Designer → Save to My Project (NEW)
+- [ ] Open /flow-designer/, add parts, click "Save to My Project".
+- [ ] Logged in: a "Flow+ run — <date>" custom line appears in your active project
+      (My Project page), with qty + remove; tool shows "Saved ✓".
+- [ ] Logged out: you're prompted to sign in; after signing in the design is added
+      to your project automatically.
+- [ ] The design appears in the project-pack ZIP as a "design-spec.txt" with the
+      take-off summary.
+
 ## Saved projects (logged-in)
 - [ ] Header shows "My Project" with a count, plus your name + Log out.
 - [ ] On a product, "Add to My Project" → button shows "✓ Added to project" and the
