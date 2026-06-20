@@ -144,9 +144,18 @@ add_action( 'init', function () {
 		$buttons( $btn( 'Inside our manufacturing →', '/manufacturing/', false ) ),
 		$image( $u( 'rico-office.webp' ), '', 'Inside Ricoman&rsquo;s Manchester facility' )
 	) ) );
+	$p['about-capabilities'] = array( 'About · What we do', $sec(
+		$eyebrow( '02 · What we do' ) . $shead( 'Design. Manufacture. Deliver.' ) .
+		'<!-- wp:columns --><div class="wp-block-columns">'
+		. $aud( '01', 'In-house lighting design', 'Send us drawings or a finishes schedule — our designers return a fully specified, photometric scheme, usually within 3–5 days. Free of charge.' )
+		. $aud( '02', 'UK manufacturing', 'Designed, built, finished and tested in our own Manchester facility — full control of quality, bespoke detail and lead times, with UK stock ready to build.' )
+		. $aud( '03', 'Delivered &amp; supported', 'On spec, on time, on budget — backed by a 5-year warranty, serviceable fittings and a team that actually picks up the phone.' )
+		. '</div><!-- /wp:columns -->'
+		. $buttons( $btn( 'Request a free lighting design →', '/lighting-design/', false ) )
+	) );
 	$p['about-stats'] = array( 'About · Stats', $sec( '<!-- wp:columns --><div class="wp-block-columns">' . $bignum( '1999', 'Our journey began' ) . $bignum( '535', 'Lighting design projects in 2025' ) . $bignum( '2,000+', 'Components stocked, ready to build' ) . $bignum( '5 yr', 'Standard warranty' ) . '</div><!-- /wp:columns -->', 'rm-statband' ) );
-	$p['about-values'] = array( 'About · Values', $sec( $eyebrow( '02 · What we stand for' ) . $shead( 'The way we like to work' ) . '<!-- wp:columns --><div class="wp-block-columns">' . $aud( '↳ 01', 'Made in Britain', 'Designed, built, finished and tested in Manchester — full control, full traceability, shorter lead times.' ) . $aud( '↳ 02', 'Specifier-first', 'Free scheme design, clean photometrics and honest lead times. We make the spec easy to stand behind.' ) . $aud( '↳ 03', 'Built to last', 'Serviceable, high-CRI fittings backed by a 5-year warranty — good for the building and the planet.' ) . '</div><!-- /wp:columns -->' ) );
-	$contact_left  = $eyebrow( '03 · Get in touch' ) . $shead( 'Talk to the team' ) . $para( 'Quotes, lead times, a tricky detail or a full scheme — our Manchester team will get you a real answer, fast.', true ) . '<!-- wp:heading {"level":4} --><h4 class="wp-block-heading">Visit / Post</h4><!-- /wp:heading -->' . $para( 'Metroplex Business Park<br>520 Broadway, M50 2UE<br>Manchester, United Kingdom' ) . '<!-- wp:heading {"level":4} --><h4 class="wp-block-heading">Call</h4><!-- /wp:heading -->' . $para( '<a href="tel:01614515913">0161 451 5913</a>' ) . '<!-- wp:heading {"level":4} --><h4 class="wp-block-heading">Email</h4><!-- /wp:heading -->' . $para( '<a href="mailto:sales@ricoman.com">sales@ricoman.com</a>' ) . '<!-- wp:heading {"level":4} --><h4 class="wp-block-heading">Hours</h4><!-- /wp:heading -->' . $para( 'Mon&ndash;Thu 8:30&ndash;17:00 &middot; Fri 8:30&ndash;16:00' );
+	$p['about-values'] = array( 'About · Values', $sec( $eyebrow( '03 · What we stand for' ) . $shead( 'The way we like to work' ) . '<!-- wp:columns --><div class="wp-block-columns">' . $aud( '↳ 01', 'Made in Britain', 'Designed, built, finished and tested in Manchester — full control, full traceability, shorter lead times.' ) . $aud( '↳ 02', 'Specifier-first', 'Free scheme design, clean photometrics and honest lead times. We make the spec easy to stand behind.' ) . $aud( '↳ 03', 'Built to last', 'Serviceable, high-CRI fittings backed by a 5-year warranty — good for the building and the planet.' ) . '</div><!-- /wp:columns -->' ) );
+	$contact_left  = $eyebrow( '04 · Get in touch' ) . $shead( 'Talk to the team' ) . $para( 'Quotes, lead times, a tricky detail or a full scheme — our Manchester team will get you a real answer, fast.', true ) . '<!-- wp:heading {"level":4} --><h4 class="wp-block-heading">Visit / Post</h4><!-- /wp:heading -->' . $para( 'Metroplex Business Park<br>520 Broadway, M50 2UE<br>Manchester, United Kingdom' ) . '<!-- wp:heading {"level":4} --><h4 class="wp-block-heading">Call</h4><!-- /wp:heading -->' . $para( '<a href="tel:01614515913">0161 451 5913</a>' ) . '<!-- wp:heading {"level":4} --><h4 class="wp-block-heading">Email</h4><!-- /wp:heading -->' . $para( '<a href="mailto:sales@ricoman.com">sales@ricoman.com</a>' ) . '<!-- wp:heading {"level":4} --><h4 class="wp-block-heading">Hours</h4><!-- /wp:heading -->' . $para( 'Mon&ndash;Thu 8:30&ndash;17:00 &middot; Fri 8:30&ndash;16:00' );
 	$contact_form  = '<!-- wp:group {"className":"rm-soft","style":{"spacing":{"padding":{"top":"var:preset|spacing|40","bottom":"var:preset|spacing|40","left":"var:preset|spacing|40","right":"var:preset|spacing|40"}}},"layout":{"type":"constrained"}} --><div class="wp-block-group rm-soft" style="padding-top:var(--wp--preset--spacing--40);padding-bottom:var(--wp--preset--spacing--40);padding-left:var(--wp--preset--spacing--40);padding-right:var(--wp--preset--spacing--40)"><!-- wp:paragraph {"className":"rm-eyebrow"} --><p class="rm-eyebrow">Send an enquiry</p><!-- /wp:paragraph --><!-- wp:shortcode -->[ricoman_lead_form]<!-- /wp:shortcode --></div><!-- /wp:group -->';
 	$p['about-contact'] = array( 'About · Contact &amp; enquiry', $sec( $twocol( $contact_left, $contact_form ) ) );
 
@@ -193,7 +202,7 @@ add_action( 'init', function () {
 
 /** Editable block stacks for the content pages. */
 function ricoman_about_blocks() {
-	return ricoman_stack( array( 'about-hero', 'about-intro', 'about-stats', 'about-values', 'about-contact' ) );
+	return ricoman_stack( array( 'about-hero', 'about-intro', 'about-capabilities', 'about-stats', 'about-values', 'about-contact' ) );
 }
 function ricoman_manufacturing_blocks() {
 	return ricoman_stack( array( 'mfg-hero', 'mfg-stats', 'mfg-statement', 'mfg-split', 'mfg-steps', 'mfg-bespoke', 'mfg-cta' ) );
