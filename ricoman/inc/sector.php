@@ -19,6 +19,57 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Vanity short-URL → canonical target 301 redirects (path => target). Lets the
+ * clean /office-lighting/ URL send its authority to the commercial sector hub.
+ * Runs early so it wins over a 404; filterable so the team can add more.
+ */
+function ricoman_vanity_redirects() {
+	return apply_filters( 'ricoman_vanity_redirects', array(
+		'office-lighting' => '/sector/office-lighting/',
+	) );
+}
+add_action( 'template_redirect', function () {
+	if ( is_admin() ) {
+		return;
+	}
+	$path = trim( (string) wp_parse_url( $_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH ), '/' );
+	$map  = ricoman_vanity_redirects();
+	if ( '' !== $path && isset( $map[ $path ] ) ) {
+		wp_safe_redirect( home_url( $map[ $path ] ), 301 );
+		exit;
+	}
+}, 0 );
+
+/**
+ * Funnel news articles to the sector hubs: add every sector's phrase to the
+ * article auto-linker, so a mention of "office lighting", "gym lighting", etc.
+ * links to that sector landing page (informational article -> commercial hub).
+ */
+add_filter( 'ricoman_news_link_map', function ( $map ) {
+	if ( ! taxonomy_exists( 'project-cat' ) ) {
+		return $map;
+	}
+	$terms = get_terms( array( 'taxonomy' => 'project-cat', 'hide_empty' => false ) );
+	if ( is_wp_error( $terms ) || ! $terms ) {
+		return $map;
+	}
+	$sector = array();
+	foreach ( $terms as $t ) {
+		$link = get_term_link( $t );
+		if ( is_wp_error( $link ) ) {
+			continue;
+		}
+		// Phrase from the slug, e.g. "office-lighting" -> "office lighting".
+		$kw = trim( str_replace( '-', ' ', $t->slug ) );
+		if ( '' !== $kw ) {
+			$sector[ $kw ] = $link;
+		}
+	}
+	// Sector phrases first so they win over generic product terms when both match.
+	return array_merge( $sector, $map );
+}, 5 );
+
 /** Product-category slugs to recommend for a sector (filterable). */
 function ricoman_sector_product_cats( $sector_slug ) {
 	$map = array(
