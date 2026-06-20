@@ -181,6 +181,18 @@ function rm_mc_render_page() {
 		. '<div style="background:#e2e4e7;border-radius:10px;height:18px;overflow:hidden"><div id="rm-mc-merge-bar" style="background:#2271b1;height:100%;width:0;transition:width .3s"></div></div>'
 		. '<p id="rm-mc-merge-pct" style="font-weight:600;margin:6px 0 0"></p></div>';
 
+	echo '<h2>' . esc_html__( 'Step 3b — Permanently delete merged duplicates (reclaim space)', 'ricoman' ) . '</h2>';
+	echo '<p style="color:#b32d2e"><strong>' . esc_html__( 'Back up first.', 'ricoman' ) . '</strong> '
+		. esc_html__( 'This permanently deletes the duplicates already merged to Trash and removes their files from disk — this is what actually reclaims storage and fixes the backups. It only ever touches images this tool merged, and never deletes a file a kept image still shares.', 'ricoman' ) . '</p>';
+	$purge_total = (int) rm_mc_trashed_dupe_count();
+	echo '<p><strong>' . esc_html( sprintf( __( '%s duplicates currently in Trash, ready to delete.', 'ricoman' ), number_format_i18n( $purge_total ) ) ) . '</strong></p>';
+	echo '<p><input type="text" id="rm-mc-purge-confirm" placeholder="Type DELETE" style="width:140px"> '
+		. '<button class="button button-primary" id="rm-mc-purge" disabled>' . esc_html__( 'Delete duplicates permanently', 'ricoman' ) . '</button> '
+		. '<span id="rm-mc-purge-out" style="margin-left:10px"></span></p>';
+	echo '<div id="rm-mc-purge-prog" style="max-width:640px;display:none">'
+		. '<div style="background:#e2e4e7;border-radius:10px;height:18px;overflow:hidden"><div id="rm-mc-purge-bar" style="background:#b32d2e;height:100%;width:0;transition:width .3s"></div></div>'
+		. '<p id="rm-mc-purge-pct" style="font-weight:600;margin:6px 0 0"></p></div>';
+
 	echo '<h2>' . esc_html__( 'Step 4 — Find unused images (report only)', 'ricoman' ) . '</h2>';
 	echo '<p>' . esc_html__( 'Scans for images with no reference we can detect and tags them, so you can review them in the Media Library before deciding. Nothing is deleted.', 'ricoman' ) . '</p>';
 	echo '<p><button class="button" id="rm-mc-unused">' . esc_html__( 'Scan for unused images', 'ricoman' ) . '</button> <span id="rm-mc-unused-out" style="margin-left:10px">';
@@ -256,6 +268,31 @@ function rm_mc_render_page() {
 		mg.addEventListener('click',function(){ if(merging)return; if(cf.value.trim().toUpperCase()!=='MERGE')return;
 			if(!confirm('Merge duplicate images to Trash? Make sure you have a backup.'))return;
 			merging=true; mg.disabled=true; mgOut.textContent='Merging…'; mergeBatch(); });
+
+		// Step 3b — permanently delete merged duplicates (gated by typing DELETE).
+		var pcf=document.getElementById('rm-mc-purge-confirm'),pg=document.getElementById('rm-mc-purge'),pgOut=document.getElementById('rm-mc-purge-out');
+		var pgProg=document.getElementById('rm-mc-purge-prog'),pgBar=document.getElementById('rm-mc-purge-bar'),pgPct=document.getElementById('rm-mc-purge-pct');
+		var purging=false,pTotal=0,pFreed=0,pStart=0,pT0=Date.now();
+		if(pcf){ pcf.addEventListener('input',function(){ pg.disabled=(pcf.value.trim().toUpperCase()!=='DELETE'); }); }
+		function fmtMB(b){ return (b/1048576)>=1024 ? (b/1073741824).toFixed(2)+' GB' : Math.round(b/1048576).toLocaleString()+' MB'; }
+		function purgeBatch(){
+			var b=new URLSearchParams({action:'rm_mc_purge',nonce:nonce,confirm:pcf.value,limit:'200'});
+			fetch(ajax,{method:'POST',body:b,credentials:'same-origin'}).then(function(r){return r.json();}).then(function(j){
+				if(!j||!j.success){ pgOut.textContent='Stopped (server busy). Click Delete to resume.'; purging=false; pg.disabled=false; return; }
+				var d=j.data; pTotal+=d.deleted; pFreed+=d.freed;
+				if(pStart===0){ pStart=pTotal+d.remaining; pgProg.style.display='block'; }
+				var pct=(pStart?Math.min(100,(pTotal/pStart*100)):0).toFixed(1);
+				pgBar.style.width=pct+'%';
+				var rate=pTotal/((Date.now()-pT0)/1000), eta=rate>0?Math.round(d.remaining/rate/60):0;
+				pgPct.textContent='Deleted '+pTotal.toLocaleString()+' of '+pStart.toLocaleString()+' ('+pct+'%) — '+d.remaining.toLocaleString()+' left, ~'+fmtMB(pFreed)+' freed'+(eta>0?', ~'+eta+' min remaining':'');
+				pgOut.textContent='Working…';
+				if(d.deleted>0 && d.remaining>0){ setTimeout(purgeBatch, 200); }
+				else { pgBar.style.width='100%'; pgPct.textContent='Done — deleted '+pTotal.toLocaleString()+' duplicates, ~'+fmtMB(pFreed)+' reclaimed. '+d.remaining.toLocaleString()+' remaining.'; pgOut.textContent='✅ Complete.'; purging=false; pg.disabled=false; }
+			}).catch(function(){ pgOut.textContent='Paused (network/timeout). Click Delete to resume — progress is saved.'; purging=false; pg.disabled=false; });
+		}
+		if(pg){ pg.addEventListener('click',function(){ if(purging)return; if(pcf.value.trim().toUpperCase()!=='DELETE')return;
+			if(!confirm('Permanently delete the merged duplicates and their files? This cannot be undone. Make sure you have a backup.'))return;
+			purging=true; pg.disabled=true; pgOut.textContent='Deleting…'; purgeBatch(); }); }
 
 		// Step 4 — unused scan (report only).
 		var us=document.getElementById('rm-mc-unused'),usOut=document.getElementById('rm-mc-unused-out'),usRun=false;
@@ -568,6 +605,114 @@ function rm_mc_merge_batch( $apply, $limit ) {
 		'remaining' => $remaining,
 	);
 }
+
+/** How many merged duplicates are sitting in Trash, ready to permanently delete. */
+function rm_mc_trashed_dupe_count() {
+	global $wpdb;
+	return (int) $wpdb->get_var(
+		"SELECT COUNT(*) FROM {$wpdb->posts} p
+		 INNER JOIN {$wpdb->postmeta} mm ON mm.post_id = p.ID AND mm.meta_key = '_rm_merged_into'
+		 WHERE p.post_type = 'attachment' AND p.post_status = 'trash'"
+	);
+}
+
+/**
+ * Permanently delete one batch of merged duplicates (those in Trash tagged with
+ * _rm_merged_into). Deletes each duplicate's own files to reclaim space — but if
+ * a kept (non-trashed) attachment still points at the same file path, the file is
+ * preserved and only the duplicate post row is removed.
+ */
+function rm_mc_purge_batch( $limit ) {
+	global $wpdb;
+	$start  = microtime( true );
+	$budget = (float) apply_filters( 'rm_mc_time_budget', 18.0 );
+
+	$ids = array_map( 'intval', (array) $wpdb->get_col( $wpdb->prepare(
+		"SELECT p.ID FROM {$wpdb->posts} p
+		 INNER JOIN {$wpdb->postmeta} mm ON mm.post_id = p.ID AND mm.meta_key = '_rm_merged_into'
+		 WHERE p.post_type = 'attachment' AND p.post_status = 'trash'
+		 LIMIT %d",
+		(int) $limit
+	) ) );
+	if ( ! $ids ) {
+		return array( 'deleted' => 0, 'freed' => 0, 'remaining' => 0 );
+	}
+	$in = implode( ',', $ids );
+
+	// Each duplicate's stored file path.
+	$files = array();
+	foreach ( $wpdb->get_results( "SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key='_wp_attached_file' AND post_id IN ($in)" ) as $r ) {
+		$files[ (int) $r->post_id ] = (string) $r->meta_value;
+	}
+	// Which of those paths are still used by a kept (non-trashed) attachment?
+	// Those files must NOT be deleted — only the duplicate post row goes.
+	$protected = array();
+	$paths     = array_values( array_unique( array_filter( $files ) ) );
+	if ( $paths ) {
+		$ph   = implode( ',', array_fill( 0, count( $paths ), '%s' ) );
+		$keep = $wpdb->get_col( $wpdb->prepare(
+			"SELECT DISTINCT pm.meta_value FROM {$wpdb->postmeta} pm
+			 INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+			 WHERE pm.meta_key='_wp_attached_file' AND pm.meta_value IN ($ph)
+			   AND p.post_status <> 'trash'",
+			$paths
+		) );
+		foreach ( $keep as $kp ) {
+			$protected[ $kp ] = true;
+		}
+	}
+
+	$deleted = 0;
+	$freed   = 0;
+	foreach ( $ids as $id ) {
+		$path   = isset( $files[ $id ] ) ? $files[ $id ] : '';
+		$shared = ( '' !== $path && ! empty( $protected[ $path ] ) );
+		if ( $shared ) {
+			// Keep the shared file; just remove the duplicate post + its meta.
+			$wpdb->delete( $wpdb->posts, array( 'ID' => $id ) );
+			$wpdb->delete( $wpdb->postmeta, array( 'post_id' => $id ) );
+			clean_post_cache( $id );
+		} else {
+			// Unique file — measure it (incl. resized sub-files) then delete all.
+			$abs = get_attached_file( $id );
+			if ( $abs && is_file( $abs ) ) {
+				$freed += (int) @filesize( $abs );
+				$meta = wp_get_attachment_metadata( $id );
+				if ( ! empty( $meta['sizes'] ) && is_array( $meta['sizes'] ) ) {
+					$dir = trailingslashit( dirname( $abs ) );
+					foreach ( $meta['sizes'] as $s ) {
+						if ( ! empty( $s['file'] ) && is_file( $dir . $s['file'] ) ) {
+							$freed += (int) @filesize( $dir . $s['file'] );
+						}
+					}
+				}
+			}
+			wp_delete_attachment( $id, true );
+		}
+		$deleted++;
+		if ( microtime( true ) - $start > $budget ) {
+			break;
+		}
+	}
+
+	return array(
+		'deleted'   => $deleted,
+		'freed'     => $freed,
+		'remaining' => rm_mc_trashed_dupe_count(),
+	);
+}
+
+/** AJAX: permanently delete a batch of merged duplicates (gated by DELETE token). */
+add_action( 'wp_ajax_rm_mc_purge', function () {
+	if ( ! current_user_can( 'manage_options' ) || ! check_ajax_referer( 'rm_mc', 'nonce', false ) ) {
+		wp_send_json_error();
+	}
+	if ( ! isset( $_POST['confirm'] ) || 'DELETE' !== strtoupper( trim( wp_unslash( $_POST['confirm'] ) ) ) ) {
+		wp_send_json_error();
+	}
+	$limit = max( 20, min( 400, (int) ( $_POST['limit'] ?? 200 ) ) );
+	wp_send_json_success( rm_mc_purge_batch( $limit ) );
+} );
 
 /** AJAX: merge a batch (dry-run unless apply=1 with the confirm token). */
 add_action( 'wp_ajax_rm_mc_merge', function () {
