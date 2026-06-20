@@ -1367,8 +1367,10 @@ a.rm-projhead-sectorlink:hover{color:var(--ink)}
 .rm-gthumbs{display:flex;flex-direction:column;flex-wrap:nowrap;gap:10px;width:88px;flex:0 0 88px;max-height:min(56vh,520px);overflow-y:auto;margin-top:0}
 .rm-gthumbs .rm-cfg-thumb{width:88px;height:64px;flex:0 0 auto;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#e4e4e4;cursor:pointer;padding:6px}
 @media(max-width:600px){.rm-pdp-row{flex-direction:column-reverse}.rm-gthumbs{flex-direction:row;flex-wrap:nowrap;width:auto;flex:0 0 auto;max-height:none;overflow-x:auto}.rm-gthumbs .rm-cfg-thumb{flex:0 0 56px;height:48px}
-  /* Shrink the main image so it + the thumbnail row fit in the fold */
-  .rm-pdp-gallery .rm-cfg-viz{height:min(40vh,360px)}}
+  /* Shrink the main image so it + the thumbnail row fit in the fold. flex:0 0 auto
+     so the explicit height holds — in this column layout flex:1 (basis 0) would
+     collapse the viz now that the image is absolutely positioned. */
+  .rm-pdp-gallery .rm-cfg-viz{flex:0 0 auto;height:min(40vh,360px)}}
 .rm-gthumbs .rm-cfg-thumb.on{border-color:var(--ink);border-width:2px}
 .rm-gthumbs .rm-cfg-thumb img{width:100%;height:100%;object-fit:contain}
 @media(max-width:900px){.rm-pdp .rm-pdp-gallery{position:static}}
