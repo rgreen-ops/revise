@@ -223,31 +223,15 @@ add_action( 'pre_get_posts', function ( $q ) {
 	}
 } );
 
-/* ------------------------------------------------- conversion tracker bar */
+/* ------------------------- gamified dashboard atop the Leads list --------- */
 
 add_action( 'admin_notices', function () {
 	$screen = get_current_screen();
 	if ( ! $screen || 'edit-lead' !== $screen->id ) {
 		return;
 	}
-	global $wpdb;
-	$total  = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type='lead' AND post_status<>'trash'" );
-	$counts = array();
-	foreach ( $wpdb->get_results( "SELECT meta_value AS s, COUNT(*) AS c FROM {$wpdb->postmeta} WHERE meta_key='_lead_status' GROUP BY meta_value" ) as $r ) {
-		$counts[ $r->s ] = (int) $r->c;
-	}
-	$with_status     = array_sum( $counts );
-	$counts['logged'] = ( isset( $counts['logged'] ) ? $counts['logged'] : 0 ) + max( 0, $total - $with_status );
-	$won  = isset( $counts['won'] ) ? $counts['won'] : 0;
-	$rate = $total > 0 ? round( $won / $total * 100, 1 ) : 0;
-
-	echo '<div class="notice notice-info" style="padding:12px 14px"><strong style="margin-right:18px">' . esc_html( sprintf( __( '%d leads', 'ricoman' ), $total ) ) . '</strong>';
-	foreach ( ricoman_lead_statuses() as $k => $info ) {
-		$n = isset( $counts[ $k ] ) ? $counts[ $k ] : 0;
-		echo '<span style="display:inline-flex;align-items:center;gap:6px;margin-right:16px"><span style="width:9px;height:9px;border-radius:50%;background:' . esc_attr( $info[1] ) . ';display:inline-block"></span><strong>' . (int) $n . '</strong> ' . esc_html( $info[0] ) . '</span>';
-	}
-	echo '<span style="margin-left:6px">' . esc_html( sprintf( __( 'Conversion: %s%%', 'ricoman' ), $rate ) ) . '</span>';
-	echo '</div>';
+	// Only on the main list view (not search/filtered drill-downs is fine too).
+	ricoman_leads_dashboard_render();
 } );
 
 /* ------------------------------------------- full detail on the lead screen */
@@ -307,34 +291,12 @@ add_action( 'save_post_lead', function ( $post_id ) {
 	}
 } );
 
-/* ============================================================ Leads dashboard */
+/* ============================================================ Leads dashboard
+ * Rendered at the top of the single "Leads" list screen (via admin_notices), so
+ * there's one gamified Leads screen with the full list right below it.
+ * ------------------------------------------------------------------------- */
 
-add_action( 'admin_menu', function () {
-	add_submenu_page(
-		'edit.php?post_type=lead',
-		__( 'Leads Dashboard', 'ricoman' ),
-		'📊 ' . __( 'Dashboard', 'ricoman' ),
-		'edit_posts',
-		'ricoman-leads-dashboard',
-		'ricoman_leads_dashboard_page'
-	);
-}, 5 );
-
-/** Make the gamified dashboard the first thing under Leads. */
-add_action( 'admin_menu', function () {
-	global $submenu;
-	if ( isset( $submenu['edit.php?post_type=lead'] ) ) {
-		$items = $submenu['edit.php?post_type=lead'];
-		usort( $items, function ( $a, $b ) {
-			$ad = false !== strpos( $a[2], 'ricoman-leads-dashboard' ) ? 0 : 1;
-			$bd = false !== strpos( $b[2], 'ricoman-leads-dashboard' ) ? 0 : 1;
-			return $ad - $bd;
-		} );
-		$submenu['edit.php?post_type=lead'] = $items; // phpcs:ignore WordPress.WP.GlobalVariablesOverride
-	}
-}, 999 );
-
-function ricoman_leads_dashboard_page() {
+function ricoman_leads_dashboard_render() {
 	global $wpdb;
 	$statuses = ricoman_lead_statuses();
 
@@ -367,8 +329,6 @@ function ricoman_leads_dashboard_page() {
 	$goal     = max( 1, $goal );
 	$goal_pct = min( 100, round( $this_month / $goal * 100 ) );
 
-	$recent = get_posts( array( 'post_type' => 'lead', 'posts_per_page' => 8, 'post_status' => array( 'private', 'publish', 'draft' ) ) );
-
 	$trend = $delta > 0 ? '<span class="rm-up">▲ ' . (int) $delta . '</span>' : ( $delta < 0 ? '<span class="rm-down">▼ ' . abs( (int) $delta ) . '</span>' : '<span class="rm-flat">— 0</span>' );
 
 	// Conversion gauge (SVG donut).
@@ -379,7 +339,7 @@ function ricoman_leads_dashboard_page() {
 	.rm-dash{max-width:1200px;margin:18px 20px 40px 0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
 	.rm-dash *{box-sizing:border-box}
 	.rm-dash-hero{background:linear-gradient(120deg,#4f46e5,#7c3aed 55%,#a21caf);border-radius:20px;padding:26px 30px;color:#fff;display:flex;justify-content:space-between;align-items:center;gap:24px;box-shadow:0 16px 40px rgba(79,70,229,.28)}
-	.rm-dash-hero h1{color:#fff;font-size:1.7rem;margin:0 0 4px;font-weight:700}
+	.rm-dash-hero h1,.rm-dash-title{color:#fff;font-size:1.7rem;margin:0 0 4px;font-weight:700}
 	.rm-dash-hero p{color:rgba(255,255,255,.82);margin:0;font-size:.95rem}
 	.rm-gauge{position:relative;flex:0 0 auto;text-align:center}
 	.rm-gauge svg{transform:rotate(-90deg)}
@@ -412,10 +372,10 @@ function ricoman_leads_dashboard_page() {
 	.rm-badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;color:#fff}
 	@media(max-width:1100px){.rm-kpis{grid-template-columns:repeat(2,1fr)}.rm-grid2{grid-template-columns:1fr}.rm-dash-hero{flex-direction:column;align-items:flex-start}}
 	</style>
-	<div class="wrap rm-dash">
+	<div class="rm-dash">
 		<div class="rm-dash-hero">
 			<div>
-				<h1>🚀 <?php esc_html_e( 'Leads Dashboard', 'ricoman' ); ?></h1>
+				<div class="rm-dash-title">🚀 <?php esc_html_e( 'Leads', 'ricoman' ); ?></div>
 				<p><?php echo esc_html( sprintf( __( '%1$d leads all-time · %2$d this month · %3$d won', 'ricoman' ), $total, $this_month, $won ) ); ?></p>
 			</div>
 			<div class="rm-gauge">
@@ -474,31 +434,7 @@ function ricoman_leads_dashboard_page() {
 			<p style="margin:10px 0 0;color:rgba(255,255,255,.75);font-size:.85rem"><?php echo $goal_pct >= 100 ? esc_html__( '🎉 Smashed it! Goal reached this month.', 'ricoman' ) : esc_html( sprintf( __( '%d to go to hit this month’s target.', 'ricoman' ), max( 0, $goal - $this_month ) ) ); ?></p>
 		</div>
 
-		<div class="rm-card rm-recent">
-			<h2><?php esc_html_e( 'Recent leads', 'ricoman' ); ?></h2>
-			<table><tbody>
-			<?php
-			if ( $recent ) {
-				foreach ( $recent as $L ) {
-					$st   = ricoman_lead_status( $L->ID );
-					$info = $statuses[ $st ];
-					$nm   = get_post_meta( $L->ID, '_lead_name', true );
-					$ty   = get_post_meta( $L->ID, '_lead_type', true );
-					$so   = get_post_meta( $L->ID, '_lead_attr_source', true );
-					echo '<tr><td><strong>' . esc_html( $nm ? $nm : __( '(no name)', 'ricoman' ) ) . '</strong></td>'
-						. '<td>' . esc_html( $ty ? $ty : '—' ) . '</td>'
-						. '<td>' . esc_html( $so ? $so : '—' ) . '</td>'
-						. '<td><span class="rm-badge" style="background:' . esc_attr( $info[1] ) . '">' . esc_html( $info[0] ) . '</span></td>'
-						. '<td style="color:#646970">' . esc_html( get_the_date( 'j M', $L ) ) . '</td>'
-						. '<td><a href="' . esc_url( get_edit_post_link( $L->ID ) ) . '">' . esc_html__( 'View', 'ricoman' ) . '</a></td></tr>';
-				}
-			} else {
-				echo '<tr><td>' . esc_html__( 'No leads yet.', 'ricoman' ) . '</td></tr>';
-			}
-			?>
-			</tbody></table>
-			<p style="margin-top:14px"><a class="button" href="<?php echo esc_url( admin_url( 'edit.php?post_type=lead' ) ); ?>"><?php esc_html_e( 'View all leads', 'ricoman' ); ?> →</a></p>
-		</div>
+		<p style="margin:14px 2px 4px;color:#646970;font-weight:600">↓ <?php esc_html_e( 'All leads', 'ricoman' ); ?></p>
 	</div>
 	<?php
 }
