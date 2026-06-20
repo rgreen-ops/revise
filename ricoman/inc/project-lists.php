@@ -384,58 +384,51 @@ function ricoman_product_pack_files( $pid ) {
 }
 
 /** Stream a project-pack ZIP for the current user. */
-/** Recursively delete a directory (pack staging area). */
-function ricoman_rrmdir( $dir ) {
-	if ( ! is_dir( $dir ) ) {
-		return;
-	}
-	$items = array_diff( (array) scandir( $dir ), array( '.', '..' ) );
-	foreach ( $items as $it ) {
-		$p = $dir . '/' . $it;
-		is_dir( $p ) ? ricoman_rrmdir( $p ) : @unlink( $p );
-	}
-	@rmdir( $dir );
-}
-
 /**
- * Build a ZIP from a list of entries and return its path (or false). Each entry:
+ * Build a ZIP entirely in PHP using the STORE method (no compression) — needs no
+ * Zip extension, no zlib, no temp files. Returns the raw ZIP bytes. Each entry:
  * [ 'path' => 'in/zip/name.ext', 'file' => absolute|null, 'data' => string|null ].
- * Uses WordPress's bundled PclZip (pure PHP, always available — no Zip extension
- * needed). Stages files into a temp dir, then zips it. Never throws.
+ * (Datasheets are PDFs/already-compressed, so storing them is fine.)
  */
 function ricoman_build_pack_zip( $entries ) {
-	$GLOBALS['rm_pack_err'] = '';
-	try {
-		$base = wp_tempnam( 'rm-pack' );
-		@unlink( $base );
-		$dir = $base . '-files';
-		if ( ! wp_mkdir_p( $dir ) ) {
-			$GLOBALS['rm_pack_err'] = 'could not create temp dir';
-			return false;
-		}
-		foreach ( $entries as $e ) {
-			$target = $dir . '/' . ltrim( $e['path'], '/' );
-			wp_mkdir_p( dirname( $target ) );
-			if ( ! empty( $e['file'] ) && is_file( $e['file'] ) ) {
-				@copy( $e['file'], $target );
-			} else {
-				@file_put_contents( $target, isset( $e['data'] ) ? $e['data'] : '' );
+	$local   = '';
+	$central = '';
+	$count   = 0;
+	$offset  = 0;
+	$dosdate = pack( 'v', 0 ) . pack( 'v', 0x21 ); // time 00:00, date 1980-01-01.
+	foreach ( $entries as $e ) {
+		if ( ! empty( $e['file'] ) ) {
+			if ( ! is_file( $e['file'] ) ) {
+				continue;
 			}
+			$data = file_get_contents( $e['file'] );
+			if ( false === $data ) {
+				continue;
+			}
+		} else {
+			$data = isset( $e['data'] ) ? $e['data'] : '';
 		}
-		$zipfile = $base . '.zip';
-		require_once ABSPATH . 'wp-admin/includes/class-pclzip.php';
-		$pz  = new PclZip( $zipfile );
-		$res = $pz->create( $dir . '/', PCLZIP_OPT_REMOVE_PATH, $dir );
-		ricoman_rrmdir( $dir );
-		if ( 0 === $res || ! is_file( $zipfile ) ) {
-			$GLOBALS['rm_pack_err'] = 'pclzip: ' . ( isset( $pz->error_string ) ? $pz->error_string : 'unknown' );
-			return false;
-		}
-		return $zipfile;
-	} catch ( \Throwable $t ) {
-		$GLOBALS['rm_pack_err'] = $t->getMessage() . ' @ ' . basename( $t->getFile() ) . ':' . $t->getLine();
+		$name = str_replace( '\\', '/', ltrim( (string) $e['path'], '/' ) );
+		$crc  = crc32( $data );
+		$len  = strlen( $data );
+
+		$lh      = "PK\x03\x04" . pack( 'v', 20 ) . pack( 'v', 0 ) . pack( 'v', 0 ) . $dosdate
+			. pack( 'V', $crc ) . pack( 'V', $len ) . pack( 'V', $len )
+			. pack( 'v', strlen( $name ) ) . pack( 'v', 0 ) . $name;
+		$local  .= $lh . $data;
+		$central .= "PK\x01\x02" . pack( 'v', 20 ) . pack( 'v', 20 ) . pack( 'v', 0 ) . pack( 'v', 0 ) . $dosdate
+			. pack( 'V', $crc ) . pack( 'V', $len ) . pack( 'V', $len )
+			. pack( 'v', strlen( $name ) ) . pack( 'v', 0 ) . pack( 'v', 0 ) . pack( 'v', 0 ) . pack( 'v', 0 )
+			. pack( 'V', 0 ) . pack( 'V', $offset ) . $name;
+		$offset += strlen( $lh ) + $len;
+		$count++;
+	}
+	if ( ! $count ) {
 		return false;
 	}
+	$eocd = "PK\x05\x06" . pack( 'v', 0 ) . pack( 'v', 0 ) . pack( 'v', $count ) . pack( 'v', $count )
+		. pack( 'V', strlen( $central ) ) . pack( 'V', $offset ) . pack( 'v', 0 );
+	return $local . $central . $eocd;
 }
 
 add_action( 'template_redirect', function () {
@@ -508,10 +501,9 @@ add_action( 'template_redirect', function () {
 	$index    .= "\nGenerated " . date_i18n( 'j M Y H:i' ) . ' — ' . get_bloginfo( 'name' ) . "\n";
 	$entries[] = array( 'path' => '00 - Product list.txt', 'data' => $index );
 
-	$zipfile = ricoman_build_pack_zip( $entries );
-	if ( ! $zipfile ) {
-		$why = ( current_user_can( 'manage_options' ) && ! empty( $GLOBALS['rm_pack_err'] ) ) ? ' [' . $GLOBALS['rm_pack_err'] . ']' : '';
-		wp_die( esc_html__( 'Sorry, the project pack could not be built. Please try again.', 'ricoman' ) . esc_html( $why ) );
+	$zipdata = ricoman_build_pack_zip( $entries );
+	if ( ! $zipdata ) {
+		wp_die( esc_html__( 'This project has nothing to pack yet — add a product or a saved design first.', 'ricoman' ) );
 	}
 
 	// Clear any buffered output so the ZIP isn't corrupted by stray markup.
@@ -522,9 +514,8 @@ add_action( 'template_redirect', function () {
 	nocache_headers();
 	header( 'Content-Type: application/zip' );
 	header( 'Content-Disposition: attachment; filename="' . $fname . '"' );
-	header( 'Content-Length: ' . filesize( $zipfile ) );
-	readfile( $zipfile ); // phpcs:ignore
-	@unlink( $zipfile );
+	header( 'Content-Length: ' . strlen( $zipdata ) );
+	echo $zipdata; // phpcs:ignore WordPress.Security.EscapeOutput -- binary ZIP.
 	exit;
 	} catch ( \Throwable $t ) {
 		while ( ob_get_level() ) {
