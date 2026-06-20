@@ -1430,3 +1430,20 @@ html,body{overflow-x:clip}
 .rm-lightbox[hidden]{display:none}
 .rm-lightbox-img{max-width:92vw;max-height:88vh;object-fit:contain;border-radius:6px;background:#fff}
 .rm-lightbox-x{position:absolute;top:18px;right:26px;background:none;border:0;color:var(--ink);font-size:2.6rem;line-height:1;cursor:pointer}
+
+/* ===== Download lead-gate modal ===== */
+.rm-gate{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.55)}
+.rm-gate[hidden]{display:none}
+.rm-gate-box{position:relative;background:#fff;border-radius:16px;max-width:420px;width:100%;padding:30px 28px;box-shadow:0 30px 80px rgba(0,0,0,.4)}
+.rm-gate-x{position:absolute;top:12px;right:16px;background:none;border:0;font-size:1.8rem;line-height:1;color:var(--muted);cursor:pointer}
+.rm-gate-x:hover{color:var(--ink)}
+.rm-gate-title{font-family:Poppins;font-weight:600;font-size:1.3rem;margin:0 0 6px;color:var(--ink)}
+.rm-gate-sub{font-size:.9rem;color:var(--muted);margin:0 0 18px}
+.rm-gate-form{display:flex;flex-direction:column;gap:12px}
+.rm-gate-form label{display:flex;flex-direction:column;gap:5px;font-family:Poppins;font-size:.8rem;font-weight:600;color:var(--ink)}
+.rm-gate-form input,.rm-gate-form select{border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-size:15px;font-family:Poppins;background:#fff;color:var(--ink)}
+.rm-gate-form input:focus,.rm-gate-form select:focus{outline:0;border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.rm-gate-go{margin-top:6px;justify-content:center}
+.rm-gate-msg{color:#b32d2e;font-size:.85rem;margin:4px 0 0}
+.rm-gate-alt{font-size:.8rem;color:var(--muted);margin:16px 0 0;line-height:1.5}
+.rm-gate-alt a{color:var(--ink);font-weight:600;text-decoration:underline}
