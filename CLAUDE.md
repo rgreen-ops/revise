@@ -63,7 +63,12 @@ GLOBAL: [ ] Header / mega-menu  [ ] Footer
     copy (intro above the grid + body/FAQ below) for keyword-rich landing pages
     (e.g. Linear Lighting), plus a manual "Display order" that arranges categories
     across the mega menu, /products/ tiles and homepage range grid; products
-    within a category reorder via their native "Order" attribute.
+    within a category reorder via their native "Order" attribute. A one-click
+    **Category SEO** admin page (Ricoman → Category SEO) seeds hand-written
+    starter intro + FAQ copy for the core ranges (linear, downlights, panels,
+    track, emergency, battens, high bay, floods, bulkheads, spots, strip,
+    exterior) — fills empty fields only, never overwrites edits. The category body
+    runs the [ricoman_faq] shortcode, so seeded FAQs also emit FAQPage schema.
 - Old products store everything in **ACF**; post types: `product`, `project`,
   `news`, `home_slider`, `lighting_sectors`, `variant-product`, `lead`.
 - Real taxonomies: `product-cat`, `applycation-type`, `project-cat` (+ many

@@ -391,7 +391,11 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 			$seo_intro = '<div class="rm-catarch-intro">' . wpautop( wp_kses_post( $intro ) ) . '</div>';
 		}
 		if ( '' !== trim( $body ) ) {
-			$seo_body = '<div class="rm-catarch-body">' . wpautop( wp_kses_post( $body ) ) . '</div>';
+			// Run shortcodes (e.g. [ricoman_faq], which adds FAQPage schema), using
+			// the same autop/shortcode order as the_content so block shortcodes
+			// aren't wrapped in stray <p> tags.
+			$rendered = do_shortcode( shortcode_unautop( wpautop( wp_kses_post( $body ) ) ) );
+			$seo_body = '<div class="rm-catarch-body">' . $rendered . '</div>';
 		}
 	}
 
