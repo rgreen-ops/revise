@@ -1086,10 +1086,10 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 /* ============ Product page (PDP) — matches ricoman.com ============ */
 /* Hero: vertical thumbnail rail + main image on light grey */
 .rm-pdp .rm-cfg-stage{display:flex;gap:16px;align-items:flex-start;position:sticky;top:100px}
-.rm-pdp .rm-cfg-viz{flex:1;aspect-ratio:1/1;border-radius:10px;background:#e4e4e4}
+.rm-pdp .rm-cfg-viz{flex:1;aspect-ratio:1/1;border-radius:10px;background:#fff}
 .rm-pdp .rm-cfg-img{object-fit:contain;padding:7%}
 .rm-thumbs-rail{display:flex;flex-direction:column;flex-wrap:nowrap;gap:12px;width:84px;flex-shrink:0;margin:0}
-.rm-thumbs-rail .rm-cfg-thumb{width:84px;height:74px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#e4e4e4;cursor:pointer;padding:6px}
+.rm-thumbs-rail .rm-cfg-thumb{width:84px;height:74px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff;cursor:pointer;padding:6px}
 .rm-thumbs-rail .rm-cfg-thumb.on{border-color:var(--ink)}
 .rm-thumbs-rail .rm-cfg-thumb img{object-fit:contain}
 @media(max-width:900px){.rm-pdp .rm-cfg-stage{position:static;flex-direction:column-reverse}.rm-thumbs-rail{flex-direction:row;width:auto;overflow:auto}}

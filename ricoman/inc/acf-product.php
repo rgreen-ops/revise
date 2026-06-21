@@ -1106,7 +1106,7 @@ function ricoman_pf_gallery_block( $pid, $title, $code, $sw_html ) {
 		. '<button type="button" class="rm-gtab' . ( $studio ? '' : ' rm-gtab--off' ) . '" data-tab="studio"' . ( $studio ? '' : ' disabled' ) . '>Studio</button>'
 		. '<button type="button" class="rm-gtab' . ( $insitu ? '' : ' rm-gtab--off' ) . '" data-tab="insitu"' . ( $insitu ? '' : ' disabled' ) . '>In-situ</button>';
 
-	$viz = '<div class="rm-cfg-viz"><img class="rm-cfg-img rm-zoomable" src="' . esc_url( $main ) . '" alt="' . esc_attr( $title ) . '" fetchpriority="high" decoding="async" width="800" height="800">'
+	$viz = '<div class="rm-cfg-viz"><img class="rm-cfg-img rm-zoomable skip-lazy no-lazy" src="' . esc_url( $main ) . '" alt="' . esc_attr( $title ) . '" fetchpriority="high" loading="eager" decoding="async" data-no-lazy="1" data-skip-lazy width="800" height="800">'
 		. ( $sw_html ? '<div class="rm-cv-swatches rm-pdp-sw">' . $sw_html . '</div>' : '' )
 		. '<span class="rm-zoom-hint" aria-hidden="true">⤢</span>'
 		. '</div>';
