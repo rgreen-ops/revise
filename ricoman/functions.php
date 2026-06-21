@@ -133,7 +133,11 @@ add_filter( 'body_class', function ( $classes ) {
 	// NB: product single pages open with a light split hero (not a dark cover),
 	// so they keep the solid header (not added to rm-hero). Project singles and
 	// the listing archives do open on dark imagery, so they overlay.
-	if ( is_front_page() || is_post_type_archive( array( 'product', 'project' ) ) || is_singular( 'project' ) || is_tax( 'project-cat' ) ) {
+	// Front page + the products archive open on a dark full-bleed cover, and
+	// project single pages open on the project's hero photo — these overlay the
+	// header. The projects listing + project-cat now open on a WHITE intro, so
+	// they keep the solid dark header (a white overlay header was invisible there).
+	if ( is_front_page() || is_post_type_archive( 'product' ) || is_singular( 'project' ) ) {
 		$classes[] = 'rm-hero';
 	} elseif ( is_singular() || is_page() ) {
 		$post = get_post();
