@@ -397,7 +397,7 @@ function ricoman_render_page_designs() {
  * Page Designs. Only touches pages whose content is clearly the broken import.
  */
 add_action( 'admin_init', function () {
-	if ( get_option( 'ricoman_relayout_broken_v1' ) || ! current_user_can( 'manage_options' ) || ! function_exists( 'ricoman_theme_page_map' ) ) {
+	if ( get_option( 'ricoman_relayout_broken_v2' ) || ! current_user_can( 'manage_options' ) || ! function_exists( 'ricoman_theme_page_map' ) ) {
 		return;
 	}
 	foreach ( ricoman_theme_page_map() as $slug => $fn ) {
@@ -405,15 +405,20 @@ add_action( 'admin_init', function () {
 		if ( ! $page || 'page' !== $page->post_type || ! function_exists( $fn ) ) {
 			continue;
 		}
-		$c = (string) $page->post_content;
-		if ( false !== strpos( $c, '&lt;div' ) || false !== strpos( $c, '&lt;p&gt;' ) || false !== strpos( $c, 'container&quot;' ) ) {
+		$c = trim( (string) $page->post_content );
+		// Apply the theme's designed layout when the page has NO block content
+		// (so it falls back to migrated ACF — e.g. the broken "About Us") or still
+		// holds the broken escaped-HTML import. Never touches a real edited page.
+		$broken = ( '' === $c )
+			|| false !== strpos( $c, '&lt;div' ) || false !== strpos( $c, '&lt;p&gt;' ) || false !== strpos( $c, 'container&quot;' );
+		if ( $broken ) {
 			$content = call_user_func( $fn );
 			if ( $content ) {
 				wp_update_post( array( 'ID' => $page->ID, 'post_content' => $content ) );
 			}
 		}
 	}
-	update_option( 'ricoman_relayout_broken_v1', 1 );
+	update_option( 'ricoman_relayout_broken_v2', 1 );
 } );
 
 add_action( 'admin_post_ricoman_refresh_pages', function () {	if ( ! current_user_can( 'manage_options' ) ) {
