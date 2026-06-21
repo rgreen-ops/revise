@@ -35,6 +35,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Deploy via FTPS
+        id: deploy1
+        continue-on-error: true
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
@@ -45,6 +47,27 @@ jobs:
           local-dir: ./ricoman/
           server-dir: ${{ secrets.FTP_SERVER_DIR }}
           dangerous-clean-slate: false
+          timeout: 120000
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.DS_Store
+
+      # The staging FTP control socket occasionally times out on connect; retry
+      # once so a transient blip doesn't fail the deploy (and email a failure).
+      - name: Deploy via FTPS (retry)
+        if: steps.deploy1.outcome == 'failure'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          port: 21
+          local-dir: ./ricoman/
+          server-dir: ${{ secrets.FTP_SERVER_DIR }}
+          dangerous-clean-slate: false
+          timeout: 120000
           exclude: |
             **/.git*
             **/.git*/**
