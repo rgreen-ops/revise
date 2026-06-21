@@ -180,6 +180,12 @@ function ricoman_scaffold_site() {
 		}
 	}
 
+	// Seed hand-written SEO titles/descriptions for the marketing + feature pages
+	// (fills empty fields only, so it never overwrites edited copy).
+	if ( function_exists( 'ricoman_page_seo_seed_all' ) ) {
+		ricoman_page_seo_seed_all();
+	}
+
 	// My Project — utility page (still a simple pattern).
 	ricoman_upsert_page( 'My Project', 'my-project', 'ricoman/page-my-project', 'page-plain' );
 
@@ -401,6 +407,11 @@ add_action( 'admin_post_ricoman_refresh_pages', function () {
 			wp_update_post( array( 'ID' => $page->ID, 'post_content' => $content ) );
 			$done++;
 		}
+	}
+
+	// Also top up any empty SEO titles/descriptions for these pages.
+	if ( function_exists( 'ricoman_page_seo_seed_all' ) ) {
+		ricoman_page_seo_seed_all();
 	}
 
 	wp_safe_redirect( add_query_arg(

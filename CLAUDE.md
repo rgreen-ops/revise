@@ -71,7 +71,17 @@ GLOBAL: [ ] Header / mega-menu  [ ] Footer
     runs the [ricoman_faq] shortcode, so seeded FAQs also emit FAQPage schema. The
     same page edits/seeds an SEO body/FAQ for the main /products/ archive (option
     rm_products_seo_body, rendered by [ricoman_products_seo] below the tiles).
-  - **Image alt text (SEO + a11y):** new uploads auto-get alt from a tidied title;
+    - **Per-page SEO seeding (roadmap step 2):** hand-written, keyword-targeted SEO
+    titles + meta descriptions for every core + feature page live in
+    `inc/page-seo-seed.php` (`ricoman_page_seo_library()`), written to the same
+    `_ricoman_seo_title`/`_ricoman_seo_desc` meta the SEO box (inc/seo.php) reads.
+    A one-click **Page SEO** admin page (Ricoman → Page SEO), the create-once
+    installer AND the Page Designs refresh all run `ricoman_page_seo_seed_all()`,
+    which fills empty fields only — never overwrites edited copy. Mirrors the
+    Category SEO seeder. The SEO engine already does title/desc/canonical/robots/
+    OG/Twitter + a full JSON-LD @graph (Org, WebSite+Search, LocalBusiness+Geo,
+    Product, Article, BreadcrumbList, CollectionPage) and is Yoast-aware.
+- **Image alt text (SEO + a11y):** new uploads auto-get alt from a tidied title;
     a batched, resumable backfill (Ricoman → Image Alt Text) fills the migrated
     library, deriving alt from each image's title or its parent product/post, and
     marks scanned images (`_rm_alt_scanned`) so the loop terminates. Product JSON-LD
