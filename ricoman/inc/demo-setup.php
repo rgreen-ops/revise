@@ -329,7 +329,6 @@ function ricoman_theme_page_map() {
 		'about'           => 'ricoman_about_blocks',
 		'manufacturing'   => 'ricoman_manufacturing_blocks',
 		'lighting-design' => 'ricoman_lighting_blocks',
-		'downloads'       => 'ricoman_downloads_blocks',
 		'customisation'   => 'ricoman_customisation_blocks',
 		'contact'         => 'ricoman_contact_blocks',
 		'casambi'                 => 'ricoman_casambi_blocks',
@@ -433,7 +432,7 @@ add_action( 'admin_init', function () {
 		return;
 	}
 	$map     = ricoman_theme_page_map();
-	$refresh = array( 'downloads', 'about', 'our-services' );
+	$refresh = array( 'about', 'our-services' );
 	foreach ( $refresh as $slug ) {
 		if ( empty( $map[ $slug ] ) || ! function_exists( $map[ $slug ] ) ) {
 			continue;

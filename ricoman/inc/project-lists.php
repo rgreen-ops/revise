@@ -526,6 +526,109 @@ add_action( 'template_redirect', function () {
 	}
 } );
 
+/**
+ * Find the newest PDF in the media library matching any of $keywords (by title,
+ * slug or filename). Used to wire the Downloads brochure cards to the real
+ * uploaded PDFs automatically. Returns the file URL, or '' if none on file.
+ */
+function ricoman_find_brochure_pdf( $keywords ) {
+	global $wpdb;
+	foreach ( (array) $keywords as $kw ) {
+		$like = '%' . $wpdb->esc_like( $kw ) . '%';
+		$id   = (int) $wpdb->get_var( $wpdb->prepare(
+			"SELECT p.ID FROM {$wpdb->posts} p
+			 LEFT JOIN {$wpdb->postmeta} f ON f.post_id=p.ID AND f.meta_key='_wp_attached_file'
+			 WHERE p.post_type='attachment' AND p.post_status<>'trash' AND p.post_mime_type=%s
+			 AND ( p.post_title LIKE %s OR p.post_name LIKE %s OR f.meta_value LIKE %s )
+			 ORDER BY p.ID DESC LIMIT 1",
+			'application/pdf', $like, $like, $like
+		) );
+		if ( $id ) {
+			$url = wp_get_attachment_url( $id );
+			if ( $url ) {
+				return $url;
+			}
+		}
+	}
+	return '';
+}
+
+/** How many technical files of a bulk type are actually on the server. */
+function ricoman_bulk_file_count( $type ) {
+	$types = ricoman_bulk_file_types();
+	if ( empty( $types[ $type ]['ext'] ) ) {
+		return 0;
+	}
+	global $wpdb;
+	$like = array();
+	$args = array();
+	foreach ( $types[ $type ]['ext'] as $e ) {
+		$like[] = 'meta_value LIKE %s';
+		$args[] = '%.' . $wpdb->esc_like( $e );
+	}
+	$sql = "SELECT COUNT(*) FROM {$wpdb->postmeta} WHERE meta_key='_wp_attached_file' AND ( " . implode( ' OR ', $like ) . ' )';
+	return (int) $wpdb->get_var( $wpdb->prepare( $sql, $args ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+}
+
+/** The curated brochure list for the Downloads page (filterable). */
+function ricoman_brochure_list() {
+	return apply_filters( 'ricoman_brochure_list', array(
+		array( 'Catalogue', 'The full Ricoman range in one PDF.', array( 'catalogue', 'catalog' ) ),
+		array( 'Light Revive — Our Sustainability Vision', 'How we cut waste &amp; carbon across the range.', array( 'light revive', 'light-revive', 'sustainability vision' ) ),
+		array( 'Brandbook', 'Who we are, how we work and what we stand for.', array( 'brandbook', 'brand book', 'brand-book' ) ),
+		array( 'Zodiac 48V Track', 'Magnetic 48V track system brochure.', array( 'zodiac' ) ),
+		array( 'E-Pro Architectural Downlight', 'The E-Pro downlight family at a glance.', array( 'e-pro', 'epro', 'e pro' ) ),
+		array( 'Estrella Pro', 'Estrella Pro recessed range brochure.', array( 'estrella' ) ),
+		array( 'Flow Curved Linear System', 'Seamless curved linear lighting.', array( 'flow curved', 'flow-curved', 'flow plus', 'flow+' ) ),
+		array( 'Residential Lighting', 'Our residential lighting brochure.', array( 'residential' ) ),
+	) );
+}
+
+/**
+ * The whole Downloads page body, rendered dynamically: brochure cards wired to
+ * the real PDFs in the media library (or a "Request" link if a brochure isn't
+ * uploaded yet), the All-LDT / All-Revit download buttons (with live counts),
+ * and a "single files live on the product page" note. Built as a shortcode so
+ * it always reflects what's actually on the server — no stale block content.
+ */
+function ricoman_downloads_page_html() {
+	$cards = '';
+	foreach ( ricoman_brochure_list() as $b ) {
+		list( $title, $desc, $kw ) = $b;
+		$url  = ricoman_find_brochure_pdf( $kw );
+		$href = $url ? $url : '/contact/';
+		$cta  = $url ? esc_html__( 'Download', 'ricoman' ) . ' &darr;' : esc_html__( 'Request', 'ricoman' ) . ' &rarr;';
+		$dl   = $url ? ' download' : '';
+		$cards .= '<a class="rm-dlcard" href="' . esc_url( $href ) . '"' . $dl . '>'
+			. '<span class="rm-dlcard-t">' . wp_kses_post( $title ) . '</span>'
+			. '<span class="rm-dlcard-d">' . wp_kses_post( $desc ) . '</span>'
+			. '<span class="rm-dlcard-go">' . $cta . '</span></a>';
+	}
+
+	$ldt   = ricoman_bulk_file_count( 'ldt' );
+	$revit = ricoman_bulk_file_count( 'revit' );
+	$bulk  = '<div class="rm-dlbulk">'
+		. '<div class="rm-dlbulk-card"><h3>' . esc_html__( 'All photometric files', 'ricoman' ) . '</h3>'
+		. '<p>' . esc_html( sprintf( _n( '%s IES / LDT file for DIALux &amp; Relux.', '%s IES / LDT files for DIALux &amp; Relux.', $ldt, 'ricoman' ), number_format_i18n( $ldt ) ) ) . '</p>'
+		. ( $ldt ? '<a class="btn btn-solid" href="' . esc_url( home_url( '/?rm_all=ldt' ) ) . '">' . esc_html__( 'Download all LDT files', 'ricoman' ) . ' &darr;</a>' : '<a class="btn btn-line-d" href="/contact/">' . esc_html__( 'Request LDT files', 'ricoman' ) . ' &rarr;</a>' )
+		. '</div>'
+		. '<div class="rm-dlbulk-card"><h3>' . esc_html__( 'All Revit files', 'ricoman' ) . '</h3>'
+		. '<p>' . esc_html( sprintf( _n( '%s Revit (RFA) family for your model.', '%s Revit (RFA) families for your model.', $revit, 'ricoman' ), number_format_i18n( $revit ) ) ) . '</p>'
+		. ( $revit ? '<a class="btn btn-solid" href="' . esc_url( home_url( '/?rm_all=revit' ) ) . '">' . esc_html__( 'Download all Revit files', 'ricoman' ) . ' &darr;</a>' : '<a class="btn btn-line-d" href="/contact/">' . esc_html__( 'Request Revit files', 'ricoman' ) . ' &rarr;</a>' )
+		. '</div></div>';
+
+	$single = '<div class="rm-dlnote"><h3>' . esc_html__( 'Need one product&rsquo;s files?', 'ricoman' ) . '</h3>'
+		. '<p>' . esc_html__( 'Datasheets, installation instructions, photometric (IES/LDT) and Revit files for each fitting live on its own product page, in the Downloads section.', 'ricoman' ) . '</p>'
+		. '<a class="btn btn-line-d" href="/products/">' . esc_html__( 'Browse all products', 'ricoman' ) . ' &rarr;</a></div>';
+
+	return '<div class="rm-section rm-downloads">'
+		. '<div class="rm-dl-head"><p class="rm-eyebrow">' . esc_html__( 'Brochures', 'ricoman' ) . '</p>'
+		. '<h2 class="rm-shead">' . esc_html__( 'Catalogues &amp; range brochures', 'ricoman' ) . '</h2></div>'
+		. '<div class="rm-dlgrid">' . $cards . '</div>'
+		. $bulk . $single . '</div>';
+}
+add_shortcode( 'ricoman_downloads', 'ricoman_downloads_page_html' );
+
 /* --------------------------------------------------- bulk technical-file zip */
 
 /**

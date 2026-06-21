@@ -158,6 +158,21 @@ function ricoman_rewrite_old_links( $html ) {
 	}, $html );
 }
 add_filter( 'the_content', 'ricoman_rewrite_old_links', 9 );
+// Old links also survive in nav menus, widgets/footer and excerpts — fix those
+// on render too, so a stale URL anywhere points at the live destination.
+add_filter( 'wp_nav_menu', 'ricoman_rewrite_old_links', 9 );
+add_filter( 'the_excerpt', 'ricoman_rewrite_old_links', 9 );
+add_filter( 'widget_text', 'ricoman_rewrite_old_links', 9 );
+add_filter( 'render_block', function ( $html, $block ) {
+	// Navigation + html/button blocks can carry hardcoded old URLs.
+	if ( is_string( $html ) && false !== strpos( $html, 'href=' ) ) {
+		$name = isset( $block['blockName'] ) ? (string) $block['blockName'] : '';
+		if ( in_array( $name, array( 'core/navigation', 'core/navigation-link', 'core/html', 'core/buttons', 'core/button' ), true ) ) {
+			return ricoman_rewrite_old_links( $html );
+		}
+	}
+	return $html;
+}, 9, 2 );
 
 add_action( 'template_redirect', function () {
 	if ( is_admin() || ! is_404() ) {
@@ -355,6 +370,21 @@ function ricoman_redirects_page() {
 	echo '<p style="color:#555"><strong>' . esc_html__( 'Tip:', 'ricoman' ) . '</strong> ' . esc_html__( 'redirect a URL to its closest equivalent, not just the home page — Google passes more value, and it\'s a better experience.', 'ricoman' ) . '</p>';
 	echo '</div>';
 
+	// ---- One-click: rewrite old links baked into saved content ----
+	if ( isset( $_GET['rm_fixed'] ) ) {
+		$f = max( 0, (int) $_GET['rm_fixed'] );
+		echo '<div class="notice notice-success is-dismissible"><p>'
+			. esc_html( sprintf( _n( 'Rewrote old links in %s page/post.', 'Rewrote old links in %s pages/posts.', $f, 'ricoman' ), number_format_i18n( $f ) ) )
+			. '</p></div>';
+	}
+	echo '<h2 style="margin-top:24px">' . esc_html__( 'Fix old links in your content', 'ricoman' ) . '</h2>';
+	echo '<p class="description" style="max-width:820px">' . esc_html__( 'Visitors are auto-redirected from old addresses, but old links can still sit inside your pages, posts, projects and news (e.g. /product/… or category-prefixed URLs from the old site). This rewrites those links in the saved content so they point straight at the live page — no redirect hop, better for SEO. Safe: it only changes links it can confidently match.', 'ricoman' ) . '</p>';
+	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" onsubmit="return confirm(\'' . esc_js( __( 'Rewrite old links across all your content now?', 'ricoman' ) ) . '\');">';
+	echo '<input type="hidden" name="action" value="ricoman_fix_links">';
+	wp_nonce_field( 'ricoman_fix_links' );
+	submit_button( __( 'Rewrite old links in content', 'ricoman' ), 'secondary', 'submit', false );
+	echo '</form>';
+
 	// ---- Add form ----
 	echo '<h2 style="margin-top:24px">' . esc_html__( 'Add a redirect', 'ricoman' ) . '</h2>';
 	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
@@ -446,6 +476,36 @@ function ricoman_redirects_page() {
 
 	echo '</div>';
 }
+
+/** One-click: rewrite old-base links inside all saved content (fix at source). */
+add_action( 'admin_post_ricoman_fix_links', function () {
+	if ( ! current_user_can( 'manage_options' ) || ! check_admin_referer( 'ricoman_fix_links' ) ) {
+		wp_die( esc_html__( 'Not allowed.', 'ricoman' ) );
+	}
+	$types = array_values( array_filter( array( 'page', 'post', 'product', 'project', 'news' ), 'post_type_exists' ) );
+	$ids   = get_posts( array(
+		'post_type'      => $types,
+		'post_status'    => 'publish',
+		'posts_per_page' => 2000,
+		'fields'         => 'ids',
+		'no_found_rows'  => true,
+		's'              => '', // no search; we filter by content below.
+	) );
+	$fixed = 0;
+	foreach ( $ids as $id ) {
+		$c = get_post_field( 'post_content', $id );
+		if ( '' === $c || false === strpos( $c, 'href=' ) ) {
+			continue;
+		}
+		$new = ricoman_rewrite_old_links( $c );
+		if ( $new !== $c ) {
+			wp_update_post( array( 'ID' => $id, 'post_content' => $new ) );
+			$fixed++;
+		}
+	}
+	wp_safe_redirect( add_query_arg( array( 'page' => 'ricoman-redirects', 'rm_fixed' => $fixed ), admin_url( 'admin.php' ) ) );
+	exit;
+} );
 
 add_action( 'admin_post_ricoman_redirect_add', function () {
 	if ( ! current_user_can( 'manage_options' ) || ! check_admin_referer( 'ricoman_redirect_add' ) ) {

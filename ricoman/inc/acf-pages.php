@@ -23,11 +23,20 @@ add_filter( 'the_content', function ( $content ) {
 	if ( is_admin() || ! is_singular( 'page' ) || ! in_the_loop() || ! is_main_query() ) {
 		return $content;
 	}
+	$slug = get_post_field( 'post_name', get_the_ID() );
+	// Downloads is rendered dynamically from the real files on the server, so it
+	// always reflects what's actually downloadable — overriding any stale block
+	// content left from an earlier build.
+	if ( 'downloads' === $slug && function_exists( 'ricoman_downloads_page_html' ) ) {
+		$hero = '<div class="rm-section rm-hdr rm-hdr-band"><p class="rm-eyebrow">' . esc_html__( 'Downloads &amp; Resources', 'ricoman' ) . '</p>'
+			. '<h1 class="rm-hdr-title">' . esc_html__( 'Catalogues, datasheets &amp; BIM', 'ricoman' ) . '</h1>'
+			. '<p class="rm-hdr-lead has-muted-color has-text-color">' . esc_html__( 'Everything you need to specify Ricoman — brochures, technical datasheets, photometric (IES/LDT) files and BIM objects.', 'ricoman' ) . '</p></div>';
+		return $hero . ricoman_downloads_page_html();
+	}
 	if ( '' !== trim( wp_strip_all_tags( (string) $content ) ) ) {
 		return $content; // has real (block/classic) content already.
 	}
 	// Known listing pages (were Elementor) -> native shortcodes.
-	$slug = get_post_field( 'post_name', get_the_ID() );
 	$map  = array(
 		'our-news'   => '[ricoman_news_grid]',
 		'news'       => '[ricoman_news_grid]',

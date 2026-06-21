@@ -762,6 +762,27 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 /* video heroes get an extra black layer so headlines stay legible over motion */
 .wp-block-cover:has(> video.wp-block-cover__video-background)::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.32);pointer-events:none;z-index:1}
 
+/* Downloads page (dynamic — real brochures + bulk technical-file buttons) */
+.rm-downloads{max-width:1180px;margin:0 auto;padding:8px 22px 40px}
+.rm-dl-head{margin:0 0 22px}
+.rm-dlgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.rm-dlcard{display:flex;flex-direction:column;gap:6px;background:#f7f7f7;border:1px solid var(--line);border-radius:12px;padding:22px;text-decoration:none;transition:.25s ease}
+.rm-dlcard:hover{background:#fff;border-color:#cfcdc8;transform:translateY(-2px)}
+.rm-dlcard-t{font-family:Poppins;font-weight:600;font-size:1.05rem;color:var(--ink);letter-spacing:-.02em}
+.rm-dlcard-d{font-size:.86rem;color:var(--muted);line-height:1.5}
+.rm-dlcard-go{margin-top:6px;font-family:Poppins;font-weight:600;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--blue)}
+.rm-dlbulk{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:28px 0 0}
+.rm-dlbulk-card{background:var(--ink);color:#fff;border-radius:14px;padding:28px}
+.rm-dlbulk-card h3{color:#fff;margin:0 0 8px}
+.rm-dlbulk-card p{color:rgba(255,255,255,.78);font-size:.9rem;margin:0 0 18px;line-height:1.5}
+.rm-dlbulk-card .btn-solid{background:#fff;color:var(--ink)}.rm-dlbulk-card .btn-solid:hover{background:var(--blue);color:#fff}
+.rm-dlbulk-card .btn-line-d{border-color:rgba(255,255,255,.4);color:#fff}.rm-dlbulk-card .btn-line-d:hover{background:#fff;color:var(--ink)}
+.rm-dlnote{margin:28px 0 0;padding:26px;border:1px dashed var(--line);border-radius:14px;background:#fafafa}
+.rm-dlnote h3{margin:0 0 6px}
+.rm-dlnote p{color:var(--muted);font-size:.92rem;margin:0 0 16px;line-height:1.55;max-width:60ch}
+@media(max-width:900px){.rm-dlgrid{grid-template-columns:1fr 1fr}.rm-dlbulk{grid-template-columns:1fr}}
+@media(max-width:560px){.rm-dlgrid{grid-template-columns:1fr}}
+
 /* configurator fallback (when RICOBOT can't resolve the code yet) */
 .rm-cfg-fbnote{font-size:.9rem;color:var(--muted);margin:0 0 16px;line-height:1.6}
 .rm-cfg-fallback .ricoman-spec-table{margin-bottom:18px}
