@@ -425,7 +425,7 @@ function ricoman_pf_render_endpoint( $d, $pid ) {
 		foreach ( $d['product_gallery_image'] as $j => $g ) {
 			$u = is_array( $g ) ? ( $g['url'] ?? '' ) : $g;
 			if ( $u ) {
-				$thumbs .= '<button type="button" class="rm-cfg-thumb' . ( 0 === $j ? ' on' : '' ) . '" data-img="' . esc_url( $u ) . '"><img src="' . esc_url( $u ) . '" alt="" loading="lazy" onerror="this.parentNode.style.display=\'none\'"></button>';
+				$thumbs .= '<button type="button" class="rm-cfg-thumb' . ( 0 === $j ? ' on' : '' ) . '" data-img="' . esc_url( $u ) . '" aria-label="' . esc_attr( sprintf( 'View image %d', $j + 1 ) ) . '"><img src="' . esc_url( $u ) . '" alt="" loading="lazy" onerror="this.parentNode.style.display=\'none\'"></button>';
 			}
 		}
 	}
@@ -927,7 +927,7 @@ function ricoman_pf_variant_table( $pid ) {
 			foreach ( $vals as $vv ) {
 				$opts .= '<option value="' . esc_attr( $vv ) . '">' . esc_html( $vv ) . '</option>';
 			}
-			$fbar .= '<select class="rm-vt-filter" data-col="' . esc_attr( $slugify( $label ) ) . '">' . $opts . '</select>';
+			$fbar .= '<select class="rm-vt-filter" data-col="' . esc_attr( $slugify( $label ) ) . '" aria-label="' . esc_attr( sprintf( 'Filter by %s', $label ) ) . '">' . $opts . '</select>';
 		}
 		$fbar .= '<button type="button" class="rm-vt-clear">Clear</button></div>';
 	}
@@ -1066,7 +1066,7 @@ function ricoman_pf_gallery_block( $pid, $title, $code, $sw_html ) {
 	$main   = $studio ? $studio[0] : ( $insitu ? $insitu[0] : esc_url( get_theme_file_uri( 'assets/images/ceiling.webp' ) ) );
 
 	$thumb = function ( $u, $tab, $on ) {
-		return '<button type="button" class="rm-cfg-thumb' . ( $on ? ' on' : '' ) . '" data-tab="' . esc_attr( $tab ) . '" data-img="' . esc_url( $u ) . '"><img src="' . esc_url( $u ) . '" alt="" loading="lazy" onerror="this.parentNode.style.display=\'none\'"></button>';
+		return '<button type="button" class="rm-cfg-thumb' . ( $on ? ' on' : '' ) . '" data-tab="' . esc_attr( $tab ) . '" data-img="' . esc_url( $u ) . '" aria-label="View product image"><img src="' . esc_url( $u ) . '" alt="" loading="lazy" onerror="this.parentNode.style.display=\'none\'"></button>';
 	};
 	$thumbs = '';
 	$first  = true;
@@ -1172,7 +1172,7 @@ function ricoman_pf_sections( $pid ) {
 	}
 	$thumbs = '';
 	foreach ( $gallery as $j => $g ) {
-		$thumbs .= '<button type="button" class="rm-cfg-thumb' . ( 0 === $j ? ' on' : '' ) . '" data-img="' . esc_url( $g ) . '"><img src="' . esc_url( $g ) . '" alt="" loading="lazy" onerror="this.parentNode.style.display=\'none\'"></button>';
+		$thumbs .= '<button type="button" class="rm-cfg-thumb' . ( 0 === $j ? ' on' : '' ) . '" data-img="' . esc_url( $g ) . '" aria-label="' . esc_attr( sprintf( 'View image %d', $j + 1 ) ) . '"><img src="' . esc_url( $g ) . '" alt="" loading="lazy" onerror="this.parentNode.style.display=\'none\'"></button>';
 	}
 
 	// Specification (HTML with <strong> headings + · lines) — rendered as a tidy

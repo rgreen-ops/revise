@@ -63,9 +63,9 @@ add_shortcode( 'ricoman_header', function () {
 	$mega = '<div class="rm-mega"><div class="rm-mega-inner">'
 		. '<a class="rm-mega-head" href="' . esc_url( ricoman_opt( 'mega_heading_url' ) ) . '">' . esc_html( ricoman_opt( 'mega_heading' ) ) . '</a>'
 		. '<div class="rm-mega-grid"><div class="rm-mega-cols">'
-		. '<div class="rm-mega-col"><h4>Categories</h4><ul>' . $cats . '</ul></div>'
-		. '<div class="rm-mega-col"><h4>Collections</h4><ul class="rm-mega-coll">' . $cols . '</ul></div>'
-		. '<div class="rm-mega-col"><h4>By Application</h4><ul>' . $apps . '</ul></div>'
+		. '<div class="rm-mega-col"><p class="rm-mega-h">Categories</p><ul>' . $cats . '</ul></div>'
+		. '<div class="rm-mega-col"><p class="rm-mega-h">Collections</p><ul class="rm-mega-coll">' . $cols . '</ul></div>'
+		. '<div class="rm-mega-col"><p class="rm-mega-h">By Application</p><ul>' . $apps . '</ul></div>'
 		. '</div><div class="rm-mega-cards">'
 		. $card( ricoman_opt( 'mega_card1_img' ), ricoman_opt( 'mega_card1_title' ), ricoman_opt( 'mega_card1_url' ) )
 		. $card( ricoman_opt( 'mega_card2_img' ), ricoman_opt( 'mega_card2_title' ), ricoman_opt( 'mega_card2_url' ) )
@@ -124,12 +124,12 @@ add_shortcode( 'ricoman_header', function () {
 		. '.rm-mega-col ul.rm-mega-coll a{display:flex!important;flex-direction:column!important;gap:2px!important}'
 		. '.rm-mega-name{font-weight:500!important}'
 		. '.rm-mega-sub{font-size:.76rem!important;font-weight:300!important}'
-		. '.rm-mega-col h4{font-size:.95rem!important;margin:0 0 .9em!important}'
+		. '.rm-mega-col h4,.rm-mega-col .rm-mega-h{font-size:.95rem!important;margin:0 0 .9em!important;font-family:Poppins!important;font-weight:700!important}'
 		// Mobile: keep only the Categories column in the menu.
 		. '@media(max-width:1024px){'
 		. '.rm-mega-cols{grid-template-columns:1fr!important}'
 		. '.rm-mega-cols .rm-mega-col:nth-child(2),.rm-mega-cols .rm-mega-col:nth-child(3){display:none!important}'
-		. '.rm-mega-col h4,.rm-mega-col ul a,.rm-mega-name{color:#fff!important}'
+		. '.rm-mega-col h4,.rm-mega-col .rm-mega-h,.rm-mega-col ul a,.rm-mega-name{color:#fff!important}'
 		. '}'
 		. '</style>';
 
