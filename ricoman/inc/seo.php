@@ -707,6 +707,26 @@ add_filter( 'robots_txt', function ( $output ) {
 	return $output;
 }, 20 );
 
+// Drop the author/users sitemap: this is a single-author marketing site, so
+// author archives are duplicate, low-value URLs we don't want indexed.
+add_filter( 'wp_sitemaps_add_provider', function ( $provider, $name ) {
+	return ( 'users' === $name ) ? false : $provider;
+}, 10, 2 );
+
+// Keep noindexed posts (our per-post "Hide from search engines" toggle) out of
+// the core sitemap, so the sitemap and the robots meta tag stay consistent.
+add_filter( 'wp_sitemaps_posts_query_args', function ( $args ) {
+	$exclude = array(
+		'relation' => 'OR',
+		array( 'key' => '_ricoman_seo_noindex', 'compare' => 'NOT EXISTS' ),
+		array( 'key' => '_ricoman_seo_noindex', 'value' => '1', 'compare' => '!=' ),
+	);
+	$args['meta_query'] = empty( $args['meta_query'] )
+		? $exclude
+		: array( 'relation' => 'AND', $args['meta_query'], $exclude );
+	return $args;
+} );
+
 /* ---------------------------------------------------------------------------
  * Per-post SEO fields (overrides) — "optimise over time" by hand
  * ------------------------------------------------------------------------- */
