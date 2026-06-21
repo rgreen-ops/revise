@@ -152,9 +152,60 @@ function ricoman_variant_csv_page() {
 				<p><button type="submit" class="button button-primary"><?php esc_html_e( 'Upload &amp; import', 'ricoman' ); ?></button></p>
 			</form>
 		</div>
+
+		<div class="card" style="max-width:760px;padding:8px 20px 18px;margin-top:18px">
+			<h2><?php esc_html_e( 'Link variants to a parent', 'ricoman' ); ?></h2>
+			<p><?php esc_html_e( 'Attach existing variant rows to a product when migrated variants aren’t connected (so they appear in the product’s Configure table). Matches variants whose title STARTS WITH the text below, and sets their parent to the chosen product. Example: product “Estrella”, title starts with “Estrella Pro”.', 'ricoman' ); ?></p>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<input type="hidden" name="action" value="ricoman_variant_link_parent">
+				<?php wp_nonce_field( 'ricoman_variant_link_parent' ); ?>
+				<p>
+					<label for="rm-link-parent"><?php esc_html_e( 'Parent product:', 'ricoman' ); ?></label>
+					<select name="parent" id="rm-link-parent" required>
+						<option value=""><?php esc_html_e( '— select —', 'ricoman' ); ?></option>
+						<?php foreach ( $products as $prod_id ) : ?>
+							<option value="<?php echo esc_attr( $prod_id ); ?>"><?php echo esc_html( get_the_title( $prod_id ) ); ?></option>
+						<?php endforeach; ?>
+					</select>
+				</p>
+				<p>
+					<label for="rm-link-prefix"><?php esc_html_e( 'Variant title starts with:', 'ricoman' ); ?></label>
+					<input type="text" name="prefix" id="rm-link-prefix" class="regular-text" placeholder="Estrella Pro" required>
+				</p>
+				<p><button type="submit" class="button button-primary"><?php esc_html_e( 'Link matching variants', 'ricoman' ); ?></button></p>
+				<p class="description"><?php esc_html_e( 'Re-runnable and reversible (just link them somewhere else). Only published variant-product rows are matched.', 'ricoman' ); ?></p>
+			</form>
+		</div>
 	</div>
 	<?php
 }
+
+add_action( 'admin_post_ricoman_variant_link_parent', function () {
+	if ( ! current_user_can( 'edit_posts' ) || ! check_admin_referer( 'ricoman_variant_link_parent' ) ) {
+		wp_die( esc_html__( 'You do not have permission to do this.', 'ricoman' ) );
+	}
+	$parent = isset( $_POST['parent'] ) ? absint( $_POST['parent'] ) : 0;
+	$prefix = isset( $_POST['prefix'] ) ? sanitize_text_field( wp_unslash( $_POST['prefix'] ) ) : '';
+	$n      = 0;
+	if ( $parent && get_post( $parent ) && '' !== $prefix && post_type_exists( 'variant-product' ) ) {
+		global $wpdb;
+		$like = $wpdb->esc_like( $prefix ) . '%';
+		$ids  = $wpdb->get_col( $wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			"SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND post_status = 'publish' AND post_title LIKE %s",
+			'variant-product',
+			$like
+		) );
+		foreach ( $ids as $vid ) {
+			update_post_meta( (int) $vid, 'parent_product', (string) $parent );
+			$n++;
+		}
+	}
+	wp_safe_redirect( add_query_arg(
+		array( 'rm_csv' => rawurlencode( sprintf( /* translators: %d count */ __( 'Linked %d variant(s) to the product.', 'ricoman' ), $n ) ) ),
+		admin_url( 'edit.php?post_type=variant-product&page=ricoman-variant-csv' )
+	) );
+	exit;
+} );
 
 /* -------------------------------------------------------------------- export */
 
