@@ -941,10 +941,7 @@ function ricoman_pf_variant_table( $pid ) {
 	$rows    = '';
 	$details = '';
 	foreach ( $variants as $i => $v ) {
-		// Lazy via data-src (loaded by rmLazyImg on scroll / show-more) so the
-		// ~all variant thumbnails don't get processed up front — that volume of
-		// images was making the cache/optimiser take ~36s on this page.
-		$thumb   = $v['img'] ? '<img data-src="' . esc_url( $v['img'] ) . '" alt="" loading="lazy" class="rm-lazyimg">' : '';
+		$thumb   = $v['img'] ? '<img src="' . esc_url( $v['img'] ) . '" alt="" loading="lazy">' : '';
 		$rowattr = '';
 		foreach ( $filterable as $label => $vals ) {
 			$rowattr .= ' data-f-' . $slugify( $label ) . '="' . esc_attr( isset( $v['pairs'][ $label ] ) ? $v['pairs'][ $label ] : '' ) . '"';
@@ -1138,9 +1135,10 @@ function ricoman_pf_sections( $pid ) {
 	// Keyed by the product's modified time + a bump-able version (variant edits),
 	// so it self-invalidates; 12h TTL as a backstop.
 	$cacheable = empty( $GLOBALS['rm_pe_preview'] ) && ! ( is_user_logged_in() && current_user_can( 'edit_post', $pid ) );
-	// 'm2' = markup version; bump to invalidate cached sections when the section
-	// HTML changes (here: lazy data-src variant-table thumbnails).
-	$tkey      = 'rm_pfsec_m2_' . $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true );
+	// 'm3' = markup version; bump to invalidate cached sections when section HTML
+	// changes. (Variant thumbnails use native loading="lazy"; the optimiser, not
+	// the theme, was the speed problem.)
+	$tkey      = 'rm_pfsec_m3_' . $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true );
 	if ( $cacheable ) {
 		$pre = get_transient( $tkey );
 		if ( is_array( $pre ) ) {
