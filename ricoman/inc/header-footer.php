@@ -35,6 +35,7 @@ add_shortcode( 'ricoman_header', function () {
 	// Mega panel (Products). Auto-list the real product categories so the menu
 	// matches the /products/ structure — each links straight to its category
 	// page. (Replaces a stale manual list whose links all pointed at /products/.)
+	// Sorted alphabetically by category name.
 	$cats  = '';
 	$ctax  = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
 	$terms = get_terms( array( 'taxonomy' => $ctax, 'hide_empty' => true, 'orderby' => 'name', 'order' => 'ASC' ) );
