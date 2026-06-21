@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 function ricoman_settings_defaults() {
 	return array(
 		'brand_logo'       => '',
-		'nav_primary'      => "Products | #products\nProjects | /projects/\nAbout | /about/\nContact | /contact/\nCustomisation | /customisation/\nDownload | /downloads/",
+		'nav_primary'      => "Products | #products\nProjects | /projects/\nAbout | /about/\nContact | /contact/\nFlow Designer | /flow-designer/\nDownloads | /downloads/",
 		'mega_heading'     => 'See All Products',
 		'mega_heading_url' => '/products/',
 		'mega_categories'  => "Linear | /products/\nPendants | /products/\nDownlight | /products/\nAcoustic | /products/\nBiophilic | /products/\nEmergency | /products/\nExterior | /products/\nBulkhead | /products/\nPanel | /products/\nTrack Lighting | /products/\nIndustrial | /products/",
@@ -71,6 +71,23 @@ add_action( 'admin_init', function () {
 		update_option( 'ricoman_settings', $opts );
 	}
 	update_option( 'ricoman_sector_links_migrated', 1 );
+} );
+
+/** One-time: add the Flow Designer link to the primary nav (and adopt the new
+ * order) on existing sites whose saved nav doesn't yet include it. Stays
+ * editable afterwards under Ricoman → Header & Menu. */
+add_action( 'admin_init', function () {
+	if ( get_option( 'ricoman_nav_flowdesigner_migrated' ) ) {
+		return;
+	}
+	$opts = get_option( 'ricoman_settings', array() );
+	$nav  = isset( $opts['nav_primary'] ) ? (string) $opts['nav_primary'] : '';
+	if ( '' !== $nav && false === strpos( $nav, '/flow-designer/' ) ) {
+		$def = ricoman_settings_defaults();
+		$opts['nav_primary'] = $def['nav_primary'];
+		update_option( 'ricoman_settings', $opts );
+	}
+	update_option( 'ricoman_nav_flowdesigner_migrated', 1 );
 } );
 
 /** Read one setting (falls back to the default). */

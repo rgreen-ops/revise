@@ -66,7 +66,7 @@ add_shortcode( 'ricoman_header', function () {
 	$mega = '<div class="rm-mega"><div class="rm-mega-inner">'
 		. '<a class="rm-mega-head" href="' . esc_url( ricoman_opt( 'mega_heading_url' ) ) . '">' . esc_html( ricoman_opt( 'mega_heading' ) ) . '</a>'
 		. '<div class="rm-mega-grid"><div class="rm-mega-cols">'
-		. '<div class="rm-mega-col"><p class="rm-mega-h">Categories</p><ul>' . $cats . '</ul></div>'
+		. '<div class="rm-mega-col"><a class="rm-mega-h rm-mega-h-link" href="' . esc_url( ricoman_opt( 'mega_heading_url' ) ) . '">Categories</a><ul>' . $cats . '</ul></div>'
 		. '<div class="rm-mega-col"><p class="rm-mega-h">Collections</p><ul class="rm-mega-coll">' . $cols . '</ul></div>'
 		. '<div class="rm-mega-col"><p class="rm-mega-h">By Application</p><ul>' . $apps . '</ul></div>'
 		. '</div><div class="rm-mega-cards">'
