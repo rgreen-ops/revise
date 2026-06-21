@@ -264,3 +264,102 @@ add_action( 'admin_enqueue_scripts', function ( $hook ) {
 JS;
 	wp_add_inline_script( 'jquery-core', $js );
 } );
+
+/* ============================================================ *
+ * Drag-to-reorder categories (simple back-end ordering)
+ *
+ * "Display order" can be set per-category, but typing numbers is fiddly. This
+ * adds a Ricoman → Reorder Categories screen: drag the rows into the order you
+ * want and Save — it writes a clean 1..N _rm_cat_order across all product-cat
+ * terms (the same meta the mega menu, /products/ tiles and homepage grid read).
+ * ============================================================ */
+add_action( 'admin_menu', function () {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+	add_submenu_page(
+		'ricoman-hub',
+		__( 'Reorder Categories', 'ricoman' ),
+		__( 'Reorder Categories', 'ricoman' ),
+		'manage_options',
+		'ricoman-cat-order',
+		'ricoman_cat_order_page'
+	);
+}, 31 );
+
+function ricoman_cat_order_page() {
+	$tax   = ricoman_cat_tax();
+	$terms = get_terms( array( 'taxonomy' => $tax, 'hide_empty' => false ) );
+	if ( is_wp_error( $terms ) ) {
+		$terms = array();
+	}
+	$terms = ricoman_cat_sort_terms( $terms, 'name' );
+
+	echo '<div class="wrap"><h1>' . esc_html__( 'Reorder Categories', 'ricoman' ) . '</h1>';
+	echo '<p>' . esc_html__( 'Drag the categories into the order you want them to appear — across the mega menu, the /products/ tiles and the homepage range grid — then Save. Products within a category are ordered by the product\'s own "Order" attribute.', 'ricoman' ) . '</p>';
+
+	if ( ! $terms ) {
+		echo '<p><em>' . esc_html__( 'No product categories found.', 'ricoman' ) . '</em></p></div>';
+		return;
+	}
+
+	echo '<p><span id="rm-catord-status" style="font-weight:600"></span></p>';
+	echo '<ol id="rm-catord-list" style="list-style:none;margin:0;padding:0;max-width:560px">';
+	foreach ( $terms as $t ) {
+		echo '<li class="rm-catord-row" data-id="' . esc_attr( $t->term_id ) . '" style="display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #dcdcde;border-radius:8px;padding:10px 14px;margin:0 0 8px;cursor:grab">'
+			. '<span aria-hidden="true" style="color:#a7aaad;font-size:18px;line-height:1">⠿</span>'
+			. '<strong style="flex:1">' . esc_html( $t->name ) . '</strong>'
+			. '<span style="color:#646970;font-size:12px">' . esc_html( sprintf( _n( '%s product', '%s products', $t->count, 'ricoman' ), number_format_i18n( $t->count ) ) ) . '</span>'
+			. '</li>';
+	}
+	echo '</ol>';
+	echo '<p><button class="button button-primary" id="rm-catord-save">' . esc_html__( 'Save order', 'ricoman' ) . '</button></p>';
+	echo '</div>';
+
+	$nonce = wp_create_nonce( 'rm_cat_order' );
+	$ajax  = admin_url( 'admin-ajax.php' );
+	wp_enqueue_script( 'jquery-ui-sortable' );
+	$js = <<<JS
+jQuery(function($){
+	$('#rm-catord-list').sortable({axis:'y',cursor:'grabbing',placeholder:'rm-catord-ph'});
+	$('#rm-catord-save').on('click',function(){
+		var btn=$(this).prop('disabled',true);
+		var ids=$('#rm-catord-list .rm-catord-row').map(function(){return $(this).data('id');}).get();
+		$('#rm-catord-status').css('color','#646970').text('Saving…');
+		$.post(%s,{action:'rm_cat_reorder',nonce:%s,ids:ids}).done(function(r){
+			if(r&&r.success){ $('#rm-catord-status').css('color','#00a32a').text('✓ Saved — order applied across the site.'); }
+			else { $('#rm-catord-status').css('color','#d63638').text('Could not save. Reload and try again.'); }
+		}).fail(function(){ $('#rm-catord-status').css('color','#d63638').text('Network error. Try again.'); })
+		.always(function(){ btn.prop('disabled',false); });
+	});
+});
+JS;
+	$js = sprintf( $js, wp_json_encode( $ajax ), wp_json_encode( $nonce ) );
+	wp_add_inline_script( 'jquery-ui-sortable', $js );
+
+	echo '<style>#rm-catord-list .rm-catord-ph{height:44px;border:2px dashed #c3c4c7;border-radius:8px;margin:0 0 8px;background:#f6f7f7}</style>';
+}
+
+/** AJAX: persist the dragged category order as a clean 1..N _rm_cat_order. */
+add_action( 'wp_ajax_rm_cat_reorder', function () {
+	if ( ! current_user_can( 'manage_options' ) || ! check_ajax_referer( 'rm_cat_order', 'nonce', false ) ) {
+		wp_send_json_error();
+	}
+	$ids = isset( $_POST['ids'] ) ? array_map( 'absint', (array) wp_unslash( $_POST['ids'] ) ) : array();
+	$ids = array_values( array_filter( $ids ) );
+	if ( ! $ids ) {
+		wp_send_json_error();
+	}
+	$tax = ricoman_cat_tax();
+	$pos = 1;
+	foreach ( $ids as $term_id ) {
+		$term = get_term( $term_id, $tax );
+		if ( $term && ! is_wp_error( $term ) ) {
+			update_term_meta( $term_id, '_rm_cat_order', $pos );
+			$pos++;
+		}
+	}
+	// Bust the cached category tiles so the new order shows immediately.
+	update_option( 'rm_products_ver', (string) time(), false );
+	wp_send_json_success( array( 'count' => $pos - 1 ) );
+} );

@@ -3,9 +3,10 @@
 _Running log so nothing gets lost. ✅ done · 🔧 in progress · ⏳ needs server/user action · ☐ to do_
 
 ## Open
-- ☐ **Reorder products & categories** — simpler back-end UX (see "How to" below); consider a drag-drop tool.
+- _(all caught up — see Done below)_
 
 ## Done this session
+- ✅ **Drag-to-reorder categories** — new Ricoman → Reorder Categories screen: drag rows, Save, writes a clean 1..N `_rm_cat_order` (the meta the mega menu, /products/ tiles and homepage grid all read). Far simpler than typing numbers per category.
 - ✅ **Image count discrepancy explained + fixed** — the gap was migrated attachments imported with an EMPTY mime type, so a plain `image/%` count (6,596) undercounted the real ~42,526. Media Cleanup now: (1) shows a "Library breakdown" panel (total attachments vs image-mime vs image-by-extension vs empty-mime vs other) so the number is explained, and (2) the indexer + dedup now match images by file EXTENSION too (`rm_mc_image_file_cond()`), so the empty-mime images get hashed and de-duplicated. Re-run Step 1 (index) then Step 2/3 to catch them.
 - ✅ **Broken-links banner auto-clears** — `ricoman_404_prune_resolved()` drops logged 404s that now resolve and the admin banner shows only genuinely-broken URLs (throttled 10-min re-resolve).
 - ✅ **Cover/project tiles** — hardened so flex covers can't shrink text to min-content (no more "Alli an z" letter-wrapping).
