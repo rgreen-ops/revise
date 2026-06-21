@@ -53,6 +53,87 @@ add_action( 'template_redirect', function () {
 	exit;
 }, 0 );
 
+/* ---- Old single-product URLs (/product/{slug}) → new /products/{slug} ----
+ * The old site used /product/ (singular); products now live at /products/
+ * (plural), and some slugs were shortened during migration. On a 404 under
+ * /product/, send the visitor to the matching product: first by the old slug
+ * (WordPress records _wp_old_slug when a slug changes), then by the current
+ * slug (covers the case where only the /product → /products base changed). */
+add_action( 'template_redirect', function () {
+	if ( is_admin() || ! is_404() ) {
+		return;
+	}
+	$path = trim( (string) wp_parse_url( $_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH ), '/' );
+	if ( '' === $path || 0 !== strpos( $path, 'product/' ) ) {
+		return;
+	}
+	$slug = sanitize_title( basename( $path ) );
+	if ( '' === $slug ) {
+		return;
+	}
+	$found = get_posts( array(
+		'post_type'     => 'product',
+		'post_status'   => 'publish',
+		'numberposts'   => 1,
+		'fields'        => 'ids',
+		'no_found_rows' => true,
+		'meta_query'    => array( array( 'key' => '_wp_old_slug', 'value' => $slug ) ),
+	) );
+	if ( ! $found ) {
+		$p = get_page_by_path( $slug, OBJECT, 'product' );
+		if ( $p ) {
+			$found = array( $p->ID );
+		}
+	}
+	if ( $found ) {
+		wp_safe_redirect( get_permalink( (int) $found[0] ), 301 );
+		exit;
+	}
+}, 1 );
+
+/**
+ * Does this path now resolve to a real, published destination? Used to clear
+ * fixed links from the 404 log. Conservative — only returns true when we can
+ * confidently resolve it (so a genuinely broken link is never silently dropped).
+ */
+function ricoman_path_resolves( $path ) {
+	$path = trim( (string) $path, '/' );
+	if ( '' === $path ) {
+		return true;
+	}
+	// Covered by a manual redirect, or by the /product → /products rule above.
+	$map = ricoman_redirects_get();
+	if ( isset( $map[ $path ] ) ) {
+		return true;
+	}
+	if ( 0 === strpos( $path, 'product/' ) ) {
+		$slug = sanitize_title( basename( $path ) );
+		if ( $slug && ( get_page_by_path( $slug, OBJECT, 'product' )
+			|| get_posts( array( 'post_type' => 'product', 'post_status' => 'publish', 'numberposts' => 1, 'fields' => 'ids', 'no_found_rows' => true, 'meta_query' => array( array( 'key' => '_wp_old_slug', 'value' => $slug ) ) ) ) ) ) {
+			return true;
+		}
+	}
+	// Resolves to a post/page/CPT via the actual rewrite rules (respects the URL base).
+	if ( url_to_postid( home_url( '/' . $path . '/' ) ) || url_to_postid( home_url( '/' . $path ) ) ) {
+		return true;
+	}
+	if ( get_page_by_path( $path ) ) {
+		return true;
+	}
+	// A public taxonomy term whose real URL equals this path.
+	$slug = basename( $path );
+	foreach ( array_values( get_taxonomies( array( 'public' => true ), 'names' ) ) as $tx ) {
+		$term = get_term_by( 'slug', $slug, $tx );
+		if ( $term && ! is_wp_error( $term ) ) {
+			$link = get_term_link( $term, $tx );
+			if ( ! is_wp_error( $link ) && trim( (string) wp_parse_url( $link, PHP_URL_PATH ), '/' ) === $path ) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 /* ---------------------------------------------------------- 404 watch (logger) */
 add_action( 'template_redirect', function () {
 	if ( is_admin() || ! is_404() ) {
@@ -138,6 +219,12 @@ function ricoman_redirects_page() {
 			echo '<div class="notice ' . esc_attr( $cls ) . ' is-dismissible"><p>' . esc_html( $msgs[ $k ] ) . '</p></div>';
 		}
 	}
+	if ( isset( $_GET['rm_recheck'] ) ) {
+		$removed = max( 0, (int) $_GET['rm_recheck'] );
+		echo '<div class="notice notice-success is-dismissible"><p>'
+			. esc_html( sprintf( _n( 'Re-checked: %s link now works and was cleared.', 'Re-checked: %s links now work and were cleared.', $removed, 'ricoman' ), number_format_i18n( $removed ) ) )
+			. '</p></div>';
+	}
 
 	// ---- Guidance: what / when / why ----
 	echo '<div class="card" style="max-width:820px;padding:4px 20px 16px">';
@@ -194,6 +281,14 @@ function ricoman_redirects_page() {
 	}
 	echo '</h2>';
 	echo '<p class="description">' . esc_html__( 'Addresses visitors (or Google) requested that don\'t exist. Point each at the closest live page, or ignore it if it\'s junk/spam.', 'ricoman' ) . '</p>';
+	if ( $log ) {
+		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="margin:0 0 14px">';
+		echo '<input type="hidden" name="action" value="ricoman_404_recheck">';
+		wp_nonce_field( 'ricoman_404_recheck' );
+		echo '<button class="button">' . esc_html__( '↻ Re-check & clear links that now work', 'ricoman' ) . '</button>';
+		echo ' <span class="description">' . esc_html__( 'Removes any flagged link that now resolves (e.g. fixed, redirected, or back online).', 'ricoman' ) . '</span>';
+		echo '</form>';
+	}
 	if ( ! $log ) {
 		echo '<p>✅ ' . esc_html__( 'No broken links recorded. Nice.', 'ricoman' ) . '</p>';
 	} else {
@@ -288,5 +383,23 @@ add_action( 'admin_post_ricoman_redirect_delete', function () {
 	unset( $map[ $from ] );
 	update_option( 'ricoman_redirects', $map );
 	wp_safe_redirect( admin_url( 'admin.php?page=ricoman-redirects&rm_r=deleted' ) );
+	exit;
+} );
+
+/** Re-check every logged 404 and clear the ones that now resolve. */
+add_action( 'admin_post_ricoman_404_recheck', function () {
+	if ( ! current_user_can( 'manage_options' ) || ! check_admin_referer( 'ricoman_404_recheck' ) ) {
+		wp_die( esc_html__( 'Not allowed.', 'ricoman' ) );
+	}
+	$log     = (array) get_option( 'ricoman_404_log', array() );
+	$removed = 0;
+	foreach ( array_keys( $log ) as $path ) {
+		if ( ricoman_path_resolves( $path ) ) {
+			unset( $log[ $path ] );
+			$removed++;
+		}
+	}
+	update_option( 'ricoman_404_log', $log, false );
+	wp_safe_redirect( admin_url( 'admin.php?page=ricoman-redirects&rm_recheck=' . $removed ) );
 	exit;
 } );
