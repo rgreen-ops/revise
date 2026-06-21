@@ -79,6 +79,12 @@
    critical path). */
 window.addEventListener('load', function () {
   try {
+    // On phones/tablets and data-saver/slow connections, keep the still poster
+    // and never download the ~1.9MB video — big mobile speed + payload win.
+    var small = window.matchMedia && window.matchMedia('(max-width: 1024px)').matches;
+    var c = navigator.connection || {};
+    var slow = c.saveData === true || /(^|-)2g$/.test(c.effectiveType || '');
+    if (small || slow) { return; }
     document.querySelectorAll('video.wp-block-cover__video-background[data-src]').forEach(function (v) {
       v.src = v.getAttribute('data-src');
       v.removeAttribute('data-src');
