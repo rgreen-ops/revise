@@ -308,12 +308,18 @@ function ricoman_pf_imgurl( $v, $size = 'large' ) {
 		$u = $v;
 	}
 	if ( $id ) {
-		// Sized sub-size is WebP/AVIF and far smaller than the full original.
-		$su = wp_get_attachment_image_url( $id, $size );
-		if ( ! $su && 'large' !== $size ) {
-			$su = wp_get_attachment_image_url( $id, 'large' );
+		// Prefer a generated WebP copy (theme-native converter) when present.
+		$webp = function_exists( 'ricoman_webp_url' ) ? ricoman_webp_url( $id ) : '';
+		if ( $webp ) {
+			$u = $webp;
+		} else {
+			// Sized sub-size is far smaller than the full original.
+			$su = wp_get_attachment_image_url( $id, $size );
+			if ( ! $su && 'large' !== $size ) {
+				$su = wp_get_attachment_image_url( $id, 'large' );
+			}
+			$u = $su ? $su : (string) wp_get_attachment_image_url( $id, 'full' );
 		}
-		$u = $su ? $su : (string) wp_get_attachment_image_url( $id, 'full' );
 	}
 	$u = $u ? $u : '';
 	// Borrow from the live origin if the file is missing locally (staging).
@@ -1155,7 +1161,7 @@ function ricoman_pf_sections( $pid ) {
 	// 'm3' = markup version; bump to invalidate cached sections when section HTML
 	// changes. (Variant thumbnails use native loading="lazy"; the optimiser, not
 	// the theme, was the speed problem.)
-	$tkey      = 'rm_pfsec_m6_' . $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true );
+	$tkey      = 'rm_pfsec_m7_' . $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true );
 	if ( $cacheable ) {
 		$pre = get_transient( $tkey );
 		if ( is_array( $pre ) ) {

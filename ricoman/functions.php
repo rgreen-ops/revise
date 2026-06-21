@@ -39,6 +39,7 @@ require_once get_theme_file_path( 'inc/acf-fields.php' );     // Original ricoma
 require_once get_theme_file_path( 'inc/meta.php' );          // Product specs & variants.
 require_once get_theme_file_path( 'inc/performance.php' );   // Speed: fonts, bloat removal, prefetch.
 require_once get_theme_file_path( 'inc/images.php' );        // Auto web-ready images (AVIF/WebP, alt text).
+require_once get_theme_file_path( 'inc/webp-convert.php' );   // Theme-native PNG/JPEG -> WebP converter + serving.
 require_once get_theme_file_path( 'inc/media-cleanup.php' );  // Media library de-duplication toolkit.
 require_once get_theme_file_path( 'inc/gallery-classify.php' );// Bulk Studio / In-situ image sorter.
 require_once get_theme_file_path( 'inc/error-page.php' );     // Friendly branded fatal-error page.

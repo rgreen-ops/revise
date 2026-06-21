@@ -490,9 +490,17 @@ function ricoman_first_term_name( $pid, $taxes ) {
 
 /** Display image for a product: featured image, else first ACF gallery image. */
 function ricoman_product_img( $pid ) {
-	$img = get_the_post_thumbnail_url( $pid, 'large' );
-	if ( $img ) {
-		return $img;
+	$tid = get_post_thumbnail_id( $pid );
+	if ( $tid ) {
+		// Prefer a generated WebP copy of the featured image.
+		$webp = function_exists( 'ricoman_webp_url' ) ? ricoman_webp_url( $tid ) : '';
+		if ( $webp ) {
+			return $webp;
+		}
+		$img = wp_get_attachment_image_url( $tid, 'large' );
+		if ( $img ) {
+			return $img;
+		}
 	}
 	// Real ricoman.com products keep images in the ACF gallery, not the thumbnail.
 	if ( function_exists( 'ricoman_pf_get' ) && function_exists( 'ricoman_pf_imgurl' ) ) {
