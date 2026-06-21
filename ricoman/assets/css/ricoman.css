@@ -731,6 +731,10 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 @media(max-width:560px){.rm-sp-grid{grid-template-columns:1fr}}
 
 /* ===== Hero legibility: light text + gradient scrim on full-bleed covers ===== */
+/* The cover MUST be its own positioning context, otherwise its absolutely-
+   positioned ::after scrim escapes to the nearest positioned ancestor (e.g. the
+   sticky product gallery) and paints a grey gradient over unrelated content. */
+.wp-block-cover.alignfull{position:relative}
 .wp-block-cover.alignfull > .wp-block-cover__inner-container{position:relative;z-index:2}
 .wp-block-cover.alignfull::after{content:"";position:absolute;left:0;right:0;bottom:0;height:60%;background:linear-gradient(180deg,transparent,rgba(0,0,0,.55));pointer-events:none;z-index:1}
 /* muted/grey paragraphs sitting on a dark cover must read light, not grey */
