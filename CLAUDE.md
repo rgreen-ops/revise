@@ -81,6 +81,11 @@ GLOBAL: [ ] Header / mega-menu  [ ] Footer
     Category SEO seeder. The SEO engine already does title/desc/canonical/robots/
     OG/Twitter + a full JSON-LD @graph (Org, WebSite+Search, LocalBusiness+Geo,
     Product, Article, BreadcrumbList, CollectionPage) and is Yoast-aware.
+    Page SEO screen also has an additive **footer link top-up**
+    (`ricoman_footer_links_topup()`) that appends missing feature-page links to
+    foot_col_other without removing edits (for existing staging). OG/social image
+    (`ricoman_seo_image`) now falls back to a page's first content image (hero)
+    when no featured image is set, before the site default.
 - **Image alt text (SEO + a11y):** new uploads auto-get alt from a tidied title;
     a batched, resumable backfill (Ricoman → Image Alt Text) fills the migrated
     library, deriving alt from each image's title or its parent product/post, and
