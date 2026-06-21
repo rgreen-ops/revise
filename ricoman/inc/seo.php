@@ -174,13 +174,17 @@ function ricoman_seo_canonical() {
  * @return bool
  */
 function ricoman_seo_is_noindex() {
-	if ( is_search() || is_404() ) {
+	// Thin / duplicate / low-value listings we don't want in the index. Author and
+	// date archives mirror the same posts (single-author marketing site), so they
+	// add no value and risk duplicate content — matches dropping them from the
+	// sitemap. Search + 404 are never useful index targets.
+	if ( is_search() || is_404() || is_author() || is_date() ) {
 		return true;
 	}
 	if ( is_singular() && get_post_meta( get_queried_object_id(), '_ricoman_seo_noindex', true ) ) {
 		return true;
 	}
-	return false;
+	return apply_filters( 'ricoman_seo_is_noindex', false );
 }
 
 /* ---------------------------------------------------------------------------
