@@ -322,8 +322,16 @@ function ricoman_pf_imgurl( $v, $size = 'large' ) {
 		}
 	}
 	$u = $u ? $u : '';
-	// Borrow from the live origin if the file is missing locally (staging).
-	return ( $u && function_exists( 'ricoman_img_fallback' ) ) ? ricoman_img_fallback( $u ) : $u;
+	if ( ! $u ) {
+		return '';
+	}
+	// Migrated values are often absolute old-domain URLs pointing at a sub-size
+	// that was never generated — normalise to this site + the original file, then
+	// fall back to the live origin only if it's genuinely missing.
+	if ( function_exists( 'ricoman_norm_img_url' ) ) {
+		return ricoman_norm_img_url( $u );
+	}
+	return function_exists( 'ricoman_img_fallback' ) ? ricoman_img_fallback( $u ) : $u;
 }
 
 /** Extract [name, mainImage, swatch] from one variant row of unknown sub-field names. */

@@ -93,6 +93,57 @@ function ricoman_img_fallback( $url ) {
 	return $out;
 }
 
+/**
+ * Normalise a migrated image URL so it actually resolves.
+ *
+ * The old-site export left many image values as ABSOLUTE URLs on the source
+ * domain (e.g. https://ricoman.com/wp-content/uploads/alluploadedfile/foo-1024x1024.png)
+ * referencing a sub-size that was never generated. Two problems: the host is the
+ * live site (not this one) and the -WxH sub-size file doesn't exist.
+ *
+ * This maps any /wp-content/uploads/… URL (whatever its host) onto THIS site's
+ * uploads, and if the requested file is missing on disk it tries the original
+ * (size suffix stripped). Whatever it resolves to is then run through the
+ * live-origin fallback so genuinely-missing files still display.
+ *
+ * @param string $url
+ * @return string
+ */
+function ricoman_norm_img_url( $url ) {
+	if ( ! is_string( $url ) || '' === $url ) {
+		return $url;
+	}
+	static $cache = array();
+	if ( isset( $cache[ $url ] ) ) {
+		return $cache[ $url ];
+	}
+	$up      = wp_get_upload_dir();
+	$baseurl = isset( $up['baseurl'] ) ? $up['baseurl'] : '';
+	$basedir = isset( $up['basedir'] ) ? $up['basedir'] : '';
+	$path    = $baseurl ? wp_parse_url( $baseurl, PHP_URL_PATH ) : ''; // /wp-content/uploads
+	if ( ! $path ) {
+		return $cache[ $url ] = $url;
+	}
+	$pos = strpos( $url, $path );
+	if ( false === $pos ) {
+		return $cache[ $url ] = $url; // not an uploads URL — leave alone.
+	}
+	$rel     = substr( $url, $pos + strlen( $path ) ); // /alluploadedfile/foo-1024x1024.png[?x]
+	$relpath = preg_replace( '/[?#].*$/', '', $rel );
+	$out     = $baseurl . $rel; // re-host onto THIS site.
+	if ( ! file_exists( $basedir . $relpath ) ) {
+		// Sub-size missing — try the original (strip a trailing -WxH).
+		$orig = preg_replace( '/-\d+x\d+(\.[A-Za-z0-9]+)$/', '$1', $relpath );
+		if ( $orig !== $relpath && file_exists( $basedir . $orig ) ) {
+			$out = $baseurl . $orig;
+		} else {
+			// Still missing locally — let the live-origin fallback handle it.
+			$out = ricoman_img_fallback( $baseurl . $rel );
+		}
+	}
+	return $cache[ $url ] = $out;
+}
+
 /* Apply broadly so both the front end and the back-end thumbnails benefit. */
 add_filter( 'wp_get_attachment_url', 'ricoman_img_fallback', 20 );
 add_filter( 'wp_get_attachment_image_src', function ( $image ) {
