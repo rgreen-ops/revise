@@ -387,6 +387,9 @@ function ricoman_news_link_map() {
 		'custom lighting'        => 'customisation',
 		'bespoke lighting'       => 'customisation',
 		'made in britain'        => 'made-in-britain',
+		'sustainability'         => 'sustainability',
+		'where to buy'           => 'where-to-buy',
+		'emergency lighting'     => 'fire-safety',
 	);
 	foreach ( $curated as $kw => $slug ) {
 		if ( isset( $map[ $kw ] ) ) {
