@@ -296,6 +296,32 @@ txt(s, Inches(0.6), Inches(6.95), Inches(12), Inches(0.3),
     [("Source: Google Lighthouse (the engine behind PageSpeed Insights), homepage, " + __import__('datetime').date.today().strftime('%b %Y') + ". Lab data; field scores vary by device/network.", 9, False, MUTED, 0)])
 footer(s, 10)
 
+# ============================================================ 8c. WHAT IT MEANS
+s = slide(); header(s, "MEASURED RESULTS", "What those PageSpeed numbers mean")
+txt(s, Inches(0.6), Inches(1.5), Inches(12.2), Inches(0.5),
+    [("In plain English — what each measure is, and what changed.", 13, False, MUTED, 0)])
+
+explain = [
+    ("Score /100", "32 → 93 (mobile)", "A speed exam mark. 32 is a fail; 93 is a top grade. Google uses this mark to help decide search rankings."),
+    ("Main image appears", "12.4s → 2.3s", "How long before the main content shows on a phone. It took over 12 seconds; now about 2. Most people won't wait past 3."),
+    ("Page responds to taps", "3.3s → instant", "How long the page is frozen and ignores taps while loading. It used to lock up for ~3 seconds; now it reacts straight away."),
+    ("Page looks finished", "12.1s → 5.6s", "How quickly the page visually fills in and looks done — now less than half the time."),
+    ("You see something", "2.8s → 1.2s", "How soon anything at all appears on screen, so it doesn't feel blank."),
+]
+y = Inches(2.05)
+for metric, change, plain in explain:
+    rect(s, Inches(0.6), y, Inches(12.1), Inches(0.78), SOFT)
+    rect(s, Inches(0.6), y, Inches(0.1), Inches(0.78), BLUE)
+    txt(s, Inches(0.85), y, Inches(3.0), Inches(0.78), [(metric, 13, True, INK, 1), (change, 12, True, GREEN, 0)], anchor=MSO_ANCHOR.MIDDLE)
+    txt(s, Inches(4.0), y, Inches(8.5), Inches(0.78), [(plain, 12.5, False, NAVY, 0)], anchor=MSO_ANCHOR.MIDDLE)
+    y += Inches(0.85)
+
+rect(s, Inches(0.6), Inches(6.45), Inches(12.1), Inches(0.62), NAVY)
+txt(s, Inches(0.85), Inches(6.45), Inches(11.6), Inches(0.62), [
+    ("Bottom line: the old site was slow enough on phones to push visitors away; the new one loads fast and stays responsive — which means better Google rankings and more enquiries.", 12.5, True, PAPER, 0)
+], anchor=MSO_ANCHOR.MIDDLE)
+footer(s, 11)
+
 # ============================================================ 9. ROADMAP
 s = slide(); header(s, "ROADMAP", "Where we are")
 steps = [
@@ -342,7 +368,7 @@ for i, (old, new) in enumerate(rows):
     txt(s, Inches(0.8), y, Inches(5.7), Inches(0.56), [(old, 12, False, MUTED, 0)], anchor=MSO_ANCHOR.MIDDLE)
     txt(s, Inches(6.9), y, Inches(5.7), Inches(0.56), [(new, 12, True, NAVY, 0)], anchor=MSO_ANCHOR.MIDDLE)
     y += Inches(0.6)
-footer(s, 11)
+footer(s, 13)
 
 # ============================================================ 11. CLOSE
 s = slide()
