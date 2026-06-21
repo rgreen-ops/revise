@@ -1262,7 +1262,7 @@ function ricoman_pf_sections( $pid ) {
 	// BIM / Revit is a made-to-request file (built by the lighting team on demand),
 	// so it's a request link on every product — not a direct download.
 	$dl .= '<a class="rm-bim-req" href="#" data-product="' . esc_attr( $title ) . '"><span class="rm-dl-lbl">' . esc_html__( 'BIM / Revit', 'ricoman' ) . '</span> <span class="rm-dl-sub">' . esc_html__( '(RFA) · request', 'ricoman' ) . '</span></a>';
-	$downloads = '<div class="rm-prod-downloads"><h2 class="rm-shead">Downloads</h2><div class="rm-dls">' . $dl . '</div></div>';
+	$downloads = '<div class="rm-prod-downloads"><div class="rm-dls">' . $dl . '</div></div>';
 
 	// CTA buttons (LD + trade) from the structured fields, with fallbacks.
 	$ld    = ricoman_pf_get( $pid, '_ricoman_ld_btn', 'Request a Lighting Design' );
