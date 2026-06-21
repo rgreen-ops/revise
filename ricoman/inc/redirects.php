@@ -273,7 +273,20 @@ function ricoman_redirects_page() {
 	}
 
 	// ---- Broken links (404s) detected ----
-	$log = (array) get_option( 'ricoman_404_log', array() );
+	// Auto-clean: drop any logged link that now resolves (fixed page, manual
+	// redirect, or the automatic /product → /products rule) so the list shows
+	// only genuinely-broken URLs without anyone clicking re-check.
+	$log     = (array) get_option( 'ricoman_404_log', array() );
+	$cleaned = false;
+	foreach ( array_keys( $log ) as $p ) {
+		if ( ricoman_path_resolves( $p ) ) {
+			unset( $log[ $p ] );
+			$cleaned = true;
+		}
+	}
+	if ( $cleaned ) {
+		update_option( 'ricoman_404_log', $log, false );
+	}
 	uasort( $log, function ( $a, $b ) { return ( $b['hits'] <=> $a['hits'] ) ?: ( $b['last'] <=> $a['last'] ); } );
 	echo '<h2 style="margin-top:28px">' . esc_html__( 'Broken links detected (404s)', 'ricoman' );
 	if ( $log ) {
@@ -402,4 +415,25 @@ add_action( 'admin_post_ricoman_404_recheck', function () {
 	update_option( 'ricoman_404_log', $log, false );
 	wp_safe_redirect( admin_url( 'admin.php?page=ricoman-redirects&rm_recheck=' . $removed ) );
 	exit;
+} );
+
+/* Daily: auto-prune the 404 log of links that now resolve, so the admin
+   warning count stays accurate without anyone opening the page. */
+add_action( 'init', function () {
+	if ( ! wp_next_scheduled( 'ricoman_404_prune' ) ) {
+		wp_schedule_event( time() + 600, 'daily', 'ricoman_404_prune' );
+	}
+} );
+add_action( 'ricoman_404_prune', function () {
+	$log = (array) get_option( 'ricoman_404_log', array() );
+	$ch  = false;
+	foreach ( array_keys( $log ) as $p ) {
+		if ( ricoman_path_resolves( $p ) ) {
+			unset( $log[ $p ] );
+			$ch = true;
+		}
+	}
+	if ( $ch ) {
+		update_option( 'ricoman_404_log', $log, false );
+	}
 } );
