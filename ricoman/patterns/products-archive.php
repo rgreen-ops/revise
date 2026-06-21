@@ -45,10 +45,9 @@ echo $cover(
 // Category tiles only — no product list, no filters. The full filtered product
 // grid lives on each category page (taxonomy-product-cat → [ricoman_cat_filter]).
 // This keeps /products/ light and fast (a dozen tiles vs ~500 product cards).
-echo '<!-- wp:group {"align":"full","className":"rm-section","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-section">'
-	. '<!-- wp:heading {"level":2,"className":"rm-shead"} --><h2 class="wp-block-heading rm-shead">Browse by category</h2><!-- /wp:heading -->'
-	. '<!-- wp:paragraph {"textColor":"muted"} --><p class="has-muted-color has-text-color">Choose a range to see every fitting, with spec filters and order codes.</p><!-- /wp:paragraph -->'
-	. '<!-- wp:shortcode -->[ricoman_category_cards limit="0" exclude=""]<!-- /wp:shortcode -->'
+echo '<!-- wp:group {"align":"full","className":"rm-section","layout":{"type":"default"}} --><div class="wp-block-group alignfull rm-section">'
+	. '<div class="rm-pp-wrap"><h2 class="wp-block-heading rm-shead">Browse by category</h2></div>'
+	. '<!-- wp:shortcode -->[ricoman_category_cards limit="0" exclude="" wide="1"]<!-- /wp:shortcode -->'
 	. '</div><!-- /wp:group -->';
 
 echo $cover(

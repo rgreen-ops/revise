@@ -1551,3 +1551,11 @@ html,body{overflow-x:clip}
 
 /* Lazy-bg card placeholder (image set on scroll by rmLazyBg). */
 .rm-projcard.rm-lazybg[data-bg]{background-color:#e7e7ea}
+
+/* Wide category-tile grid for the /products/ archive (breaks out of the 760px
+   content width via .rm-pp-wrap; more columns than the homepage 3-up). */
+.rm-catarch{padding-top:clamp(8px,1.5vw,20px)}
+.rm-catcards-wide{grid-template-columns:repeat(4,1fr)}
+@media(max-width:1100px){.rm-catcards-wide{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:760px){.rm-catcards-wide{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:460px){.rm-catcards-wide{grid-template-columns:1fr}}

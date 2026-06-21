@@ -507,7 +507,7 @@ function ricoman_category_image( $term_id, $tax = 'product-cat' ) {
  * grid, replacing the old hard-coded placeholder cards.
  */
 add_shortcode( 'ricoman_category_cards', function ( $atts ) {
-	$atts = shortcode_atts( array( 'limit' => 8, 'exclude' => 'Accessories' ), $atts, 'ricoman_category_cards' );
+	$atts = shortcode_atts( array( 'limit' => 8, 'exclude' => 'Accessories', 'wide' => 0 ), $atts, 'ricoman_category_cards' );
 	// Cache the rendered cards (image lookups query products); invalidated whenever
 	// a product/variant changes (shared version), with a 12h backstop.
 	$ver    = function_exists( 'ricoman_products_ver' ) ? ricoman_products_ver() : '1';
@@ -547,7 +547,15 @@ add_shortcode( 'ricoman_category_cards', function ( $atts ) {
 			break;
 		}
 	}
-	$out = $cards ? '<div class="rm-catcards">' . $cards . '</div>' : '';
+	if ( ! $cards ) {
+		$out = '';
+	} elseif ( (int) $atts['wide'] ) {
+		// Wide archive layout (the /products/ tiles): break out of the 760px
+		// content width into the full 1640px wrapper, more columns.
+		$out = '<div class="rm-pp-wrap rm-catarch"><div class="rm-catcards rm-catcards-wide">' . $cards . '</div></div>';
+	} else {
+		$out = '<div class="rm-catcards">' . $cards . '</div>';
+	}
 	set_transient( $ckey, $out, 12 * HOUR_IN_SECONDS );
 	return $out;
 } );
