@@ -571,6 +571,35 @@ add_action( 'init', function () {
 		'cta_sub'    => 'Tell us what you&rsquo;re working on and we&rsquo;ll design, make and deliver the lighting — start to finish.',
 	) ) );
 
+	// About — a designer layout aimed at specifiers (architects, interior &
+	// lighting designers, fit-out / D&B contractors): engage fast, sell benefits.
+	$p['about-pro'] = array( 'About · Designer', $feature( array(
+		'eyb'        => 'About Ricoman',
+		'title'      => 'British lighting, built for the people who specify it.',
+		'lead'       => 'We&rsquo;re a Manchester manufacturer of commercial LED lighting — and a design partner to the architects, interior designers, lighting designers and fit-out teams who bring great spaces to life. Free scheme design, UK manufacturing, fast lead times and people who pick up the phone.',
+		'hero'       => $u( 'rico-making.webp' ),
+		'cta1'       => array( 'Start a project', '/lighting-design/' ),
+		'cta2'       => array( 'See our work', '/projects/' ),
+		'ben_eyb'    => 'Why specifiers choose us',
+		'ben_head'   => 'A partner, not just a supplier',
+		'benefits'   => array(
+			array( '01', 'Free lighting design', 'Send drawings or a finishes schedule and our in-house designers return a costed, DIALux-backed scheme — usually within 3&ndash;5 days.' ),
+			array( '02', 'Made in Britain', 'Designed, assembled, finished and tested in Manchester — full control of quality, bespoke detail and lead times.' ),
+			array( '03', 'Bespoke as standard', 'Custom lengths, curves, finishes and colour temperatures to match your drawings — not the other way round.' ),
+			array( '04', 'Specified with confidence', 'Datasheets, IES/LDT and BIM for your spec pack, a 5-year warranty and real UK-based support.' ),
+		),
+		'split_img'  => $u( 'rico-lightingdesign.webp' ),
+		'split_eyb'  => 'How we work',
+		'split_head' => 'From first sketch to fitting on site',
+		'split_body' => 'One British team, end to end — so the scheme you sign off is the light that&rsquo;s installed: on spec, on time, on budget. We&rsquo;ve lit offices, retail, hospitality, healthcare, education and industrial projects across the UK and beyond.',
+		'split_items'=> array( '<strong>Free scheme design</strong> with full photometrics', '<strong>Bespoke sizing, finishes &amp; CCTs</strong> to suit the space', '<strong>Value engineering</strong> to protect the budget', '<strong>UK stock</strong> + made-to-order on an average six-day lead', '<strong>5-year warranty</strong> &amp; UK-based technical support' ),
+		'faq_head'   => 'About Ricoman &mdash; FAQs',
+		'faqs'       => "Q: Where is Ricoman lighting made?\nA: Designed and manufactured at our facility in Manchester, UK, with stock held here for fast lead times.\nQ: Who do you work with?\nA: Architects, interior and lighting designers, M&E consultants, and fit-out / design-and-build contractors — from concept through to installation.\nQ: Is the lighting design service really free?\nA: Yes — send drawings or a finishes schedule and we return a fully specified, costed scheme at no charge, usually within 3-5 working days.\nQ: Can products be tailored to my project?\nA: Yes — sizes, finishes, colour temperatures and bespoke forms are available across most ranges.",
+		'cta_img'    => $u( 'office1.webp' ),
+		'cta_head'   => 'Let&rsquo;s light your next project',
+		'cta_sub'    => 'Tell us what you&rsquo;re working on — we&rsquo;ll design, make and deliver the lighting, start to finish.',
+	) ) );
+
 	foreach ( $p as $slug => $data ) {
 		register_block_pattern( 'ricoman/' . $slug, array( 'title' => $data[0], 'categories' => array( 'ricoman-page' ), 'content' => $data[1] ) );
 	}
@@ -578,7 +607,9 @@ add_action( 'init', function () {
 
 /** Editable block stacks for the content pages. */
 function ricoman_about_blocks() {
-	return ricoman_stack( array( 'about-hero', 'about-intro', 'about-capabilities', 'about-stats', 'about-values', 'about-contact' ) );
+	// Designer layout aimed at specifiers: split hero, benefit cards, how-we-work
+	// + a trust stat band (since 1999 / projects / warranty), FAQ and a CTA.
+	return ricoman_stack( array( 'about-pro', 'about-stats' ) );
 }
 function ricoman_manufacturing_blocks() {
 	return ricoman_stack( array( 'mfg-hero', 'mfg-stats', 'mfg-statement', 'mfg-split', 'mfg-steps', 'mfg-bespoke', 'mfg-cta' ) );
