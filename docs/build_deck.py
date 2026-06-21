@@ -254,47 +254,80 @@ txt(s, Inches(1.1), Inches(2.3), Inches(11.1), Inches(2.4), [
 ], anchor=MSO_ANCHOR.MIDDLE)
 footer(s, 9)
 
-# ============================================================ 8b. GOOGLE PAGESPEED
-s = slide(); header(s, "MEASURED RESULTS", "Google PageSpeed — old site vs new")
-txt(s, Inches(0.6), Inches(1.5), Inches(12.2), Inches(0.5),
-    [("Google Lighthouse performance score (0–100) and core load metrics, measured on the homepage.", 13, False, MUTED, 0)])
+# ============================================================ 8b. PAGESPEED (homepage + product)
+import datetime as _dt
+_DATE = _dt.date.today().strftime('%b %Y')
 
-# Score dials: mobile + desktop, old -> new
-def scorepair(x, title, old, new):
-    rect(s, x, Inches(2.05), Inches(5.9), Inches(1.95), SOFT)
-    txt(s, x, Inches(2.15), Inches(5.9), Inches(0.4), [(title, 14, True, INK, 0)], align=PP_ALIGN.CENTER)
-    # old
-    ocol = RGBColor(0xb3,0x2d,0x2e) if old < 50 else ( RGBColor(0x99,0x68,0x00) if old < 90 else GREEN )
-    ncol = RGBColor(0xb3,0x2d,0x2e) if new < 50 else ( RGBColor(0x99,0x68,0x00) if new < 90 else GREEN )
-    txt(s, x+Inches(0.4), Inches(2.7), Inches(2.0), Inches(1.1), [("OLD", 12, True, MUTED, 2), (str(old), 46, True, ocol, 0)], align=PP_ALIGN.CENTER)
-    txt(s, x+Inches(2.45), Inches(2.95), Inches(1.0), Inches(0.8), [("→", 30, True, BLUE, 0)], align=PP_ALIGN.CENTER)
-    txt(s, x+Inches(3.5), Inches(2.7), Inches(2.0), Inches(1.1), [("NEW", 12, True, MUTED, 2), (str(new), 46, True, ncol, 0)], align=PP_ALIGN.CENTER)
-scorepair(Inches(0.6),  "Mobile score",  32, 93)
-scorepair(Inches(6.8),  "Desktop score", 68, 96)
+def _scol(v):
+    return RGBColor(0xb3,0x2d,0x2e) if v < 50 else ( RGBColor(0x99,0x68,0x00) if v < 90 else GREEN )
 
-# Metrics table (mobile — the most dramatic + most-used)
-rows = [
-    ("Metric (mobile)", "Old", "New", True),
-    ("Largest Contentful Paint", "12.4 s", "2.3 s", False),
-    ("Total Blocking Time", "3,270 ms", "0 ms", False),
-    ("Speed Index", "12.1 s", "5.6 s", False),
-    ("First Contentful Paint", "2.8 s", "1.2 s", False),
-]
-y = Inches(4.25)
-for label, old, new, head in rows:
-    bg = INK if head else (PAPER if (rows.index((label,old,new,head)) % 2) else SOFT)
-    rect(s, Inches(0.6), y, Inches(7.5), Inches(0.46), INK if head else bg)
-    rect(s, Inches(8.1), y, Inches(2.3), Inches(0.46), INK if head else bg)
-    rect(s, Inches(10.4), y, Inches(2.3), Inches(0.46), INK if head else bg)
-    c = PAPER if head else MUTED
-    cn = PAPER if head else GREEN
-    txt(s, Inches(0.8), y, Inches(7.2), Inches(0.46), [(label, 12, head, c, 0)], anchor=MSO_ANCHOR.MIDDLE)
-    txt(s, Inches(8.3), y, Inches(2.0), Inches(0.46), [(old, 12, head, c, 0)], anchor=MSO_ANCHOR.MIDDLE)
-    txt(s, Inches(10.6), y, Inches(2.0), Inches(0.46), [(new, 12, True, cn, 0)], anchor=MSO_ANCHOR.MIDDLE)
-    y += Inches(0.48)
-txt(s, Inches(0.6), Inches(6.95), Inches(12), Inches(0.3),
-    [("Source: Google Lighthouse (the engine behind PageSpeed Insights), homepage, " + __import__('datetime').date.today().strftime('%b %Y') + ". Lab data; field scores vary by device/network.", 9, False, MUTED, 0)])
+def ps_slide(which, subtitle, mob, desk, metric_rows, page):
+    s = slide(); header(s, "MEASURED RESULTS", "Google PageSpeed — " + which)
+    txt(s, Inches(0.6), Inches(1.5), Inches(12.2), Inches(0.5), [(subtitle, 13, False, MUTED, 0)])
+    def scorepair(x, title, old, new):
+        rect(s, x, Inches(2.05), Inches(5.9), Inches(1.95), SOFT)
+        txt(s, x, Inches(2.15), Inches(5.9), Inches(0.4), [(title, 14, True, INK, 0)], align=PP_ALIGN.CENTER)
+        txt(s, x+Inches(0.4), Inches(2.7), Inches(2.0), Inches(1.1), [("OLD", 12, True, MUTED, 2), (str(old), 46, True, _scol(old), 0)], align=PP_ALIGN.CENTER)
+        txt(s, x+Inches(2.45), Inches(2.95), Inches(1.0), Inches(0.8), [("→", 30, True, BLUE, 0)], align=PP_ALIGN.CENTER)
+        txt(s, x+Inches(3.5), Inches(2.7), Inches(2.0), Inches(1.1), [("NEW", 12, True, MUTED, 2), (str(new), 46, True, _scol(new), 0)], align=PP_ALIGN.CENTER)
+    scorepair(Inches(0.6),  "Mobile score",  mob[0],  mob[1])
+    scorepair(Inches(6.8),  "Desktop score", desk[0], desk[1])
+    rows = [("Metric (mobile)", "Old", "New", True)] + [(a, b, c, False) for (a, b, c) in metric_rows]
+    y = Inches(4.25)
+    for idx, (label, old, new, head) in enumerate(rows):
+        bg = INK if head else (PAPER if idx % 2 else SOFT)
+        rect(s, Inches(0.6), y, Inches(7.5), Inches(0.46), bg)
+        rect(s, Inches(8.1), y, Inches(2.3), Inches(0.46), bg)
+        rect(s, Inches(10.4), y, Inches(2.3), Inches(0.46), bg)
+        c = PAPER if head else MUTED
+        cn = PAPER if head else GREEN
+        txt(s, Inches(0.8),  y, Inches(7.2), Inches(0.46), [(label, 12, head, c, 0)], anchor=MSO_ANCHOR.MIDDLE)
+        txt(s, Inches(8.3),  y, Inches(2.0), Inches(0.46), [(old, 12, head, c, 0)], anchor=MSO_ANCHOR.MIDDLE)
+        txt(s, Inches(10.6), y, Inches(2.0), Inches(0.46), [(new, 12, True, cn, 0)], anchor=MSO_ANCHOR.MIDDLE)
+        y += Inches(0.48)
+    txt(s, Inches(0.6), Inches(6.95), Inches(12), Inches(0.3),
+        [("Source: Google Lighthouse (the PageSpeed Insights engine), " + page + ", " + _DATE + ". Lab data; field scores vary by device/network.", 9, False, MUTED, 0)])
+    return s
+
+s = ps_slide("homepage", "Google Lighthouse performance score (0–100) and core load metrics, measured on the homepage.",
+         (32, 93), (68, 96),
+         [("Largest Contentful Paint", "12.4 s", "2.3 s"), ("Total Blocking Time", "3,270 ms", "0 ms"),
+          ("Speed Index", "12.1 s", "5.6 s"), ("First Contentful Paint", "2.8 s", "1.2 s")],
+         "homepage")
 footer(s, 10)
+
+s = ps_slide("product page", "Same test on a product page (Aeroline) — the heaviest page type on the old site.",
+         (35, 97), (56, 96),
+         [("Largest Contentful Paint", "6.1 s", "1.9 s"), ("Total Blocking Time", "910 ms", "30 ms"),
+          ("Speed Index", "5.1 s", "4.4 s"), ("First Contentful Paint", "2.6 s", "1.4 s")],
+         "product page (Aeroline)")
+footer(s, 11)
+
+# ---- At-a-glance comparison ----
+s = slide(); header(s, "MEASURED RESULTS", "PageSpeed at a glance — every page, far faster")
+txt(s, Inches(0.6), Inches(1.5), Inches(12.2), Inches(0.5),
+    [("Google Lighthouse performance score (0–100), old site vs new, " + _DATE + ".", 13, False, MUTED, 0)])
+# header row
+hx = [Inches(0.6), Inches(4.4), Inches(8.55)]
+hw = [Inches(3.6), Inches(3.95), Inches(3.95)]
+for x, w, t in zip(hx, hw, ["", "MOBILE  (old → new)", "DESKTOP  (old → new)"]):
+    rect(s, x, Inches(2.15), w, Inches(0.55), INK)
+    txt(s, x, Inches(2.15), w, Inches(0.55), [(t, 13, True, PAPER, 0)], anchor=MSO_ANCHOR.MIDDLE, align=PP_ALIGN.CENTER)
+def cmprow(y, page, mob, desk):
+    rect(s, Inches(0.6), y, Inches(3.6), Inches(1.15), SOFT)
+    txt(s, Inches(0.8), y, Inches(3.3), Inches(1.15), [(page, 17, True, INK, 0)], anchor=MSO_ANCHOR.MIDDLE)
+    for x, w, (o, n) in [(Inches(4.4), Inches(3.95), mob), (Inches(8.55), Inches(3.95), desk)]:
+        rect(s, x, y, w, Inches(1.15), SOFT)
+        txt(s, x+Inches(0.3),  y, Inches(1.3), Inches(1.15), [(str(o), 40, True, _scol(o), 0)], anchor=MSO_ANCHOR.MIDDLE, align=PP_ALIGN.CENTER)
+        txt(s, x+Inches(1.45), y, Inches(1.0), Inches(1.15), [("→", 26, True, BLUE, 0)], anchor=MSO_ANCHOR.MIDDLE, align=PP_ALIGN.CENTER)
+        txt(s, x+Inches(2.5),  y, Inches(1.3), Inches(1.15), [(str(n), 40, True, _scol(n), 0)], anchor=MSO_ANCHOR.MIDDLE, align=PP_ALIGN.CENTER)
+cmprow(Inches(2.85), "Homepage",     (32, 93), (68, 96))
+cmprow(Inches(4.15), "Product page", (35, 97), (56, 96))
+rect(s, Inches(0.6), Inches(5.65), Inches(11.95), Inches(0.95), NAVY)
+txt(s, Inches(0.85), Inches(5.65), Inches(11.5), Inches(0.95), [
+    ("Failing mobile scores in the 30s became low‑90s; desktop into the high‑90s — a faster experience for customers and a ranking signal Google rewards.", 14, True, PAPER, 0)
+], anchor=MSO_ANCHOR.MIDDLE)
+footer(s, 12)
 
 # ============================================================ 8c. WHAT IT MEANS
 s = slide(); header(s, "MEASURED RESULTS", "What those PageSpeed numbers mean")
@@ -320,7 +353,7 @@ rect(s, Inches(0.6), Inches(6.45), Inches(12.1), Inches(0.62), NAVY)
 txt(s, Inches(0.85), Inches(6.45), Inches(11.6), Inches(0.62), [
     ("Bottom line: the old site was slow enough on phones to push visitors away; the new one loads fast and stays responsive — which means better Google rankings and more enquiries.", 12.5, True, PAPER, 0)
 ], anchor=MSO_ANCHOR.MIDDLE)
-footer(s, 11)
+footer(s, 13)
 
 # ============================================================ 9. ROADMAP
 s = slide(); header(s, "ROADMAP", "Where we are")
@@ -341,7 +374,7 @@ for num, title, sub, col in steps:
         (sub, 12.5, False, MUTED, 0),
     ], anchor=MSO_ANCHOR.MIDDLE)
     y += Inches(1.0)
-footer(s, 12)
+footer(s, 14)
 
 # ============================================================ 10. BOTTOM LINE
 s = slide(); header(s, "THE BOTTOM LINE", "Old site vs new site")
@@ -368,7 +401,7 @@ for i, (old, new) in enumerate(rows):
     txt(s, Inches(0.8), y, Inches(5.7), Inches(0.56), [(old, 12, False, MUTED, 0)], anchor=MSO_ANCHOR.MIDDLE)
     txt(s, Inches(6.9), y, Inches(5.7), Inches(0.56), [(new, 12, True, NAVY, 0)], anchor=MSO_ANCHOR.MIDDLE)
     y += Inches(0.6)
-footer(s, 13)
+footer(s, 15)
 
 # ============================================================ 11. CLOSE
 s = slide()
