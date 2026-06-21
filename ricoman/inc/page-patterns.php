@@ -440,6 +440,84 @@ add_action( 'init', function () {
 		'cta_sub'    => 'Tell us about your project and we&rsquo;ll point you to the quickest route to buy — and spec it for you if you need.',
 	) ) );
 
+	$p['feat-i-joist-ceilings'] = array( 'Feature · I-Joist Ceilings', $feature( array(
+		'eyb'       => 'Application',
+		'title'     => 'Lighting for I-joist &amp; modern timber ceilings.',
+		'lead'      => 'Recessed fittings designed to work with I-joist and engineered-timber ceiling construction — fire-rated, shallow and easy to install in the joist void.',
+		'hero'      => $u( 'rico-acoustic-corridor.webp' ),
+		'cta1'      => array( 'Get a fitting recommendation', '/lighting-design/' ),
+		'cta2'      => array( 'See fire safety lighting', '/fire-safety/' ),
+		'ben_eyb'   => 'The challenge',
+		'ben_head'  => 'Built for the joist void',
+		'benefits'  => array(
+			array( '01', 'Fits the depth', 'Shallow recessed fittings designed to sit within I-joist and engineered-timber ceiling build-ups.' ),
+			array( '02', 'Fire integrity', 'Fire-rated downlights help maintain the ceiling&rsquo;s fire performance where it&rsquo;s been penetrated.' ),
+			array( '03', 'Clean &amp; quiet', 'Trimless and acoustic-friendly options for a tidy finish in exposed and lined ceilings.' ),
+		),
+		'split_img'  => $u( 'ceiling.webp' ),
+		'split_eyb'  => 'How we help',
+		'split_head' => 'The right fitting for the build-up',
+		'split_body' => 'Tell us the ceiling construction and we&rsquo;ll recommend recessed fittings that fit the depth, hit the fire rating and give the finish you want — then design the layout to suit.',
+		'split_items'=> array( '<strong>Shallow recessed</strong> downlights for tight voids', '<strong>Fire-rated</strong> options (30 / 60 / 90 minute)', '<strong>IP-rated</strong> front faces where needed', '<strong>Trimless &amp; acoustic-friendly</strong> finishes', '<strong>Free layout design</strong> to suit the ceiling grid' ),
+		'faq_head'   => 'I-joist ceiling lighting FAQs',
+		'faqs'       => "Q: What is an I-joist ceiling?\nA: It's a ceiling built using I-shaped engineered-timber joists — common in modern construction, with a relatively shallow service void to light into.\nQ: Do I need fire-rated downlights?\nA: Where a downlight penetrates a fire-rated ceiling, a fire-rated fitting helps maintain that rating — we'll confirm what's required for your build-up.\nQ: Will the fittings fit a shallow void?\nA: We offer shallow recessed downlights designed for tight ceiling build-ups; tell us the depth and we'll recommend a fit.\nQ: Can you design the layout?\nA: Yes — send your drawings and our designers will return a costed, fitted-out layout, free of charge.",
+		'cta_img'    => $u( 'office3.webp' ),
+		'cta_head'   => 'Lighting that fits the ceiling',
+		'cta_sub'    => 'Send us your ceiling detail and our team will recommend the right recessed, fire-rated fittings and design the layout.',
+	) ) );
+
+	$p['feat-stock-availability'] = array( 'Feature · Stock & Availability', $feature( array(
+		'eyb'       => 'Lead Times',
+		'title'     => 'Stock &amp; availability you can plan around.',
+		'lead'      => 'Core ranges held in UK stock and made-to-order fittings on an average six-day lead — honest availability so your programme stays on track.',
+		'hero'      => $u( 'warehouse.webp' ),
+		'cta1'      => array( 'Check availability', '/contact/' ),
+		'cta2'      => array( 'Browse products', '/products/' ),
+		'ben_eyb'   => 'Why it&rsquo;s different',
+		'ben_head'  => 'British stock, real lead times',
+		'benefits'  => array(
+			array( '01', 'UK stock', 'Core ranges and 2,000+ components held in Manchester — no waiting on long-haul imports.' ),
+			array( '02', '~6-day made-to-order', 'Bespoke and made-to-order fittings on an average six-day UK lead.' ),
+			array( '03', 'Honest dates', 'Clear, realistic availability up front — so you can programme with confidence.' ),
+		),
+		'split_img'  => $u( 'rico-product-boards.webp' ),
+		'split_eyb'  => 'How it works',
+		'split_head' => 'Manufacturing close to the stock',
+		'split_body' => 'Because we make in the UK with components on the shelf, we can confirm availability quickly, flex quantities and keep your install moving — even when plans change.',
+		'split_items'=> array( '<strong>2,000+ components</strong> stocked, ready to build', '<strong>Core ranges</strong> available from UK stock', '<strong>Average six-day</strong> made-to-order lead', '<strong>Quick re-ordering</strong> for account holders', '<strong>Value-engineered</strong> alternatives if stock is tight' ),
+		'faq_head'   => 'Stock &amp; availability FAQs',
+		'faqs'       => "Q: Do you hold stock in the UK?\nA: Yes — core ranges and over 2,000 components are stocked in our Manchester facility.\nQ: What's the lead time on made-to-order fittings?\nA: An average of around six working days, because we manufacture in the UK with components on hand.\nQ: Can you confirm availability before I specify?\nA: Yes — send us the schedule and we'll confirm stock and realistic lead times up front.\nQ: What if an item isn't in stock?\nA: We'll give you an honest date and, where it helps, a value-engineered alternative that is available.",
+		'cta_img'    => $u( 'office1.webp' ),
+		'cta_head'   => 'Need it for a deadline?',
+		'cta_sub'    => 'Send us your schedule and we&rsquo;ll confirm stock, lead times and the fastest route to site.',
+	) ) );
+
+	$p['feat-uae-exports'] = array( 'Feature · UAE Exports', $feature( array(
+		'eyb'       => 'International',
+		'title'     => 'British lighting, exported to the UAE.',
+		'lead'      => 'We supply commercial lighting projects across the UAE — British design and manufacture, with the technical support and documentation specifiers need.',
+		'hero'      => $u( 'rico-kingsgate.webp' ),
+		'cta1'      => array( 'Enquire about export', '/contact/' ),
+		'cta2'      => array( 'Browse products', '/products/' ),
+		'ben_eyb'   => 'Why specify us',
+		'ben_head'  => 'British quality, delivered abroad',
+		'benefits'  => array(
+			array( '01', 'Made in Britain', 'Designed and manufactured in Manchester — quality and traceability you can specify with confidence.' ),
+			array( '02', 'Full documentation', 'Datasheets, photometric (IES/LDT) files and certificates ready for international specification.' ),
+			array( '03', 'Export support', 'We handle the logistics of supplying overseas projects, including the UAE.' ),
+		),
+		'split_img'  => $u( 'rico-office-render.webp' ),
+		'split_eyb'  => 'How we work internationally',
+		'split_head' => 'From design to delivered, worldwide',
+		'split_body' => 'Send us drawings and our in-house team returns a fully specified, photometric-backed scheme — then we manufacture in the UK and export to your project.',
+		'split_items'=> array( '<strong>Free scheme design</strong> with DIALux photometrics', '<strong>UK manufacture</strong> to international standards', '<strong>Full data pack</strong> — datasheets, IES/LDT, certificates', '<strong>Export logistics</strong> handled for you', '<strong>5-year warranty</strong> &amp; UK support' ),
+		'faq_head'   => 'UAE export FAQs',
+		'faqs'       => "Q: Do you export lighting to the UAE?\nA: Yes — we supply commercial lighting projects across the UAE, manufactured in the UK.\nQ: Can you provide a lighting design for an overseas project?\nA: Yes — send us drawings and our in-house designers return a costed, DIALux-backed scheme, usually within 3–5 days.\nQ: Do you supply the documentation we need to specify?\nA: Yes — datasheets, photometric IES/LDT files and certificates are all available.\nQ: Do you handle export logistics?\nA: Yes — we manage the logistics of supplying international projects, including the UAE.",
+		'cta_img'    => $u( 'office1.webp' ),
+		'cta_head'   => 'Specifying a project in the UAE?',
+		'cta_sub'    => 'Tell us about it and our team will design, manufacture and export a British-made lighting scheme.',
+	) ) );
+
 	foreach ( $p as $slug => $data ) {
 		register_block_pattern( 'ricoman/' . $slug, array( 'title' => $data[0], 'categories' => array( 'ricoman-page' ), 'content' => $data[1] ) );
 	}
@@ -489,6 +567,15 @@ function ricoman_trade_blocks() {
 }
 function ricoman_where_to_buy_blocks() {
 	return ricoman_stack( array( 'feat-where-to-buy' ) );
+}
+function ricoman_i_joist_ceilings_blocks() {
+	return ricoman_stack( array( 'feat-i-joist-ceilings' ) );
+}
+function ricoman_stock_availability_blocks() {
+	return ricoman_stack( array( 'feat-stock-availability' ) );
+}
+function ricoman_uae_exports_blocks() {
+	return ricoman_stack( array( 'feat-uae-exports' ) );
 }
 
 /**
@@ -545,7 +632,8 @@ function ricoman_sitemap_body() {
 		'Casambi' => '/casambi/', 'Human Centric Lighting' => '/human-centric-lighting/',
 		'Antimicrobial Protection' => '/antimicrobial-protection/', 'Fire Safety' => '/fire-safety/',
 		'Made in Britain' => '/made-in-britain/', 'Trade' => '/trade/', 'Where to Buy' => '/where-to-buy/',
-		'Product Warranty' => '/product-warranty/',
+		'I-Joist Ceilings' => '/i-joist-ceilings/', 'Stock &amp; Availability' => '/stock-availability/',
+		'UAE Exports' => '/uae-exports/', 'Product Warranty' => '/product-warranty/',
 		'Terms &amp; Conditions' => '/terms/', 'Privacy Policy' => '/privacy-policy/', 'Cookie Policy' => '/cookie-policy/',
 	);
 	$li = '';

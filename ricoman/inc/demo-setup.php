@@ -154,6 +154,9 @@ function ricoman_scaffold_site() {
 		'made-in-britain'         => array( 'Made in Britain', 'ricoman_made_in_britain_blocks' ),
 		'trade'                   => array( 'Trade', 'ricoman_trade_blocks' ),
 		'where-to-buy'            => array( 'Where to Buy', 'ricoman_where_to_buy_blocks' ),
+		'i-joist-ceilings'        => array( 'I-Joist Ceilings', 'ricoman_i_joist_ceilings_blocks' ),
+		'stock-availability'      => array( 'Stock & Availability', 'ricoman_stock_availability_blocks' ),
+		'uae-exports'             => array( 'UAE Exports', 'ricoman_uae_exports_blocks' ),
 	);
 	foreach ( $native_pages as $slug => $info ) {
 		if ( get_page_by_path( $slug ) ) {
@@ -329,6 +332,9 @@ function ricoman_theme_page_map() {
 		'made-in-britain'         => 'ricoman_made_in_britain_blocks',
 		'trade'                   => 'ricoman_trade_blocks',
 		'where-to-buy'            => 'ricoman_where_to_buy_blocks',
+		'i-joist-ceilings'        => 'ricoman_i_joist_ceilings_blocks',
+		'stock-availability'      => 'ricoman_stock_availability_blocks',
+		'uae-exports'             => 'ricoman_uae_exports_blocks',
 	);
 }
 
