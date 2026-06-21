@@ -151,6 +151,9 @@ function ricoman_scaffold_site() {
 		'antimicrobial-protection'=> array( 'Antimicrobial Protection', 'ricoman_antimicrobial_blocks' ),
 		'fire-safety'             => array( 'Fire Safety', 'ricoman_fire_safety_blocks' ),
 		'sustainability'          => array( 'Sustainability', 'ricoman_sustainability_blocks' ),
+		'made-in-britain'         => array( 'Made in Britain', 'ricoman_made_in_britain_blocks' ),
+		'trade'                   => array( 'Trade', 'ricoman_trade_blocks' ),
+		'where-to-buy'            => array( 'Where to Buy', 'ricoman_where_to_buy_blocks' ),
 	);
 	foreach ( $native_pages as $slug => $info ) {
 		if ( get_page_by_path( $slug ) ) {
@@ -323,6 +326,9 @@ function ricoman_theme_page_map() {
 		'antimicrobial-protection'=> 'ricoman_antimicrobial_blocks',
 		'fire-safety'             => 'ricoman_fire_safety_blocks',
 		'sustainability'          => 'ricoman_sustainability_blocks',
+		'made-in-britain'         => 'ricoman_made_in_britain_blocks',
+		'trade'                   => 'ricoman_trade_blocks',
+		'where-to-buy'            => 'ricoman_where_to_buy_blocks',
 	);
 }
 

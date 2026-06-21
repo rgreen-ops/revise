@@ -362,6 +362,84 @@ add_action( 'init', function () {
 		'cta_sub'    => 'Tell us about your project and we&rsquo;ll help you specify efficient, long-life lighting with the data to back it up.',
 	) ) );
 
+	$p['feat-made-in-britain'] = array( 'Feature · Made in Britain', $feature( array(
+		'eyb'       => 'Provenance',
+		'title'     => 'Made in Britain — lighting designed &amp; built here.',
+		'lead'      => 'We design, assemble, finish and test our commercial luminaires in our own Manchester facility — British manufacturing you can specify with confidence.',
+		'hero'      => $u( 'rico-mfg.webp' ),
+		'cta1'      => array( 'Inside our manufacturing', '/manufacturing/' ),
+		'cta2'      => array( 'Talk to the team', '/contact/' ),
+		'ben_eyb'   => 'Why it matters',
+		'ben_head'  => 'The advantages of buying British',
+		'benefits'  => array(
+			array( '01', 'Shorter lead times', 'UK production and 2,000+ stocked components mean an average six-day made-to-order lead — no long import waits.' ),
+			array( '02', 'Quality &amp; traceability', 'Design, build, finish and test under one roof — full control and full traceability on every fitting.' ),
+			array( '03', 'Support close to hand', 'Spares, service and a team you can actually reach, backed by a 5-year warranty.' ),
+		),
+		'split_img'  => $u( 'rico-making.webp' ),
+		'split_eyb'  => 'Under one roof',
+		'split_head' => 'Real manufacturing, not just assembly',
+		'split_body' => 'From CAD and photometric modelling to powder-coat finishing and batch burn-in, the work happens in Manchester — so we can make a fitting to your exact geometry and stand behind it.',
+		'split_items'=> array( '<strong>Designed &amp; engineered</strong> in the UK', '<strong>Assembled, finished &amp; tested</strong> in Manchester', '<strong>2,000+ components</strong> stocked, ready to build', '<strong>Bespoke as standard</strong> — custom sizes &amp; finishes', '<strong>5-year warranty</strong>, UK spares &amp; support' ),
+		'faq_head'   => 'Made in Britain FAQs',
+		'faqs'       => "Q: Are Ricoman products really made in the UK?\nA: Yes — we design, assemble, finish and test our luminaires in our own facility in Manchester.\nQ: Does UK manufacturing mean longer lead times?\nA: The opposite — with components stocked locally we make to order on an average six-day lead, without import delays.\nQ: Can you make bespoke fittings?\nA: Yes — custom lengths, curved runs, special colour temperatures and brand-matched finishes are part of how the factory works.\nQ: What warranty do you offer?\nA: A 5-year standard warranty, with spares and support based in the UK.",
+		'cta_img'    => $u( 'workshop.webp' ),
+		'cta_head'   => 'Specify British-made lighting',
+		'cta_sub'    => 'Send us your project and our Manchester team will spec, make and deliver it — on spec, on time, on budget.',
+	) ) );
+
+	$p['feat-trade'] = array( 'Feature · Trade', $feature( array(
+		'eyb'       => 'For the Trade',
+		'title'     => 'A trade partner that keeps projects moving.',
+		'lead'      => 'Contractors, wholesalers and design &amp; build teams get fast quotes, reliable UK stock, free scheme design and a team that picks up the phone.',
+		'hero'      => $u( 'warehouse.webp' ),
+		'cta1'      => array( 'Open a trade enquiry', '/contact/' ),
+		'cta2'      => array( 'Browse products', '/products/' ),
+		'ben_eyb'   => 'Why work with us',
+		'ben_head'  => 'Built around how the trade works',
+		'benefits'  => array(
+			array( '01', 'Fast, clear quotes', 'Send us a schedule or a drawing and get a prompt, itemised quote — with value-engineered alternatives where they help.' ),
+			array( '02', 'Stock that ships', 'Core ranges held in UK stock with 2,000+ components, so programmes don&rsquo;t stall waiting on imports.' ),
+			array( '03', 'Free scheme design', 'Our in-house designers turn drawings into a costed, photometric scheme — usually within 3–5 days.' ),
+		),
+		'split_img'  => $u( 'courier.webp' ),
+		'split_eyb'  => 'On site &amp; on programme',
+		'split_head' => 'Fittings that wire up first time',
+		'split_body' => 'Easy-install luminaires, honest lead times and real support — so the install goes smoothly and the snag list stays short.',
+		'split_items'=> array( '<strong>Account &amp; quick re-ordering</strong> for registered users', '<strong>Datasheets, IES/LDT &amp; BIM</strong> ready to download', '<strong>Saved project lists</strong> &amp; one-click project packs', '<strong>Value-engineered options</strong> for tight budgets', '<strong>5-year warranty</strong> &amp; UK-based support' ),
+		'faq_head'   => 'Trade FAQs',
+		'faqs'       => "Q: Can I open a trade account?\nA: Yes — register on the site for quick re-ordering and saved project lists, or send us an enquiry and our team will set you up.\nQ: How fast can I get a quote?\nA: Send a schedule or drawing and we&rsquo;ll turn around an itemised quote promptly, with alternatives where they help the budget.\nQ: Do you hold stock?\nA: Core ranges are held in UK stock with 2,000+ components; made-to-order items run an average six-day lead.\nQ: Do you support contractors on site?\nA: Yes — easy-install fittings, full technical data and a UK team you can actually reach.",
+		'cta_img'    => $u( 'office1.webp' ),
+		'cta_head'   => 'Let&rsquo;s get your project moving',
+		'cta_sub'    => 'Send us a schedule or a drawing and we&rsquo;ll come back with a quote, stock and lead times — fast.',
+	) ) );
+
+	$p['feat-where-to-buy'] = array( 'Feature · Where to Buy', $feature( array(
+		'eyb'       => 'How to Buy',
+		'title'     => 'How to buy Ricoman lighting.',
+		'lead'      => 'Specify direct with our team or order through your wholesaler — either way you get UK stock, free scheme design and full technical support.',
+		'hero'      => $u( 'rico-office.webp' ),
+		'cta1'      => array( 'Contact our team', '/contact/' ),
+		'cta2'      => array( 'Browse products', '/products/' ),
+		'ben_eyb'   => 'Three ways to buy',
+		'ben_head'  => 'Whatever suits your project',
+		'benefits'  => array(
+			array( '01', 'Direct from Ricoman', 'Specify and order direct with our Manchester team for the fullest design and technical support.' ),
+			array( '02', 'Through a wholesaler', 'Already buy through an electrical wholesaler? We can supply your stockist with the fittings you specify.' ),
+			array( '03', 'With design support', 'Not sure what you need? Send drawings and we&rsquo;ll return a costed, specified scheme first.' ),
+		),
+		'split_img'  => $u( 'courier.webp' ),
+		'split_eyb'  => 'Delivered UK-wide',
+		'split_head' => 'From Manchester to your project',
+		'split_body' => 'Core ranges ship from UK stock and bespoke items are made to order on an average six-day lead — delivered across the UK and available for export.',
+		'split_items'=> array( '<strong>UK stock</strong> on core ranges, ready to ship', '<strong>Made to order</strong> on an average six-day lead', '<strong>Free scheme design</strong> before you commit', '<strong>Export available</strong>, including UAE', '<strong>5-year warranty</strong> &amp; UK support' ),
+		'faq_head'   => 'Where to buy FAQs',
+		'faqs'       => "Q: Can I buy directly from Ricoman?\nA: Yes — specify and order direct with our Manchester team, who can also provide free scheme design and technical support.\nQ: Can I order through my wholesaler?\nA: Yes — if you buy through an electrical wholesaler we can supply your stockist with the fittings you specify.\nQ: Do you deliver across the UK?\nA: Yes — core ranges ship from UK stock and made-to-order items run an average six-day lead, delivered UK-wide.\nQ: Do you export?\nA: Yes — we supply international projects, including exports to the UAE.",
+		'cta_img'    => $u( 'office1.webp' ),
+		'cta_head'   => 'Ready to order or need a hand?',
+		'cta_sub'    => 'Tell us about your project and we&rsquo;ll point you to the quickest route to buy — and spec it for you if you need.',
+	) ) );
+
 	foreach ( $p as $slug => $data ) {
 		register_block_pattern( 'ricoman/' . $slug, array( 'title' => $data[0], 'categories' => array( 'ricoman-page' ), 'content' => $data[1] ) );
 	}
@@ -402,6 +480,15 @@ function ricoman_fire_safety_blocks() {
 }
 function ricoman_sustainability_blocks() {
 	return ricoman_stack( array( 'feat-sustainability' ) );
+}
+function ricoman_made_in_britain_blocks() {
+	return ricoman_stack( array( 'feat-made-in-britain' ) );
+}
+function ricoman_trade_blocks() {
+	return ricoman_stack( array( 'feat-trade' ) );
+}
+function ricoman_where_to_buy_blocks() {
+	return ricoman_stack( array( 'feat-where-to-buy' ) );
 }
 
 /**
@@ -457,6 +544,7 @@ function ricoman_sitemap_body() {
 		'About' => '/about/', 'Contact' => '/contact/', 'Downloads' => '/downloads/', 'Sustainability' => '/sustainability/',
 		'Casambi' => '/casambi/', 'Human Centric Lighting' => '/human-centric-lighting/',
 		'Antimicrobial Protection' => '/antimicrobial-protection/', 'Fire Safety' => '/fire-safety/',
+		'Made in Britain' => '/made-in-britain/', 'Trade' => '/trade/', 'Where to Buy' => '/where-to-buy/',
 		'Product Warranty' => '/product-warranty/',
 		'Terms &amp; Conditions' => '/terms/', 'Privacy Policy' => '/privacy-policy/', 'Cookie Policy' => '/cookie-policy/',
 	);
