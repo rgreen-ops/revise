@@ -390,8 +390,33 @@ function ricoman_render_page_designs() {
 	echo '</form></div>';
 }
 
-add_action( 'admin_post_ricoman_refresh_pages', function () {
-	if ( ! current_user_can( 'manage_options' ) ) {
+/**
+ * One-time: re-apply the theme's designed layout to any managed page still
+ * holding broken migrated content (escaped raw HTML like "&lt;div" / "&lt;p&gt;"
+ * shown as text). Fixes the About/Contact-style "mess" without anyone clicking
+ * Page Designs. Only touches pages whose content is clearly the broken import.
+ */
+add_action( 'admin_init', function () {
+	if ( get_option( 'ricoman_relayout_broken_v1' ) || ! current_user_can( 'manage_options' ) || ! function_exists( 'ricoman_theme_page_map' ) ) {
+		return;
+	}
+	foreach ( ricoman_theme_page_map() as $slug => $fn ) {
+		$page = get_page_by_path( $slug );
+		if ( ! $page || 'page' !== $page->post_type || ! function_exists( $fn ) ) {
+			continue;
+		}
+		$c = (string) $page->post_content;
+		if ( false !== strpos( $c, '&lt;div' ) || false !== strpos( $c, '&lt;p&gt;' ) || false !== strpos( $c, 'container&quot;' ) ) {
+			$content = call_user_func( $fn );
+			if ( $content ) {
+				wp_update_post( array( 'ID' => $page->ID, 'post_content' => $content ) );
+			}
+		}
+	}
+	update_option( 'ricoman_relayout_broken_v1', 1 );
+} );
+
+add_action( 'admin_post_ricoman_refresh_pages', function () {	if ( ! current_user_can( 'manage_options' ) ) {
 		wp_die( esc_html__( 'You do not have permission to do this.', 'ricoman' ) );
 	}
 	check_admin_referer( 'ricoman_refresh_pages' );
