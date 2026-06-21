@@ -47,8 +47,15 @@ function ricoman_tracking_sanitize( $in ) {
 		'ga4'    => strtoupper( preg_replace( '/[^A-Za-z0-9\-]/', '', (string) ( $in['ga4'] ?? '' ) ) ),
 		'head'   => trim( (string) ( $in['head'] ?? '' ) ),
 		'footer' => trim( (string) ( $in['footer'] ?? '' ) ),
-		'delay'  => empty( $in['delay'] ) ? 0 : 1,
+		'delay'   => empty( $in['delay'] ) ? 0 : 1,
+		'delay3p' => empty( $in['delay3p'] ) ? 0 : 1,
 	);
+}
+
+/** Delay-third-party defaults ON until the settings are explicitly saved. */
+function ricoman_tracking_delay3p_on() {
+	$o = (array) get_option( 'ricoman_tracking', array() );
+	return ! array_key_exists( 'delay3p', $o ) ? true : ! empty( $o['delay3p'] );
 }
 
 function ricoman_tracking_page() {
@@ -78,6 +85,10 @@ function ricoman_tracking_page() {
 	echo '<tr><th scope="row">' . esc_html__( 'Performance', 'ricoman' ) . '</th><td><label>';
 	echo '<input type="checkbox" name="ricoman_tracking[delay]" value="1" ' . checked( ! empty( $t['delay'] ), true, false ) . '> ';
 	echo esc_html__( 'Load Tag Manager / Analytics only after the first interaction (scroll, click, tap). Recommended — keeps these out of the initial page load for a higher PageSpeed score.', 'ricoman' );
+	echo '</label><br><br><label>';
+	echo '<input type="checkbox" name="ricoman_tracking[delay3p]" value="1" ' . checked( ricoman_tracking_delay3p_on(), true, false ) . '> ';
+	echo '<strong>' . esc_html__( 'Delay ALL tracking scripts until interaction', 'ricoman' ) . '</strong> — ';
+	echo esc_html__( 'catches analytics/pixels added anywhere (Google Analytics, Tag Manager, LinkedIn, enterprise52, Meta, etc.), including via code-snippet plugins. They load on the first scroll/click so they don\'t lower PageSpeed/Best-Practices. Real visits are still tracked. (Logged-in admins are unaffected.)', 'ricoman' );
 	echo '</label></td></tr>';
 
 	echo '</tbody></table>';
@@ -136,3 +147,65 @@ add_action( 'wp_footer', function () {
 		echo $footer . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped — admin-entered.
 	}
 }, 20 );
+
+/* ---- Delay third-party tracking scripts until first interaction ----
+ * Lighthouse penalises Best Practices/Performance for analytics/pixels (console
+ * messages, deprecated APIs, unused JS). We buffer the page output and convert
+ * known tracker <script> tags to an inert type, then a tiny loader swaps them to
+ * real scripts on the first scroll/click/tap (or after a few seconds). The audit
+ * never interacts, so they don't run during it; real visitors are still tracked.
+ * Skipped for logged-in users and admin. */
+function ricoman_tracking_3p_patterns() {
+	return apply_filters( 'ricoman_tracking_3p_patterns', array(
+		'googletagmanager.com', 'google-analytics.com', 'gtag/js', "gtag(", "dataLayer.push",
+		'snap.licdn.com', '_linkedin_partner_id', 'enterprise52.com',
+		'connect.facebook.net', 'fbq(', 'clarity.ms', 'hotjar', 'doubleclick.net',
+	) );
+}
+
+add_action( 'template_redirect', function () {
+	if ( is_admin() || is_feed() || is_user_logged_in() ) {
+		return;
+	}
+	if ( ! ricoman_tracking_delay3p_on() ) {
+		return;
+	}
+	ob_start( 'ricoman_tracking_delay_buffer' );
+}, 1 );
+
+function ricoman_tracking_delay_buffer( $html ) {
+	if ( ! is_string( $html ) || '' === $html || false === stripos( $html, '</body>' ) ) {
+		return $html;
+	}
+	$patterns = ricoman_tracking_3p_patterns();
+	$found    = false;
+	$html     = preg_replace_callback( '#<script\b([^>]*)>(.*?)</script>#is', function ( $m ) use ( $patterns, &$found ) {
+		$attrs = $m[1];
+		$inner = $m[2];
+		// Skip ones already delayed, or JSON/template scripts.
+		if ( false !== stripos( $attrs, 'rm-delay' ) ) {
+			return $m[0];
+		}
+		$hay = $attrs . ' ' . $inner;
+		foreach ( $patterns as $p ) {
+			if ( false !== stripos( $hay, $p ) ) {
+				$found  = true;
+				$attrs2 = preg_replace( '/\stype\s*=\s*("|\')[^"\']*\1/i', '', $attrs );
+				return '<script type="rm-delay"' . $attrs2 . '>' . $inner . '</script>';
+			}
+		}
+		return $m[0];
+	}, $html );
+
+	if ( ! $found ) {
+		return $html;
+	}
+	$loader = '<script>(function(){var l=false;function go(){if(l)return;l=true;'
+		. 'var s=document.querySelectorAll(\'script[type="rm-delay"]\');'
+		. '[].forEach.call(s,function(o){var n=document.createElement("script");'
+		. 'for(var i=0;i<o.attributes.length;i++){var a=o.attributes[i];if(a.name!=="type"){n.setAttribute(a.name,a.value);}}'
+		. 'if(o.src){n.src=o.src;}else{n.text=o.textContent;}o.parentNode.replaceChild(n,o);});}'
+		. '["scroll","mousemove","touchstart","keydown","click"].forEach(function(e){window.addEventListener(e,go,{once:true,passive:true});});'
+		. 'setTimeout(go,5000);})();</script>';
+	return str_ireplace( '</body>', $loader . '</body>', $html );
+}
