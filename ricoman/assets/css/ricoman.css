@@ -1467,8 +1467,11 @@ html,body{overflow-x:clip}
 .rm-cfghero{padding-bottom:clamp(16px,2vw,30px)}
 .rm-accs{margin-top:clamp(10px,2vw,24px)}
 
-/* ===== Product hero: light-grey section, click-to-enlarge, tab states ===== */
-.rm-cfghero-wrap{background:#f7f7f7}
+/* ===== Product hero: white section, click-to-enlarge, tab states =====
+   Hero sits on white (the gallery image keeps its own grey frame via
+   .rm-cfg-viz); no grey panel behind the intro so the top of the page isn't
+   washed grey on mobile. */
+.rm-cfghero-wrap{background:#fff}
 .rm-zoomable{cursor:zoom-in}
 .rm-zoom-hint{position:absolute;right:14px;bottom:14px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);color:#fff;border-radius:8px;font-size:1.05rem;pointer-events:none;opacity:0;transition:opacity .2s ease;z-index:3}
 .rm-cfg-viz:hover .rm-zoom-hint{opacity:1}
