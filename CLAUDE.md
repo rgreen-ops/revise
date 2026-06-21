@@ -59,6 +59,11 @@ GLOBAL: [ ] Header / mega-menu  [ ] Footer
   - **Spec filtering:** category pages let customers filter products by light
     output (lumens) and power (wattage), pulled live from the real variant data
     — easier for specifiers to find the right fitting.
+  - **Editable category SEO + ordering:** each product category has editable SEO
+    copy (intro above the grid + body/FAQ below) for keyword-rich landing pages
+    (e.g. Linear Lighting), plus a manual "Display order" that arranges categories
+    across the mega menu, /products/ tiles and homepage range grid; products
+    within a category reorder via their native "Order" attribute.
 - Old products store everything in **ACF**; post types: `product`, `project`,
   `news`, `home_slider`, `lighting_sectors`, `variant-product`, `lead`.
 - Real taxonomies: `product-cat`, `applycation-type`, `project-cat` (+ many

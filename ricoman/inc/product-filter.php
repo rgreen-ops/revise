@@ -305,12 +305,13 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 	$tax  = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
 
 	$term = $atts['cat'] ? get_term_by( 'slug', $atts['cat'], $tax ) : get_queried_object();
+	// Honour each product's "Order" (menu_order) page attribute first, so the team
+	// can promote products within a category; fall back to alphabetical.
 	$args = array(
 		'post_type'      => 'product',
 		'post_status'    => 'publish',
 		'posts_per_page' => -1,
-		'orderby'        => 'title',
-		'order'          => 'ASC',
+		'orderby'        => array( 'menu_order' => 'ASC', 'title' => 'ASC' ),
 		'no_found_rows'  => true,
 	);
 	$title = 'All products';
@@ -379,9 +380,25 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 		. '<div class="rm-dual-track"><input type="range" class="rm-w-min" min="0" max="' . $maxw . '" step="1" value="0">'
 		. '<input type="range" class="rm-w-max" min="0" max="' . $maxw . '" step="1" value="' . $maxw . '"></div></div>' : '';
 
+	// Per-category SEO copy (editable on the category screen): intro above the
+	// grid, body/FAQ below it.
+	$seo_intro = '';
+	$seo_body  = '';
+	if ( $term instanceof WP_Term && function_exists( 'ricoman_cat_seo' ) ) {
+		$intro = ricoman_cat_seo( $term->term_id, 'intro' );
+		$body  = ricoman_cat_seo( $term->term_id, 'body' );
+		if ( '' !== trim( $intro ) ) {
+			$seo_intro = '<div class="rm-catarch-intro">' . wpautop( wp_kses_post( $intro ) ) . '</div>';
+		}
+		if ( '' !== trim( $body ) ) {
+			$seo_body = '<div class="rm-catarch-body">' . wpautop( wp_kses_post( $body ) ) . '</div>';
+		}
+	}
+
 	$out  = '<div class="rm-pp-wrap rm-catarch">';
 	$out .= '<div class="rm-pp-crumb">' . $crumb . '</div>';
 	$out .= '<h1 class="rm-catarch-title">' . esc_html( $title ) . ' <span class="rm-catarch-count">' . (int) $total . '</span></h1>';
+	$out .= $seo_intro;
 	$out .= '<div class="rm-catgrid-wrap"><aside class="rm-facets">'
 		. ( $lmslider || $wslider || $ticks ? '<p class="rm-facets-head">Filter</p>' : '' )
 		. $lmslider . $wslider
@@ -391,7 +408,9 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 	$out .= '<div class="rm-catgrid"><p class="rm-fcount"><b>' . (int) $total . '</b> products</p>'
 		. '<div class="rm-projgrid rm-prodgrid rm-fgrid">' . $cards . '</div>'
 		. '<p class="rm-fnone" hidden>No products match those filters. <button type="button" class="rm-fclear">Clear filters</button></p></div>';
-	$out .= '</div></div>';
+	$out .= '</div>';
+	$out .= $seo_body;
+	$out .= '</div>';
 
 	// Filtering is wired up by the enqueued product-gallery.js (rmCatFilterInit),
 	// keyed off .rm-catarch — reliable regardless of where the markup lands.
@@ -511,9 +530,9 @@ add_shortcode( 'ricoman_category_cards', function ( $atts ) {
 	// Cache the rendered cards (image lookups query products); invalidated whenever
 	// a product/variant changes (shared version), with a 12h backstop.
 	$ver    = function_exists( 'ricoman_products_ver' ) ? ricoman_products_ver() : '1';
-	// 'cm3' markup version: bump to invalidate cached cards when card markup changes
-	// (here: dual Studio/In-situ lazy data-bg images + toggle).
-	$ckey   = 'rm_catcards_' . md5( 'cm3' . wp_json_encode( $atts ) . $ver );
+	// 'cm4' markup version: bump to invalidate cached cards when card markup OR
+	// ordering changes (here: manual per-category display order, then product count).
+	$ckey   = 'rm_catcards_' . md5( 'cm4' . wp_json_encode( $atts ) . $ver );
 	$cached = get_transient( $ckey );
 	if ( false !== $cached ) {
 		return $cached;
@@ -522,11 +541,13 @@ add_shortcode( 'ricoman_category_cards', function ( $atts ) {
 	$terms = get_terms( array(
 		'taxonomy'   => $tax,
 		'hide_empty' => true,
-		'orderby'    => 'count',
-		'order'      => 'DESC',
 	) );
 	if ( is_wp_error( $terms ) || ! $terms ) {
 		return '';
+	}
+	// Manual display order first (set per category), then most products.
+	if ( function_exists( 'ricoman_cat_sort_terms' ) ) {
+		$terms = ricoman_cat_sort_terms( $terms );
 	}
 	$excl  = array_filter( array_map( 'trim', explode( ',', (string) $atts['exclude'] ) ) );
 	$limit = (int) $atts['limit'];

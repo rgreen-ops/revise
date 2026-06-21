@@ -81,8 +81,11 @@ function ricoman_seo_description() {
 		}
 	} elseif ( is_tax() || is_category() || is_tag() ) {
 		$term = get_queried_object();
+		$cat_intro = ( $term && function_exists( 'ricoman_cat_seo' ) ) ? ricoman_cat_seo( $term->term_id, 'intro' ) : '';
 		if ( $term && ! empty( $term->description ) ) {
 			$desc = $term->description;
+		} elseif ( '' !== trim( (string) $cat_intro ) ) {
+			$desc = $cat_intro;
 		} elseif ( $term ) {
 			$desc = sprintf(
 				/* translators: %s: taxonomy term name. */
