@@ -33,9 +33,24 @@ add_shortcode( 'ricoman_header', function () {
 		: '<a class="brand" href="' . esc_url( home_url( '/' ) ) . '">RICOMAN<sup>&reg;</sup></a>';
 
 	// Mega panel (Products).
-	$cats = '';
-	foreach ( ricoman_opt_lines( 'mega_categories' ) as $p ) {
-		$cats .= '<li><a href="' . esc_url( isset( $p[1] ) ? $p[1] : '#' ) . '">' . esc_html( $p[0] ) . '</a></li>';
+	$cats      = '';
+	$cat_lines = ricoman_opt_lines( 'mega_categories' );
+	if ( $cat_lines ) {
+		// Manually-curated list (admin override).
+		foreach ( $cat_lines as $p ) {
+			$cats .= '<li><a href="' . esc_url( isset( $p[1] ) ? $p[1] : '#' ) . '">' . esc_html( $p[0] ) . '</a></li>';
+		}
+	} else {
+		// Auto: list the real product categories so the menu matches the
+		// /products/ structure — each links straight to its category page.
+		$ctax  = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
+		$terms = get_terms( array( 'taxonomy' => $ctax, 'hide_empty' => true, 'orderby' => 'name', 'order' => 'ASC' ) );
+		if ( ! is_wp_error( $terms ) ) {
+			foreach ( $terms as $t ) {
+				$link  = get_term_link( $t );
+				$cats .= '<li><a href="' . esc_url( is_wp_error( $link ) ? '#' : $link ) . '">' . esc_html( $t->name ) . '</a></li>';
+			}
+		}
 	}
 	$cols = '';
 	foreach ( ricoman_opt_lines( 'mega_collections' ) as $p ) {
