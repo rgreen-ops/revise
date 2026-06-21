@@ -298,6 +298,29 @@
 	}
 	if ( document.readyState !== 'loading' ) { rmEdgeInit(); } else { document.addEventListener( 'DOMContentLoaded', rmEdgeInit ); }
 
+	/* ---- Lazy background images (catalogue / product cards) ----
+	 * The /products/ archive renders ~500 cards. Loading every background image
+	 * up front made the page very heavy; instead each card keeps its URL in
+	 * data-bg and we set the background only as the card nears the viewport. */
+	function rmLazyBg() {
+		var els = document.querySelectorAll( '[data-bg]' );
+		if ( ! els.length ) { return; }
+		if ( ! ( 'IntersectionObserver' in window ) ) {
+			els.forEach( function ( el ) { el.style.backgroundImage = 'url(' + el.getAttribute( 'data-bg' ) + ')'; el.removeAttribute( 'data-bg' ); } );
+			return;
+		}
+		var io = new IntersectionObserver( function ( ents ) {
+			ents.forEach( function ( e ) {
+				if ( ! e.isIntersecting ) { return; }
+				var el = e.target, u = el.getAttribute( 'data-bg' );
+				if ( u ) { el.style.backgroundImage = 'url(' + u + ')'; el.removeAttribute( 'data-bg' ); }
+				io.unobserve( el );
+			} );
+		}, { rootMargin: '500px 0px' } );
+		els.forEach( function ( el ) { io.observe( el ); } );
+	}
+	if ( document.readyState !== 'loading' ) { rmLazyBg(); } else { document.addEventListener( 'DOMContentLoaded', rmLazyBg ); }
+
 	/* ---- News listing: search + topic chips ---- */
 	function rmNewsFilter( w ) {
 		var q = w.querySelector( '.rm-newsq' );

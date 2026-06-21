@@ -1548,3 +1548,6 @@ html,body{overflow-x:clip}
 @media(max-width:900px){
   .rm-cfghero,.rm-cfghero-wrap{max-width:100%;overflow-x:clip}
 }
+
+/* Lazy-bg card placeholder (image set on scroll by rmLazyBg). */
+.rm-projcard.rm-lazybg[data-bg]{background-color:#e7e7ea}

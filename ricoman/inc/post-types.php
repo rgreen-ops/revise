@@ -518,7 +518,9 @@ function ricoman_product_img( $pid ) {
  * category. Powers the /products/ archive. [ricoman_catalogue]
  */
 add_shortcode( 'ricoman_catalogue', function ( $atts ) {
-	$ver   = function_exists( 'ricoman_products_ver' ) ? ricoman_products_ver() : '1';
+	// 'm2-' markup version: bump to invalidate cached HTML when the card markup
+	// changes (here: lazy data-bg images).
+	$ver   = 'm2-' . ( function_exists( 'ricoman_products_ver' ) ? ricoman_products_ver() : '1' );
 	// Persisted option cache (not a transient — transients were not surviving on
 	// this host). Stored as [ver, html].
 	$store = get_option( 'rm_catalogue_cache' );
@@ -545,7 +547,7 @@ add_shortcode( 'ricoman_catalogue', function ( $atts ) {
  *  only runs in the background (cron) or once on the very first uncached request. */
 add_action( 'ricoman_catalogue_rebuild', 'ricoman_catalogue_build_and_store' );
 function ricoman_catalogue_build_and_store() {
-	$ver   = function_exists( 'ricoman_products_ver' ) ? ricoman_products_ver() : '1';
+	$ver   = 'm2-' . ( function_exists( 'ricoman_products_ver' ) ? ricoman_products_ver() : '1' );
 	$tax   = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
 	$terms = get_terms( array( 'taxonomy' => $tax, 'hide_empty' => true ) );
 
@@ -601,11 +603,15 @@ function ricoman_catalogue_build_and_store() {
 			// only until the background builder has populated the record.
 			$img   = ( isset( $mx['img'] ) && '' !== $mx['img'] ) ? $mx['img'] : ricoman_product_img( $pid );
 			$sub   = isset( $mx['sub'] ) ? $mx['sub'] : ( function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( $pid, 'product_subname' ) : '' );
-			$style = $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '';
+			// Lazy background: keep the image URL in data-bg (loaded on scroll by
+			// rmLazyBg) instead of an inline background-image. With ~500 cards the
+			// inline backgrounds made the page very heavy and made the cache/optimiser
+			// choke; data-bg keeps the markup light and loads images as you scroll.
+			$style = $img ? ' data-bg="' . esc_url( $img ) . '"' : '';
 			$meta  = array();
 			if ( $mx['lm'] ) { $meta[] = number_format( $mx['lm'] ) . ' lm'; }
 			if ( $mx['w'] ) { $meta[] = $mx['w'] . 'W'; }
-			$cards .= '<a class="rm-projcard rm-fcard" href="' . esc_url( get_permalink() ) . '"'
+			$cards .= '<a class="rm-projcard rm-fcard rm-lazybg" href="' . esc_url( get_permalink() ) . '"'
 				. ' data-lm="' . (int) $mx['lm'] . '" data-w="' . (int) $mx['w'] . '" data-feat="' . esc_attr( implode( ' ', $fslug ) ) . '"' . $style . '>'
 				. '<span class="rm-projcard-ov">'
 				. ( $sub ? '<span class="rm-eyebrow">' . esc_html( $sub ) . '</span>' : '' )
