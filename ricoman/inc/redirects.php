@@ -259,6 +259,34 @@ add_action( 'template_redirect', function () {
 	update_option( 'ricoman_404_log', $log, false );
 }, 5 );
 
+/**
+ * Drop any logged 404 that now resolves (renamed slugs, added redirects, the
+ * general resolver) and persist the trimmed log. Throttled so the resolver
+ * doesn't run on every admin page load. Returns the unresolved count.
+ */
+function ricoman_404_prune_resolved( $force = false ) {
+	$log = (array) get_option( 'ricoman_404_log', array() );
+	if ( ! $log ) {
+		return 0;
+	}
+	if ( ! $force && get_transient( 'ricoman_404_pruned' ) ) {
+		// Recently pruned — trust the stored log without re-resolving.
+		return count( $log );
+	}
+	$changed = false;
+	foreach ( array_keys( $log ) as $path ) {
+		if ( ricoman_path_resolves( $path ) ) {
+			unset( $log[ $path ] );
+			$changed = true;
+		}
+	}
+	if ( $changed ) {
+		update_option( 'ricoman_404_log', $log, false );
+	}
+	set_transient( 'ricoman_404_pruned', 1, 10 * MINUTE_IN_SECONDS );
+	return count( $log );
+}
+
 /** Flag unresolved 404s on every admin screen so they get sorted promptly. */
 add_action( 'admin_notices', function () {
 	if ( ! current_user_can( 'manage_options' ) ) {
@@ -268,7 +296,7 @@ add_action( 'admin_notices', function () {
 	if ( $screen && 'ricoman_page_ricoman-redirects' === $screen->id ) {
 		return; // already on the fix-it page.
 	}
-	$n = count( (array) get_option( 'ricoman_404_log', array() ) );
+	$n = ricoman_404_prune_resolved();
 	if ( $n < 1 ) {
 		return;
 	}
@@ -365,17 +393,8 @@ function ricoman_redirects_page() {
 	// Auto-clean: drop any logged link that now resolves (fixed page, manual
 	// redirect, or the automatic /product → /products rule) so the list shows
 	// only genuinely-broken URLs without anyone clicking re-check.
-	$log     = (array) get_option( 'ricoman_404_log', array() );
-	$cleaned = false;
-	foreach ( array_keys( $log ) as $p ) {
-		if ( ricoman_path_resolves( $p ) ) {
-			unset( $log[ $p ] );
-			$cleaned = true;
-		}
-	}
-	if ( $cleaned ) {
-		update_option( 'ricoman_404_log', $log, false );
-	}
+	ricoman_404_prune_resolved( true );
+	$log = (array) get_option( 'ricoman_404_log', array() );
 	uasort( $log, function ( $a, $b ) { return ( $b['hits'] <=> $a['hits'] ) ?: ( $b['last'] <=> $a['last'] ); } );
 	echo '<h2 style="margin-top:28px">' . esc_html__( 'Broken links detected (404s)', 'ricoman' );
 	if ( $log ) {
