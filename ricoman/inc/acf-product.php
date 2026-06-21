@@ -456,7 +456,7 @@ function ricoman_pf_render_endpoint( $d, $pid ) {
 	// ---- Split hero (concise; the detailed tech lives below) ----
 	$out  = ( $crumb ? '<div class="rm-section rm-pp-crumbwrap"><div class="rm-pp-wrap rm-pp-crumb">' . $crumb . '</div></div>' : '' )
 		. '<div class="rm-cfghero-wrap"><div class="rm-cfghero">'
-		. '<div class="rm-cfg-stage"><div class="rm-cfg-viz"><img class="rm-cfg-img" src="' . esc_url( $hero ) . '" alt="' . esc_attr( $d['product_title'] ) . '"></div>'
+		. '<div class="rm-cfg-stage"><div class="rm-cfg-viz"><img class="rm-cfg-img" src="' . esc_url( $hero ) . '" alt="' . esc_attr( $d['product_title'] ) . '" fetchpriority="high" decoding="async" width="800" height="800"></div>'
 		. ( $sw ? '<div class="rm-cv-swatches">' . $sw . '</div>' : '' )
 		. ( $thumbs ? '<div class="rm-cfg-thumbs">' . $thumbs . '</div>' : '' )
 		. '</div><div class="rm-cfg-panel">'
@@ -1083,7 +1083,7 @@ function ricoman_pf_gallery_block( $pid, $title, $code, $sw_html ) {
 		. '<button type="button" class="rm-gtab' . ( $studio ? '' : ' rm-gtab--off' ) . '" data-tab="studio"' . ( $studio ? '' : ' disabled' ) . '>Studio</button>'
 		. '<button type="button" class="rm-gtab' . ( $insitu ? '' : ' rm-gtab--off' ) . '" data-tab="insitu"' . ( $insitu ? '' : ' disabled' ) . '>In-situ</button>';
 
-	$viz = '<div class="rm-cfg-viz"><img class="rm-cfg-img rm-zoomable" src="' . esc_url( $main ) . '" alt="' . esc_attr( $title ) . '">'
+	$viz = '<div class="rm-cfg-viz"><img class="rm-cfg-img rm-zoomable" src="' . esc_url( $main ) . '" alt="' . esc_attr( $title ) . '" fetchpriority="high" decoding="async" width="800" height="800">'
 		. ( $sw_html ? '<div class="rm-cv-swatches rm-pdp-sw">' . $sw_html . '</div>' : '' )
 		. '<span class="rm-zoom-hint" aria-hidden="true">⤢</span>'
 		. '</div>';
@@ -1138,7 +1138,7 @@ function ricoman_pf_sections( $pid ) {
 	// 'm3' = markup version; bump to invalidate cached sections when section HTML
 	// changes. (Variant thumbnails use native loading="lazy"; the optimiser, not
 	// the theme, was the speed problem.)
-	$tkey      = 'rm_pfsec_m4_' . $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true );
+	$tkey      = 'rm_pfsec_m5_' . $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true );
 	if ( $cacheable ) {
 		$pre = get_transient( $tkey );
 		if ( is_array( $pre ) ) {
