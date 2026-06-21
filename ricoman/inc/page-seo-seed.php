@@ -100,6 +100,11 @@ function ricoman_render_page_seo() {
 			. sprintf( esc_html__( 'Filled %d empty SEO field(s) with starter copy.', 'ricoman' ), (int) $_GET['seeded'] )
 			. '</p></div>';
 	}
+	if ( isset( $_GET['footer'] ) ) {
+		echo '<div class="notice notice-success is-dismissible"><p>'
+			. sprintf( esc_html__( 'Added %d feature-page link(s) to the footer.', 'ricoman' ), (int) $_GET['footer'] )
+			. '</p></div>';
+	}
 
 	echo '<p>' . esc_html__( 'Each marketing and feature page can have its own SEO title and meta description (edit per page in the “SEO (Ricoman)” box on the page editor). The button below fills in hand-written starter copy for the pages listed — but only where a field is still empty, so it never overwrites anything you have written.', 'ricoman' ) . '</p>';
 
@@ -122,7 +127,28 @@ function ricoman_render_page_seo() {
 		}
 		echo '<tr><td><code>/' . esc_html( $slug ) . '/</code></td><td>' . esc_html( $meta[0] ) . '</td><td>' . $stat . '</td></tr>'; // phpcs:ignore WordPress.Security.EscapeOutput
 	}
-	echo '</tbody></table></div>';
+	echo '</tbody></table>';
+
+	// --- Footer discoverability ---
+	echo '<hr style="margin:28px 0"><h2>' . esc_html__( 'Footer links (internal SEO)', 'ricoman' ) . '</h2>';
+	echo '<p>' . esc_html__( 'Add the feature pages to the footer’s “Other Links” column so they’re linked from every page (helps search engines find and rank them). This only adds links that are missing — it never removes or reorders the links you already have.', 'ricoman' ) . '</p>';
+	$missing = array();
+	$current = function_exists( 'ricoman_opt' ) ? (string) ricoman_opt( 'foot_col_other' ) : '';
+	foreach ( ricoman_footer_featured_links() as $label => $path ) {
+		if ( false === strpos( $current, $path ) && get_page_by_path( trim( $path, '/' ) ) ) {
+			$missing[] = $label;
+		}
+	}
+	echo '<p>' . ( $missing
+		? esc_html__( 'Missing from the footer:', 'ricoman' ) . ' <strong>' . esc_html( implode( ', ', $missing ) ) . '</strong>'
+		: '<em>' . esc_html__( 'All feature pages are already linked in the footer.', 'ricoman' ) . '</em>' ) . '</p>';
+	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
+	echo '<input type="hidden" name="action" value="ricoman_footer_links_topup">';
+	wp_nonce_field( 'ricoman_footer_links_topup' );
+	submit_button( __( 'Add missing feature-page links to the footer', 'ricoman' ), 'secondary', 'submit', false, $missing ? array() : array( 'disabled' => 'disabled' ) );
+	echo '</form>';
+
+	echo '</div>';
 }
 
 add_action( 'admin_post_ricoman_seed_page_seo', function () {
@@ -132,5 +158,79 @@ add_action( 'admin_post_ricoman_seed_page_seo', function () {
 	check_admin_referer( 'ricoman_seed_page_seo' );
 	$n = ricoman_page_seo_seed_all();
 	wp_safe_redirect( add_query_arg( array( 'page' => 'ricoman-page-seo', 'seeded' => $n ), admin_url( 'admin.php' ) ) );
+	exit;
+} );
+
+/* -------------------------------------------------------------------------
+ * Footer discoverability — append the feature-page links to the footer's
+ * "Other Links" column if they're missing. Additive only: it never removes or
+ * reorders links the team has set, so existing staging footers gain the new
+ * pages' internal links (good for crawlability) without losing edits.
+ * ---------------------------------------------------------------------- */
+
+/** Feature/marketing links to ensure in the footer: label => path. Filterable. */
+function ricoman_footer_featured_links() {
+	return apply_filters( 'ricoman_footer_featured_links', array(
+		'Casambi'                  => '/casambi/',
+		'Human Centric Lighting'   => '/human-centric-lighting/',
+		'Antimicrobial Protection' => '/antimicrobial-protection/',
+		'Fire Safety'              => '/fire-safety/',
+		'Made in Britain'          => '/made-in-britain/',
+		'Sustainability'           => '/sustainability/',
+		'Trade'                    => '/trade/',
+		'Where to Buy'             => '/where-to-buy/',
+		'Our Showroom'             => '/our-showroom/',
+	) );
+}
+
+/**
+ * Append any missing feature-page links (whose page exists) to foot_col_other.
+ *
+ * @return int Number of links added.
+ */
+function ricoman_footer_links_topup() {
+	$key     = 'foot_col_other';
+	$current = function_exists( 'ricoman_opt' ) ? (string) ricoman_opt( $key ) : '';
+
+	// Paths already present (slash-insensitive).
+	$have = array();
+	foreach ( preg_split( '/\r\n|\r|\n/', $current ) as $line ) {
+		if ( false === strpos( $line, '|' ) ) {
+			continue;
+		}
+		$parts = array_map( 'trim', explode( '|', $line ) );
+		if ( isset( $parts[1] ) ) {
+			$have[ untrailingslashit( $parts[1] ) ] = true;
+		}
+	}
+
+	$append = '';
+	$added  = 0;
+	foreach ( ricoman_footer_featured_links() as $label => $path ) {
+		if ( isset( $have[ untrailingslashit( $path ) ] ) ) {
+			continue;
+		}
+		if ( ! get_page_by_path( trim( $path, '/' ) ) ) {
+			continue; // page doesn't exist — don't link a 404.
+		}
+		$append .= "\n" . $label . ' | ' . $path;
+		$added++;
+	}
+
+	if ( $added ) {
+		$opts          = get_option( 'ricoman_settings', array() );
+		$opts[ $key ]  = rtrim( $current ) . $append;
+		update_option( 'ricoman_settings', $opts );
+	}
+	return $added;
+}
+
+add_action( 'admin_post_ricoman_footer_links_topup', function () {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( esc_html__( 'You do not have permission to do this.', 'ricoman' ) );
+	}
+	check_admin_referer( 'ricoman_footer_links_topup' );
+	$n = ricoman_footer_links_topup();
+	wp_safe_redirect( add_query_arg( array( 'page' => 'ricoman-page-seo', 'footer' => $n ), admin_url( 'admin.php' ) ) );
 	exit;
 } );
