@@ -643,8 +643,10 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
   .rm-nav-right .rm-myproj .ricoman-mp-count{min-width:22px;height:22px;font-size:.72rem}
   .rm-nav-right .rm-login,.rm-nav-right .rm-logout{display:block;width:100%;text-align:left;font-size:1rem;letter-spacing:.08em}
   .rm-nav-right .rm-search{order:5}
-  /* Push the nav list clear of the (taller) account panel; scroll if needed. */
-  .rm-navtoggle:checked ~ ul{padding-top:330px;justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  /* Push the nav list clear of the fixed account panel (top:54px, ~213px tall),
+     then let the links use the remaining space. */
+  .rm-navtoggle:checked ~ ul{padding-top:228px;justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .nav>ul>li{padding:5px 0}
   .rm-search{flex:0 0 auto;width:auto;min-width:0}
 }
 
