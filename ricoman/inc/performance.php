@@ -269,6 +269,42 @@ add_action( 'wp_head', function () {
 	}
 }, 9 );
 
+/* ---- Defer + poster the hero background video ----
+ * The homepage hero is a full-bleed autoplay background video. Untouched it
+ * eagerly downloads the whole file on load (originally 12.6MB from the old
+ * production domain) and dominates the payload. Rewrite the cover video so it:
+ *   - points at the compressed, theme-hosted copy (1.9MB, same-origin, cached),
+ *   - shows a poster still immediately (instant LCP),
+ *   - carries no src (moved to data-src) + preload="none" so it never blocks the
+ *     first paint; the small loader script swaps it in after window load.
+ * Applies to the already-built page content too (it matches the rendered tag). */
+add_filter( 'the_content', function ( $html ) {
+	if ( is_admin() || false === strpos( $html, 'wp-block-cover__video-background' ) ) {
+		return $html;
+	}
+	$poster = esc_url( get_theme_file_uri( 'assets/images/hero-poster.webp' ) );
+	$local  = esc_url( get_theme_file_uri( 'assets/videos/hero-banner.mp4' ) );
+	return preg_replace_callback(
+		'#<video\b[^>]*\bwp-block-cover__video-background\b[^>]*></video>#i',
+		function ( $m ) use ( $poster, $local ) {
+			$tag = $m[0];
+			if ( preg_match( '/\ssrc="[^"]*"/', $tag ) ) {
+				$tag = preg_replace( '/\ssrc="[^"]*"/', ' data-src="' . $local . '"', $tag, 1 );
+			} else {
+				$tag = str_replace( '<video', '<video data-src="' . $local . '"', $tag );
+			}
+			if ( false === stripos( $tag, ' preload=' ) ) {
+				$tag = preg_replace( '/<video\b/', '<video preload="none"', $tag, 1 );
+			}
+			if ( false === stripos( $tag, ' poster=' ) ) {
+				$tag = preg_replace( '/<video\b/', '<video poster="' . $poster . '"', $tag, 1 );
+			}
+			return $tag;
+		},
+		$html
+	);
+}, 20 );
+
 /* ---- Speculative prefetch for near-instant internal navigation ---- */
 add_action( 'wp_footer', function () {
 	if ( is_admin_bar_showing() && is_user_logged_in() ) {

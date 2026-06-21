@@ -73,3 +73,18 @@
     }
   } catch (err) { /* stay static on any error */ }
 })();
+
+/* Lazy-load the deferred hero background video (poster shows first, then the
+   compressed video swaps in after the page has loaded — keeps it off the
+   critical path). */
+window.addEventListener('load', function () {
+  try {
+    document.querySelectorAll('video.wp-block-cover__video-background[data-src]').forEach(function (v) {
+      v.src = v.getAttribute('data-src');
+      v.removeAttribute('data-src');
+      try { v.load(); } catch (e) {}
+      var p = v.play();
+      if (p && p.catch) { p.catch(function () {}); }
+    });
+  } catch (e) { /* leave poster in place on any error */ }
+});

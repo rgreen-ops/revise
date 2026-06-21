@@ -32,8 +32,10 @@ add_action( 'init', function () {
 		$poscls = 'center center' === $pos ? '' : ' has-custom-content-position is-position-' . str_replace( ' ', '-', $pos );
 		return '<!-- wp:cover {"url":"' . $url . '","dimRatio":' . $dim . ',"overlayColor":"ink","minHeight":' . $min . ',"minHeightUnit":"vh","contentPosition":"' . $pos . '","align":"full","textColor":"base"} --><div class="wp-block-cover alignfull has-base-color has-text-color' . $poscls . '" style="min-height:' . $min . 'vh"><span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-' . $dim . ' has-background-dim"></span><img class="wp-block-cover__image-background" alt="" src="' . $url . '" data-object-fit="cover"/><div class="wp-block-cover__inner-container">' . $inner . '</div></div><!-- /wp:cover -->';
 	};
-	// Brand videos (hosted on ricoman.com). Editable in the block (swap the URL).
-	$vid_banner = 'https://ricoman.com/back-end/wp-content/uploads/2026/02/Ricoman-Website-banner-1.mp4';
+	// Brand videos. The hero banner is the compressed, theme-hosted copy
+	// (1.9MB vs 12.6MB) so it's same-origin + cacheable; deferred + postered by
+	// the hero-video filter below. Editable in the block (swap the URL).
+	$vid_banner = get_theme_file_uri( 'assets/videos/hero-banner.mp4' );
 	$vid_story  = 'https://ricoman.com/back-end/wp-content/uploads/2025/09/RICOMAN-homepage-video-webfile.mp4';
 	// Full-bleed cover with an autoplay (muted, looped) video background.
 	$vcover = function ( $video, $inner, $min, $pos, $dim ) {
