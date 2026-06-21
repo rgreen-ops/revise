@@ -66,16 +66,20 @@ function ricoman_resolve_old_path( $path ) {
 	if ( '' === $path ) {
 		return '';
 	}
+	static $cache = array();
+	if ( isset( $cache[ $path ] ) ) {
+		return $cache[ $path ];
+	}
 	$slug = sanitize_title( basename( $path ) );
 	if ( '' === $slug ) {
-		return '';
+		return $cache[ $path ] = '';
 	}
 	$types = array_values( array_filter( array( 'product', 'project', 'news', 'page', 'post' ), 'post_type_exists' ) );
 	// 1) A current slug on one of our post types.
 	foreach ( $types as $t ) {
 		$p = get_page_by_path( $slug, OBJECT, $t );
 		if ( $p && 'publish' === get_post_status( $p ) ) {
-			return get_permalink( $p );
+			return $cache[ $path ] = get_permalink( $p );
 		}
 	}
 	// 2) A slug renamed during/after migration (WordPress records _wp_old_slug).
@@ -88,7 +92,7 @@ function ricoman_resolve_old_path( $path ) {
 		'meta_query'    => array( array( 'key' => '_wp_old_slug', 'value' => $slug ) ), // phpcs:ignore WordPress.DB.SlowDBQuery
 	) );
 	if ( $found ) {
-		return get_permalink( (int) $found[0] );
+		return $cache[ $path ] = get_permalink( (int) $found[0] );
 	}
 	// 3) A public taxonomy term with that slug (old category URLs).
 	foreach ( array_values( get_taxonomies( array( 'public' => true ), 'names' ) ) as $tx ) {
@@ -96,12 +100,64 @@ function ricoman_resolve_old_path( $path ) {
 		if ( $term && ! is_wp_error( $term ) ) {
 			$link = get_term_link( $term, $tx );
 			if ( ! is_wp_error( $link ) ) {
-				return $link;
+				return $cache[ $path ] = $link;
 			}
 		}
 	}
-	return '';
+	return $cache[ $path ] = '';
 }
+
+/**
+ * Belt-and-braces: rewrite old-base links INSIDE rendered content so they point
+ * straight at the canonical URL (no redirect hop). Catches links left in
+ * migrated page / project / news content: /product/{slug} (singular) and
+ * category-prefixed product URLs like /track-lighting/{slug}. Only touches
+ * links that look old and resolve to a real product — current links are skipped.
+ */
+function ricoman_rewrite_old_links( $html ) {
+	if ( ! is_string( $html ) || false === strpos( $html, 'href=' ) ) {
+		return $html;
+	}
+	$home = strtolower( (string) wp_parse_url( home_url(), PHP_URL_HOST ) );
+	$skip = array( 'products', 'projects', 'news', 'sector', 'sectors', 'product-category', 'category', 'tag', 'author', 'wp-content', 'wp-json', 'feed', 'page', 'blog' );
+	return preg_replace_callback( '#href=(["\'])(.*?)\1#i', function ( $m ) use ( $home, $skip ) {
+		$q = $m[1]; $url = $m[2];
+		if ( '' === $url || '#' === $url[0] || preg_match( '#^(mailto:|tel:|javascript:|data:)#i', $url ) ) {
+			return $m[0];
+		}
+		$pp = wp_parse_url( $url );
+		if ( ! empty( $pp['host'] ) && strtolower( $pp['host'] ) !== $home ) {
+			return $m[0]; // external link.
+		}
+		$path = trim( (string) ( $pp['path'] ?? '' ), '/' );
+		if ( '' === $path || preg_match( '#\.[a-z0-9]{2,5}$#i', $path ) ) {
+			return $m[0]; // empty or a file.
+		}
+		$segs = explode( '/', $path );
+		$target = '';
+		if ( 'product' === $segs[0] && count( $segs ) >= 2 ) {
+			// Old singular base — resolve via the shared resolver.
+			$target = ricoman_resolve_old_path( $path );
+		} elseif ( 2 === count( $segs ) && ! in_array( $segs[0], $skip, true ) ) {
+			// Category-prefixed product URL (e.g. /track-lighting/{slug}) — product only.
+			$slug = sanitize_title( $segs[1] );
+			$p    = $slug ? get_page_by_path( $slug, OBJECT, 'product' ) : null;
+			if ( $p && 'publish' === get_post_status( $p ) ) {
+				$target = get_permalink( $p );
+			} elseif ( $slug ) {
+				$f = get_posts( array( 'post_type' => 'product', 'post_status' => 'publish', 'numberposts' => 1, 'fields' => 'ids', 'no_found_rows' => true, 'meta_query' => array( array( 'key' => '_wp_old_slug', 'value' => $slug ) ) ) ); // phpcs:ignore
+				if ( $f ) {
+					$target = get_permalink( (int) $f[0] );
+				}
+			}
+		}
+		if ( $target && trim( (string) wp_parse_url( $target, PHP_URL_PATH ), '/' ) !== $path ) {
+			return 'href=' . $q . esc_url( $target ) . $q;
+		}
+		return $m[0];
+	}, $html );
+}
+add_filter( 'the_content', 'ricoman_rewrite_old_links', 9 );
 
 add_action( 'template_redirect', function () {
 	if ( is_admin() || ! is_404() ) {
