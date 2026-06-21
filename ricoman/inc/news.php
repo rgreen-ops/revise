@@ -262,25 +262,64 @@ add_filter( 'wpseo_schema_article_post_types', function ( $types ) {
 } );
 
 /**
- * Curated keyword => URL map for in-article internal links. These point at
- * product categories / feature pages, so links double as conversion paths.
- * Editable via the filter.
+ * Keyword => URL map for in-article internal links. Built from the REAL product
+ * categories (via get_term_link, so the URLs always resolve — no guessed slugs
+ * that 404) plus curated feature-page links that are only included when the page
+ * actually exists. Every category is covered automatically, with a leading-"LED"
+ * alias so natural prose ("linear lighting") matches "LED Linear Lighting".
+ * Editable via the filter. Cached per request.
  */
 function ricoman_news_link_map() {
-	return apply_filters( 'ricoman_news_link_map', array(
-		'human centric lighting' => '/human-centric-lighting/',
-		'emergency lighting'     => '/product-category/led-emergency/',
-		'linear lighting'        => '/product-category/led-linear-lighting/',
-		'track lighting'         => '/product-category/led-track-lights/',
-		'panel lights'           => '/product-category/led-panel-lights/',
-		'led downlights'         => '/product-category/led-downlights/',
-		'downlights'             => '/product-category/led-downlights/',
-		'lighting design'        => '/lighting-design/',
-		'tunable white'          => '/human-centric-lighting/',
-		'pendants'               => '/product-category/pendants/',
-		'Casambi'                => '/casambi/',
-		'Flow+'                  => '/product-category/led-linear-lighting/',
-	) );
+	static $cached = null;
+	if ( null !== $cached ) {
+		return $cached;
+	}
+	$map = array();
+
+	// Real product categories — correct permalink whatever the slug structure is.
+	$tax   = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
+	$terms = get_terms( array( 'taxonomy' => $tax, 'hide_empty' => true ) );
+	if ( ! is_wp_error( $terms ) && $terms ) {
+		foreach ( $terms as $t ) {
+			$link = get_term_link( $t );
+			if ( is_wp_error( $link ) ) {
+				continue;
+			}
+			$name = strtolower( trim( $t->name ) );
+			if ( '' !== $name && ! isset( $map[ $name ] ) ) {
+				$map[ $name ] = $link;
+			}
+			// Alias without a leading "LED " (e.g. "LED Linear Lighting" -> "linear lighting").
+			$alias = strtolower( trim( preg_replace( '/^led\s+/i', '', $t->name ) ) );
+			if ( '' !== $alias && $alias !== $name && ! isset( $map[ $alias ] ) ) {
+				$map[ $alias ] = $link;
+			}
+		}
+	}
+
+	// Curated feature-page links — only added when the target page exists, so we
+	// never link to a 404. Keyword => page path (slug).
+	$curated = array(
+		'human centric lighting' => 'human-centric-lighting',
+		'tunable white'          => 'human-centric-lighting',
+		'lighting design'        => 'lighting-design',
+		'casambi'                => 'casambi',
+		'antimicrobial'          => 'antimicrobial',
+		'fire safety'            => 'fire-safety',
+		'custom lighting'        => 'custom-lighting',
+	);
+	foreach ( $curated as $kw => $slug ) {
+		if ( isset( $map[ $kw ] ) ) {
+			continue;
+		}
+		$page = get_page_by_path( $slug );
+		if ( $page ) {
+			$map[ $kw ] = get_permalink( $page );
+		}
+	}
+
+	$cached = apply_filters( 'ricoman_news_link_map', $map );
+	return $cached;
 }
 
 /**
