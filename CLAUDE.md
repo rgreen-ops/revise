@@ -125,9 +125,14 @@ GLOBAL: [ ] Header / mega-menu  [ ] Footer
 - **Leads log**: `lead` CPT now has admin columns (Type · Email · Product/Company ·
   Source · Received).
 - **Newsletter capture** (`inc/lead-capture.php`): `[ricoman_newsletter]` shortcode +
-  a footer signup (email-only, low friction) logs "Newsletter" leads into the same
-  CPT/CRM/Sheets pipeline; AJAX `rm_newsletter`, nonce + honeypot + spam-screened,
-  de-duped per email.
+  a footer signup AND an end-of-news-article signup (email-only, low friction) logs
+  "Newsletter" leads into the same CPT/CRM/Sheets pipeline; AJAX `rm_newsletter`,
+  nonce + honeypot + spam-screened, de-duped per email. Base CSS is light-context;
+  `.rm-foot-news` overrides for the dark footer.
+- **Request a callback** (`inc/lead-capture.php`): `[ricoman_callback]` shortcode
+  (name + phone + best-time) on the Contact page sidebar; AJAX `rm_callback` logs a
+  "Callback request" lead, emails admin (time-sensitive), spam-screened. Drop the
+  shortcode anywhere for another low-friction lead source.
 - **Spam protection** (`ricoman_lead_is_spam()` in `inc/lead-capture.php`): shared
   screen on EVERY capture point (enquiry form, download gate, BIM request,
   newsletter) on top of the per-form nonce + honeypot — per-IP rate limit

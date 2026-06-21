@@ -595,17 +595,30 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-foot-legal a:hover{color:#fff}
 @media(max-width:900px){.rm-foot-grid{grid-template-columns:1fr 1fr}.rm-foot-brandcol{grid-column:1/-1}}
 @media(max-width:560px){.rm-foot-grid{grid-template-columns:1fr}}
-/* Newsletter signup (footer + [ricoman_newsletter]) */
-.rm-foot-news{margin-top:clamp(32px,4vw,56px);padding-top:28px;border-top:1px solid rgba(255,255,255,.12)}
-.rm-foot-news .rm-news-h{color:#fff;font-size:1.15rem;margin:0 0 4px}
-.rm-foot-news .rm-news-sub{color:rgba(255,255,255,.6);font-size:.85rem;margin:0 0 14px;max-width:46ch}
-.rm-news-form{display:flex;flex-wrap:wrap;gap:10px;align-items:center;max-width:540px}
-.rm-news-form input[type=email]{flex:1 1 240px;min-width:0;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.06);color:#fff;font-size:.95rem}
-.rm-news-form input[type=email]::placeholder{color:rgba(255,255,255,.45)}
+/* Newsletter signup ([ricoman_newsletter]) — base = light context */
+.rm-news{background:var(--rm-soft,#f5f6f8);border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:clamp(22px,3vw,34px)}
+.rm-news .rm-news-h{font-size:clamp(1.2rem,2vw,1.5rem);margin:0 0 4px;color:var(--ink,#16161a)}
+.rm-news .rm-news-sub{color:#5b6068;font-size:.92rem;margin:0 0 16px;max-width:54ch}
+.rm-news-form{display:flex;flex-wrap:wrap;gap:10px;align-items:center;max-width:560px}
+.rm-news-form input[type=email]{flex:1 1 240px;min-width:0;padding:12px 14px;border-radius:10px;border:1px solid rgba(0,0,0,.18);background:#fff;color:var(--ink,#16161a);font-size:.95rem}
 .rm-news-form .rm-news-go{flex:0 0 auto}
-.rm-news-msg{flex:1 0 100%;margin:4px 0 0;font-size:.85rem;color:#86efac}
-.rm-news--compact .rm-news-h{font-size:1.05rem}
+.rm-news-msg{flex:1 0 100%;margin:6px 0 0;font-size:.85rem;color:#1a7f37}
 @media(max-width:560px){.rm-news-form .rm-news-go{flex:1 1 100%}}
+/* Request-a-callback (light card, reuses .rm-news typography) */
+.rm-callback{background:var(--rm-soft,#f5f6f8);border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:clamp(22px,3vw,34px)}
+.rm-callback-form{max-width:560px}
+.rm-callback-form .rm-cb-row{display:flex;flex-wrap:wrap;gap:12px}
+.rm-callback-form label{display:block;margin:0 0 12px;flex:1 1 200px}
+.rm-callback-form label span{display:block;font-size:.82rem;font-weight:600;margin:0 0 4px;color:var(--ink,#16161a)}
+.rm-callback-form input,.rm-callback-form select{width:100%;padding:11px 13px;border-radius:10px;border:1px solid rgba(0,0,0,.18);background:#fff;color:var(--ink,#16161a);font-size:.95rem}
+/* Footer (dark) override */
+.rm-foot-news{margin-top:clamp(32px,4vw,56px);padding-top:28px;border-top:1px solid rgba(255,255,255,.12)}
+.rm-foot-news .rm-news{background:none;border:0;border-radius:0;padding:0}
+.rm-foot-news .rm-news-h{color:#fff;font-size:1.15rem}
+.rm-foot-news .rm-news-sub{color:rgba(255,255,255,.6);font-size:.85rem;max-width:46ch}
+.rm-foot-news .rm-news-form input[type=email]{border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.06);color:#fff}
+.rm-foot-news .rm-news-form input[type=email]::placeholder{color:rgba(255,255,255,.45)}
+.rm-foot-news .rm-news-msg{color:#86efac}
 
 /* mega + search on mobile: fold into the slide-in menu */
 @media(max-width:1024px){

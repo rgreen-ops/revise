@@ -615,6 +615,13 @@ add_filter( 'the_content', function ( $content ) {
 
 	$out .= '<div class="rm-section rm-news-moresec"><div class="rm-pp-wrap">' . ricoman_news_related_articles( $pid ) . '</div></div>';
 
+	// Newsletter signup — turn article readers into subscribers (logged as leads).
+	if ( function_exists( 'ricoman_newsletter_form' ) ) {
+		$out .= '<div class="rm-section rm-news-newssec"><div class="rm-pp-wrap">'
+			. ricoman_newsletter_form( array( 'source' => 'News article', 'title' => 'Get more lighting insights', 'sub' => 'Project stories, product launches and specifier know-how — straight to your inbox. No spam, unsubscribe anytime.' ) )
+			. '</div></div>';
+	}
+
 	return $out;
 }, 9 );
 

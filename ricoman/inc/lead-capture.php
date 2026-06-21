@@ -559,3 +559,157 @@ function ricoman_newsletter_capture() {
 }
 add_action( 'wp_ajax_nopriv_rm_newsletter', 'ricoman_newsletter_capture' );
 add_action( 'wp_ajax_rm_newsletter', 'ricoman_newsletter_capture' );
+
+/* ====================================================== Request a callback ===
+ * A two-field (name + phone) capture point for visitors who'd rather be called
+ * than fill in the full enquiry form. Logs a "Callback request" lead, emails the
+ * team, and flows into the same tracker / CRM / Sheets pipeline.
+ * ------------------------------------------------------------------------- */
+
+/**
+ * Render the callback request form. Drop in with [ricoman_callback].
+ *
+ * @param array $atts [ title, sub, source ].
+ * @return string
+ */
+function ricoman_callback_form( $atts = array() ) {
+	$atts = shortcode_atts(
+		array(
+			'title'  => __( 'Prefer a call back?', 'ricoman' ),
+			'sub'    => __( 'Leave your number and our lighting team will call you back — usually the same working day.', 'ricoman' ),
+			'source' => '',
+		),
+		$atts,
+		'ricoman_callback'
+	);
+	$source = $atts['source'] ? $atts['source'] : ( is_singular() ? get_the_title() : get_bloginfo( 'name' ) );
+	$nonce  = wp_create_nonce( 'rm_callback' );
+	$ajax   = esc_url( admin_url( 'admin-ajax.php' ) );
+	$id     = 'rm-cb-' . wp_rand( 1000, 9999 );
+
+	ob_start();
+	?>
+	<div class="rm-callback">
+		<?php if ( $atts['title'] ) : ?><h2 class="rm-news-h"><?php echo esc_html( $atts['title'] ); ?></h2><?php endif; ?>
+		<?php if ( $atts['sub'] ) : ?><p class="rm-news-sub"><?php echo esc_html( $atts['sub'] ); ?></p><?php endif; ?>
+		<form class="rm-callback-form" data-ajax="<?php echo $ajax; // phpcs:ignore WordPress.Security.EscapeOutput ?>" data-nonce="<?php echo esc_attr( $nonce ); ?>" data-source="<?php echo esc_attr( $source ); ?>" data-ts="<?php echo (int) time(); ?>">
+			<div aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px"><label>Website<input type="text" name="rm_hp" tabindex="-1" autocomplete="off"></label></div>
+			<div class="rm-cb-row">
+				<label><span><?php esc_html_e( 'Name', 'ricoman' ); ?> *</span><input type="text" name="name" required></label>
+				<label><span><?php esc_html_e( 'Phone', 'ricoman' ); ?> *</span><input type="tel" name="phone" required></label>
+			</div>
+			<label><span><?php esc_html_e( 'Best time to call', 'ricoman' ); ?></span>
+				<select name="when">
+					<option value=""><?php esc_html_e( 'Anytime', 'ricoman' ); ?></option>
+					<option><?php esc_html_e( 'Morning', 'ricoman' ); ?></option>
+					<option><?php esc_html_e( 'Afternoon', 'ricoman' ); ?></option>
+				</select>
+			</label>
+			<button type="submit" class="btn btn-solid rm-cb-go"><?php esc_html_e( 'Request a callback', 'ricoman' ); ?></button>
+			<p class="rm-news-msg" role="status" hidden></p>
+		</form>
+	</div>
+	<?php
+	ricoman_callback_script();
+	return (string) ob_get_clean();
+}
+add_shortcode( 'ricoman_callback', 'ricoman_callback_form' );
+
+/** Print the callback AJAX handler once per page. */
+function ricoman_callback_script() {
+	static $done = false;
+	if ( $done ) {
+		return;
+	}
+	$done = true;
+	?>
+	<script>
+	(function(){
+		document.addEventListener('submit', function(e){
+			var f = e.target.closest && e.target.closest('.rm-callback-form');
+			if (!f) return;
+			e.preventDefault();
+			if (f.querySelector('[name=rm_hp]') && f.querySelector('[name=rm_hp]').value) return;
+			var msg = f.querySelector('.rm-news-msg'), btn = f.querySelector('button');
+			var g = function(n){ return (f.querySelector('[name='+n+']')||{}).value || ''; };
+			var body = new URLSearchParams();
+			body.set('action','rm_callback');
+			body.set('nonce', f.dataset.nonce);
+			body.set('source', f.dataset.source || '');
+			body.set('ts', f.dataset.ts || '');
+			body.set('name', g('name')); body.set('phone', g('phone')); body.set('when', g('when'));
+			if (btn) btn.disabled = true;
+			fetch(f.dataset.ajax, {method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: body.toString()})
+				.then(function(r){return r.json();})
+				.then(function(r){
+					if (btn) btn.disabled = false;
+					if (msg){ msg.hidden=false; msg.textContent = (r && r.data && r.data.msg) ? r.data.msg : (r && r.success ? 'Thanks — we’ll call you back shortly.' : 'Sorry, please try again.'); }
+					if (r && r.success){ f.reset(); }
+				})
+				.catch(function(){ if(btn)btn.disabled=false; if(msg){msg.hidden=false; msg.textContent='Sorry, please try again.';} });
+		});
+	})();
+	</script>
+	<?php
+}
+
+/** AJAX: capture a callback request as a lead + email the team. */
+function ricoman_callback_capture() {
+	if ( ! check_ajax_referer( 'rm_callback', 'nonce', false ) ) {
+		wp_send_json_error( array( 'msg' => __( 'Please refresh and try again.', 'ricoman' ) ) );
+	}
+	$name  = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
+	$phone = isset( $_POST['phone'] ) ? sanitize_text_field( wp_unslash( $_POST['phone'] ) ) : '';
+	$when  = isset( $_POST['when'] ) ? sanitize_text_field( wp_unslash( $_POST['when'] ) ) : '';
+	$src   = isset( $_POST['source'] ) ? sanitize_text_field( wp_unslash( $_POST['source'] ) ) : '';
+	$ts    = isset( $_POST['ts'] ) ? (int) $_POST['ts'] : 0;
+	$hp    = isset( $_POST['rm_hp'] ) ? (string) wp_unslash( $_POST['rm_hp'] ) : '';
+
+	// Need a name and a plausible phone number (>=7 digits).
+	if ( '' === $name || preg_match_all( '/\d/', $phone ) < 7 ) {
+		wp_send_json_error( array( 'msg' => __( 'Please enter your name and a valid phone number.', 'ricoman' ) ) );
+	}
+	// Honeypot + shared spam screen — silently acknowledge, store nothing.
+	if ( '' !== $hp || ricoman_lead_is_spam( array( 'ts' => $ts, 'fields' => array( $name ) ) ) ) {
+		wp_send_json_success( array( 'msg' => __( 'Thanks — we’ll call you back shortly.', 'ricoman' ) ) );
+	}
+
+	$source = $src ? 'Callback · ' . $src : 'Callback request';
+	$data   = array(
+		'name'      => $name,
+		'email'     => '',
+		'company'   => '',
+		'phone'     => $phone,
+		'role'      => '',
+		'message'   => $when ? sprintf( 'Best time to call: %s', $when ) : '',
+		'source'    => $source,
+		'items'     => '',
+		'submitted' => current_time( 'mysql' ),
+	);
+	$lead_id = wp_insert_post( array(
+		'post_type'   => 'lead',
+		'post_status' => 'private',
+		'post_title'  => sprintf( '%s — %s', $name, __( 'Callback', 'ricoman' ) ),
+		'meta_input'  => array_merge( array(
+			'_lead_name'    => $name,
+			'_lead_phone'   => $phone,
+			'_lead_type'    => __( 'Callback request', 'ricoman' ),
+			'_lead_message' => $data['message'],
+			'_lead_source'  => $source,
+		), function_exists( 'ricoman_lead_attribution' ) ? ricoman_lead_attribution() : array() ),
+	) );
+
+	// Notify the team — a callback is time-sensitive.
+	wp_mail(
+		get_option( 'admin_email' ),
+		sprintf( '[%s] Callback request: %s', get_bloginfo( 'name' ), $name ),
+		sprintf( "A visitor has requested a callback.\n\nName: %s\nPhone: %s\nBest time: %s\nSource: %s\n", $name, $phone, $when ? $when : __( 'Anytime', 'ricoman' ), $source )
+	);
+
+	/** Same hook the other capture points fire (Sheets sync, CRM…). */
+	do_action( 'ricoman_lead_captured', $data, is_wp_error( $lead_id ) ? 0 : $lead_id );
+
+	wp_send_json_success( array( 'msg' => __( 'Thanks — we’ll call you back shortly.', 'ricoman' ) ) );
+}
+add_action( 'wp_ajax_nopriv_rm_callback', 'ricoman_callback_capture' );
+add_action( 'wp_ajax_rm_callback', 'ricoman_callback_capture' );
