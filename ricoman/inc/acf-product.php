@@ -267,7 +267,7 @@ function ricoman_pf_spec_html( $raw ) {
 			$li .= '<li>' . esc_html( $it ) . '</li>';
 		}
 		$cards .= '<div class="rm-speccard">'
-			. ( '' !== $g['title'] ? '<h4>' . esc_html( $g['title'] ) . '</h4>' : '' )
+			. ( '' !== $g['title'] ? '<h3 class="rm-speccard-h">' . esc_html( $g['title'] ) . '</h3>' : '' )
 			. ( $li ? '<ul>' . $li . '</ul>' : '' ) . '</div>';
 	}
 	return '<div class="rm-specgrid">' . $cards . '</div>';
@@ -520,7 +520,7 @@ function ricoman_pf_render_endpoint( $d, $pid ) {
 			}
 		}
 		if ( $dl ) {
-			$out .= '<div class="rm-section" id="downloads"><div class="rm-pp-wrap"><div class="rm-prod-downloads"><h3 class="rm-shead">Downloads &amp; Resources</h3><ul>' . $dl . '</ul></div></div></div>';
+			$out .= '<div class="rm-section" id="downloads"><div class="rm-pp-wrap"><div class="rm-prod-downloads"><h2 class="rm-shead">Downloads &amp; Resources</h2><ul>' . $dl . '</ul></div></div></div>';
 		}
 	}
 
@@ -1138,7 +1138,7 @@ function ricoman_pf_sections( $pid ) {
 	// 'm3' = markup version; bump to invalidate cached sections when section HTML
 	// changes. (Variant thumbnails use native loading="lazy"; the optimiser, not
 	// the theme, was the speed problem.)
-	$tkey      = 'rm_pfsec_m3_' . $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true );
+	$tkey      = 'rm_pfsec_m4_' . $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true );
 	if ( $cacheable ) {
 		$pre = get_transient( $tkey );
 		if ( is_array( $pre ) ) {
@@ -1239,7 +1239,7 @@ function ricoman_pf_sections( $pid ) {
 	// BIM / Revit is a made-to-request file (built by the lighting team on demand),
 	// so it's a request link on every product — not a direct download.
 	$dl .= '<a class="rm-bim-req" href="#" data-product="' . esc_attr( $title ) . '"><span class="rm-dl-lbl">' . esc_html__( 'BIM / Revit', 'ricoman' ) . '</span> <span class="rm-dl-sub">' . esc_html__( '(RFA) · request', 'ricoman' ) . '</span></a>';
-	$downloads = '<div class="rm-prod-downloads"><h3 class="rm-shead">Downloads</h3><div class="rm-dls">' . $dl . '</div></div>';
+	$downloads = '<div class="rm-prod-downloads"><h2 class="rm-shead">Downloads</h2><div class="rm-dls">' . $dl . '</div></div>';
 
 	// CTA buttons (LD + trade) from the structured fields, with fallbacks.
 	$ld    = ricoman_pf_get( $pid, '_ricoman_ld_btn', 'Request a Lighting Design' );

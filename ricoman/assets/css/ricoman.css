@@ -898,7 +898,7 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 /* Specification — tidy card grid (accent headers, dot bullets) */
 .rm-specgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:20px 44px;margin:4px 0}
 .rm-speccard{background:none;border:0;border-radius:0;padding:0}
-.rm-speccard h4{font-family:Poppins;font-size:.84rem;font-weight:700;letter-spacing:0;text-transform:none;color:#16181d;margin:0 0 7px;padding:0;border:0}
+.rm-speccard h4,.rm-speccard .rm-speccard-h{font-family:Poppins;font-size:.84rem;font-weight:700;letter-spacing:0;text-transform:none;color:#16181d;margin:0 0 7px;padding:0;border:0}
 .rm-speccard ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
 .rm-speccard li{position:relative;padding-left:0;font-size:.84rem;line-height:1.5;color:#1a1a1a}
 .rm-speccard li:before{content:none}
