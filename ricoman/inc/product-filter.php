@@ -75,10 +75,12 @@ function ricoman_pf_metrics( $pid ) {
 		return $memo[ $pid ] = $pre;
 	}
 
-	// Not built (or stored in the old variant-only format): schedule ONE batched
-	// build per request — never a per-product cron event inside the loop, which
-	// rewrote the whole cron-array option ~500× (an O(n^2) storm). Compute live
-	// this once so the page still works until the cron precomputes it.
+	// Not built (or old variant-only format): schedule ONE batched build and
+	// return a cheap placeholder — NEVER compute live here. The live computation
+	// is ~5 ACF get_field() calls per product; across the catalogue loop that was
+	// the ~40s cost, and on hosts that run WP-Cron synchronously even the
+	// background rebuild could block a visitor. Real lumens/watts/features fill in
+	// once ricoman_pf_build_all has run (it bumps the version, refreshing caches).
 	static $sched = false;
 	if ( ! $sched ) {
 		$sched = true;
@@ -86,7 +88,7 @@ function ricoman_pf_metrics( $pid ) {
 			wp_schedule_single_event( time() + 5, 'ricoman_pf_build_all' );
 		}
 	}
-	return $memo[ $pid ] = ricoman_pf_compute_metrics( $pid );
+	return $memo[ $pid ] = array( 'lm' => 0, 'w' => 0, 'feats' => array() );
 }
 
 /**
@@ -164,7 +166,7 @@ function ricoman_pf_build_all() {
 	$ids = get_posts( array(
 		'post_type'      => 'product',
 		'post_status'    => 'publish',
-		'posts_per_page' => 80,
+		'posts_per_page' => 25,
 		'fields'         => 'ids',
 		'no_found_rows'  => true,
 		'cache_results'  => false,
@@ -183,8 +185,9 @@ function ricoman_pf_build_all() {
 	foreach ( $ids as $pid ) {
 		ricoman_pf_rebuild( (int) $pid );
 	}
-	// More still missing? Come back for the next batch shortly.
-	if ( count( $ids ) >= 80 && ! wp_next_scheduled( 'ricoman_pf_build_all' ) ) {
+	// More still missing? Come back for the next batch shortly. Small batches so
+	// that on a synchronous-cron host a single run can never block a visitor long.
+	if ( count( $ids ) >= 25 && ! wp_next_scheduled( 'ricoman_pf_build_all' ) ) {
 		wp_schedule_single_event( time() + 30, 'ricoman_pf_build_all' );
 	}
 	// New products since this option means the catalogue's facet ranges changed.
