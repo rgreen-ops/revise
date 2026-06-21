@@ -525,3 +525,103 @@ add_action( 'template_redirect', function () {
 		wp_die( esc_html__( 'Sorry, the project pack could not be built.', 'ricoman' ) . esc_html( $why ) );
 	}
 } );
+
+/* --------------------------------------------------- bulk technical-file zip */
+
+/**
+ * File extensions for each bulk-download set on the Downloads page.
+ * LDT = photometric files (DIALux/Relux); Revit = BIM families.
+ */
+function ricoman_bulk_file_types() {
+	return apply_filters(
+		'ricoman_bulk_file_types',
+		array(
+			'ldt'   => array( 'label' => 'photometric (LDT/IES)', 'ext' => array( 'ldt', 'ies' ), 'folder' => 'Photometric files' ),
+			'revit' => array( 'label' => 'Revit (RFA)', 'ext' => array( 'rfa', 'rvt', 'rcp' ), 'folder' => 'Revit files' ),
+		)
+	);
+}
+
+/**
+ * Stream a ZIP of every technical file of one type (LDT or Revit) held in the
+ * media library. Powers the "Download all LDT/Revit files" buttons on the
+ * Downloads page. Login-gated (same as project packs) so the request is a
+ * captured lead. Capped on count + total size to stay within memory.
+ */
+add_action( 'template_redirect', function () {
+	if ( empty( $_GET['rm_all'] ) ) {
+		return;
+	}
+	$type  = sanitize_key( wp_unslash( $_GET['rm_all'] ) );
+	$types = ricoman_bulk_file_types();
+	if ( ! isset( $types[ $type ] ) ) {
+		return;
+	}
+	if ( ! is_user_logged_in() ) {
+		auth_redirect();
+		exit;
+	}
+	try {
+		global $wpdb;
+		$exts = $types[ $type ]['ext'];
+		$like = array();
+		$args = array();
+		foreach ( $exts as $e ) {
+			$like[] = 'meta_value LIKE %s';
+			$args[] = '%.' . $wpdb->esc_like( $e );
+		}
+		// _wp_attached_file holds the relative path; match on its extension.
+		$sql  = "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_wp_attached_file' AND ( " . implode( ' OR ', $like ) . ' ) LIMIT 5000';
+		$ids  = $wpdb->get_col( $wpdb->prepare( $sql, $args ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+		$entries  = array();
+		$used     = array();
+		$total    = 0;
+		$maxbytes = (int) apply_filters( 'ricoman_bulk_zip_max_bytes', 220 * 1024 * 1024 );
+		$folder   = $types[ $type ]['folder'];
+		foreach ( $ids as $id ) {
+			$path = get_attached_file( (int) $id );
+			if ( ! $path || ! is_file( $path ) ) {
+				continue;
+			}
+			$size = (int) filesize( $path );
+			if ( $size <= 0 || $total + $size > $maxbytes ) {
+				continue;
+			}
+			$name = sanitize_file_name( basename( $path ) );
+			$key  = strtolower( $name );
+			if ( isset( $used[ $key ] ) ) {
+				$name = pathinfo( $name, PATHINFO_FILENAME ) . '-' . $id . '.' . pathinfo( $name, PATHINFO_EXTENSION );
+			}
+			$used[ $key ] = true;
+			$entries[]    = array( 'path' => $folder . '/' . $name, 'file' => $path );
+			$total       += $size;
+		}
+
+		$zipdata = $entries ? ricoman_build_pack_zip( $entries ) : false;
+		if ( ! $zipdata ) {
+			wp_die( esc_html( sprintf(
+				/* translators: %s: file type label */
+				__( 'No %s files are on the server yet — ask the team and we&rsquo;ll send them over.', 'ricoman' ),
+				$types[ $type ]['label']
+			) ) );
+		}
+
+		while ( ob_get_level() ) {
+			ob_end_clean();
+		}
+		$fname = 'Ricoman - ' . ( 'ldt' === $type ? 'photometric LDT files' : 'Revit RFA files' ) . '.zip';
+		nocache_headers();
+		header( 'Content-Type: application/zip' );
+		header( 'Content-Disposition: attachment; filename="' . $fname . '"' );
+		header( 'Content-Length: ' . strlen( $zipdata ) );
+		echo $zipdata; // phpcs:ignore WordPress.Security.EscapeOutput -- binary ZIP.
+		exit;
+	} catch ( \Throwable $t ) {
+		while ( ob_get_level() ) {
+			ob_end_clean();
+		}
+		$why = current_user_can( 'manage_options' ) ? ' [' . $t->getMessage() . ' @ ' . basename( $t->getFile() ) . ':' . $t->getLine() . ']' : '';
+		wp_die( esc_html__( 'Sorry, that download could not be built.', 'ricoman' ) . esc_html( $why ) );
+	}
+} );

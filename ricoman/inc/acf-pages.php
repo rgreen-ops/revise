@@ -32,7 +32,6 @@ add_filter( 'the_content', function ( $content ) {
 		'our-news'   => '[ricoman_news_grid]',
 		'news'       => '[ricoman_news_grid]',
 		'products'   => '[ricoman_catalogue]',
-		'downloads'  => '[ricoman_catalogue]',
 		'contact'    => '[ricoman_contact]',
 		'contact-us' => '[ricoman_contact]',
 	);
@@ -54,6 +53,35 @@ add_filter( 'the_content', function ( $content ) {
 		. ( $crumb ? '<div class="rm-pp-crumb">' . $crumb . '</div>' : '' )
 		. '<h1 class="rm-apage-title">' . esc_html( $title ) . '</h1></div></div>';
 }, 9 );
+
+/**
+ * Hide the legacy ACF "Extra Fields" meta boxes in the editor on managed static
+ * pages that now use block content (so the page renders from blocks, not ACF).
+ * Stops admins editing dead fields. Only removes them once the page has real
+ * block content — pages still on ACF keep their boxes so they stay editable.
+ */
+add_action( 'add_meta_boxes', function ( $post_type, $post ) {
+	if ( 'page' !== $post_type || ! ( $post instanceof WP_Post ) ) {
+		return;
+	}
+	$map = function_exists( 'ricoman_theme_page_map' ) ? ricoman_theme_page_map() : array();
+	if ( ! isset( $map[ $post->post_name ] ) || '' === trim( (string) $post->post_content ) ) {
+		return; // not a managed page, or still ACF-rendered.
+	}
+	global $wp_meta_boxes;
+	foreach ( array( 'normal', 'advanced', 'side' ) as $ctx ) {
+		if ( empty( $wp_meta_boxes['page'][ $ctx ] ) ) {
+			continue;
+		}
+		foreach ( $wp_meta_boxes['page'][ $ctx ] as $boxes ) {
+			foreach ( array_keys( (array) $boxes ) as $id ) {
+				if ( 0 === strpos( (string) $id, 'acf-' ) ) {
+					remove_meta_box( $id, 'page', $ctx );
+				}
+			}
+		}
+	}
+}, 100, 2 );
 
 /** url helpers (shared with acf-product.php when present). */
 if ( ! function_exists( 'ricoman_pf_imgurl' ) ) {

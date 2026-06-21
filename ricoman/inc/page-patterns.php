@@ -182,7 +182,42 @@ add_action( 'init', function () {
 	$dlcard = function ( $title, $desc, $href ) { return '<!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"rm-card rm-soft","style":{"spacing":{"padding":{"top":"var:preset|spacing|40","bottom":"var:preset|spacing|40","left":"var:preset|spacing|40","right":"var:preset|spacing|40"}}},"layout":{"type":"constrained"}} --><div class="wp-block-group rm-card rm-soft" style="padding-top:var(--wp--preset--spacing--40);padding-bottom:var(--wp--preset--spacing--40);padding-left:var(--wp--preset--spacing--40);padding-right:var(--wp--preset--spacing--40)"><!-- wp:heading {"level":3} --><h3 class="wp-block-heading"><a href="' . $href . '">' . $title . ' &darr;</a></h3><!-- /wp:heading --><!-- wp:paragraph {"textColor":"muted","fontSize":"small"} --><p class="has-muted-color has-text-color has-small-font-size">' . $desc . '</p><!-- /wp:paragraph --></div><!-- /wp:group --></div><!-- /wp:column -->'; };
 	// Downloads — compact band (utility page): resources show immediately below.
 	$p['downloads-hero'] = array( 'Downloads · Hero', $hdr_band( 'Downloads &amp; Resources', 'Catalogues, datasheets &amp; BIM.', 'Everything you need to specify Ricoman — product catalogue, technical datasheets, photometric (IES/LDT) files, BIM objects and installation guides.' ) );
-	$p['downloads-grid'] = array( 'Downloads · Resource grid', $sec( $eyebrow( 'Resource library' ) . $shead( 'Download what you need' ) . '<!-- wp:columns --><div class="wp-block-columns">' . $dlcard( 'Product catalogue', 'The full Ricoman range in one PDF.', '/downloads/' ) . $dlcard( 'Datasheets', 'Per-product technical datasheets &amp; specs.', '/downloads/' ) . $dlcard( 'Photometric files', 'IES / LDT files for DIALux &amp; Relux.', '/downloads/' ) . '</div><!-- /wp:columns --><!-- wp:columns --><div class="wp-block-columns">' . $dlcard( 'BIM objects', 'Revit families for your model.', '/downloads/' ) . $dlcard( 'Installation guides', 'Step-by-step fitting instructions.', '/downloads/' ) . $dlcard( 'Certificates', 'Warranty, CE/UKCA &amp; compliance.', '/downloads/' ) . '</div><!-- /wp:columns -->' ) );
+	// Brochures — editable PDF cards (catalogue, sustainability, brandbook, range
+	// brochures). Hrefs point at the catalogue/contact until the team drops the
+	// real PDF URLs in; every card is click-to-edit in the block editor.
+	$p['downloads-brochures'] = array( 'Downloads · Brochures', $sec(
+		$eyebrow( 'Brochures' ) . $shead( 'Catalogues &amp; range brochures' )
+		. '<!-- wp:columns --><div class="wp-block-columns">'
+		. $dlcard( 'Catalogue', 'The full Ricoman range in one PDF.', '/downloads/' )
+		. $dlcard( 'Light Revive &ndash; Our Sustainability Vision', 'How we cut waste &amp; carbon across the range.', '/downloads/' )
+		. $dlcard( 'Brandbook', 'Who we are, how we work and what we stand for.', '/downloads/' )
+		. '</div><!-- /wp:columns -->'
+		. '<!-- wp:columns --><div class="wp-block-columns">'
+		. $dlcard( 'Zodiac 48V Track', 'Magnetic 48V track system brochure.', '/downloads/' )
+		. $dlcard( 'E-Pro Architectural Downlight', 'The E-Pro downlight family at a glance.', '/downloads/' )
+		. $dlcard( 'Estrella Pro', 'Estrella Pro recessed range brochure.', '/downloads/' )
+		. '</div><!-- /wp:columns -->'
+		. '<!-- wp:columns --><div class="wp-block-columns">'
+		. $dlcard( 'Flow Curved Linear System', 'Seamless curved linear lighting.', '/downloads/' )
+		. $dlcard( 'Residential Lighting', 'Our residential lighting brochure.', '/downloads/' )
+		. $dlcard( 'View all products', 'Browse the full range &amp; per-product datasheets.', '/products/' )
+		. '</div><!-- /wp:columns -->'
+	) );
+	// Bulk technical files — real zip endpoints (rm_all=ldt / rm_all=revit).
+	$p['downloads-bulk'] = array( 'Downloads · All technical files', $sec( $twocol(
+		$eyebrow( 'All photometric files' ) . $shead( 'IES / LDT files' )
+		. $para( 'Every photometric file in one download, for DIALux &amp; Relux.', true )
+		. $buttons( $btn( 'Download all LDT files &darr;', '/?rm_all=ldt', false ) ),
+		$eyebrow( 'All Revit files' ) . $shead( 'BIM / Revit (RFA)' )
+		. $para( 'Every Revit family we hold, ready to drop into your model.', true )
+		. $buttons( $btn( 'Download all Revit files &darr;', '/?rm_all=revit', false ) )
+	), 'rm-soft' ) );
+	// Single technical files note — directs to the relevant product page.
+	$p['downloads-single'] = array( 'Downloads · Single files note', $sec(
+		$eyebrow( 'Single technical files' ) . $shead( 'Need one product&rsquo;s files?' )
+		. $para( 'Datasheets, installation instructions, photometric (IES/LDT) and Revit files for each fitting live on its own product page, in the Downloads section.', true )
+		. $buttons( $btn( 'Browse all products &rarr;', '/products/', false ) )
+	) );
 	$p['downloads-cta'] = array( 'Downloads · CTA', $cover( $u( 'rico-proline-breakout.webp' ), '<!-- wp:heading {"textAlign":"center","level":2} --><h2 class="wp-block-heading has-text-align-center">Can&rsquo;t find a document?</h2><!-- /wp:heading --><!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">Tell us the product or project and our team will send the exact files you need.</p><!-- /wp:paragraph -->' . $buttons( $btn( 'Request files', '/contact/' ) . $btn( 'Talk to the team →', '/about/', false ), true ), 50, 'center center', 70 ) );
 
 	/* ===== Customisation ===== */
@@ -618,7 +653,7 @@ function ricoman_lighting_blocks() {
 	return ricoman_stack( array( 'lighting-hero', 'lighting-statement', 'lighting-steps', 'lighting-receive', 'lighting-cta' ) );
 }
 function ricoman_downloads_blocks() {
-	return ricoman_stack( array( 'downloads-hero', 'downloads-grid', 'downloads-cta' ) );
+	return ricoman_stack( array( 'downloads-hero', 'downloads-brochures', 'downloads-bulk', 'downloads-single', 'downloads-cta' ) );
 }
 function ricoman_customisation_blocks() {
 	return ricoman_stack( array( 'custom-hero', 'custom-intro', 'custom-cta' ) );

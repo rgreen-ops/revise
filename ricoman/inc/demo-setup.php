@@ -421,6 +421,35 @@ add_action( 'admin_init', function () {
 	update_option( 'ricoman_relayout_broken_v2', 1 );
 } );
 
+/**
+ * One-time: force-refresh the pages whose built-in layout was rewritten this
+ * session (Downloads got the new brochure / all-files structure; About + Our
+ * Services were redesigned). These already hold block content, so the generic
+ * "broken import" migration above leaves them alone — this re-applies the new
+ * design once. Fill-empty-only logic doesn't apply here; we want the new layout.
+ */
+add_action( 'admin_init', function () {
+	if ( get_option( 'ricoman_relayout_downloads_v3' ) || ! current_user_can( 'manage_options' ) || ! function_exists( 'ricoman_theme_page_map' ) ) {
+		return;
+	}
+	$map     = ricoman_theme_page_map();
+	$refresh = array( 'downloads', 'about', 'our-services' );
+	foreach ( $refresh as $slug ) {
+		if ( empty( $map[ $slug ] ) || ! function_exists( $map[ $slug ] ) ) {
+			continue;
+		}
+		$page = get_page_by_path( $slug );
+		if ( ! $page || 'page' !== $page->post_type ) {
+			continue;
+		}
+		$content = call_user_func( $map[ $slug ] );
+		if ( $content ) {
+			wp_update_post( array( 'ID' => $page->ID, 'post_content' => $content ) );
+		}
+	}
+	update_option( 'ricoman_relayout_downloads_v3', 1 );
+} );
+
 add_action( 'admin_post_ricoman_refresh_pages', function () {	if ( ! current_user_can( 'manage_options' ) ) {
 		wp_die( esc_html__( 'You do not have permission to do this.', 'ricoman' ) );
 	}

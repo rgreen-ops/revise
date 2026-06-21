@@ -4,13 +4,14 @@ _Running log so nothing gets lost. ✅ done · 🔧 in progress · ⏳ needs ser
 
 ## Open
 - ☐ **Image count discrepancy** — Media Library shows ~42,526 items but the cleanup tool counts 6,596 / 0 duplicates. Repeated "‑N.webp" filenames suggest a content/import process re‑uploading the same images; the hash tool isn't seeing them. Investigate source + extend cleanup to catch them.
-- ☐ **Downloads page wrong** — shows products by category instead of a document library (Brochures / Data Sheets / Instructions / LDT, like live ricoman.com/downloads). Rebuild `ricoman_downloads_blocks()` (downloads-grid).
 - ☐ **Broken-links banner not auto-clearing** — the 404 resolver redirects them, but the log/banner stays at 35. Make the log auto-prune resolved entries.
 - ☐ **Homepage projects tiles** — titles wrap letter-by-letter ("Alli an z"). Fix project-tile title CSS.
 - ☐ **Contact page layout** — messy: big gaps, run-together text (e.g. "Monday8:30"), no proper two-column. Redesign/fix.
 - ☐ **Reorder products & categories** — simpler back-end UX (see "How to" below); consider a drag-drop tool.
 
 ## Done this session
+- ✅ **Downloads page rebuilt** — was rendering the product catalogue (`[ricoman_catalogue]`); now a real document library matching live: Brochures cards (Catalogue, Light Revive, Brandbook, Zodiac 48V Track, E-Pro, Estrella Pro, Flow, Residential + View all), "Download all LDT files" + "Download all Revit files" zip buttons (real `?rm_all=ldt` / `?rm_all=revit` endpoints, login-gated, scan the media library by extension), a "single files live on the product page" note + CTA. Auto-pushed by a one-time migration (`ricoman_relayout_downloads_v3`). Brochure card links point to /downloads/ until the team drops the real PDF URLs in (each card is click-to-edit).
+- ✅ **Dead ACF meta boxes hidden** in the editor on managed static pages once they have block content (acf-pages.php `add_meta_boxes`), so admins aren't confused by editing fields that no longer render.
 - ✅ **About page** — redesigned as a specifier-focused "designer" layout (needs Page Designs → re-apply to push onto the live About page).
 - ✅ Header on projects archive (was white-on-white) → solid dark header.
 - ✅ Global zoom to 85%.
