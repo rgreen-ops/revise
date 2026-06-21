@@ -518,6 +518,32 @@ add_action( 'init', function () {
 		'cta_sub'    => 'Tell us about it and our team will design, manufacture and export a British-made lighting scheme.',
 	) ) );
 
+	$p['feat-our-showroom'] = array( 'Feature · Our Showroom', $feature( array(
+		'eyb'       => 'Visit Us',
+		'title'     => 'See the light for yourself.',
+		'lead'      => 'Visit our Manchester showroom to see our luminaires lit in real settings, talk through a project and meet the team that designs and makes them.',
+		'hero'      => $u( 'rico-office-fitout.webp' ),
+		'cta1'      => array( 'Book a visit', '/contact/' ),
+		'cta2'      => array( 'Talk to the team', '/contact/' ),
+		'ben_eyb'   => 'Why visit',
+		'ben_head'  => 'Light is best judged in person',
+		'benefits'  => array(
+			array( '01', 'See it lit', 'Experience colour temperature, glare, beam and finish in real settings — not just on a datasheet.' ),
+			array( '02', 'Meet the makers', 'Sit down with the designers and the team who build the fittings in Manchester.' ),
+			array( '03', 'Talk through a project', 'Bring drawings or a finishes schedule and leave with a clear next step.' ),
+		),
+		'split_img'  => $u( 'rico-office.webp' ),
+		'split_eyb'  => 'What to expect',
+		'split_head' => 'A working showroom, beside the factory',
+		'split_body' => 'Our showroom sits alongside the production floor in Manchester, so you can see fittings lit, compare finishes side by side and walk the line where they&rsquo;re made.',
+		'split_items'=> array( '<strong>Live displays</strong> across our core ranges', '<strong>Finish &amp; CCT samples</strong> to compare in person', '<strong>Factory tour</strong> available on request', '<strong>Free parking</strong> on site', '<strong>By appointment</strong> — so the right person is ready for you' ),
+		'faq_head'   => 'Showroom FAQs',
+		'faqs'       => "Q: Where is the showroom?\nA: At our facility on Metroplex Business Park, 520 Broadway, M50 2UE, Manchester.\nQ: Do I need an appointment?\nA: We recommend booking so the right person is free to help and any specific fittings are ready to view.\nQ: Can I see a product lit before I specify it?\nA: Yes — that's exactly what the showroom is for; we can light fittings in different settings and compare finishes.\nQ: Can I tour the factory too?\nA: Yes — factory tours are available on request when you visit.",
+		'cta_img'    => $u( 'office3.webp' ),
+		'cta_head'   => 'Come and see us in Manchester',
+		'cta_sub'    => 'Book a visit and we&rsquo;ll have the team — and the right fittings — ready for you.',
+	) ) );
+
 	foreach ( $p as $slug => $data ) {
 		register_block_pattern( 'ricoman/' . $slug, array( 'title' => $data[0], 'categories' => array( 'ricoman-page' ), 'content' => $data[1] ) );
 	}
@@ -577,6 +603,9 @@ function ricoman_stock_availability_blocks() {
 function ricoman_uae_exports_blocks() {
 	return ricoman_stack( array( 'feat-uae-exports' ) );
 }
+function ricoman_our_showroom_blocks() {
+	return ricoman_stack( array( 'feat-our-showroom' ) );
+}
 
 /**
  * Generic styled info / legal page: dark title band + constrained body + CTA.
@@ -633,7 +662,8 @@ function ricoman_sitemap_body() {
 		'Antimicrobial Protection' => '/antimicrobial-protection/', 'Fire Safety' => '/fire-safety/',
 		'Made in Britain' => '/made-in-britain/', 'Trade' => '/trade/', 'Where to Buy' => '/where-to-buy/',
 		'I-Joist Ceilings' => '/i-joist-ceilings/', 'Stock &amp; Availability' => '/stock-availability/',
-		'UAE Exports' => '/uae-exports/', 'Product Warranty' => '/product-warranty/',
+		'UAE Exports' => '/uae-exports/', 'Our Showroom' => '/our-showroom/',
+		'Product Warranty' => '/product-warranty/',
 		'Terms &amp; Conditions' => '/terms/', 'Privacy Policy' => '/privacy-policy/', 'Cookie Policy' => '/cookie-policy/',
 	);
 	$li = '';

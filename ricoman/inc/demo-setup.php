@@ -157,6 +157,7 @@ function ricoman_scaffold_site() {
 		'i-joist-ceilings'        => array( 'I-Joist Ceilings', 'ricoman_i_joist_ceilings_blocks' ),
 		'stock-availability'      => array( 'Stock & Availability', 'ricoman_stock_availability_blocks' ),
 		'uae-exports'             => array( 'UAE Exports', 'ricoman_uae_exports_blocks' ),
+		'our-showroom'            => array( 'Our Showroom', 'ricoman_our_showroom_blocks' ),
 	);
 	foreach ( $native_pages as $slug => $info ) {
 		if ( get_page_by_path( $slug ) ) {
@@ -335,6 +336,7 @@ function ricoman_theme_page_map() {
 		'i-joist-ceilings'        => 'ricoman_i_joist_ceilings_blocks',
 		'stock-availability'      => 'ricoman_stock_availability_blocks',
 		'uae-exports'             => 'ricoman_uae_exports_blocks',
+		'our-showroom'            => 'ricoman_our_showroom_blocks',
 	);
 }
 
