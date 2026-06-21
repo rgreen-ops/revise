@@ -1397,9 +1397,10 @@ a.rm-projhead-sectorlink:hover{color:var(--ink)}
 
 /* ===== PDP tabbed gallery (All / Studio / In-situ) ===== */
 .rm-pdp .rm-pdp-gallery{display:block;position:sticky;top:100px}
-.rm-pdp-gallery .rm-cfg-viz{position:relative;height:min(56vh,520px);border-radius:12px;background:#e4e4e4;overflow:hidden}
-/* Photos fill the window (no grey); transparent product cut-outs get the grey
-   backdrop + padding via .rm-cutout (added by JS when the image has alpha). */
+.rm-pdp-gallery .rm-cfg-viz{position:relative;height:min(56vh,520px);border-radius:12px;background:#fff;border:1px solid var(--line);overflow:hidden}
+/* White image frame (a hairline border gives white product cut-outs edge
+   definition without a grey backdrop). Photos fill the window; transparent
+   cut-outs get padding via .rm-cutout (added by JS when the image has alpha). */
 /* Absolutely fill the sized viz so the image height never depends on a wrapper
    (wpautop can wrap the loose <img> in a <p>, which otherwise let it render at
    natural height and blew up the gallery on mobile). */
@@ -1418,7 +1419,7 @@ a.rm-projhead-sectorlink:hover{color:var(--ink)}
 .rm-pdp-gallery .rm-cfg-viz{flex:1;min-width:0}
 .rm-gtabs{margin:14px 0 0}
 .rm-gthumbs{display:flex;flex-direction:column;flex-wrap:nowrap;gap:10px;width:88px;flex:0 0 88px;max-height:min(56vh,520px);overflow-y:auto;margin-top:0}
-.rm-gthumbs .rm-cfg-thumb{width:88px;height:64px;flex:0 0 auto;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#e4e4e4;cursor:pointer;padding:6px}
+.rm-gthumbs .rm-cfg-thumb{width:88px;height:64px;flex:0 0 auto;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff;cursor:pointer;padding:6px}
 @media(max-width:600px){.rm-pdp-row{flex-direction:column-reverse}.rm-gthumbs{flex-direction:row;flex-wrap:nowrap;width:auto;flex:0 0 auto;max-height:none;overflow-x:auto}.rm-gthumbs .rm-cfg-thumb{flex:0 0 56px;height:48px}
   /* Shrink the main image so it + the thumbnail row fit in the fold. flex:0 0 auto
      so the explicit height holds — in this column layout flex:1 (basis 0) would
