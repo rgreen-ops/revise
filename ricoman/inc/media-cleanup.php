@@ -117,11 +117,30 @@ add_action( 'admin_menu', function () {
 	);
 }, 32 );
 
+/**
+ * SQL fragment matching an attachment that's an image file by EXTENSION (on the
+ * given _wp_attached_file column). Extensions are a fixed safe whitelist, so
+ * direct interpolation is intentional. Catches migrated images whose
+ * post_mime_type was imported empty (and so miss a plain `image/%` match).
+ */
+function rm_mc_image_file_cond( $col ) {
+	$exts  = array( 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'bmp', 'tiff' );
+	$likes = array();
+	foreach ( $exts as $e ) {
+		$likes[] = "$col LIKE '%." . $e . "'";
+	}
+	return '( ' . implode( ' OR ', $likes ) . ' )';
+}
+
 /** Totals for the dashboard (images, indexed, duplicate groups, reclaimable). */
 function rm_mc_stats() {
 	global $wpdb;
+	$cond   = rm_mc_image_file_cond( 'f.meta_value' );
 	$images = (int) $wpdb->get_var(
-		"SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type='attachment' AND post_mime_type LIKE 'image/%' AND post_status <> 'trash'"
+		"SELECT COUNT(DISTINCT p.ID) FROM {$wpdb->posts} p
+		 JOIN {$wpdb->postmeta} f ON f.post_id=p.ID AND f.meta_key='_wp_attached_file'
+		 WHERE p.post_type='attachment' AND p.post_status<>'trash'
+		 AND ( p.post_mime_type LIKE 'image/%' OR $cond )"
 	);
 	$indexed = (int) $wpdb->get_var(
 		"SELECT COUNT(*) FROM {$wpdb->postmeta} WHERE meta_key='_rm_sha1' AND meta_value<>'missing'"
@@ -145,17 +164,60 @@ function rm_mc_stats() {
 	);
 }
 
+/**
+ * Why the Media Library total (e.g. 42,526) is far bigger than the "images by
+ * mime" count (e.g. 6,596): the migrated import created thousands of attachment
+ * posts with an EMPTY/odd post_mime_type, so `mime LIKE 'image/%'` misses them.
+ * This read-only breakdown shows where every attachment falls so the gap is
+ * explained, and counts image-by-extension files the dedup would otherwise skip.
+ */
+function rm_mc_breakdown() {
+	global $wpdb;
+	$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type='attachment' AND post_status<>'trash'" );
+	$mime  = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type='attachment' AND post_status<>'trash' AND post_mime_type LIKE 'image/%'" );
+	$empty = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type='attachment' AND post_status<>'trash' AND (post_mime_type='' OR post_mime_type IS NULL)" );
+	// Attachments that are image files by extension (catches empty-mime images).
+	$img_ext = (int) $wpdb->get_var(
+		"SELECT COUNT(*) FROM {$wpdb->posts} p JOIN {$wpdb->postmeta} m ON m.post_id=p.ID AND m.meta_key='_wp_attached_file'
+		 WHERE p.post_type='attachment' AND p.post_status<>'trash'
+		 AND ( m.meta_value LIKE '%.jpg' OR m.meta_value LIKE '%.jpeg' OR m.meta_value LIKE '%.png'
+		    OR m.meta_value LIKE '%.gif' OR m.meta_value LIKE '%.webp' OR m.meta_value LIKE '%.avif' OR m.meta_value LIKE '%.bmp' OR m.meta_value LIKE '%.tiff' )"
+	);
+	return array(
+		'total'    => $total,
+		'mime'     => $mime,
+		'empty'    => $empty,
+		'img_ext'  => $img_ext,
+		'other'    => max( 0, $total - $img_ext ),
+	);
+}
+
 function rm_mc_render_page() {
 	$s = rm_mc_stats();
 	echo '<div class="wrap"><h1>' . esc_html__( 'Media Cleanup', 'ricoman' ) . '</h1>';
 	echo '<p>' . esc_html__( 'Find and safely remove duplicate images created by the old variant import. Work through the steps in order — nothing is deleted until you choose to.', 'ricoman' ) . '</p>';
 
+	$bd = rm_mc_breakdown();
 	echo '<table class="widefat" style="max-width:640px;margin:16px 0"><tbody>';
-	printf( '<tr><th>%s</th><td id="rm-mc-images">%s</td></tr>', esc_html__( 'Images in library', 'ricoman' ), esc_html( number_format_i18n( $s['images'] ) ) );
+	printf( '<tr><th>%s</th><td id="rm-mc-images">%s</td></tr>', esc_html__( 'Image files in library (by extension)', 'ricoman' ), esc_html( number_format_i18n( $bd['img_ext'] ) ) );
 	printf( '<tr><th>%s</th><td id="rm-mc-indexed">%s</td></tr>', esc_html__( 'Indexed (hashed)', 'ricoman' ), esc_html( number_format_i18n( $s['indexed'] ) ) );
 	printf( '<tr><th>%s</th><td id="rm-mc-groups">%s</td></tr>', esc_html__( 'Duplicate groups', 'ricoman' ), esc_html( number_format_i18n( $s['groups'] ) ) );
 	printf( '<tr><th>%s</th><td id="rm-mc-extra"><strong>%s</strong></td></tr>', esc_html__( 'Removable duplicate files', 'ricoman' ), esc_html( number_format_i18n( $s['extra'] ) ) );
 	echo '</tbody></table>';
+
+	// Library breakdown — explains why Media Library shows far more than the
+	// "images by mime" count (migrated attachments with empty/odd mime types).
+	echo '<details style="max-width:640px;margin:0 0 16px"><summary style="cursor:pointer;font-weight:600">'
+		. esc_html__( 'Why does Media Library show a different (larger) number?', 'ricoman' ) . '</summary>';
+	echo '<table class="widefat" style="margin:10px 0"><tbody>';
+	printf( '<tr><th>%s</th><td>%s</td></tr>', esc_html__( 'Total attachments (what Media Library counts)', 'ricoman' ), esc_html( number_format_i18n( $bd['total'] ) ) );
+	printf( '<tr><th>%s</th><td>%s</td></tr>', esc_html__( '— with an image/* mime type', 'ricoman' ), esc_html( number_format_i18n( $bd['mime'] ) ) );
+	printf( '<tr><th>%s</th><td>%s</td></tr>', esc_html__( '— image files by extension (incl. empty mime)', 'ricoman' ), esc_html( number_format_i18n( $bd['img_ext'] ) ) );
+	printf( '<tr><th>%s</th><td>%s</td></tr>', esc_html__( '— with empty/missing mime type', 'ricoman' ), esc_html( number_format_i18n( $bd['empty'] ) ) );
+	printf( '<tr><th>%s</th><td>%s</td></tr>', esc_html__( '— non-image / other', 'ricoman' ), esc_html( number_format_i18n( $bd['other'] ) ) );
+	echo '</tbody></table>';
+	echo '<p class="description">' . esc_html__( 'The old import saved thousands of attachment posts with a blank mime type, so a plain "image/*" count undercounts them. The indexer below now matches images by file extension, so it sees and de-duplicates these too.', 'ricoman' ) . '</p>';
+	echo '</details>';
 
 	$me = wp_get_current_user();
 	$to = $me && $me->user_email ? $me->user_email : get_option( 'admin_email' );
@@ -948,19 +1010,28 @@ add_action( 'wp_ajax_rm_mc_index', function () {
 		wp_send_json_error();
 	}
 	global $wpdb;
-	$batch = rm_mc_batch();
-	// Image attachments without a hash yet.
-	$ids = $wpdb->get_col( $wpdb->prepare(
+	$batch = (int) rm_mc_batch();
+	$cond  = rm_mc_image_file_cond( 'f.meta_value' );
+	// Image attachments (by mime OR file extension) without a hash yet. No user
+	// input — extensions + batch size are internal — so a built query is safe.
+	$ids = $wpdb->get_col(
 		"SELECT p.ID FROM {$wpdb->posts} p
-		 LEFT JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key='_rm_sha1'
-		 WHERE p.post_type='attachment' AND p.post_mime_type LIKE 'image/%%' AND m.meta_id IS NULL
-		 ORDER BY p.ID ASC LIMIT %d",
-		$batch
-	) );
+		 JOIN {$wpdb->postmeta} f ON f.post_id=p.ID AND f.meta_key='_wp_attached_file'
+		 LEFT JOIN {$wpdb->postmeta} m ON m.post_id=p.ID AND m.meta_key='_rm_sha1'
+		 WHERE p.post_type='attachment' AND p.post_status<>'trash'
+		 AND ( p.post_mime_type LIKE 'image/%' OR $cond )
+		 AND m.meta_id IS NULL
+		 ORDER BY p.ID ASC LIMIT " . $batch
+	);
 	foreach ( $ids as $id ) {
 		rm_mc_hash( (int) $id, true );
 	}
-	$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type='attachment' AND post_mime_type LIKE 'image/%'" );
+	$total = (int) $wpdb->get_var(
+		"SELECT COUNT(DISTINCT p.ID) FROM {$wpdb->posts} p
+		 JOIN {$wpdb->postmeta} f ON f.post_id=p.ID AND f.meta_key='_wp_attached_file'
+		 WHERE p.post_type='attachment' AND p.post_status<>'trash'
+		 AND ( p.post_mime_type LIKE 'image/%' OR $cond )"
+	);
 	$done  = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->postmeta} WHERE meta_key='_rm_sha1'" );
 	wp_send_json_success( array(
 		'total' => $total,
