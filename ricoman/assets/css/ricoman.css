@@ -11,6 +11,10 @@
 
 /* base */
 body{font-family:Poppins,"Poppins Fallback",system-ui,sans-serif;color:var(--text);background:var(--paper);line-height:1.72;-webkit-font-smoothing:antialiased}
+/* Global density: render the whole site ~20% smaller (like a browser zoom to 80%).
+   Adjust this single value (1 = 100%, 0.8 = 80%) to taste, or remove to reset.
+   Targets .wp-site-blocks so the WP admin bar (logged-in) stays full size. */
+.wp-site-blocks{zoom:.8}
 h1,h2,h3,h4{font-family:Poppins,sans-serif;color:var(--ink);margin:0;font-weight:600;letter-spacing:-.035em;line-height:.98}
 a{color:inherit;text-decoration:none}
 .rm img{display:block;max-width:100%}
