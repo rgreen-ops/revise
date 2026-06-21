@@ -201,6 +201,20 @@ add_filter( 'pre_get_document_title', function ( $title ) {
 	return $title;
 } );
 
+/* When an SEO plugin (Yoast) is active but produces an EMPTY meta description
+ * for a page — e.g. the product/project archives, which Yoast doesn't template
+ * by default — fill it with the theme's generated description so no page ships
+ * without one. Only fills empties; never overrides a description Yoast set. */
+add_filter( 'wpseo_metadesc', 'ricoman_seo_fill_metadesc' );
+add_filter( 'wpseo_opengraph_desc', 'ricoman_seo_fill_metadesc' );
+function ricoman_seo_fill_metadesc( $desc ) {
+	if ( '' !== trim( (string) $desc ) ) {
+		return $desc;
+	}
+	$d = function_exists( 'ricoman_seo_description' ) ? ricoman_seo_description() : '';
+	return $d ? $d : $desc;
+}
+
 /* ---------------------------------------------------------------------------
  * <head> meta: description, canonical, robots, Open Graph, Twitter
  * ------------------------------------------------------------------------- */
