@@ -267,9 +267,23 @@ add_action( 'wp_head', function () {
 	// Same cascade order as the original enqueue (style → shared → design),
 	// with fonts first so @font-face is declared before use. Printed after core
 	// block styles so the theme still overrides defaults.
-	$css = '';
-	foreach ( array( 'assets/css/fonts.css', 'style.css', 'assets/css/shared.css', 'assets/css/ricoman.css' ) as $rel ) {
-		$css .= ricoman_inline_css_file( $rel );
+	$files = array( 'assets/css/fonts.css', 'style.css', 'assets/css/shared.css', 'assets/css/ricoman.css' );
+	// Cache the combined+minified CSS so we don't re-read and re-minify every
+	// request (cuts server response time). Keyed by the files' modification times,
+	// so editing any stylesheet rebuilds it automatically.
+	$ver = '';
+	foreach ( $files as $rel ) {
+		$p    = get_theme_file_path( $rel );
+		$ver .= $rel . ( file_exists( $p ) ? (string) filemtime( $p ) : '0' );
+	}
+	$key = 'ricoman_inline_css_' . md5( $ver );
+	$css = get_transient( $key );
+	if ( false === $css ) {
+		$css = '';
+		foreach ( $files as $rel ) {
+			$css .= ricoman_inline_css_file( $rel );
+		}
+		set_transient( $key, $css, WEEK_IN_SECONDS );
 	}
 	if ( '' !== trim( $css ) ) {
 		echo "<style id=\"ricoman-inline-css\">" . $css . "</style>\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
