@@ -133,6 +133,83 @@ add_action( 'init', function () {
 }, 12 );
 
 /**
+ * Persist an article's keyword-derived topics as real news-cat terms — but only
+ * the first time, and only when it has no terms yet, so we seed the taxonomy
+ * (populating Topic archives, admin columns and the listing filter) without ever
+ * fighting manual tagging. The `_rm_topics_autotagged` flag makes it idempotent:
+ * once tagged (here or by hand), we never re-touch it. Returns terms assigned.
+ */
+function ricoman_news_autotag( $pid ) {
+	$pid = (int) $pid;
+	if ( get_post_meta( $pid, '_rm_topics_autotagged', true ) ) {
+		return 0;
+	}
+	$existing = wp_get_object_terms( $pid, 'news-cat', array( 'fields' => 'ids' ) );
+	if ( is_wp_error( $existing ) ) {
+		return 0;
+	}
+	if ( ! empty( $existing ) ) {
+		// Already tagged (manually) — record that and leave it alone.
+		update_post_meta( $pid, '_rm_topics_autotagged', 1 );
+		return 0;
+	}
+	$map  = ricoman_news_topic_map();
+	$tids = array();
+	foreach ( ricoman_news_topics_derived( $pid ) as $slug ) {
+		$term = term_exists( $slug, 'news-cat' );
+		if ( ! $term ) {
+			$label = isset( $map[ $slug ] ) ? $map[ $slug ][0] : $slug;
+			$term  = wp_insert_term( $label, 'news-cat', array( 'slug' => $slug ) );
+		}
+		if ( ! is_wp_error( $term ) ) {
+			$tids[] = (int) ( is_array( $term ) ? $term['term_id'] : $term );
+		}
+	}
+	if ( $tids ) {
+		wp_set_object_terms( $pid, $tids, 'news-cat', false );
+	}
+	update_post_meta( $pid, '_rm_topics_autotagged', 1 );
+	return count( $tids );
+}
+
+/** Auto-tag on save (covers new + edited articles). */
+add_action( 'save_post_news', function ( $pid, $post, $update ) {
+	if ( wp_is_post_revision( $pid ) || wp_is_post_autosave( $pid ) || 'publish' !== $post->post_status ) {
+		return;
+	}
+	ricoman_news_autotag( $pid );
+}, 20, 3 );
+
+/** One-time backfill across the existing catalogue, in self-rescheduling batches. */
+add_action( 'ricoman_news_autotag_all', 'ricoman_news_autotag_all' );
+function ricoman_news_autotag_all() {
+	$ids = get_posts( array(
+		'post_type'      => 'news',
+		'post_status'    => 'publish',
+		'posts_per_page' => 50,
+		'fields'         => 'ids',
+		'no_found_rows'  => true,
+		'cache_results'  => false,
+		'meta_query'     => array( array( 'key' => '_rm_topics_autotagged', 'compare' => 'NOT EXISTS' ) ),
+	) );
+	foreach ( $ids as $pid ) {
+		ricoman_news_autotag( (int) $pid );
+	}
+	if ( count( $ids ) >= 50 && ! wp_next_scheduled( 'ricoman_news_autotag_all' ) ) {
+		wp_schedule_single_event( time() + 30, 'ricoman_news_autotag_all' );
+	}
+}
+add_action( 'init', function () {
+	if ( get_option( 'ricoman_news_autotag_kicked' ) ) {
+		return;
+	}
+	if ( ! wp_next_scheduled( 'ricoman_news_autotag_all' ) ) {
+		wp_schedule_single_event( time() + 10, 'ricoman_news_autotag_all' );
+	}
+	update_option( 'ricoman_news_autotag_kicked', 1 );
+}, 13 );
+
+/**
  * Topics for an article as slug => label. Prefers the assigned taxonomy terms;
  * falls back to the keyword-derived topics until an article is tagged — so the
  * listing filter always works, and gets more accurate as you tag.
