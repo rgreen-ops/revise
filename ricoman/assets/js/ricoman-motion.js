@@ -79,6 +79,11 @@
    critical path). */
 window.addEventListener('load', function () {
   try {
+    // Non-background videos (e.g. the brand-film player) shouldn't pull bytes on
+    // load — show their poster and only fetch when the visitor hits play.
+    document.querySelectorAll('video:not(.wp-block-cover__video-background)').forEach(function (v) {
+      if (!v.hasAttribute('autoplay')) { v.preload = 'none'; }
+    });
     // On phones/tablets and data-saver/slow connections, keep the still poster
     // and never download the ~1.9MB video — big mobile speed + payload win.
     var small = window.matchMedia && window.matchMedia('(max-width: 1024px)').matches;
