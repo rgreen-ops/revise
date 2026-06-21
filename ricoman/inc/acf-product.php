@@ -865,6 +865,18 @@ function ricoman_pf_variant_table( $pid ) {
 		return '';
 	}
 	$datasheet = ricoman_pf_fileurl( ricoman_pf_get( $pid, 'download_family_datasheet' ) );
+	// Parent product image — used as a fallback thumbnail for variants that have
+	// no image of their own or whose image file is missing (broken).
+	$parent_img = ricoman_pf_imgurl( ricoman_pf_get( $pid, 'product_main_image' ) );
+	if ( ! $parent_img ) {
+		$parent_img = ricoman_pf_imgurl( ricoman_pf_get( $pid, 'product_gallery_image' ) );
+	}
+	if ( ! $parent_img && has_post_thumbnail( $pid ) ) {
+		$parent_img = get_the_post_thumbnail_url( $pid, 'medium' );
+	}
+	$onerr = $parent_img
+		? ' onerror="this.onerror=null;this.src=\'' . esc_js( $parent_img ) . '\'"'
+		: ' onerror="this.style.display=\'none\'"';
 
 	// Column order = unique spec labels in definition order.
 	$order = array();
@@ -964,7 +976,8 @@ function ricoman_pf_variant_table( $pid ) {
 	$rows    = '';
 	$details = '';
 	foreach ( $variants as $i => $v ) {
-		$thumb   = $v['img'] ? '<img src="' . esc_url( $v['img'] ) . '" alt="" loading="lazy">' : '';
+		$timg    = $v['img'] ? $v['img'] : $parent_img;
+		$thumb   = $timg ? '<img src="' . esc_url( $timg ) . '" alt="" loading="lazy"' . $onerr . '>' : '';
 		$rowattr = '';
 		foreach ( $filterable as $label => $vals ) {
 			$rowattr .= ' data-f-' . $slugify( $label ) . '="' . esc_attr( isset( $v['pairs'][ $label ] ) ? $v['pairs'][ $label ] : '' ) . '"';
@@ -984,7 +997,8 @@ function ricoman_pf_variant_table( $pid ) {
 		foreach ( $v['pairs'] as $label => $val ) {
 			$dl .= '<div class="vt-d-row"><dt>' . esc_html( $label ) . '</dt><dd>' . esc_html( $val ) . '</dd></div>';
 		}
-		$dimg = $v['img'] ? '<div class="vt-d-img"><img src="' . esc_url( $v['img'] ) . '" alt="' . esc_attr( $v['code'] ) . '"></div>' : '';
+		$dmg  = $v['img'] ? $v['img'] : $parent_img;
+		$dimg = $dmg ? '<div class="vt-d-img"><img src="' . esc_url( $dmg ) . '" alt="' . esc_attr( $v['code'] ) . '"' . $onerr . '></div>' : '';
 		$acts = '<div class="vt-d-acts">'
 			. ( $v['ldt'] ? '<a class="btn btn-line-d" href="' . esc_url( $v['ldt'] ) . '" target="_blank" rel="noopener">LDT file ↓</a>' : '' )
 			. '<a class="btn btn-solid" href="' . esc_url( $v['ds'] ) . '" target="_blank" rel="noopener">Download datasheet ↓</a></div>';

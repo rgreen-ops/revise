@@ -1090,10 +1090,10 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 /* ============ Product page (PDP) — matches ricoman.com ============ */
 /* Hero: vertical thumbnail rail + main image on light grey */
 .rm-pdp .rm-cfg-stage{display:flex;gap:16px;align-items:flex-start;position:sticky;top:100px}
-.rm-pdp .rm-cfg-viz{flex:1;aspect-ratio:1/1;border-radius:10px;background:#fff}
+.rm-pdp .rm-cfg-viz{flex:1;aspect-ratio:1/1;border-radius:10px;background:#e4e4e4}
 .rm-pdp .rm-cfg-img{object-fit:contain;padding:7%}
 .rm-thumbs-rail{display:flex;flex-direction:column;flex-wrap:nowrap;gap:12px;width:84px;flex-shrink:0;margin:0}
-.rm-thumbs-rail .rm-cfg-thumb{width:84px;height:74px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff;cursor:pointer;padding:6px}
+.rm-thumbs-rail .rm-cfg-thumb{width:84px;height:74px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#e4e4e4;cursor:pointer;padding:6px}
 .rm-thumbs-rail .rm-cfg-thumb.on{border-color:var(--ink)}
 .rm-thumbs-rail .rm-cfg-thumb img{object-fit:contain}
 @media(max-width:900px){.rm-pdp .rm-cfg-stage{position:static;flex-direction:column-reverse}.rm-thumbs-rail{flex-direction:row;width:auto;overflow:auto}}
@@ -1403,7 +1403,7 @@ a.rm-projhead-sectorlink:hover{color:var(--ink)}
 
 /* ===== PDP tabbed gallery (All / Studio / In-situ) ===== */
 .rm-pdp .rm-pdp-gallery{display:block;position:sticky;top:100px}
-.rm-pdp-gallery .rm-cfg-viz{position:relative;height:min(56vh,520px);border-radius:12px;background:#fff;border:1px solid var(--line);overflow:hidden}
+.rm-pdp-gallery .rm-cfg-viz{position:relative;height:min(56vh,520px);border-radius:12px;background:#e4e4e4;overflow:hidden}
 /* White image frame (a hairline border gives white product cut-outs edge
    definition without a grey backdrop). Photos fill the window; transparent
    cut-outs get padding via .rm-cutout (added by JS when the image has alpha). */
@@ -1425,7 +1425,7 @@ a.rm-projhead-sectorlink:hover{color:var(--ink)}
 .rm-pdp-gallery .rm-cfg-viz{flex:1;min-width:0}
 .rm-gtabs{margin:14px 0 0}
 .rm-gthumbs{display:flex;flex-direction:column;flex-wrap:nowrap;gap:10px;width:88px;flex:0 0 88px;max-height:min(56vh,520px);overflow-y:auto;margin-top:0}
-.rm-gthumbs .rm-cfg-thumb{width:88px;height:64px;flex:0 0 auto;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff;cursor:pointer;padding:6px}
+.rm-gthumbs .rm-cfg-thumb{width:88px;height:64px;flex:0 0 auto;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#e4e4e4;cursor:pointer;padding:6px}
 @media(max-width:600px){.rm-pdp-row{flex-direction:column-reverse}.rm-gthumbs{flex-direction:row;flex-wrap:nowrap;width:auto;flex:0 0 auto;max-height:none;overflow-x:auto}.rm-gthumbs .rm-cfg-thumb{flex:0 0 56px;height:48px}
   /* Shrink the main image so it + the thumbnail row fit in the fold. flex:0 0 auto
      so the explicit height holds — in this column layout flex:1 (basis 0) would
