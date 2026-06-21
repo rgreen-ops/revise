@@ -5,7 +5,7 @@
 
 :root{
   --paper:#ffffff; --soft:#f4f3f1; --line:#e7e5e1; --ink:#0b0b0c;
-  --text:#16161a; --muted:#8c8b86; --faint:#b6b4ae; --blue:#004899; --accent:#004899;
+  --text:#16161a; --muted:#67665f; --faint:#8a887f; --blue:#004899; --accent:#004899;
   --wide:1640px; --pad:clamp(20px,4vw,72px);
 }
 
@@ -1564,3 +1564,8 @@ html,body{overflow-x:clip}
 .rm-cattoggle{display:inline-flex;gap:0;border:1px solid var(--line);border-radius:999px;padding:3px;margin:0 0 clamp(16px,2.4vw,26px);background:#fff}
 .rm-cattoggle button{appearance:none;border:0;background:none;cursor:pointer;font-family:Poppins;font-size:.82rem;font-weight:600;color:var(--muted);padding:8px 18px;border-radius:999px;transition:background .15s,color .15s}
 .rm-cattoggle button.on{background:var(--ink);color:#fff}
+
+/* Footer column headings are <h2> for correct heading order, styled small. */
+.rm-foot-h{font-size:1rem;font-weight:600;line-height:1.3;margin:1.5em 0 .6em;letter-spacing:0;text-transform:none}
+.rm-foot-col .rm-foot-h:first-child,.rm-foot-brandcol .rm-foot-h:first-child{margin-top:0}
+.rm-foot-brandcol .brand+.rm-foot-h{margin-top:.2em}

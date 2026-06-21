@@ -94,6 +94,10 @@ function ricoman_seo_description() {
 		$obj = get_queried_object();
 		if ( $obj && ! empty( $obj->description ) ) {
 			$desc = $obj->description;
+		} elseif ( $obj && 'product' === $obj->name ) {
+			$desc = __( 'Browse Ricoman’s commercial LED lighting ranges — linear, downlights, panels, track, emergency and more. British-made luminaires, held in UK stock and made to order in Manchester.', 'ricoman' );
+		} elseif ( $obj && 'project' === $obj->name ) {
+			$desc = __( 'Ricoman commercial lighting projects and case studies — offices, retail, education, healthcare, hospitality and industrial schemes.', 'ricoman' );
 		}
 	} elseif ( is_search() ) {
 		$desc = sprintf(
@@ -105,6 +109,11 @@ function ricoman_seo_description() {
 
 	if ( '' === trim( (string) $desc ) ) {
 		$desc = get_bloginfo( 'description' );
+	}
+	// Guarantee a non-empty meta description on every page (an empty one fails
+	// the SEO audit). Final brand fallback when nothing else is available.
+	if ( '' === trim( (string) $desc ) ) {
+		$desc = __( 'Ricoman — British-made commercial LED lighting: linear, downlights, panels, track, emergency and bespoke luminaires for architects and specifiers.', 'ricoman' );
 	}
 
 	return wp_trim_words( wp_strip_all_tags( (string) $desc ), 32, '…' );

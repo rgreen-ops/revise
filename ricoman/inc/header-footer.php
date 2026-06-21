@@ -179,15 +179,15 @@ add_shortcode( 'ricoman_footer', function () {
 	return '<footer class="site ricoman-site-footer"><div class="wrap">'
 		. '<div class="rm-foot-grid">'
 		. '<div class="rm-foot-brandcol"><div class="brand">' . $brand . '</div>'
-		. '<h4>Contact Us</h4><address class="rm-foot-addr">' . $addr . '</address>'
+		. '<h2 class="rm-foot-h">Contact Us</h2><address class="rm-foot-addr">' . $addr . '</address>'
 		. $phone_html . $email_html
-		. '<h4>Business Times</h4><div class="rm-foot-hours">' . $hours . '</div>'
-		. ( $social ? '<h4>Follow Us</h4><div class="rm-foot-social">' . $social . '</div>' : '' )
+		. '<h2 class="rm-foot-h">Business Times</h2><div class="rm-foot-hours">' . $hours . '</div>'
+		. ( $social ? '<h2 class="rm-foot-h">Follow Us</h2><div class="rm-foot-social">' . $social . '</div>' : '' )
 		. '</div>'
-		. '<div class="rm-foot-col"><h4>About Us</h4><ul>' . ricoman_render_links( 'foot_col_about' ) . '</ul>'
-		. '<h4>Products</h4><ul>' . ricoman_render_links( 'foot_col_products' ) . '</ul></div>'
-		. '<div class="rm-foot-col"><h4>Projects</h4><ul>' . ricoman_render_links( 'foot_col_projects' ) . '</ul>'
-		. '<h4>Other Links</h4><ul>' . ricoman_render_links( 'foot_col_other' ) . '</ul></div>'
+		. '<div class="rm-foot-col"><h2 class="rm-foot-h">About Us</h2><ul>' . ricoman_render_links( 'foot_col_about' ) . '</ul>'
+		. '<h2 class="rm-foot-h">Products</h2><ul>' . ricoman_render_links( 'foot_col_products' ) . '</ul></div>'
+		. '<div class="rm-foot-col"><h2 class="rm-foot-h">Projects</h2><ul>' . ricoman_render_links( 'foot_col_projects' ) . '</ul>'
+		. '<h2 class="rm-foot-h">Other Links</h2><ul>' . ricoman_render_links( 'foot_col_other' ) . '</ul></div>'
 		. '</div>'
 		. '<div class="fbar"><span>&copy; ' . esc_html( gmdate( 'Y' ) ) . ' Ricoman Ltd &middot; Made in Britain</span><span class="rm-foot-legal">' . $legal . '</span></div>'
 		. '</div></footer>';

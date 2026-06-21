@@ -28,6 +28,13 @@ add_action( 'wp_head', function () {
 		$url = get_theme_file_uri( "assets/fonts/poppins-{$w}.woff2" );
 		echo '<link rel="preload" as="font" type="font/woff2" href="' . esc_url( $url ) . '" crossorigin>' . "\n";
 	}
+	// Preload the products archive hero (LCP). A lazy-load plugin was deferring
+	// it (data-src), so it wasn't discoverable in the initial HTML — preloading
+	// makes the LCP image fetch immediately regardless.
+	if ( is_post_type_archive( 'product' ) ) {
+		$hero = get_theme_file_uri( 'assets/images/arch-line.webp' );
+		echo '<link rel="preload" as="image" href="' . esc_url( $hero ) . '" fetchpriority="high">' . "\n";
+	}
 }, 1 );
 
 /* ---- Prioritise the LCP hero image without forcing a fixed size ----
@@ -329,9 +336,14 @@ add_action( 'wp_footer', function () {
 	echo '<script type="speculationrules">' . wp_json_encode( $rules ) . '</script>' . "\n";
 } );
 
-/* ---- Preconnect to RICOBOT when configured (fast live datasheets) ---- */
+/* ---- Preconnect to RICOBOT only when the live product API is in use ----
+ * While RICOBOT is parked (ricoman_use_product_api false) the page never
+ * requests that origin, so the preconnect is "unused" (a PageSpeed ding). */
 add_filter( 'wp_resource_hints', function ( $urls, $relation_type ) {
 	if ( 'preconnect' !== $relation_type ) {
+		return $urls;
+	}
+	if ( ! apply_filters( 'ricoman_use_product_api', false ) ) {
 		return $urls;
 	}
 	$base = function_exists( 'ricoman_ricobot_opt' ) ? ricoman_ricobot_opt( 'url' ) : ( defined( 'RICOMAN_RICOBOT_URL' ) ? RICOMAN_RICOBOT_URL : '' );
