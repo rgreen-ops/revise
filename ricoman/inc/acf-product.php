@@ -863,7 +863,9 @@ function ricoman_pf_variant_table( $pid ) {
 	$q = new WP_Query( array(
 		'post_type'      => 'variant-product',
 		'post_status'    => 'publish',
-		'posts_per_page' => 300,
+		// Load the whole family (the table only shows 10 at a time + "Show more",
+		// but every row must be present so the filters can search across them all).
+		'posts_per_page' => 2000,
 		'no_found_rows'  => true,
 		'orderby'        => 'menu_order title',
 		'order'          => 'ASC',
