@@ -95,6 +95,91 @@ function ricoman_webp_stats() {
 	return array( 'total' => $total, 'done' => $done );
 }
 
+/* ---- URL-based WebP (for migrated images referenced by URL, not attachment) --
+ * Migrated product images live in /wp-content/uploads as raw PNG/JPG URLs (not
+ * attachments), so the attachment converter never touches them. These helpers
+ * serve a "-rmwebp.webp" twin for any uploads image URL, generating it on demand
+ * — but ONLY when there's real free disk space, so a full disk is never made
+ * worse; until then the original is served unchanged. */
+
+/** Create a WebP at $dest from $src. Disk-guarded + throttled. Returns bool. */
+function ricoman_webp_make_file( $src, $dest ) {
+	if ( file_exists( $dest ) ) {
+		return true;
+	}
+	if ( ! file_exists( $src ) ) {
+		return false;
+	}
+	// Disk guard — never attempt to write when space is tight.
+	$free = @disk_free_space( dirname( $dest ) ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
+	if ( false !== $free && $free < 150 * 1024 * 1024 ) { // need >150MB headroom.
+		return false;
+	}
+	// Per-request throttle so one page can't kick off dozens of conversions.
+	static $made = 0;
+	if ( $made >= 6 ) {
+		return false;
+	}
+	$editor = wp_get_image_editor( $src );
+	if ( is_wp_error( $editor ) ) {
+		return false;
+	}
+	$size = $editor->get_size();
+	if ( ! empty( $size['width'] ) && $size['width'] > 1400 ) {
+		$editor->resize( 1400, null, false );
+	}
+	$editor->set_quality( 78 );
+	$saved = $editor->save( $dest, 'image/webp' );
+	if ( is_wp_error( $saved ) ) {
+		return false;
+	}
+	$made++;
+	return true;
+}
+
+/** WebP twin URL for an uploads image URL, or '' if not applicable/unavailable. */
+function ricoman_webp_for_url( $url ) {
+	if ( ! is_string( $url ) || '' === $url ) {
+		return '';
+	}
+	static $cache = array();
+	if ( isset( $cache[ $url ] ) ) {
+		return $cache[ $url ];
+	}
+	$up      = wp_get_upload_dir();
+	$baseurl = isset( $up['baseurl'] ) ? $up['baseurl'] : '';
+	$basedir = isset( $up['basedir'] ) ? $up['basedir'] : '';
+	$base    = $baseurl ? wp_parse_url( $baseurl, PHP_URL_PATH ) : '';
+	$res     = '';
+	$pos     = $base ? strpos( $url, $base ) : false;
+	if ( false !== $pos ) {
+		$rel     = substr( $url, $pos + strlen( $base ) );
+		$relpath = preg_replace( '/[?#].*$/', '', $rel );
+		if ( preg_match( '/\.(png|jpe?g)$/i', $relpath ) && false === stripos( $relpath, '-rmwebp' ) ) {
+			$file    = $basedir . $relpath;
+			$twin    = preg_replace( '/\.(png|jpe?g)$/i', '-rmwebp.webp', $file );
+			$twinrel = preg_replace( '/\.(png|jpe?g)$/i', '-rmwebp.webp', $relpath );
+			if ( file_exists( $twin ) || ricoman_webp_make_file( $file, $twin ) ) {
+				$res = $baseurl . $twinrel;
+			}
+		}
+	}
+	return $cache[ $url ] = $res;
+}
+
+/** Swap uploads PNG/JPG image URLs in content for their WebP twin (src + srcset). */
+add_filter( 'the_content', function ( $html ) {
+	if ( is_admin() || ! is_string( $html ) || false === stripos( $html, '<img' ) ) {
+		return $html;
+	}
+	return preg_replace_callback( '#<img\b[^>]*>#i', function ( $m ) {
+		return preg_replace_callback( '#(?:https?:)?//[^\s"\'\\\\)]+?\.(?:png|jpe?g)#i', function ( $u ) {
+			$w = ricoman_webp_for_url( $u[0] );
+			return $w ? $w : $u[0];
+		}, $m[0] );
+	}, $html );
+}, 8 );
+
 /* ------------------------------------------------------------------ admin -- */
 add_action( 'admin_menu', function () {
 	add_submenu_page(
