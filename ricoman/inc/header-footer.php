@@ -128,11 +128,17 @@ add_shortcode( 'ricoman_header', function () {
 		. '.rm-mega-name{font-weight:500!important}'
 		. '.rm-mega-sub{font-size:.76rem!important;font-weight:300!important}'
 		. '.rm-mega-col h4,.rm-mega-col .rm-mega-h{font-size:.95rem!important;margin:0 0 .9em!important;font-family:Poppins!important;font-weight:700!important}'
-		// Mobile: keep only the Categories column in the menu.
+		// Mobile: keep only the Categories column, shown as a compact two-column
+		// list so the lower nav items (About, Flow Designer, Downloads) stay reachable.
 		. '@media(max-width:1024px){'
 		. '.rm-mega-cols{grid-template-columns:1fr!important}'
 		. '.rm-mega-cols .rm-mega-col:nth-child(2),.rm-mega-cols .rm-mega-col:nth-child(3){display:none!important}'
 		. '.rm-mega-col h4,.rm-mega-col .rm-mega-h,.rm-mega-col ul a,.rm-mega-name{color:#fff!important}'
+		. '.rm-mega{padding-top:6px!important}'
+		. '.rm-mega-head{font-size:.95rem!important;margin-bottom:.5em!important}'
+		. '.rm-mega-col .rm-mega-h{font-size:.8rem!important;margin:0 0 .5em!important}'
+		. '.rm-mega-col ul{display:grid!important;grid-template-columns:1fr 1fr!important;gap:.45em 16px!important}'
+		. '.rm-mega-col ul a{font-size:.82rem!important;line-height:1.25!important}'
 		. '}'
 		. '</style>';
 
