@@ -735,6 +735,13 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 @media(max-width:560px){.rm-sp-grid{grid-template-columns:1fr}}
 
 /* ===== Hero legibility: light text + gradient scrim on full-bleed covers ===== */
+/* Core cover layout — WordPress only enqueues its cover-block CSS on pages that
+   contain a real cover block, so raw-HTML covers (e.g. the product-page CTA) need
+   it here or the background image renders at full natural size (giant). */
+.wp-block-cover{position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;background-size:cover;background-position:center}
+.wp-block-cover img.wp-block-cover__image-background{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;margin:0;max-width:none;padding:0}
+.wp-block-cover > .wp-block-cover__background{position:absolute;inset:0;z-index:1}
+.wp-block-cover > .wp-block-cover__inner-container{position:relative;z-index:2;width:100%;padding:clamp(22px,4vw,44px)}
 /* The cover MUST be its own positioning context, otherwise its absolutely-
    positioned ::after scrim escapes to the nearest positioned ancestor (e.g. the
    sticky product gallery) and paints a grey gradient over unrelated content. */
