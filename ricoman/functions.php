@@ -68,6 +68,7 @@ require_once get_theme_file_path( 'inc/news.php' );           // News master lis
 require_once get_theme_file_path( 'inc/sector.php' );         // Sector landing pages (SEO + conversion + lead-gen).
 require_once get_theme_file_path( 'inc/redirects.php' );      // Links & Redirects manager + 404 watch.
 require_once get_theme_file_path( 'inc/projects.php' );       // Project single (short/long) from ACF.
+require_once get_theme_file_path( 'inc/category-meta.php' );  // Per-category Studio / In-situ images (admin) + helper.
 require_once get_theme_file_path( 'inc/product-filter.php' ); // Category archive grid + faceted filters (lumens/watts/features).
 require_once get_theme_file_path( 'inc/configurator.php' );   // Live variant configurator (RICOBOT price/options).
 require_once get_theme_file_path( 'inc/product-patterns.php' );// Product page blocks (Hero/Specs/Configurator/…).

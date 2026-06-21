@@ -1559,3 +1559,8 @@ html,body{overflow-x:clip}
 @media(max-width:1100px){.rm-catcards-wide{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:760px){.rm-catcards-wide{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:460px){.rm-catcards-wide{grid-template-columns:1fr}}
+
+/* Studio / In-situ image toggle on the /products/ archive. */
+.rm-cattoggle{display:inline-flex;gap:0;border:1px solid var(--line);border-radius:999px;padding:3px;margin:0 0 clamp(16px,2.4vw,26px);background:#fff}
+.rm-cattoggle button{appearance:none;border:0;background:none;cursor:pointer;font-family:Poppins;font-size:.82rem;font-weight:600;color:var(--muted);padding:8px 18px;border-radius:999px;transition:background .15s,color .15s}
+.rm-cattoggle button.on{background:var(--ink);color:#fff}

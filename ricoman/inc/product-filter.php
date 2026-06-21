@@ -511,7 +511,9 @@ add_shortcode( 'ricoman_category_cards', function ( $atts ) {
 	// Cache the rendered cards (image lookups query products); invalidated whenever
 	// a product/variant changes (shared version), with a 12h backstop.
 	$ver    = function_exists( 'ricoman_products_ver' ) ? ricoman_products_ver() : '1';
-	$ckey   = 'rm_catcards_' . md5( wp_json_encode( $atts ) . $ver );
+	// 'cm3' markup version: bump to invalidate cached cards when card markup changes
+	// (here: dual Studio/In-situ lazy data-bg images + toggle).
+	$ckey   = 'rm_catcards_' . md5( 'cm3' . wp_json_encode( $atts ) . $ver );
 	$cached = get_transient( $ckey );
 	if ( false !== $cached ) {
 		return $cached;
@@ -534,12 +536,15 @@ add_shortcode( 'ricoman_category_cards', function ( $atts ) {
 		if ( in_array( $t->name, $excl, true ) ) {
 			continue;
 		}
-		$img = ricoman_category_image( $t->term_id, $tax );
-		if ( ! $img ) {
-			$img = get_theme_file_uri( 'assets/images/ceiling.webp' );
-		}
+		// In-situ (default) + Studio images; each falls back to the auto image.
+		$insitu = function_exists( 'ricoman_cat_img' ) ? ricoman_cat_img( $t->term_id, 'insitu', $tax ) : ricoman_category_image( $t->term_id, $tax );
+		$studio = function_exists( 'ricoman_cat_img' ) ? ricoman_cat_img( $t->term_id, 'studio', $tax ) : $insitu;
+		$fallback = get_theme_file_uri( 'assets/images/ceiling.webp' );
+		if ( ! $insitu ) { $insitu = $studio ? $studio : $fallback; }
+		if ( ! $studio ) { $studio = $insitu; }
+		// Lazy: images set on scroll by rmCatImages (data-* attrs, no inline url).
 		$cards .= '<a class="rm-catcard" href="' . esc_url( get_term_link( $t ) ) . '">'
-			. '<span class="rm-catcard-img" style="background-image:url(' . esc_url( $img ) . ')"></span>'
+			. '<span class="rm-catcard-img" data-insitu="' . esc_url( $insitu ) . '" data-studio="' . esc_url( $studio ) . '"></span>'
 			. '<span class="rm-catcard-meta"><span class="rm-catcard-t">' . esc_html( $t->name ) . '</span>'
 			. '<span class="rm-catcard-c">' . esc_html( sprintf( _n( '%d product', '%d products', $t->count, 'ricoman' ), $t->count ) ) . '</span></span></a>';
 		$n++;
@@ -550,9 +555,12 @@ add_shortcode( 'ricoman_category_cards', function ( $atts ) {
 	if ( ! $cards ) {
 		$out = '';
 	} elseif ( (int) $atts['wide'] ) {
-		// Wide archive layout (the /products/ tiles): break out of the 760px
-		// content width into the full 1640px wrapper, more columns.
-		$out = '<div class="rm-pp-wrap rm-catarch"><div class="rm-catcards rm-catcards-wide">' . $cards . '</div></div>';
+		// Wide archive layout (the /products/ tiles): full-width wrapper, more
+		// columns, and a Studio/In-situ image toggle (In-situ selected by default).
+		$toggle = '<div class="rm-cattoggle" role="group" aria-label="Image style">'
+			. '<button type="button" data-mode="insitu" class="on">In-situ</button>'
+			. '<button type="button" data-mode="studio">Studio</button></div>';
+		$out = '<div class="rm-pp-wrap rm-catarch">' . $toggle . '<div class="rm-catcards rm-catcards-wide">' . $cards . '</div></div>';
 	} else {
 		$out = '<div class="rm-catcards">' . $cards . '</div>';
 	}

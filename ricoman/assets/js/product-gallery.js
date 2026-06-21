@@ -321,6 +321,38 @@
 	}
 	if ( document.readyState !== 'loading' ) { rmLazyBg(); } else { document.addEventListener( 'DOMContentLoaded', rmLazyBg ); }
 
+	/* ---- Category tiles: lazy In-situ/Studio images + toggle ----
+	 * Each tile carries data-insitu and data-studio URLs. Only the current mode's
+	 * image is loaded (lazily, on scroll); toggling swaps loaded tiles to the
+	 * other style on demand. Default mode is In-situ. */
+	function rmCatImages() {
+		var cards = [].slice.call( document.querySelectorAll( '.rm-catcard-img[data-insitu],.rm-catcard-img[data-studio]' ) );
+		if ( ! cards.length ) { return; }
+		var mode = 'insitu';
+		function setBg( el ) {
+			var u = el.getAttribute( 'data-' + mode ) || el.getAttribute( 'data-insitu' ) || el.getAttribute( 'data-studio' );
+			if ( u ) { el.style.backgroundImage = 'url(' + u + ')'; }
+		}
+		var io = ( 'IntersectionObserver' in window )
+			? new IntersectionObserver( function ( ents ) {
+				ents.forEach( function ( e ) {
+					if ( ! e.isIntersecting ) { return; }
+					e.target._rmseen = true; setBg( e.target );
+				} );
+			}, { rootMargin: '500px 0px' } )
+			: null;
+		cards.forEach( function ( el ) { if ( io ) { io.observe( el ); } else { el._rmseen = true; setBg( el ); } } );
+		document.addEventListener( 'click', function ( ev ) {
+			var b = ev.target.closest ? ev.target.closest( '.rm-cattoggle button[data-mode]' ) : null;
+			if ( ! b ) { return; }
+			mode = b.getAttribute( 'data-mode' );
+			var wrap = b.closest( '.rm-cattoggle' );
+			[].slice.call( wrap.querySelectorAll( 'button[data-mode]' ) ).forEach( function ( x ) { x.classList.toggle( 'on', x === b ); } );
+			cards.forEach( function ( el ) { if ( el._rmseen ) { setBg( el ); } } );
+		} );
+	}
+	if ( document.readyState !== 'loading' ) { rmCatImages(); } else { document.addEventListener( 'DOMContentLoaded', rmCatImages ); }
+
 	/* ---- News listing: search + topic chips ---- */
 	function rmNewsFilter( w ) {
 		var q = w.querySelector( '.rm-newsq' );
