@@ -630,6 +630,10 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
      to keep the menu short and tappable. */
   .rm-mega-cols{grid-template-columns:1fr}
   .rm-mega-cols .rm-mega-col:nth-child(2),.rm-mega-cols .rm-mega-col:nth-child(3){display:none}
+  /* Drop the redundant "See All Products" + "Categories" labels in the mobile
+     drawer (they linked to /products/, same as the Products item) — show the
+     category list directly under Products. */
+  .rm-mega .rm-mega-head,.rm-mega-col .rm-mega-h{display:none!important}
   .rm-mega-col h4,.rm-mega-col ul a,.rm-mega-name{color:#fff!important}
   .rm-mega-col ul{display:flex!important;flex-direction:column!important}
   .rm-mega-sub{color:rgba(255,255,255,.6)!important}
