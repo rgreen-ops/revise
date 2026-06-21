@@ -172,6 +172,39 @@ GLOBAL: [ ] Header / mega-menu  [ ] Footer
   file a kept attachment still shares. (Run after a backup to shrink the 248 GB.)
 - Trashed attachments excluded from the image count.
 
+## Product images & old-URL handling (this session)
+- **Migrated image URLs:** ACF stored absolute old-domain URLs with a `-1024x1024`
+  sub-size that was never generated. `ricoman_norm_img_url()` (inc/image-fallback.php)
+  re-hosts any /wp-content/uploads/ URL onto this site + drops a missing size suffix
+  to the original, then defers to the live-origin fallback. Wired into
+  `ricoman_pf_imgurl`.
+- **WebP (URL-based):** inc/webp-convert.php now also has `ricoman_webp_for_url()` /
+  `ricoman_webp_make_file()` serving a `-rmwebp.webp` twin for raw uploads PNG/JPG
+  URLs (migrated product images bypass the attachment converter). **Disk-guarded**
+  (only writes when >150MB free — the staging disk is FULL, see below), throttled,
+  cached; `the_content` swaps img src/srcset; `ricoman_pf_imgurl` prefers the twin.
+- **Old permalinks (inc/redirects.php):** general 404 resolver `ricoman_resolve_old_path()`
+  maps any old base (/product/ singular, /track-lighting/{slug}, renamed slugs) to the
+  canonical product/project/news/page by slug → `_wp_old_slug` → taxonomy term, 301s,
+  and feeds the 404-log "resolved?" check. PLUS a `the_content` rewriter that fixes old
+  links at the source.
+- **Gallery:** main image is `object-fit:contain` (was cover, which cropped wide
+  fittings); white-background photos get a white frame (JS `rm-viz-white`) so they
+  blend instead of showing a white box on the grey `#e4e4e4` frame; transparent
+  cut-outs keep grey. Mega menu drops redundant "See All Products"/"Categories"
+  labels (mobile + desktop).
+- **Variants:** `Estrella Pro …` rows exist but weren't linked — new "Link variants
+  to a parent" tool (Variant Products → Import/Export). Variant table loads the whole
+  family (2000) but shows 10 + Show-more, fully filterable; thumbs fall back to the
+  parent image.
+
+## ⚠️ OPEN BLOCKERS (staging) — needed before the above PHP fully works
+- **PHP OPcache is stale** — restart PHP-FPM in Plesk (Tools & Settings → Services
+  Management) to release all PHP changes. CSS/JS already go live (W3Speedster purged).
+- **Disk is FULL** ("No space left on device" — backups failing). Run Ricoman →
+  Media Cleanup → Step 3b (permanent delete) to reclaim the 248GB of duplicates.
+  WebP generation stays dormant until space is freed.
+
 ## RICOBOT parked (roadmap step 5) — switch to re-enable
 - The old "product API" + family loader are gated behind `apply_filters(
   'ricoman_use_product_api', false )`. While off, product pages render from migrated
