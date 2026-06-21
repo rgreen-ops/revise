@@ -3,7 +3,7 @@
  * Title: Products listing
  * Slug: ricoman/products-archive
  * Categories: ricoman, ricoman-pages
- * Description: Products range listing — native editable blocks (hero, category grids, applications, CTA).
+ * Description: Products range listing — category tiles only (filters + products live on each category page).
  *
  * @package Ricoman
  */
