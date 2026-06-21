@@ -544,6 +544,33 @@ add_action( 'init', function () {
 		'cta_sub'    => 'Book a visit and we&rsquo;ll have the team — and the right fittings — ready for you.',
 	) ) );
 
+	$p['feat-our-services'] = array( 'Feature · Our Vision & Services', $feature( array(
+		'eyb'       => 'Our Vision &amp; Services',
+		'title'     => 'Great light, made in Britain — and made easy.',
+		'lead'      => 'We believe light should be felt, not noticed. So we design, make and deliver commercial lighting in the UK, and wrap it in the services that make specifying it simple.',
+		'hero'      => $u( 'rico-lightingdesign.webp' ),
+		'cta1'      => array( 'Start a project', '/lighting-design/' ),
+		'cta2'      => array( 'About Ricoman', '/about/' ),
+		'ben_eyb'   => 'What we do',
+		'ben_head'  => 'Design. Manufacture. Deliver. Support.',
+		'benefits'  => array(
+			array( '01', 'Free lighting design', 'Send drawings or a finishes schedule and our in-house designers return a costed, DIALux-backed scheme — usually within 3–5 days.' ),
+			array( '02', 'UK manufacturing', 'Designed, assembled, finished and tested in Manchester — full control of quality, bespoke detail and lead times.' ),
+			array( '03', 'Stock &amp; delivery', '2,000+ components stocked; core ranges from UK stock and made-to-order on an average six-day lead, delivered UK-wide.' ),
+			array( '04', 'Support &amp; warranty', 'Real people on the phone, technical data when you need it, and a 5-year warranty as standard.' ),
+		),
+		'split_img'  => $u( 'rico-making.webp' ),
+		'split_eyb'  => 'How we work',
+		'split_head' => 'One partner, end to end',
+		'split_body' => 'From the first sketch to the fitting on site, it&rsquo;s one team — so the spec you sign off is the light you get, on spec, on time, on budget.',
+		'split_items'=> array( '<strong>Free scheme design</strong> with photometrics', '<strong>Bespoke as standard</strong> — sizes, finishes &amp; CCTs', '<strong>Value engineering</strong> to protect the budget', '<strong>Datasheets, IES/LDT &amp; BIM</strong> for your spec pack', '<strong>5-year warranty</strong> &amp; UK-based support' ),
+		'faq_head'   => 'Our services FAQs',
+		'faqs'       => "Q: Is lighting design really free?\nA: Yes — send us drawings or a finishes schedule and our in-house designers return a fully specified, costed scheme at no charge, usually within 3–5 working days.\nQ: Do you manufacture your own products?\nA: Yes — we design, assemble, finish and test our luminaires in our own Manchester facility.\nQ: Can you work to a budget?\nA: Yes — we offer value-engineered alternatives so you can hit the spec and the budget.\nQ: What support do you offer after delivery?\nA: UK-based technical support, spares and a 5-year standard warranty.",
+		'cta_img'    => $u( 'office1.webp' ),
+		'cta_head'   => 'Let&rsquo;s make your project easy',
+		'cta_sub'    => 'Tell us what you&rsquo;re working on and we&rsquo;ll design, make and deliver the lighting — start to finish.',
+	) ) );
+
 	foreach ( $p as $slug => $data ) {
 		register_block_pattern( 'ricoman/' . $slug, array( 'title' => $data[0], 'categories' => array( 'ricoman-page' ), 'content' => $data[1] ) );
 	}
@@ -606,6 +633,9 @@ function ricoman_uae_exports_blocks() {
 function ricoman_our_showroom_blocks() {
 	return ricoman_stack( array( 'feat-our-showroom' ) );
 }
+function ricoman_our_services_blocks() {
+	return ricoman_stack( array( 'feat-our-services' ) );
+}
 
 /**
  * Generic styled info / legal page: dark title band + constrained body + CTA.
@@ -663,7 +693,7 @@ function ricoman_sitemap_body() {
 		'Made in Britain' => '/made-in-britain/', 'Trade' => '/trade/', 'Where to Buy' => '/where-to-buy/',
 		'I-Joist Ceilings' => '/i-joist-ceilings/', 'Stock &amp; Availability' => '/stock-availability/',
 		'UAE Exports' => '/uae-exports/', 'Our Showroom' => '/our-showroom/',
-		'Product Warranty' => '/product-warranty/',
+		'Our Vision &amp; Services' => '/our-services/', 'Product Warranty' => '/product-warranty/',
 		'Terms &amp; Conditions' => '/terms/', 'Privacy Policy' => '/privacy-policy/', 'Cookie Policy' => '/cookie-policy/',
 	);
 	$li = '';

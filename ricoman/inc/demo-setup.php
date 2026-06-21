@@ -158,6 +158,7 @@ function ricoman_scaffold_site() {
 		'stock-availability'      => array( 'Stock & Availability', 'ricoman_stock_availability_blocks' ),
 		'uae-exports'             => array( 'UAE Exports', 'ricoman_uae_exports_blocks' ),
 		'our-showroom'            => array( 'Our Showroom', 'ricoman_our_showroom_blocks' ),
+		'our-services'            => array( 'Our Vision & Services', 'ricoman_our_services_blocks' ),
 	);
 	foreach ( $native_pages as $slug => $info ) {
 		if ( get_page_by_path( $slug ) ) {
@@ -337,6 +338,7 @@ function ricoman_theme_page_map() {
 		'stock-availability'      => 'ricoman_stock_availability_blocks',
 		'uae-exports'             => 'ricoman_uae_exports_blocks',
 		'our-showroom'            => 'ricoman_our_showroom_blocks',
+		'our-services'            => 'ricoman_our_services_blocks',
 	);
 }
 
