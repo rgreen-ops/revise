@@ -85,7 +85,13 @@ GLOBAL: [ ] Header / mega-menu  [ ] Footer
     (`ricoman_footer_links_topup()`) that appends missing feature-page links to
     foot_col_other without removing edits (for existing staging). OG/social image
     (`ricoman_seo_image`) now falls back to a page's first content image (hero)
-    when no featured image is set, before the site default.
+    when no featured image is set, before the site default. Focus keyphrases are
+    seeded too (`ricoman_page_focus_library()`, chosen to appear in each seeded
+    title so the SEO scorer passes). A one-time `admin_init` migration
+    (`ricoman_seo_seeded_v1`) auto-applies page SEO + category SEO + footer
+    link top-up once on existing sites (fills empties only) so SEO copy lands
+    without anyone clicking a button. **Roadmap step 2 (SEO) is complete**;
+    remaining SEO work is launch-time (301 redirect map from the old URL list).
 - **Image alt text (SEO + a11y):** new uploads auto-get alt from a tidied title;
     a batched, resumable backfill (Ricoman → Image Alt Text) fills the migrated
     library, deriving alt from each image's title or its parent product/post, and

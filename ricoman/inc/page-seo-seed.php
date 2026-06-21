@@ -59,8 +59,37 @@ function ricoman_page_seo_library() {
  *
  * @return int
  */
+/**
+ * Focus keyphrase per page (the term each page targets). Chosen to appear in the
+ * seeded SEO title so the SEO scorer's keyphrase checks pass. Filterable.
+ */
+function ricoman_page_focus_library() {
+	return apply_filters( 'ricoman_page_focus_library', array(
+		'about'                    => 'commercial lighting manufacturer',
+		'manufacturing'            => 'lighting manufacturing',
+		'lighting-design'          => 'lighting design',
+		'customisation'            => 'custom lighting',
+		'downloads'                => 'datasheets',
+		'contact'                  => 'contact ricoman',
+		'casambi'                  => 'wireless lighting control',
+		'human-centric-lighting'   => 'human centric lighting',
+		'antimicrobial-protection' => 'antimicrobial lighting',
+		'fire-safety'              => 'emergency lighting',
+		'sustainability'           => 'sustainable led lighting',
+		'made-in-britain'          => 'made in britain',
+		'trade'                    => 'trade lighting supplier',
+		'where-to-buy'             => 'where to buy',
+		'i-joist-ceilings'         => 'i-joist',
+		'stock-availability'       => 'lighting stock',
+		'uae-exports'              => 'lighting exports',
+		'our-showroom'             => 'lighting showroom',
+		'our-services'             => 'lighting services',
+	) );
+}
+
 function ricoman_page_seo_seed_all() {
 	$written = 0;
+	$focuses = ricoman_page_focus_library();
 	foreach ( ricoman_page_seo_library() as $slug => $meta ) {
 		$page = get_page_by_path( $slug );
 		if ( ! $page || 'page' !== $page->post_type ) {
@@ -73,6 +102,10 @@ function ricoman_page_seo_seed_all() {
 		}
 		if ( $desc && '' === trim( (string) get_post_meta( $page->ID, '_ricoman_seo_desc', true ) ) ) {
 			update_post_meta( $page->ID, '_ricoman_seo_desc', sanitize_textarea_field( $desc ) );
+			$written++;
+		}
+		if ( ! empty( $focuses[ $slug ] ) && '' === trim( (string) get_post_meta( $page->ID, '_ricoman_seo_focus', true ) ) ) {
+			update_post_meta( $page->ID, '_ricoman_seo_focus', sanitize_text_field( $focuses[ $slug ] ) );
 			$written++;
 		}
 	}
@@ -234,3 +267,26 @@ add_action( 'admin_post_ricoman_footer_links_topup', function () {
 	wp_safe_redirect( add_query_arg( array( 'page' => 'ricoman-page-seo', 'footer' => $n ), admin_url( 'admin.php' ) ) );
 	exit;
 } );
+
+/**
+ * One-time: apply all SEO copy on existing sites without anyone clicking a button
+ * — page SEO titles/descriptions/focus, category intro/FAQ copy, and the footer
+ * feature-page links. Everything fills empty fields only, so it never overwrites
+ * edited copy. Runs once (flagged), in admin only.
+ */
+add_action( 'admin_init', function () {
+	if ( get_option( 'ricoman_seo_seeded_v1' ) || ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+	if ( function_exists( 'ricoman_page_seo_seed_all' ) ) {
+		ricoman_page_seo_seed_all();
+	}
+	if ( function_exists( 'ricoman_cat_seo_seed_all' ) ) {
+		ricoman_cat_seo_seed_all();
+	}
+	if ( function_exists( 'ricoman_footer_links_topup' ) ) {
+		ricoman_footer_links_topup();
+	}
+	update_option( 'ricoman_seo_seeded_v1', 1 );
+} );
+
