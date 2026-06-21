@@ -353,6 +353,31 @@
 	}
 	if ( document.readyState !== 'loading' ) { rmCatImages(); } else { document.addEventListener( 'DOMContentLoaded', rmCatImages ); }
 
+	/* ---- Generic lazy <img> (variant-table thumbnails etc.) ----
+	 * Images carry their URL in data-src; load it as the image nears the viewport.
+	 * Keeps large numbers of thumbnails off the initial render. Hidden rows that
+	 * are revealed (e.g. "show more") get picked up when they gain layout. */
+	function rmLazyImg() {
+		var imgs = [].slice.call( document.querySelectorAll( 'img.rm-lazyimg[data-src]' ) );
+		if ( ! imgs.length ) { return; }
+		function load( el ) { var u = el.getAttribute( 'data-src' ); if ( u ) { el.src = u; el.removeAttribute( 'data-src' ); } }
+		if ( ! ( 'IntersectionObserver' in window ) ) { imgs.forEach( load ); return; }
+		var io = new IntersectionObserver( function ( ents ) {
+			ents.forEach( function ( e ) { if ( e.isIntersecting ) { load( e.target ); io.unobserve( e.target ); } } );
+		}, { rootMargin: '600px 0px' } );
+		imgs.forEach( function ( el ) { io.observe( el ); } );
+		// Safety net: when a "show more" / reveal happens, load any still-pending
+		// thumbnails that are now displayed.
+		document.addEventListener( 'click', function () {
+			setTimeout( function () {
+				[].slice.call( document.querySelectorAll( 'img.rm-lazyimg[data-src]' ) ).forEach( function ( el ) {
+					if ( el.offsetParent !== null ) { load( el ); }
+				} );
+			}, 60 );
+		}, true );
+	}
+	if ( document.readyState !== 'loading' ) { rmLazyImg(); } else { document.addEventListener( 'DOMContentLoaded', rmLazyImg ); }
+
 	/* ---- News listing: search + topic chips ---- */
 	function rmNewsFilter( w ) {
 		var q = w.querySelector( '.rm-newsq' );
