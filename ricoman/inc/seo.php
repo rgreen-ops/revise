@@ -532,7 +532,12 @@ function ricoman_output_schema() {
 	if ( is_singular( 'product' ) ) {
 		$id    = get_queried_object_id();
 		$sku   = (string) get_post_meta( $id, '_ricoman_sku', true );
+		// Featured image, falling back to the derived product image (migrated
+		// products often have no WP featured image — their gallery lives in ACF).
 		$image = get_the_post_thumbnail_url( $id, 'large' );
+		if ( ! $image && function_exists( 'ricoman_product_img' ) ) {
+			$image = ricoman_product_img( $id );
+		}
 
 		$product = array(
 			'@type'        => 'Product',
@@ -550,6 +555,14 @@ function ricoman_output_schema() {
 		if ( $image ) {
 			$product['image'] = $image;
 		}
+		// Product category (schema 'category') from the real taxonomy.
+		$pcats = get_the_terms( $id, 'product-cat' );
+		if ( $pcats && ! is_wp_error( $pcats ) ) {
+			$product['category'] = $pcats[0]->name;
+		}
+
+		$props = array();
+		// Hand-entered spec meta (rarely set on the migrated catalogue) first.
 		$specs = array(
 			'_ricoman_wattage' => 'Wattage',
 			'_ricoman_lumens'  => 'Luminous flux',
@@ -558,11 +571,28 @@ function ricoman_output_schema() {
 			'_ricoman_ip'      => 'IP rating',
 			'_ricoman_beam'    => 'Beam angle',
 		);
-		$props = array();
+		$have = array();
 		foreach ( $specs as $key => $label ) {
 			$val = (string) get_post_meta( $id, $key, true );
 			if ( '' !== $val ) {
-				$props[] = array( '@type' => 'PropertyValue', 'name' => $label, 'value' => $val );
+				$props[]        = array( '@type' => 'PropertyValue', 'name' => $label, 'value' => $val );
+				$have[ $label ] = true;
+			}
+		}
+		// Fall back to the precomputed catalogue metrics (lumens / watts / features)
+		// derived from the migrated variant data, so schema isn't empty.
+		if ( function_exists( 'ricoman_pf_metrics' ) ) {
+			$mx = ricoman_pf_metrics( $id );
+			if ( empty( $have['Luminous flux'] ) && ! empty( $mx['lm'] ) ) {
+				$props[] = array( '@type' => 'PropertyValue', 'name' => 'Luminous flux', 'value' => (int) $mx['lm'] . ' lm' );
+			}
+			if ( empty( $have['Wattage'] ) && ! empty( $mx['w'] ) ) {
+				$props[] = array( '@type' => 'PropertyValue', 'name' => 'Wattage', 'value' => (int) $mx['w'] . ' W' );
+			}
+			foreach ( (array) ( $mx['feats'] ?? array() ) as $feat ) {
+				if ( is_string( $feat ) && '' !== $feat ) {
+					$props[] = array( '@type' => 'PropertyValue', 'name' => 'Feature', 'value' => $feat );
+				}
 			}
 		}
 		if ( $props ) {
