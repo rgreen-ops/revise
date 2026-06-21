@@ -595,6 +595,17 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-foot-legal a:hover{color:#fff}
 @media(max-width:900px){.rm-foot-grid{grid-template-columns:1fr 1fr}.rm-foot-brandcol{grid-column:1/-1}}
 @media(max-width:560px){.rm-foot-grid{grid-template-columns:1fr}}
+/* Newsletter signup (footer + [ricoman_newsletter]) */
+.rm-foot-news{margin-top:clamp(32px,4vw,56px);padding-top:28px;border-top:1px solid rgba(255,255,255,.12)}
+.rm-foot-news .rm-news-h{color:#fff;font-size:1.15rem;margin:0 0 4px}
+.rm-foot-news .rm-news-sub{color:rgba(255,255,255,.6);font-size:.85rem;margin:0 0 14px;max-width:46ch}
+.rm-news-form{display:flex;flex-wrap:wrap;gap:10px;align-items:center;max-width:540px}
+.rm-news-form input[type=email]{flex:1 1 240px;min-width:0;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.06);color:#fff;font-size:.95rem}
+.rm-news-form input[type=email]::placeholder{color:rgba(255,255,255,.45)}
+.rm-news-form .rm-news-go{flex:0 0 auto}
+.rm-news-msg{flex:1 0 100%;margin:4px 0 0;font-size:.85rem;color:#86efac}
+.rm-news--compact .rm-news-h{font-size:1.05rem}
+@media(max-width:560px){.rm-news-form .rm-news-go{flex:1 1 100%}}
 
 /* mega + search on mobile: fold into the slide-in menu */
 @media(max-width:1024px){

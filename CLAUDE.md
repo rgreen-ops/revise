@@ -124,6 +124,18 @@ GLOBAL: [ ] Header / mega-menu  [ ] Footer
   Project link w/ count + account/log-out.
 - **Leads log**: `lead` CPT now has admin columns (Type · Email · Product/Company ·
   Source · Received).
+- **Newsletter capture** (`inc/lead-capture.php`): `[ricoman_newsletter]` shortcode +
+  a footer signup (email-only, low friction) logs "Newsletter" leads into the same
+  CPT/CRM/Sheets pipeline; AJAX `rm_newsletter`, nonce + honeypot + spam-screened,
+  de-duped per email.
+- **Spam protection** (`ricoman_lead_is_spam()` in `inc/lead-capture.php`): shared
+  screen on EVERY capture point (enquiry form, download gate, BIM request,
+  newsletter) on top of the per-form nonce + honeypot — per-IP rate limit
+  (transient, filterable `ricoman_lead_rate_limit`/`_window`), a time-trap (hidden
+  `rm_t` render time; lower-bound only so caching can't false-positive), link-
+  stuffing + spam-term checks. Spam is silently accepted (no bot feedback) but
+  stored/forwarded to nothing. Security across capture points: nonces, capability
+  checks on admin AJAX, sanitize on input + escape on output, prepared SQL.
 
 ## Media Cleanup (`inc/media-cleanup.php`) — now fast
 - Merge dedup was ~30h; fixed via: one-time referenced-ID index (skip the

@@ -200,6 +200,7 @@ add_shortcode( 'ricoman_footer', function () {
 		. '<div class="rm-foot-col"><h2 class="rm-foot-h">Projects</h2><ul>' . ricoman_render_links( 'foot_col_projects' ) . '</ul>'
 		. '<h2 class="rm-foot-h">Other Links</h2><ul>' . ricoman_render_links( 'foot_col_other' ) . '</ul></div>'
 		. '</div>'
+		. ( function_exists( 'ricoman_newsletter_form' ) ? '<div class="rm-foot-news">' . ricoman_newsletter_form( array( 'source' => 'Footer', 'compact' => '1' ) ) . '</div>' : '' )
 		. '<div class="fbar"><span>&copy; ' . esc_html( gmdate( 'Y' ) ) . ' Ricoman Ltd &middot; Made in Britain</span><span class="rm-foot-legal">' . $legal . '</span></div>'
 		. '</div></footer>';
 } );

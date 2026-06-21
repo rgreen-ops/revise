@@ -22,6 +22,69 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * The visitor's IP (best-effort), used only for short-lived rate-limiting.
+ */
+function ricoman_lead_client_ip() {
+	foreach ( array( 'HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'REMOTE_ADDR' ) as $k ) {
+		if ( ! empty( $_SERVER[ $k ] ) ) {
+			$ip = trim( explode( ',', wp_unslash( $_SERVER[ $k ] ) )[0] );
+			if ( filter_var( $ip, FILTER_VALIDATE_IP ) ) {
+				return $ip;
+			}
+		}
+	}
+	return '';
+}
+
+/**
+ * Shared spam screen for every lead-capture point, layered on top of the
+ * per-form nonce + honeypot. Returns true when a submission looks like spam and
+ * should be dropped. Catches: too-many-from-one-IP (rate limit), instant
+ * (sub-second) submits via a time-trap, link-stuffing, and obvious spam terms.
+ * No third-party captcha needed at this volume; all thresholds are filterable.
+ *
+ * @param array $args [ 'ts' => render unix time (0 to skip), 'fields' => string[] to scan ].
+ * @return bool
+ */
+function ricoman_lead_is_spam( $args = array() ) {
+	// 1. Per-IP rate limit over a short window.
+	$ip = ricoman_lead_client_ip();
+	if ( $ip ) {
+		$key   = 'rm_lead_rl_' . md5( $ip );
+		$count = (int) get_transient( $key );
+		$max   = (int) apply_filters( 'ricoman_lead_rate_limit', 6 );
+		$win   = (int) apply_filters( 'ricoman_lead_rate_window', 10 * MINUTE_IN_SECONDS );
+		if ( $count >= $max ) {
+			return true;
+		}
+		set_transient( $key, $count + 1, $win );
+	}
+
+	// 2. Time-trap — humans don't submit in under a couple of seconds. Only the
+	// lower bound is enforced so full-page caching can't cause false positives.
+	if ( ! empty( $args['ts'] ) ) {
+		$elapsed = time() - (int) $args['ts'];
+		$min     = (int) apply_filters( 'ricoman_lead_min_seconds', 3 );
+		if ( $elapsed >= 0 && $elapsed < $min ) {
+			return true;
+		}
+	}
+
+	// 3. Link-stuffing + obvious spam terms in the free-text fields.
+	$blob = strtolower( implode( ' ', array_map( 'strval', (array) ( isset( $args['fields'] ) ? $args['fields'] : array() ) ) ) );
+	if ( '' !== $blob ) {
+		if ( preg_match_all( '#https?://|www\.#i', $blob ) >= (int) apply_filters( 'ricoman_lead_max_links', 3 ) ) {
+			return true;
+		}
+		if ( preg_match( '/\b(viagra|cialis|casino|porn|crypto\s*airdrop|seo\s*service|backlinks?|loan offer)\b/i', $blob ) ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
  * Render the lead capture form.
  *
  * @param array $atts Shortcode attributes.
@@ -54,6 +117,7 @@ function ricoman_lead_form( $atts = array() ) {
 		<input type="hidden" name="action" value="ricoman_lead">
 		<input type="hidden" name="lead_source" value="<?php echo esc_attr( $source ); ?>">
 		<input type="hidden" name="redirect_to" value="<?php echo esc_url( get_permalink() ?: home_url( '/' ) ); ?>">
+		<input type="hidden" name="rm_t" value="<?php echo (int) time(); ?>">
 		<?php wp_nonce_field( 'ricoman_lead', 'ricoman_lead_nonce' ); ?>
 
 		<?php if ( $atts['title'] ) : ?>
@@ -173,6 +237,14 @@ function ricoman_handle_lead() {
 
 	if ( '' === $name || ! is_email( $email ) ) {
 		wp_safe_redirect( add_query_arg( 'lead', 'error', $redirect ) );
+		exit;
+	}
+
+	// Spam screen (rate limit / time-trap / link-stuffing). Silently accept so we
+	// don't train bots, but store nothing and fire no integrations.
+	$ts = isset( $_POST['rm_t'] ) ? (int) $_POST['rm_t'] : 0;
+	if ( ricoman_lead_is_spam( array( 'ts' => $ts, 'fields' => array( $name, $company, $message ) ) ) ) {
+		wp_safe_redirect( add_query_arg( 'lead', 'sent', $redirect ) );
 		exit;
 	}
 
@@ -337,3 +409,153 @@ function ricoman_lead_column_content( $column, $post_id ) {
 	}
 }
 add_action( 'manage_lead_posts_custom_column', 'ricoman_lead_column_content', 10, 2 );
+
+/* ============================================================ Newsletter ====
+ * A low-friction, email-only capture point (footer + [ricoman_newsletter]).
+ * Signups are logged as "Newsletter" leads so they flow into the same tracker,
+ * CRM dashboard and Sheets sync as every other lead. AJAX, nonce-protected,
+ * spam-screened, and de-duplicated per email.
+ * ------------------------------------------------------------------------- */
+
+/**
+ * Render the newsletter signup form.
+ *
+ * @param array $atts [ title, sub, source, compact ].
+ * @return string
+ */
+function ricoman_newsletter_form( $atts = array() ) {
+	$atts = shortcode_atts(
+		array(
+			'title'   => __( 'Lighting insights, now and then', 'ricoman' ),
+			'sub'     => __( 'Product launches, project stories and specifier know-how. No spam — unsubscribe anytime.', 'ricoman' ),
+			'source'  => '',
+			'compact' => '0',
+		),
+		$atts,
+		'ricoman_newsletter'
+	);
+	$source = $atts['source'] ? $atts['source'] : ( is_singular() ? get_the_title() : get_bloginfo( 'name' ) );
+	$nonce  = wp_create_nonce( 'rm_newsletter' );
+	$ajax   = esc_url( admin_url( 'admin-ajax.php' ) );
+	$cls    = '1' === (string) $atts['compact'] ? ' rm-news--compact' : '';
+
+	ob_start();
+	?>
+	<div class="rm-news<?php echo esc_attr( $cls ); ?>">
+		<?php if ( $atts['title'] ) : ?><h2 class="rm-news-h"><?php echo esc_html( $atts['title'] ); ?></h2><?php endif; ?>
+		<?php if ( $atts['sub'] ) : ?><p class="rm-news-sub"><?php echo esc_html( $atts['sub'] ); ?></p><?php endif; ?>
+		<form class="rm-news-form" data-ajax="<?php echo $ajax; // phpcs:ignore WordPress.Security.EscapeOutput ?>" data-nonce="<?php echo esc_attr( $nonce ); ?>" data-source="<?php echo esc_attr( $source ); ?>" data-ts="<?php echo (int) time(); ?>">
+			<div aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px"><label>Website<input type="text" name="rm_hp" tabindex="-1" autocomplete="off"></label></div>
+			<label class="screen-reader-text" for="rm-news-email-<?php echo (int) get_the_ID(); ?>"><?php esc_html_e( 'Email address', 'ricoman' ); ?></label>
+			<input type="email" id="rm-news-email-<?php echo (int) get_the_ID(); ?>" name="email" placeholder="<?php esc_attr_e( 'you@company.com', 'ricoman' ); ?>" required>
+			<button type="submit" class="btn btn-solid rm-news-go"><?php esc_html_e( 'Subscribe', 'ricoman' ); ?></button>
+			<p class="rm-news-msg" role="status" hidden></p>
+		</form>
+	</div>
+	<?php
+	ricoman_newsletter_script();
+	return (string) ob_get_clean();
+}
+add_shortcode( 'ricoman_newsletter', 'ricoman_newsletter_form' );
+
+/** Print the tiny vanilla-JS handler once per page (covers footer + shortcode). */
+function ricoman_newsletter_script() {
+	static $done = false;
+	if ( $done ) {
+		return;
+	}
+	$done = true;
+	?>
+	<script>
+	(function(){
+		document.addEventListener('submit', function(e){
+			var f = e.target.closest && e.target.closest('.rm-news-form');
+			if (!f) return;
+			e.preventDefault();
+			if (f.querySelector('[name=rm_hp]') && f.querySelector('[name=rm_hp]').value) return;
+			var msg = f.querySelector('.rm-news-msg'), btn = f.querySelector('button');
+			var body = new URLSearchParams();
+			body.set('action','rm_newsletter');
+			body.set('nonce', f.dataset.nonce);
+			body.set('source', f.dataset.source || '');
+			body.set('ts', f.dataset.ts || '');
+			body.set('email', (f.querySelector('[name=email]')||{}).value || '');
+			if (btn) btn.disabled = true;
+			fetch(f.dataset.ajax, {method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: body.toString()})
+				.then(function(r){return r.json();})
+				.then(function(r){
+					if (btn) btn.disabled = false;
+					if (msg){ msg.hidden=false; msg.textContent = (r && r.data && r.data.msg) ? r.data.msg : (r && r.success ? 'Thanks — you’re subscribed.' : 'Sorry, please try again.'); }
+					if (r && r.success){ f.reset(); }
+				})
+				.catch(function(){ if(btn)btn.disabled=false; if(msg){msg.hidden=false; msg.textContent='Sorry, please try again.';} });
+		});
+	})();
+	</script>
+	<?php
+}
+
+/** AJAX: capture a newsletter signup as a lead. */
+function ricoman_newsletter_capture() {
+	if ( ! check_ajax_referer( 'rm_newsletter', 'nonce', false ) ) {
+		wp_send_json_error( array( 'msg' => __( 'Please refresh and try again.', 'ricoman' ) ) );
+	}
+	$email = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
+	$src   = isset( $_POST['source'] ) ? sanitize_text_field( wp_unslash( $_POST['source'] ) ) : '';
+	$ts    = isset( $_POST['ts'] ) ? (int) $_POST['ts'] : 0;
+	$hp    = isset( $_POST['rm_hp'] ) ? (string) wp_unslash( $_POST['rm_hp'] ) : '';
+	if ( ! is_email( $email ) ) {
+		wp_send_json_error( array( 'msg' => __( 'Please enter a valid email address.', 'ricoman' ) ) );
+	}
+	// Honeypot + shared spam screen — silently acknowledge, store nothing.
+	if ( '' !== $hp || ricoman_lead_is_spam( array( 'ts' => $ts, 'fields' => array( $email ) ) ) ) {
+		wp_send_json_success( array( 'msg' => __( 'Thanks — you’re subscribed.', 'ricoman' ) ) );
+	}
+
+	$source = $src ? 'Newsletter · ' . $src : 'Newsletter';
+
+	// De-dupe: don't log the same email twice as a newsletter lead.
+	$existing = get_posts( array(
+		'post_type'      => 'lead',
+		'post_status'    => 'any',
+		'posts_per_page' => 1,
+		'fields'         => 'ids',
+		'meta_query'     => array(
+			'relation' => 'AND',
+			array( 'key' => '_lead_email', 'value' => $email ),
+			array( 'key' => '_lead_type', 'value' => 'Newsletter' ),
+		),
+	) );
+	if ( $existing ) {
+		wp_send_json_success( array( 'msg' => __( 'You’re already on the list — thank you.', 'ricoman' ) ) );
+	}
+
+	$data = array(
+		'name'      => '',
+		'email'     => $email,
+		'company'   => '',
+		'phone'     => '',
+		'role'      => '',
+		'message'   => '',
+		'source'    => $source,
+		'items'     => '',
+		'submitted' => current_time( 'mysql' ),
+	);
+	$lead_id = wp_insert_post( array(
+		'post_type'   => 'lead',
+		'post_status' => 'private',
+		'post_title'  => sprintf( '%s — %s', $email, __( 'Newsletter', 'ricoman' ) ),
+		'meta_input'  => array_merge( array(
+			'_lead_email'  => $email,
+			'_lead_type'   => __( 'Newsletter', 'ricoman' ),
+			'_lead_source' => $source,
+		), function_exists( 'ricoman_lead_attribution' ) ? ricoman_lead_attribution() : array() ),
+	) );
+
+	/** Same hook the other capture points fire (Sheets sync, CRM…). */
+	do_action( 'ricoman_lead_captured', $data, is_wp_error( $lead_id ) ? 0 : $lead_id );
+
+	wp_send_json_success( array( 'msg' => __( 'Thanks — you’re subscribed.', 'ricoman' ) ) );
+}
+add_action( 'wp_ajax_nopriv_rm_newsletter', 'ricoman_newsletter_capture' );
+add_action( 'wp_ajax_rm_newsletter', 'ricoman_newsletter_capture' );

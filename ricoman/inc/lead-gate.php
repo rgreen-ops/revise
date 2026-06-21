@@ -178,6 +178,10 @@ function ricoman_gate_capture() {
 	if ( '' === $name || ! is_email( $email ) ) {
 		wp_send_json_error( array( 'msg' => __( 'Please enter your name and a valid email.', 'ricoman' ) ) );
 	}
+	// Spam screen — silently let the download proceed but log nothing.
+	if ( function_exists( 'ricoman_lead_is_spam' ) && ricoman_lead_is_spam( array( 'fields' => array( $name ) ) ) ) {
+		wp_send_json_success();
+	}
 
 	$data = array(
 		'name'      => $name,
@@ -234,6 +238,10 @@ function ricoman_bim_request() {
 	$product = isset( $_POST['product'] ) ? sanitize_text_field( wp_unslash( $_POST['product'] ) ) : '';
 	if ( '' === $name || ! is_email( $email ) ) {
 		wp_send_json_error( array( 'msg' => __( 'Please enter your name and a valid email.', 'ricoman' ) ) );
+	}
+	// Spam screen — silently acknowledge but log/notify nothing.
+	if ( function_exists( 'ricoman_lead_is_spam' ) && ricoman_lead_is_spam( array( 'fields' => array( $name, $company ) ) ) ) {
+		wp_send_json_success();
 	}
 
 	$site = get_bloginfo( 'name' );
