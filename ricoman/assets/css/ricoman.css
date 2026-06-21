@@ -66,8 +66,8 @@ body.rm-hero header.site,body.rm-hero .ricoman-site-header{background:linear-gra
   .rm-logo{height:22px}
   .rm-burger{display:flex;flex-direction:column;gap:6px;cursor:pointer;padding:8px;z-index:60}
   .rm-burger span{width:26px;height:2px;background:#fff;transition:.3s ease;display:block}
-  .nav ul{position:fixed;inset:0;height:100vh;background:var(--ink);flex-direction:column;justify-content:center;align-items:flex-start;gap:6px;padding-inline:var(--pad);transform:translateX(100%);transition:transform .35s ease;z-index:55}
-  .nav ul li a{font-size:1.4rem;letter-spacing:.03em;text-transform:none}
+  .nav>ul{position:fixed;inset:0;height:100vh;background:var(--ink);flex-direction:column;justify-content:center;align-items:flex-start;gap:6px;padding-inline:var(--pad);transform:translateX(100%);transition:transform .35s ease;z-index:55}
+  .nav>ul>li>a{font-size:1.4rem;letter-spacing:.03em;text-transform:none}
   .rm-navtoggle:checked ~ ul{transform:none}
   .rm-navtoggle:checked ~ .rm-burger span:nth-child(1){transform:translateY(8px) rotate(45deg)}
   .rm-navtoggle:checked ~ .rm-burger span:nth-child(2){opacity:0}
