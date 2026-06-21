@@ -1408,6 +1408,9 @@ a.rm-projhead-sectorlink:hover{color:var(--ink)}
 /* ===== PDP tabbed gallery (All / Studio / In-situ) ===== */
 .rm-pdp .rm-pdp-gallery{display:block;position:sticky;top:100px}
 .rm-pdp-gallery .rm-cfg-viz{position:relative;height:min(56vh,520px);border-radius:12px;background:#e4e4e4;overflow:hidden}
+/* Images with a baked-in white background get a white frame so the white blends
+   in (no white box on grey); JS adds .rm-viz-white after detecting it. */
+.rm-pdp-gallery .rm-cfg-viz.rm-viz-white{background:#fff}
 /* White image frame (a hairline border gives white product cut-outs edge
    definition without a grey backdrop). Photos fill the window; transparent
    cut-outs get padding via .rm-cutout (added by JS when the image has alpha). */

@@ -495,6 +495,16 @@
 			var d = x.getImageData( 0, 0, s, s ).data, transparent = false;
 			for ( var i = 3; i < d.length; i += 4 ) { if ( d[ i ] < 240 ) { transparent = true; break; } }
 			img.classList.toggle( 'rm-cutout', transparent );
+			// White-background photo (opaque, near-white corners): give the frame a
+			// white backdrop so the baked-in white blends in instead of showing as a
+			// white box on the grey frame. Transparent cut-outs keep the grey frame.
+			var whiteBg = false;
+			if ( ! transparent ) {
+				var corner = function ( px, py ) { var o = ( py * s + px ) * 4; return d[ o ] > 245 && d[ o + 1 ] > 245 && d[ o + 2 ] > 245; };
+				whiteBg = corner( 0, 0 ) && corner( s - 1, 0 ) && corner( 0, s - 1 ) && corner( s - 1, s - 1 );
+			}
+			var viz = img.closest && img.closest( '.rm-cfg-viz' );
+			if ( viz ) { viz.classList.toggle( 'rm-viz-white', whiteBg ); }
 		} catch ( err ) {
 			img.classList.remove( 'rm-cutout' );
 		}
