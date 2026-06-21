@@ -196,6 +196,172 @@ add_action( 'init', function () {
 	$p['contact-hero'] = array( 'Contact · Hero', $hdr_band( 'Contact', 'Let&rsquo;s talk lighting.', 'Send us a project, a drawing or a question — our Manchester team will get straight back to you.' ) );
 	$p['contact-body'] = array( 'Contact · Form &amp; details', $sec( '<!-- wp:columns --><div class="wp-block-columns"><!-- wp:column {"width":"58%"} --><div class="wp-block-column" style="flex-basis:58%">' . $eyebrow( 'Send an enquiry' ) . $shead( 'Tell us about your project' ) . '<!-- wp:shortcode -->[ricoman_lead_form]<!-- /wp:shortcode --></div><!-- /wp:column --><!-- wp:column {"width":"42%"} --><div class="wp-block-column" style="flex-basis:42%"><!-- wp:group {"className":"rm-soft","style":{"spacing":{"padding":{"top":"var:preset|spacing|40","bottom":"var:preset|spacing|40","left":"var:preset|spacing|40","right":"var:preset|spacing|40"}}},"layout":{"type":"constrained"}} --><div class="wp-block-group rm-soft" style="padding-top:var(--wp--preset--spacing--40);padding-bottom:var(--wp--preset--spacing--40);padding-left:var(--wp--preset--spacing--40);padding-right:var(--wp--preset--spacing--40)"><!-- wp:heading {"level":3} --><h3 class="wp-block-heading">Get in touch</h3><!-- /wp:heading -->' . $para( 'Metroplex Business Park<br>520 Broadway, M50 2UE<br>Manchester, UK' ) . $para( '<strong>0161 451 5913</strong><br>sales@ricoman.com' ) . $para( 'Mon–Thu 8:30–17:00 · Fri 8:30–16:00' ) . '</div><!-- /wp:group --></div><!-- /wp:column --></div><!-- /wp:columns -->' ) );
 
+	/* ===== Feature / enhanced landing pages =====
+	 * Rich, editable landing pages for the marketing features (Casambi, Human
+	 * Centric, Antimicrobial, Fire Safety…). One comprehensive pattern each:
+	 * split header, benefits, an image split + checklist, an FAQ (which emits
+	 * FAQPage schema via [ricoman_faq]) and a conversion CTA. All built from core
+	 * blocks so every word + image stays click-to-edit.
+	 */
+	$faqblock = function ( $head, $qa ) use ( $shead ) {
+		return '<!-- wp:group {"align":"full","className":"rm-section","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-section">'
+			. $shead( $head )
+			. '<!-- wp:shortcode -->[ricoman_faq]' . "\n" . $qa . "\n" . '[/ricoman_faq]<!-- /wp:shortcode -->'
+			. '</div><!-- /wp:group -->';
+	};
+	$feature = function ( $a ) use ( $hdr_split, $sec, $shead, $eyebrow, $para, $aud, $twocol, $image, $checklist, $buttons, $btn, $cover, $faqblock ) {
+		$out  = $hdr_split( $a['eyb'], $a['title'], $a['lead'], $a['hero'], $buttons( $btn( $a['cta1'][0], $a['cta1'][1], false ) . ( isset( $a['cta2'] ) ? $btn( $a['cta2'][0], $a['cta2'][1], false ) : '' ) ) );
+		// Benefits row (3–4 cards).
+		$cards = '';
+		foreach ( $a['benefits'] as $b ) {
+			$cards .= $aud( $b[0], $b[1], $b[2] );
+		}
+		$out .= $sec( $eyebrow( $a['ben_eyb'] ) . $shead( $a['ben_head'] ) . '<!-- wp:columns --><div class="wp-block-columns">' . $cards . '</div><!-- /wp:columns -->' );
+		// Image split + checklist.
+		$out .= $sec( $twocol(
+			$image( $a['split_img'], '', wp_strip_all_tags( html_entity_decode( $a['title'] ) ) ),
+			$eyebrow( $a['split_eyb'] ) . $shead( $a['split_head'] ) . $para( $a['split_body'], true ) . $checklist( $a['split_items'] )
+		) );
+		// FAQ (schema) + CTA.
+		$out .= $faqblock( $a['faq_head'], $a['faqs'] );
+		$out .= $cover( $a['cta_img'],
+			'<!-- wp:heading {"textAlign":"center","level":2} --><h2 class="wp-block-heading has-text-align-center">' . $a['cta_head'] . '</h2><!-- /wp:heading -->'
+			. '<!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">' . $a['cta_sub'] . '</p><!-- /wp:paragraph -->'
+			. $buttons( $btn( $a['cta1'][0], $a['cta1'][1] ) . $btn( 'Talk to the team →', '/contact/', false ), true ),
+			52, 'center center', 70 );
+		return $out;
+	};
+
+	$p['feat-casambi'] = array( 'Feature · Casambi', $feature( array(
+		'eyb'       => 'Wireless Lighting Control',
+		'title'     => 'Casambi — wireless control, beautifully simple.',
+		'lead'      => 'Dim, tune and group your lighting from a phone or wall switch — no control wiring, no gateway, no fuss. Many Ricoman luminaires are available Casambi-ready.',
+		'hero'      => $u( 'office5.webp' ),
+		'cta1'      => array( 'Request Casambi options', '/lighting-design/' ),
+		'cta2'      => array( 'Browse products', '/products/' ),
+		'ben_eyb'   => 'Why Casambi',
+		'ben_head'  => 'Control that installs in minutes',
+		'benefits'  => array(
+			array( '01', 'No control wiring', 'Bluetooth mesh built into the fitting — no DALI bus, no extra cabling, lower install cost.' ),
+			array( '02', 'Dim, tune &amp; scene', 'Set brightness, white tuning and scenes per room, then recall them from a phone or wall control.' ),
+			array( '03', 'Scales with the space', 'From a single room to a whole floor — the mesh grows without a central controller.' ),
+		),
+		'split_img'  => $u( 'office6.webp' ),
+		'split_eyb'  => 'How it works',
+		'split_head' => 'A self-healing Bluetooth mesh',
+		'split_body' => 'Each Casambi-enabled luminaire is a node in a secure wireless mesh. Commission with the free app, group fittings, and the network keeps working even if one node drops.',
+		'split_items'=> array( '<strong>Casambi-ready luminaires</strong> across many ranges', '<strong>App or wall control</strong> — phones, switches &amp; sensors', '<strong>Tunable white &amp; scenes</strong> for workplaces &amp; hospitality', '<strong>Daylight &amp; occupancy</strong> sensors for energy savings', '<strong>No gateway required</strong> for standard installs' ),
+		'faq_head'   => 'Casambi FAQs',
+		'faqs'       => "Q: Do I need special wiring for Casambi?\nA: No — Casambi uses a Bluetooth mesh built into the luminaire, so there's no control bus or extra cabling for a standard install.\nQ: Which Ricoman products are Casambi-ready?\nA: Many ranges offer a Casambi option; tell us the fittings you're specifying and we'll confirm which are available Casambi-enabled.\nQ: Can I control it from a wall switch as well as a phone?\nA: Yes — Casambi supports wall controls, switches and sensors alongside the app.\nQ: How many fittings can one network handle?\nA: The mesh scales from a single room to large installations; for very large schemes our team will advise on the best topology.",
+		'cta_img'    => $u( 'office1.webp' ),
+		'cta_head'   => 'Specify Casambi on your next scheme',
+		'cta_sub'    => 'Send us your drawings and we&rsquo;ll return a Casambi-ready luminaire schedule and a costed scheme — usually within 3–5 days.',
+	) ) );
+
+	$p['feat-human-centric'] = array( 'Feature · Human Centric Lighting', $feature( array(
+		'eyb'       => 'Wellbeing &amp; Productivity',
+		'title'     => 'Human Centric Lighting that works with people.',
+		'lead'      => 'Tunable-white, circadian-aware lighting that supports how people feel, focus and rest — for workplaces, healthcare and education.',
+		'hero'      => $u( 'office2.webp' ),
+		'cta1'      => array( 'Design an HCL scheme', '/lighting-design/' ),
+		'cta2'      => array( 'Browse products', '/products/' ),
+		'ben_eyb'   => 'Why it matters',
+		'ben_head'  => 'Light tuned to the rhythm of the day',
+		'benefits'  => array(
+			array( '01', 'Supports focus', 'Cooler, brighter light through the working day helps alertness and concentration.' ),
+			array( '02', 'Aids comfort &amp; rest', 'Warmer tones in the evening reduce glare and support natural wind-down.' ),
+			array( '03', 'Better spaces', 'High-CRI light renders materials and skin tones accurately, for spaces that simply feel right.' ),
+		),
+		'split_img'  => $u( 'office5.webp' ),
+		'split_eyb'  => 'How we design it',
+		'split_head' => 'Tunable white, specified properly',
+		'split_body' => 'We model the scheme so light levels, colour temperature and control work together across the day — not just a tunable fitting bolted on, but a considered, compliant design.',
+		'split_items'=> array( '<strong>Tunable-white luminaires</strong> (2700–6500K options)', '<strong>CRI 90+</strong> for accurate colour rendering', '<strong>Casambi / DALI control</strong> for automated scenes', '<strong>Daylight integration</strong> with sensors', '<strong>DIALux study</strong> proving lux, uniformity &amp; UGR' ),
+		'faq_head'   => 'Human Centric Lighting FAQs',
+		'faqs'       => "Q: What is human centric lighting?\nA: It's lighting designed around people — varying brightness and colour temperature through the day to support alertness, comfort and wellbeing.\nQ: Where does HCL make the biggest difference?\nA: Workplaces, healthcare, education and care environments, where people spend long periods indoors.\nQ: Do you provide a lighting design for HCL schemes?\nA: Yes — our in-house designers return a DIALux-backed, costed scheme, usually within 3–5 working days.\nQ: Can HCL be controlled automatically?\nA: Yes — with Casambi or DALI controls and sensors, colour temperature and levels can follow the day automatically.",
+		'cta_img'    => $u( 'rico-office-render.webp' ),
+		'cta_head'   => 'Bring human centric lighting to your project',
+		'cta_sub'    => 'Share your drawings and our designers will specify a tunable-white scheme with the controls to match.',
+	) ) );
+
+	$p['feat-antimicrobial'] = array( 'Feature · Antimicrobial Protection', $feature( array(
+		'eyb'       => 'Hygiene-Critical Spaces',
+		'title'     => 'Antimicrobial lighting for cleaner environments.',
+		'lead'      => 'Luminaires with an antimicrobial surface treatment that inhibits bacterial growth on the fitting — for healthcare, education and food environments.',
+		'hero'      => $u( 'office6.webp' ),
+		'cta1'      => array( 'Request antimicrobial options', '/lighting-design/' ),
+		'cta2'      => array( 'Browse products', '/products/' ),
+		'ben_eyb'   => 'Why specify it',
+		'ben_head'  => 'Protection built into the surface',
+		'benefits'  => array(
+			array( '01', 'Inhibits bacteria', 'An antimicrobial additive in the surface finish suppresses bacterial growth on the luminaire.' ),
+			array( '02', 'Built for cleaning', 'Sealed, IP-rated options stand up to regular wash-down and cleaning regimes.' ),
+			array( '03', 'Compliance-friendly', 'A sensible choice for clinical, care and food-prep specifications.' ),
+		),
+		'split_img'  => $u( 'office2.webp' ),
+		'split_eyb'  => 'Where it fits',
+		'split_head' => 'Designed for hygiene-sensitive spaces',
+		'split_body' => 'Antimicrobial protection pairs with sealed, easy-clean luminaires to support infection-control standards in the most demanding environments.',
+		'split_items'=> array( '<strong>Antimicrobial surface treatment</strong> on selected fittings', '<strong>IP-rated, sealed options</strong> for wash-down areas', '<strong>Healthcare &amp; education</strong> ready specifications', '<strong>Emergency variants</strong> for life-safety compliance', '<strong>UK-made</strong>, backed by a 5-year warranty' ),
+		'faq_head'   => 'Antimicrobial lighting FAQs',
+		'faqs'       => "Q: How does antimicrobial lighting work?\nA: An antimicrobial additive in the luminaire's surface finish inhibits the growth of bacteria on the fitting itself.\nQ: Which environments is it suitable for?\nA: Healthcare, care homes, education, laboratories and food-preparation areas where hygiene is critical.\nQ: Is it available with IP-rated fittings?\nA: Yes — antimicrobial treatment can be combined with sealed, IP-rated luminaires for wash-down areas.\nQ: Can you help specify a compliant scheme?\nA: Yes — send us your requirements and our team will recommend suitable fittings and return a costed scheme.",
+		'cta_img'    => $u( 'office1.webp' ),
+		'cta_head'   => 'Specify antimicrobial lighting',
+		'cta_sub'    => 'Tell us about the environment and our team will recommend the right protected, easy-clean fittings.',
+	) ) );
+
+	$p['feat-fire-safety'] = array( 'Feature · Fire Safety', $feature( array(
+		'eyb'       => 'Fire-Rated &amp; Emergency',
+		'title'     => 'Fire safety lighting you can specify with confidence.',
+		'lead'      => 'Fire-rated downlights and emergency luminaires designed to protect escape routes and maintain ceiling integrity — British-made and held in UK stock.',
+		'hero'      => $u( 'office5.webp' ),
+		'cta1'      => array( 'Design a compliant scheme', '/lighting-design/' ),
+		'cta2'      => array( 'Browse products', '/products/' ),
+		'ben_eyb'   => 'Why it matters',
+		'ben_head'  => 'Two jobs: contain fire, light the exit',
+		'benefits'  => array(
+			array( '01', 'Fire-rated fittings', 'Fire-rated downlights help maintain the fire integrity of a ceiling for up to 30, 60 or 90 minutes.' ),
+			array( '02', 'Emergency lighting', 'Maintained and non-maintained luminaires and exit signage keep escape routes lit when the mains fails.' ),
+			array( '03', 'Designed to standards', 'Schemes designed to support BS 5266 and building-regulation compliance.' ),
+		),
+		'split_img'  => $u( 'office6.webp' ),
+		'split_eyb'  => 'What we offer',
+		'split_head' => 'Fire-rated and emergency, in one place',
+		'split_body' => 'Specify fire-rated downlights and emergency lighting from a single British manufacturer, with the design support to prove the scheme works.',
+		'split_items'=> array( '<strong>Fire-rated downlights</strong> (30 / 60 / 90 minute)', '<strong>Maintained &amp; non-maintained</strong> emergency fittings', '<strong>Exit signage</strong> and emergency conversions', '<strong>3-hour duration</strong> emergency as standard', '<strong>BS 5266-aware</strong> design support' ),
+		'faq_head'   => 'Fire safety lighting FAQs',
+		'faqs'       => "Q: What does a fire-rated downlight do?\nA: It helps maintain the fire-resistance of a ceiling that's been penetrated to install the fitting, for a rated period such as 30, 60 or 90 minutes.\nQ: Do you supply emergency lighting?\nA: Yes — maintained and non-maintained luminaires, exit signage and emergency variants of standard fittings.\nQ: How long must emergency lighting stay on?\nA: A minimum three-hour duration is standard for most commercial applications.\nQ: Can you design a BS 5266-compliant scheme?\nA: Our team designs emergency schemes to support BS 5266; final compliance should always be confirmed by a competent design.",
+		'cta_img'    => $u( 'office1.webp' ),
+		'cta_head'   => 'Get a compliant fire safety scheme',
+		'cta_sub'    => 'Send us your plans and our designers will specify fire-rated and emergency lighting to suit the building.',
+	) ) );
+
+	$p['feat-sustainability'] = array( 'Feature · Sustainability', $feature( array(
+		'eyb'       => 'Responsibility',
+		'title'     => 'Better light, made responsibly.',
+		'lead'      => 'Lower energy in use, less waste in manufacture and products built to last — sustainability designed into how we make light.',
+		'hero'      => $u( 'workshop.webp' ),
+		'cta1'      => array( 'Talk to our designers', '/lighting-design/' ),
+		'cta2'      => array( 'Inside our manufacturing', '/manufacturing/' ),
+		'ben_eyb'   => 'Our approach',
+		'ben_head'  => 'Designed to use less and last longer',
+		'benefits'  => array(
+			array( '01', 'Efficient in use', 'High-efficacy LEDs and good optics cut energy and running costs over the life of the scheme.' ),
+			array( '02', 'Built to last', 'Serviceable, replaceable components extend product life and keep fittings out of landfill.' ),
+			array( '03', 'Made in Britain', 'UK manufacturing and made-to-order production cut transport miles and overproduction.' ),
+		),
+		'split_img'  => $u( 'warehouse.webp' ),
+		'split_eyb'  => 'Circular by design',
+		'split_head' => 'Less waste, by design',
+		'split_body' => 'We make to order rather than to a catalogue, design fittings to be serviced rather than scrapped, and manufacture in the UK to keep our footprint short.',
+		'split_items'=> array( '<strong>High-efficacy LEDs</strong> for lower energy in use', '<strong>Replaceable drivers</strong> &amp; modular components', '<strong>Recyclable materials</strong> where possible', '<strong>Made to order</strong> — less overproduction', '<strong>UK manufacture</strong> — fewer transport miles' ),
+		'faq_head'   => 'Sustainability FAQs',
+		'faqs'       => "Q: How is Ricoman lighting more sustainable?\nA: We design for efficiency and longevity — high-efficacy LEDs, serviceable fittings and UK manufacturing that reduces transport and overproduction.\nQ: Are your fittings repairable?\nA: Many use replaceable drivers and modular components so they can be serviced rather than scrapped.\nQ: Does made-to-order reduce waste?\nA: Yes — building to order rather than to stock cuts overproduction and the waste that comes with it.\nQ: Where are your products made?\nA: In our own facility in Manchester, UK.",
+		'cta_img'    => $u( 'office1.webp' ),
+		'cta_head'   => 'Specify lighting that lasts',
+		'cta_sub'    => 'Tell us about your project and we&rsquo;ll help you specify efficient, long-life lighting with the data to back it up.',
+	) ) );
+
 	foreach ( $p as $slug => $data ) {
 		register_block_pattern( 'ricoman/' . $slug, array( 'title' => $data[0], 'categories' => array( 'ricoman-page' ), 'content' => $data[1] ) );
 	}
@@ -219,6 +385,23 @@ function ricoman_customisation_blocks() {
 }
 function ricoman_contact_blocks() {
 	return ricoman_stack( array( 'contact-hero', 'contact-body' ) );
+}
+
+/* Feature / enhanced landing pages — each is one comprehensive editable pattern. */
+function ricoman_casambi_blocks() {
+	return ricoman_stack( array( 'feat-casambi' ) );
+}
+function ricoman_human_centric_blocks() {
+	return ricoman_stack( array( 'feat-human-centric' ) );
+}
+function ricoman_antimicrobial_blocks() {
+	return ricoman_stack( array( 'feat-antimicrobial' ) );
+}
+function ricoman_fire_safety_blocks() {
+	return ricoman_stack( array( 'feat-fire-safety' ) );
+}
+function ricoman_sustainability_blocks() {
+	return ricoman_stack( array( 'feat-sustainability' ) );
 }
 
 /**
@@ -252,11 +435,10 @@ function ricoman_info_p( $t ) {
 function ricoman_info_pages() {
 	$placeholder = ricoman_info_p( '<em>This is placeholder wording — replace it with your approved copy in the editor.</em>' );
 	return array(
-		'sustainability'          => array( 'Responsibility', 'Sustainability', 'Better light, made responsibly — lower energy in use, less waste in manufacture, and products built to last.', ricoman_info_h( 'Our approach' ) . ricoman_info_p( 'We design for efficiency and longevity: high-efficacy LEDs, serviceable fittings, recyclable materials and UK manufacturing that cuts transport miles. Made to order means less overproduction and less waste.' ) . ricoman_info_h( 'Circular by design' ) . ricoman_info_p( 'Replaceable drivers and modular components extend product life and keep fittings out of landfill.' ) ),
+		// Casambi, Human Centric, Antimicrobial, Fire Safety & Sustainability are
+		// now full feature pages (see ricoman_*_blocks + the Page Designs tool), so
+		// they're no longer created here as thin info pages.
 		'news'                    => array( 'Insights', 'News', 'Product launches, project stories and lighting know-how from the Ricoman team.', ricoman_info_p( 'Our latest news and articles will appear here.' ) ),
-		'casambi'                 => array( 'Controls', 'Casambi', 'Wireless lighting control — tunable, scene-ready and simple to commission.', ricoman_info_h( 'Casambi-ready luminaires' ) . ricoman_info_p( 'Many Ricoman products are available Casambi-enabled for wireless dimming, tuning and scene control, with no extra wiring.' ) ),
-		'human-centric-lighting'  => array( 'Wellbeing', 'Human Centric Lighting', 'Light that supports how people feel, focus and rest — tunable white and biophilic schemes.', ricoman_info_h( 'Designing for people' ) . ricoman_info_p( 'Tunable-white and circadian-aware lighting helps align interior light with the rhythm of the day, supporting comfort, concentration and wellbeing in workplaces, healthcare and education.' ) ),
-		'antimicrobial-protection'=> array( 'Hygiene', 'Antimicrobial Protection', 'Surface protection for healthcare, education and food environments.', ricoman_info_h( 'Cleaner surfaces' ) . ricoman_info_p( 'Selected fittings are available with antimicrobial surface treatment to inhibit the growth of bacteria on the luminaire surface — ideal for clinical and hygiene-sensitive spaces.' ) ),
 		'product-warranty'        => array( 'Assurance', 'Product Warranty', 'A 5-year warranty as standard, backed by UK manufacturing and support.', ricoman_info_h( 'What&rsquo;s covered' ) . ricoman_info_p( 'Ricoman luminaires carry a 5-year warranty against manufacturing defects under normal commercial use. Because we make in the UK, spares and support are close to hand.' ) . $placeholder ),
 		'terms'                   => array( 'Legal', 'Terms &amp; Conditions', '', ricoman_info_h( 'Terms of sale &amp; use' ) . $placeholder ),
 		'cookie-policy'           => array( 'Legal', 'Cookie Policy', '', ricoman_info_h( 'How we use cookies' ) . $placeholder ),
@@ -273,7 +455,9 @@ function ricoman_sitemap_body() {
 		'Products' => '/products/', 'Projects' => '/projects/', 'Flow+ Designer' => '/flow-designer/',
 		'Lighting Design' => '/lighting-design/', 'Manufacturing' => '/manufacturing/', 'Customisation' => '/customisation/',
 		'About' => '/about/', 'Contact' => '/contact/', 'Downloads' => '/downloads/', 'Sustainability' => '/sustainability/',
-		'Human Centric Lighting' => '/human-centric-lighting/', 'Product Warranty' => '/product-warranty/',
+		'Casambi' => '/casambi/', 'Human Centric Lighting' => '/human-centric-lighting/',
+		'Antimicrobial Protection' => '/antimicrobial-protection/', 'Fire Safety' => '/fire-safety/',
+		'Product Warranty' => '/product-warranty/',
 		'Terms &amp; Conditions' => '/terms/', 'Privacy Policy' => '/privacy-policy/', 'Cookie Policy' => '/cookie-policy/',
 	);
 	$li = '';

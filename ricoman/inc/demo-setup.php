@@ -145,6 +145,12 @@ function ricoman_scaffold_site() {
 		'downloads'       => array( 'Downloads', 'ricoman_downloads_blocks' ),
 		'customisation'   => array( 'Customisation', 'ricoman_customisation_blocks' ),
 		'contact'         => array( 'Contact', 'ricoman_contact_blocks' ),
+		// Feature / enhanced landing pages.
+		'casambi'                 => array( 'Casambi', 'ricoman_casambi_blocks' ),
+		'human-centric-lighting'  => array( 'Human Centric Lighting', 'ricoman_human_centric_blocks' ),
+		'antimicrobial-protection'=> array( 'Antimicrobial Protection', 'ricoman_antimicrobial_blocks' ),
+		'fire-safety'             => array( 'Fire Safety', 'ricoman_fire_safety_blocks' ),
+		'sustainability'          => array( 'Sustainability', 'ricoman_sustainability_blocks' ),
 	);
 	foreach ( $native_pages as $slug => $info ) {
 		if ( get_page_by_path( $slug ) ) {
@@ -312,6 +318,11 @@ function ricoman_theme_page_map() {
 		'downloads'       => 'ricoman_downloads_blocks',
 		'customisation'   => 'ricoman_customisation_blocks',
 		'contact'         => 'ricoman_contact_blocks',
+		'casambi'                 => 'ricoman_casambi_blocks',
+		'human-centric-lighting'  => 'ricoman_human_centric_blocks',
+		'antimicrobial-protection'=> 'ricoman_antimicrobial_blocks',
+		'fire-safety'             => 'ricoman_fire_safety_blocks',
+		'sustainability'          => 'ricoman_sustainability_blocks',
 	);
 }
 

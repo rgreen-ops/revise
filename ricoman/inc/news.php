@@ -381,9 +381,11 @@ function ricoman_news_link_map() {
 		'tunable white'          => 'human-centric-lighting',
 		'lighting design'        => 'lighting-design',
 		'casambi'                => 'casambi',
-		'antimicrobial'          => 'antimicrobial',
+		'antimicrobial'          => 'antimicrobial-protection',
 		'fire safety'            => 'fire-safety',
-		'custom lighting'        => 'custom-lighting',
+		'fire rated'             => 'fire-safety',
+		'custom lighting'        => 'customisation',
+		'bespoke lighting'       => 'customisation',
 	);
 	foreach ( $curated as $kw => $slug ) {
 		if ( isset( $map[ $kw ] ) ) {

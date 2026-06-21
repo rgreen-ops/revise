@@ -77,6 +77,15 @@ GLOBAL: [ ] Header / mega-menu  [ ] Footer
     marks scanned images (`_rm_alt_scanned`) so the loop terminates. Product JSON-LD
     is enriched from the real product-cat + precomputed variant metrics (lumens/
     watts/features) since the migrated catalogue keeps specs in ACF, not meta.
+  - **Feature / enhanced landing pages (roadmap step 4):** Casambi, Human Centric
+    Lighting, Antimicrobial Protection, Fire Safety and Sustainability are now rich,
+    editable landing pages (split header, benefits, image+checklist, an FAQ that
+    emits FAQPage schema via [ricoman_faq], conversion CTA) — built as core-block
+    patterns (＋ → Patterns → "Ricoman — Page", slugs feat-*) with block fns
+    ricoman_*_blocks(). Wired into the create-once installer AND the Page Designs
+    refresh tool (Ricoman → Page Designs) so existing staging pages can opt-in to
+    the new design. The old thin info-page versions were removed from
+    ricoman_info_pages() (which now keeps only News + legal/warranty pages).
 - Old products store everything in **ACF**; post types: `product`, `project`,
   `news`, `home_slider`, `lighting_sectors`, `variant-product`, `lead`.
 - Real taxonomies: `product-cat`, `applycation-type`, `project-cat` (+ many
