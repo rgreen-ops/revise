@@ -128,10 +128,19 @@ function ricoman_seo_description() {
  * @return string
  */
 function ricoman_seo_image() {
-	if ( is_singular() && has_post_thumbnail() ) {
-		$url = get_the_post_thumbnail_url( get_queried_object_id(), 'large' );
-		if ( $url ) {
-			return $url;
+	if ( is_singular() ) {
+		if ( has_post_thumbnail() ) {
+			$url = get_the_post_thumbnail_url( get_queried_object_id(), 'large' );
+			if ( $url ) {
+				return $url;
+			}
+		}
+		// No featured image: fall back to the first image in the content, so our
+		// block-built pages (feature pages, About, etc.) still get a real social
+		// card from their hero image rather than just the logo.
+		$content = (string) get_post_field( 'post_content', get_queried_object_id() );
+		if ( $content && preg_match( '/<img[^>]+src=["\']([^"\']+)["\']/i', $content, $m ) ) {
+			return $m[1];
 		}
 	}
 	$default = ricoman_seo_opt( 'default_og_image' );
