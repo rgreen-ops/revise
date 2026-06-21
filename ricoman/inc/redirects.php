@@ -53,41 +53,71 @@ add_action( 'template_redirect', function () {
 	exit;
 }, 0 );
 
-/* ---- Old single-product URLs (/product/{slug}) → new /products/{slug} ----
- * The old site used /product/ (singular); products now live at /products/
- * (plural), and some slugs were shortened during migration. On a 404 under
- * /product/, send the visitor to the matching product: first by the old slug
- * (WordPress records _wp_old_slug when a slug changes), then by the current
- * slug (covers the case where only the /product → /products base changed). */
+/* ---- Old permalinks → current destination (general 404 resolver) ----------
+ * The old site used different URL bases: /product/ (singular), category-prefixed
+ * product URLs like /track-lighting/{slug}/, and older project/news slugs that
+ * were renamed during migration. On ANY 404, resolve the final slug to a real
+ * published product / project / news / page (by current slug, then by
+ * _wp_old_slug for renamed posts, then a public taxonomy term) and 301 to its
+ * canonical URL. This fixes every old-base / renamed link automatically — no
+ * manual entry needed — and stops these 404s recurring. */
+function ricoman_resolve_old_path( $path ) {
+	$path = trim( (string) $path, '/' );
+	if ( '' === $path ) {
+		return '';
+	}
+	$slug = sanitize_title( basename( $path ) );
+	if ( '' === $slug ) {
+		return '';
+	}
+	$types = array_values( array_filter( array( 'product', 'project', 'news', 'page', 'post' ), 'post_type_exists' ) );
+	// 1) A current slug on one of our post types.
+	foreach ( $types as $t ) {
+		$p = get_page_by_path( $slug, OBJECT, $t );
+		if ( $p && 'publish' === get_post_status( $p ) ) {
+			return get_permalink( $p );
+		}
+	}
+	// 2) A slug renamed during/after migration (WordPress records _wp_old_slug).
+	$found = get_posts( array(
+		'post_type'     => $types,
+		'post_status'   => 'publish',
+		'numberposts'   => 1,
+		'fields'        => 'ids',
+		'no_found_rows' => true,
+		'meta_query'    => array( array( 'key' => '_wp_old_slug', 'value' => $slug ) ), // phpcs:ignore WordPress.DB.SlowDBQuery
+	) );
+	if ( $found ) {
+		return get_permalink( (int) $found[0] );
+	}
+	// 3) A public taxonomy term with that slug (old category URLs).
+	foreach ( array_values( get_taxonomies( array( 'public' => true ), 'names' ) ) as $tx ) {
+		$term = get_term_by( 'slug', $slug, $tx );
+		if ( $term && ! is_wp_error( $term ) ) {
+			$link = get_term_link( $term, $tx );
+			if ( ! is_wp_error( $link ) ) {
+				return $link;
+			}
+		}
+	}
+	return '';
+}
+
 add_action( 'template_redirect', function () {
 	if ( is_admin() || ! is_404() ) {
 		return;
 	}
 	$path = trim( (string) wp_parse_url( $_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH ), '/' );
-	if ( '' === $path || 0 !== strpos( $path, 'product/' ) ) {
+	if ( '' === $path ) {
 		return;
 	}
-	$slug = sanitize_title( basename( $path ) );
-	if ( '' === $slug ) {
-		return;
-	}
-	$found = get_posts( array(
-		'post_type'     => 'product',
-		'post_status'   => 'publish',
-		'numberposts'   => 1,
-		'fields'        => 'ids',
-		'no_found_rows' => true,
-		'meta_query'    => array( array( 'key' => '_wp_old_slug', 'value' => $slug ) ),
-	) );
-	if ( ! $found ) {
-		$p = get_page_by_path( $slug, OBJECT, 'product' );
-		if ( $p ) {
-			$found = array( $p->ID );
+	$target = ricoman_resolve_old_path( $path );
+	if ( $target ) {
+		// Never redirect a path onto itself (avoids loops).
+		if ( trim( (string) wp_parse_url( $target, PHP_URL_PATH ), '/' ) !== $path ) {
+			wp_safe_redirect( $target, 301 );
+			exit;
 		}
-	}
-	if ( $found ) {
-		wp_safe_redirect( get_permalink( (int) $found[0] ), 301 );
-		exit;
 	}
 }, 1 );
 
@@ -101,9 +131,12 @@ function ricoman_path_resolves( $path ) {
 	if ( '' === $path ) {
 		return true;
 	}
-	// Covered by a manual redirect, or by the /product → /products rule above.
+	// Covered by a manual redirect, or by the general old-path resolver above.
 	$map = ricoman_redirects_get();
 	if ( isset( $map[ $path ] ) ) {
+		return true;
+	}
+	if ( '' !== ricoman_resolve_old_path( $path ) ) {
 		return true;
 	}
 	if ( 0 === strpos( $path, 'product/' ) ) {
