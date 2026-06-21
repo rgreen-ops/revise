@@ -71,6 +71,12 @@ GLOBAL: [ ] Header / mega-menu  [ ] Footer
     runs the [ricoman_faq] shortcode, so seeded FAQs also emit FAQPage schema. The
     same page edits/seeds an SEO body/FAQ for the main /products/ archive (option
     rm_products_seo_body, rendered by [ricoman_products_seo] below the tiles).
+  - **Image alt text (SEO + a11y):** new uploads auto-get alt from a tidied title;
+    a batched, resumable backfill (Ricoman → Image Alt Text) fills the migrated
+    library, deriving alt from each image's title or its parent product/post, and
+    marks scanned images (`_rm_alt_scanned`) so the loop terminates. Product JSON-LD
+    is enriched from the real product-cat + precomputed variant metrics (lumens/
+    watts/features) since the migrated catalogue keeps specs in ACF, not meta.
 - Old products store everything in **ACF**; post types: `product`, `project`,
   `news`, `home_slider`, `lighting_sectors`, `variant-product`, `lead`.
 - Real taxonomies: `product-cat`, `applycation-type`, `project-cat` (+ many
