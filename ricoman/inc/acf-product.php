@@ -283,20 +283,37 @@ function ricoman_pf_acc( $title, $content, $open = false ) {
 }
 
 /** Resolve an ACF image value (ID, URL, or array) to a URL. */
-function ricoman_pf_imgurl( $v ) {
-	$u = '';
+function ricoman_pf_imgurl( $v, $size = 'large' ) {
+	$u  = '';
+	$id = 0;
 	if ( is_numeric( $v ) ) {
-		$u = wp_get_attachment_image_url( (int) $v, 'large' );
+		$id = (int) $v;
 	} elseif ( is_array( $v ) ) {
-		if ( ! empty( $v['url'] ) ) {
-			$u = $v['url'];
-		} elseif ( ! empty( $v['sizes']['large'] ) ) {
-			$u = $v['sizes']['large'];
-		} elseif ( ! empty( $v['ID'] ) ) {
-			$u = (string) wp_get_attachment_image_url( (int) $v['ID'], 'large' );
+		if ( ! empty( $v['ID'] ) ) {
+			$id = (int) $v['ID'];
+		} elseif ( ! empty( $v['id'] ) ) {
+			$id = (int) $v['id'];
+		}
+		if ( ! $id ) {
+			// Prefer a generated sub-size (WebP/AVIF) over the full original PNG/JPG.
+			if ( ! empty( $v['sizes'][ $size ] ) ) {
+				$u = $v['sizes'][ $size ];
+			} elseif ( ! empty( $v['sizes']['large'] ) ) {
+				$u = $v['sizes']['large'];
+			} elseif ( ! empty( $v['url'] ) ) {
+				$u = $v['url'];
+			}
 		}
 	} elseif ( is_string( $v ) ) {
 		$u = $v;
+	}
+	if ( $id ) {
+		// Sized sub-size is WebP/AVIF and far smaller than the full original.
+		$su = wp_get_attachment_image_url( $id, $size );
+		if ( ! $su && 'large' !== $size ) {
+			$su = wp_get_attachment_image_url( $id, 'large' );
+		}
+		$u = $su ? $su : (string) wp_get_attachment_image_url( $id, 'full' );
 	}
 	$u = $u ? $u : '';
 	// Borrow from the live origin if the file is missing locally (staging).
@@ -1138,7 +1155,7 @@ function ricoman_pf_sections( $pid ) {
 	// 'm3' = markup version; bump to invalidate cached sections when section HTML
 	// changes. (Variant thumbnails use native loading="lazy"; the optimiser, not
 	// the theme, was the speed problem.)
-	$tkey      = 'rm_pfsec_m5_' . $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true );
+	$tkey      = 'rm_pfsec_m6_' . $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true );
 	if ( $cacheable ) {
 		$pre = get_transient( $tkey );
 		if ( is_array( $pre ) ) {
