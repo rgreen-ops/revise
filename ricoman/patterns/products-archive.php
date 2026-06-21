@@ -50,6 +50,14 @@ echo '<!-- wp:group {"align":"full","className":"rm-section","layout":{"type":"d
 	. '<!-- wp:shortcode -->[ricoman_category_cards limit="0" exclude="" wide="1"]<!-- /wp:shortcode -->'
 	. '</div><!-- /wp:group -->';
 
+// Editable SEO body / FAQ below the tiles (set under Ricoman → Category SEO).
+// Only emitted when copy exists, so the page stays light by default.
+if ( '' !== trim( (string) get_option( 'rm_products_seo_body', '' ) ) ) {
+	echo '<!-- wp:group {"align":"full","className":"rm-section","layout":{"type":"default"}} --><div class="wp-block-group alignfull rm-section">'
+		. '<!-- wp:shortcode -->[ricoman_products_seo]<!-- /wp:shortcode -->'
+		. '</div><!-- /wp:group -->';
+}
+
 echo $cover(
 	$u( 'office1.webp' ),
 	'<!-- wp:heading {"textAlign":"center","level":2} --><h2 class="wp-block-heading has-text-align-center">Can&rsquo;t find the exact fitting?</h2><!-- /wp:heading -->' .

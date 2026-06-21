@@ -140,11 +140,37 @@ function ricoman_cat_seo_seed_all() {
 			$written++;
 		}
 	}
+	// Products archive body — fill only if still empty.
+	if ( '' === trim( (string) get_option( 'rm_products_seo_body', '' ) ) ) {
+		update_option( 'rm_products_seo_body', wp_kses_post( ricoman_products_seo_default() ) );
+		$written++;
+	}
 	if ( $written && function_exists( 'ricoman_products_ver' ) ) {
 		update_option( 'rm_products_ver', (string) time(), false );
 	}
 	return $written;
 }
+
+/* ---------------------------------------------------- products archive copy -- */
+
+/** Hand-written starter SEO body (with FAQ) for the main /products/ archive. */
+function ricoman_products_seo_default() {
+	return "<h2>Commercial LED lighting, made in Britain</h2>\nRicoman designs and manufactures commercial LED luminaires in Manchester, with over 500 interior and exterior fittings across linear, downlights, panels, track, emergency, battens, high bay and bespoke ranges. Products are held in UK stock for fast lead times and made to order when a project needs something specific.\n\n[ricoman_faq]\nQ: Where are Ricoman luminaires made?\nA: Our fittings are designed and manufactured in Manchester, UK, with stock held here for fast delivery.\nQ: Do you offer free lighting design?\nA: Yes — send us a drawing or finishes schedule and our in-house team returns a costed, compliant scheme, usually within 3–5 working days.\nQ: Can products be customised?\nA: Many ranges can be tailored on output, colour temperature, finish and length; talk to our team about bespoke requirements.\nQ: Are datasheets and photometric files available?\nA: Yes — datasheets, instructions and IES/LDT photometric files are available on each product page for specifiers and contractors.\n[/ricoman_faq]";
+}
+
+/**
+ * Editable SEO body for the /products/ archive, rendered below the category
+ * tiles. Outputs nothing until copy is set (seed it from Ricoman → Category SEO).
+ * Runs shortcodes so the [ricoman_faq] block adds FAQPage schema.
+ */
+add_shortcode( 'ricoman_products_seo', function () {
+	$body = (string) get_option( 'rm_products_seo_body', '' );
+	if ( '' === trim( $body ) ) {
+		return '';
+	}
+	$rendered = do_shortcode( shortcode_unautop( wpautop( wp_kses_post( $body ) ) ) );
+	return '<div class="rm-pp-wrap"><div class="rm-catarch-body">' . $rendered . '</div></div>';
+} );
 
 /* ------------------------------------------------------------------ admin -- */
 
@@ -167,8 +193,11 @@ function ricoman_render_category_seo() {
 	echo '<div class="wrap"><h1>' . esc_html__( 'Category SEO', 'ricoman' ) . '</h1>';
 	if ( isset( $_GET['seeded'] ) ) {
 		echo '<div class="notice notice-success is-dismissible"><p>'
-			. sprintf( esc_html__( 'Filled %d empty category SEO field(s) with starter copy.', 'ricoman' ), (int) $_GET['seeded'] )
+			. sprintf( esc_html__( 'Filled %d empty SEO field(s) with starter copy.', 'ricoman' ), (int) $_GET['seeded'] )
 			. '</p></div>';
+	}
+	if ( isset( $_GET['saved'] ) ) {
+		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Products page copy saved.', 'ricoman' ) . '</p></div>';
 	}
 	echo '<p>' . esc_html__( 'Each product category can have its own SEO copy: an intro shown above the products and a body / FAQ shown below them (edit per category under Products → Categories). The button below fills in starter copy for the core lighting categories — but only where a field is still empty, so it never overwrites anything you have written. Categories with no recognised match are left blank for you to write.', 'ricoman' ) . '</p>';
 
@@ -176,6 +205,17 @@ function ricoman_render_category_seo() {
 	echo '<input type="hidden" name="action" value="ricoman_seed_category_seo">';
 	wp_nonce_field( 'ricoman_seed_category_seo' );
 	submit_button( __( 'Fill empty SEO copy for known categories', 'ricoman' ), 'primary', 'submit', false );
+	echo '</form>';
+
+	// Editable SEO body for the /products/ archive (no term to hang it on).
+	$pbody = (string) get_option( 'rm_products_seo_body', '' );
+	echo '<h2 style="margin-top:26px">' . esc_html__( 'Products page (/products/) SEO copy', 'ricoman' ) . '</h2>';
+	echo '<p>' . esc_html__( 'Body / FAQ shown below the category tiles on the main Products page. Basic HTML and the [ricoman_faq] block are supported (FAQs add rich-results schema). Leave blank to hide it.', 'ricoman' ) . '</p>';
+	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="margin:0 0 22px">';
+	echo '<input type="hidden" name="action" value="ricoman_save_products_seo">';
+	wp_nonce_field( 'ricoman_save_products_seo' );
+	echo '<textarea name="rm_products_seo_body" rows="12" style="width:100%;max-width:780px">' . esc_textarea( $pbody ) . '</textarea><br>';
+	submit_button( __( 'Save Products page copy', 'ricoman' ), 'secondary', 'submit', false );
 	echo '</form>';
 
 	// Status table.
@@ -211,5 +251,18 @@ add_action( 'admin_post_ricoman_seed_category_seo', function () {
 	}
 	$n = ricoman_cat_seo_seed_all();
 	wp_safe_redirect( add_query_arg( 'seeded', $n, admin_url( 'admin.php?page=ricoman-category-seo' ) ) );
+	exit;
+} );
+
+add_action( 'admin_post_ricoman_save_products_seo', function () {
+	if ( ! current_user_can( 'manage_options' ) || ! check_admin_referer( 'ricoman_save_products_seo' ) ) {
+		wp_die( esc_html__( 'Not allowed.', 'ricoman' ) );
+	}
+	$body = isset( $_POST['rm_products_seo_body'] ) ? wp_kses_post( wp_unslash( $_POST['rm_products_seo_body'] ) ) : '';
+	update_option( 'rm_products_seo_body', $body );
+	if ( function_exists( 'ricoman_products_ver' ) ) {
+		update_option( 'rm_products_ver', (string) time(), false );
+	}
+	wp_safe_redirect( add_query_arg( 'saved', 1, admin_url( 'admin.php?page=ricoman-category-seo' ) ) );
 	exit;
 } );

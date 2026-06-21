@@ -68,7 +68,9 @@ GLOBAL: [ ] Header / mega-menu  [ ] Footer
     starter intro + FAQ copy for the core ranges (linear, downlights, panels,
     track, emergency, battens, high bay, floods, bulkheads, spots, strip,
     exterior) — fills empty fields only, never overwrites edits. The category body
-    runs the [ricoman_faq] shortcode, so seeded FAQs also emit FAQPage schema.
+    runs the [ricoman_faq] shortcode, so seeded FAQs also emit FAQPage schema. The
+    same page edits/seeds an SEO body/FAQ for the main /products/ archive (option
+    rm_products_seo_body, rendered by [ricoman_products_seo] below the tiles).
 - Old products store everything in **ACF**; post types: `product`, `project`,
   `news`, `home_slider`, `lighting_sectors`, `variant-product`, `lead`.
 - Real taxonomies: `product-cat`, `applycation-type`, `project-cat` (+ many
