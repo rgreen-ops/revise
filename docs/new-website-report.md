@@ -90,8 +90,16 @@ The new site is an active lead-generation tool, not just a brochure:
 - **Download gate.** Visitors downloading datasheets, guides or other documents
   are asked for their name, email and customer type — turning anonymous traffic
   into named, contactable leads (captured once, then remembered).
-- **BIM / Revit requests, newsletter sign-ups, and "request a callback"** forms
-  all feed the same system.
+- **"Download BIM file" button on every product page.** BIM/Revit (RFA) files are
+  what specifiers and architects drop straight into their building models, so they
+  are high-value, high-intent requests. Every product page carries a **Download
+  BIM file** button: when a visitor clicks it they leave their details, the request
+  is **logged as a lead and emailed to the lighting/marketing team**
+  (lightingdesign@ricoman.com), and the requester gets an immediate thank-you.
+  It works whether they're logged in or not. In other words, the moment a designer
+  reaches for our product in their CAD model, **marketing gets a warm lead with the
+  exact product they're specifying.**
+- **Newsletter sign-ups and "request a callback"** forms all feed the same system.
 - **Every lead lands in one place** — a leads dashboard in the admin area (showing
   type, contact, source and date) and can sync to a spreadsheet/CRM.
 - **Saved projects.** Logged-in customers can build and save named project lists
@@ -101,7 +109,36 @@ The new site is an active lead-generation tool, not just a brochure:
 
 ---
 
-## 5. It's faster — and built to stay fast
+## 5. Customers can design their own lighting — the Flow+ Designer
+
+The site includes a full-screen, interactive **Flow+ Designer** — a self-serve
+tool that lets specifiers, electricians and designers **design a bespoke curved
+linear lighting scheme themselves**, right in the browser:
+
+- **Draw the run.** Drag in straight sections, curves and corners to build a
+  continuous run in any shape — to a custom length, with auto-snapping so pieces
+  join cleanly.
+- **Design to scale on a real plan.** Upload a CAD drawing or floor plan as a
+  background, set the drawing scale, and lay the lighting out to scale over the
+  actual space (including ceiling height and cut-out sizes).
+- **Choose the specification.** Colour temperature, dimming type (DALI / Casambi),
+  driver options, RAL finish and emergency packs — all selectable as they design.
+- **Get an instant "Take Off".** The tool generates a live parts list / bill of
+  materials with the correct Ricoman order codes, plus a project summary — so what
+  the customer designs is exactly what we can quote and build.
+- **Export and save.** They can export the design as an image, export the take-off,
+  and **save it straight to their project** on the site.
+
+**Why it matters:** Flow+ is a made-to-order, bespoke product — historically that
+means a lot of back-and-forth before we even know what the customer wants. The
+Designer turns that into a self-serve experience: the customer arrives at a
+ready-to-quote, fully specified design, which **shortens the sales cycle, reduces
+errors, and captures a detailed, high-intent enquiry** — a perfect example of the
+new site doing real commercial work, not just displaying products.
+
+---
+
+## 6. It's faster — and built to stay fast
 
 The site is rendered natively and efficiently (no heavy page-builder overhead),
 images are served in modern, lightweight formats, and only the code each page
@@ -132,6 +169,8 @@ search rankings (Google factors in page speed).
 | Higher, growing hosting cost | Lower, predictable hosting cost |
 | Changes needed a developer | Team edits products & pages themselves |
 | A brochure | Captures leads + builds its own SEO |
+| No BIM/specifier capture | "Download BIM file" on every product sends marketing a warm lead |
+| Bespoke quotes meant lots of back-and-forth | Flow+ Designer lets customers self-design a ready-to-quote scheme |
 | Slower, page-builder overhead | Fast, modern, search-friendly |
 
 *The new website is faster, cheaper to run, more reliable, easier to manage, and
