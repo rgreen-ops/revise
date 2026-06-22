@@ -653,11 +653,11 @@ function ricoman_downloads_page_html() {
 	$bulk  = '<div class="rm-dlbulk">'
 		. '<div class="rm-dlbulk-card"><h3>' . esc_html__( 'All photometric files', 'ricoman' ) . '</h3>'
 		. '<p>' . esc_html( sprintf( _n( '%s IES / LDT file for DIALux &amp; Relux.', '%s IES / LDT files for DIALux &amp; Relux.', $ldt, 'ricoman' ), number_format_i18n( $ldt ) ) ) . '</p>'
-		. ( $ldt ? '<a class="btn btn-solid" href="' . esc_url( home_url( '/?rm_all=ldt' ) ) . '">' . esc_html__( 'Download all LDT files', 'ricoman' ) . ' &darr;</a>' : '<a class="btn btn-line-d" href="/contact/">' . esc_html__( 'Request LDT files', 'ricoman' ) . ' &rarr;</a>' )
+		. ( $ldt ? '<a class="btn btn-solid" href="' . esc_url( home_url( '/?rm_all=ldt' ) ) . '">' . esc_html__( 'Download all LDT files', 'ricoman' ) . ' &darr;</a>' : '<a class="btn btn-line-d rm-bim-req" data-product="' . esc_attr__( 'All photometric (IES/LDT) files', 'ricoman' ) . '" href="/contact/">' . esc_html__( 'Request LDT files', 'ricoman' ) . ' &rarr;</a>' )
 		. '</div>'
 		. '<div class="rm-dlbulk-card"><h3>' . esc_html__( 'All Revit files', 'ricoman' ) . '</h3>'
 		. '<p>' . esc_html( sprintf( _n( '%s Revit (RFA) family for your model.', '%s Revit (RFA) families for your model.', $revit, 'ricoman' ), number_format_i18n( $revit ) ) ) . '</p>'
-		. ( $revit ? '<a class="btn btn-solid" href="' . esc_url( home_url( '/?rm_all=revit' ) ) . '">' . esc_html__( 'Download all Revit files', 'ricoman' ) . ' &darr;</a>' : '<a class="btn btn-line-d" href="/contact/">' . esc_html__( 'Request Revit files', 'ricoman' ) . ' &rarr;</a>' )
+		. ( $revit ? '<a class="btn btn-solid" href="' . esc_url( home_url( '/?rm_all=revit' ) ) . '">' . esc_html__( 'Download all Revit files', 'ricoman' ) . ' &darr;</a>' : '<a class="btn btn-line-d rm-bim-req" data-product="' . esc_attr__( 'All Revit (RFA) files', 'ricoman' ) . '" href="/contact/">' . esc_html__( 'Request Revit files', 'ricoman' ) . ' &rarr;</a>' )
 		. '</div></div>';
 
 	$single = '<div class="rm-dlnote"><h3>' . esc_html__( 'Need one product&rsquo;s files?', 'ricoman' ) . '</h3>'
