@@ -15,8 +15,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/** Stored WebP URL for an attachment, or '' if not converted. */
+/**
+ * Master switch for SERVING WebP twins. Off by default while the staging disk is
+ * full: WebP generation is dormant, so many "-rmwebp.webp" twins don't exist and
+ * 404 — which cascaded into broken/placeholder images everywhere. With this off,
+ * images use the original PNG/JPG (which exist). Re-enable once the disk is cleared
+ * and twins are regenerated:  update_option( 'ricoman_webp_on', '1' )
+ * (or via the 'ricoman_webp_enabled' filter).
+ */
+function ricoman_webp_enabled() {
+	return (bool) apply_filters( 'ricoman_webp_enabled', (bool) get_option( 'ricoman_webp_on' ) );
+}
+
+/** Stored WebP URL for an attachment, or '' if not converted / serving disabled. */
 function ricoman_webp_url( $id ) {
+	if ( ! ricoman_webp_enabled() ) {
+		return '';
+	}
 	$m = get_post_meta( (int) $id, '_rm_webp', true );
 	return ( is_array( $m ) && ! empty( $m['url'] ) ) ? $m['url'] : '';
 }
@@ -139,6 +154,9 @@ function ricoman_webp_make_file( $src, $dest ) {
 
 /** WebP twin URL for an uploads image URL, or '' if not applicable/unavailable. */
 function ricoman_webp_for_url( $url ) {
+	if ( ! ricoman_webp_enabled() ) {
+		return '';
+	}
 	if ( ! is_string( $url ) || '' === $url ) {
 		return '';
 	}
