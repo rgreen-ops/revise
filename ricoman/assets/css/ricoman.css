@@ -368,6 +368,32 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-projhead-spc .rm-flabel{display:inline;margin:0 6px 0 0}
 .rm-projhead-spc a{color:var(--ink);text-decoration:none;border-bottom:1px solid currentColor}
 .rm-spc-count{margin-top:10px;color:var(--muted)}
+/* ===== Staff / team ===== */
+.rm-team-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.4vw,30px)}
+@media(max-width:980px){.rm-team-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:680px){.rm-team-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:440px){.rm-team-grid{grid-template-columns:1fr}}
+.rm-staff-card{display:flex;flex-direction:column}
+.rm-staff-photo{display:block;width:100%;aspect-ratio:1/1;border-radius:14px;background:#e4e4e4 center/cover no-repeat;margin-bottom:12px}
+.rm-staff-photolink{display:block}
+.rm-staff-name{font-family:Poppins;font-weight:600;font-size:1.05rem;margin:0}
+.rm-staff-name a{color:var(--ink);text-decoration:none}
+.rm-staff-name a:hover{color:var(--accent,#2563eb)}
+.rm-staff-role{color:var(--muted);font-size:.85rem;margin:2px 0 0}
+.rm-staff-contact{font-size:.82rem;margin:4px 0 0}
+.rm-staff-contact a{color:var(--ink);text-decoration:none;border-bottom:1px solid transparent}
+.rm-staff-contact a:hover{border-bottom-color:currentColor}
+.rm-staff-bio{font-size:.9rem;color:var(--muted);margin-top:8px}
+.rm-staff-credit .rm-team-grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+/* Staff profile page */
+.rm-staffp-top{display:grid;grid-template-columns:300px 1fr;gap:clamp(24px,4vw,56px);align-items:start}
+@media(max-width:760px){.rm-staffp-top{grid-template-columns:1fr}}
+.rm-staffp-photo{display:block;width:100%;aspect-ratio:1/1;max-width:360px;border-radius:18px;background:#e4e4e4 center/cover no-repeat}
+.rm-staffp-name{font-family:Poppins;font-weight:600;font-size:clamp(1.8rem,4vw,2.8rem);margin:0 0 .1em}
+.rm-staffp-role{font-size:1.1rem;color:var(--muted);margin:0 0 1em}
+.rm-staffp-contact{display:flex;flex-wrap:wrap;gap:18px;margin:0 0 1em}
+.rm-staffp-contact a{color:var(--ink);font-weight:600;text-decoration:none;border-bottom:1px solid currentColor}
+.rm-staffp-bio{max-width:60ch}
 /* cards (ranges) */
 .rm-card{display:block}
 .rm-card img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:transform .6s ease}

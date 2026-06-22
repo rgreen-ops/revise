@@ -88,6 +88,7 @@ require_once get_theme_file_path( 'inc/demo-setup.php' );    // One-time: create
 require_once get_theme_file_path( 'inc/pattern-library.php' );// 25+ ready-made section patterns.
 require_once get_theme_file_path( 'inc/admin.php' );         // Branded admin: Control Center, widget, login.
 require_once get_theme_file_path( 'inc/push-live.php' );      // "Push to Live" sign-off screen (triggers the code-only live deploy).
+require_once get_theme_file_path( 'inc/staff.php' );          // Team / staff profiles: tag on news/projects, [ricoman_staff], profile pages.
 
 /**
  * Theme setup.

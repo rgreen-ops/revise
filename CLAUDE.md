@@ -317,6 +317,18 @@ From Marketing's email for the new website. Status of each request:
   step 3) is a separate migration job, not this button. Selective content sync can
   be added later if needed.
 
+## Team / staff profiles (built — inc/staff.php)
+- `staff` post type (menu: **Team**): name (title) + photo (featured image) + bio
+  (editor) + **Profile details** metabox (job title, email, phone). Public profile
+  at /team/<name>/.
+- **Tagging:** a "Ricoman staff" metabox on news + projects (multi-select) stores
+  `_ricoman_staff` meta rows. Tagged people show as a "People on this" credit at
+  the end of the article/project; their profile lists all content they're tagged on.
+- **Insert anywhere with chosen fields:** `[ricoman_staff id="123"
+  fields="photo,name,title,email,phone,bio"]` (one person) and `[ricoman_team
+  fields="…"]` (grid of all). Patterns: "Team · Grid" + "Team · Single member".
+  Name/photo link to the profile page (= their content listing).
+
 ## Constraints
 - Develop/push only to the branch above; never create PRs unless asked.
 - Content must persist across theme updates (installer is create-once).
