@@ -496,8 +496,17 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 @media(max-width:680px){.rm-fam-list{grid-template-columns:1fr}.rm-facet{grid-template-columns:1fr}}
 
 /* full-screen embedded tool (Flow+ Designer) */
-.rm-tool{display:flex;flex-direction:column;height:calc(100vh - 100px)}
-@media(max-width:1024px){.rm-tool{height:calc(100vh - 54px)}}
+.rm-tool{display:flex;flex-direction:column;height:100vh}
+/* Full-screen tools (Flow+ Designer): the global zoom:.85 would shrink the
+   100vh tool and leave a black gap at the bottom, and the site header/footer
+   add a gap at the top. Un-zoom and hide the site chrome when a tool is present;
+   the tool has its own top bar + back link. */
+.wp-site-blocks:has(.rm-tool){zoom:1}
+.wp-site-blocks:has(.rm-tool) header.site,
+.wp-site-blocks:has(.rm-tool) .ricoman-site-header,
+body:has(.rm-tool) > footer,
+.wp-site-blocks:has(.rm-tool) > footer,
+.wp-site-blocks:has(.rm-tool) .site-footer{display:none!important}
 .rm-tool-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;background:var(--ink);color:#fff;padding:10px 18px;font-family:Poppins;font-weight:600;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase}
 .rm-tool-bar a{color:#fff;text-decoration:none}
 .rm-tool-bar a:hover{color:#9ec1ff}
