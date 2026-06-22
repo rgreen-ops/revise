@@ -286,15 +286,18 @@ add_filter( 'the_content', function ( $content ) {
 	if ( '' !== $contact ) {
 		$info .= '<p class="rm-staffp-contact">' . $contact . '</p>';
 	}
-	if ( '' !== trim( (string) $content ) ) {
-		$info .= '<div class="rm-staffp-bio">' . $content . '</div>';
-	}
 	$photo_h = $photo ? '<span class="rm-staffp-photo" style="background-image:url(' . esc_url( $photo ) . ')" role="img" aria-label="' . esc_attr( get_the_title( $pid ) ) . '"></span>' : '';
 
 	$out  = '<div class="rm-section rm-staffp-head"><div class="rm-pp-wrap">';
 	$out .= '<div class="rm-pp-crumb">' . $crumb . '</div>';
 	$out .= '<div class="rm-staffp-top">' . $photo_h . '<div class="rm-staffp-info">' . $info . '</div></div>';
 	$out .= '</div></div>';
+
+	// Editable body — whatever the team builds in the block editor for this person
+	// (about, images, quotes, patterns) renders full-width as the profile body.
+	if ( '' !== trim( (string) $content ) ) {
+		$out .= '<div class="rm-section rm-staffp-body"><div class="rm-pp-wrap rm-staffp-bodyin">' . $content . '</div></div>';
+	}
 
 	// Their content — news + projects tagged with this person.
 	$q = new WP_Query( array(
