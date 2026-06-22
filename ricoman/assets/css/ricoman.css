@@ -980,6 +980,7 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 /* Product cards (filter grid): show the WHOLE product — studio shots were being
    cropped by the lifestyle "cover" treatment. Uniform square tile, image
    contained on a neutral frame, title still overlaid at the bottom. */
+.rm-fgrid{grid-auto-rows:auto;grid-auto-flow:row}
 .rm-fgrid .rm-projcard{grid-row:auto!important;min-height:0;aspect-ratio:1/1;background-color:#e4e4e4;background-size:contain;background-position:center}
 .rm-fgrid .rm-projcard::after{background:linear-gradient(180deg,rgba(0,0,0,0) 60%,rgba(0,0,0,.5))}
 .rm-fgrid .rm-projcard img{object-fit:contain}
