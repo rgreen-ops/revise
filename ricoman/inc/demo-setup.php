@@ -456,6 +456,22 @@ add_action( 'admin_init', function () {
 	update_option( 'ricoman_relayout_downloads_v3', 1 );
 } );
 
+/**
+ * One-time: put the Downloads page on the full-width "Blank Canvas" template so
+ * its dynamic, wide brochure grid isn't capped at the 760px content width. The
+ * page renders its own hero, so the no-title canvas template suits it.
+ */
+add_action( 'admin_init', function () {
+	if ( get_option( 'ricoman_downloads_canvas_v1' ) || ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+	$page = get_page_by_path( 'downloads' );
+	if ( $page && 'page' === $page->post_type ) {
+		update_post_meta( $page->ID, '_wp_page_template', 'page-canvas' );
+	}
+	update_option( 'ricoman_downloads_canvas_v1', 1 );
+} );
+
 add_action( 'admin_post_ricoman_refresh_pages', function () {	if ( ! current_user_can( 'manage_options' ) ) {
 		wp_die( esc_html__( 'You do not have permission to do this.', 'ricoman' ) );
 	}
