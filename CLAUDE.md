@@ -132,8 +132,10 @@ From Marketing's email for the new website. Status of each request:
   project-pack ZIP. TODO: surface "lighting guides" as a distinct download type.
 - [x] **News: choose between topics** — DONE (Topic taxonomy + auto-tagging +
   auto internal linking). TODO below for the writer/contributor byline.
-- [ ] **News: writer / contributor byline area** — PARTIAL; needs an author/
-  contributor display on news articles.
+- [x] **News: writer / contributor byline area** — DONE. Writer / Writer role /
+  Contributor fields in the news metabox; single-article byline shows
+  "By <writer>, <role>" (falls back to the WP author) + date + read time +
+  optional contributor credit.
 - [x] **About page split: Why us / About us / Sustainability / Team & culture**
   — DONE. Added "About · Why us" + "About · Team & culture" patterns; About us +
   Sustainability already existed (Sustainability is a full page).
@@ -141,9 +143,11 @@ From Marketing's email for the new website. Status of each request:
   text) on the product edit screen; renders as a product **FAQ section** (with
   FAQPage schema) via ricoman_pf_sections + a `faq` section block. Independent of
   the visual builder so it always works.
-- [ ] **SPC area on project pages + a page per SPC** (e.g. Neasha, Colin) listing
-  all that consultant's projects — NEW. Needs a "consultant/specifier" profile
-  (CPT or taxonomy) linked to projects + an archive page per person.
+- [x] **SPC area on project pages + a page per SPC** (e.g. Neasha, Colin) — DONE.
+  New `spc` taxonomy on projects (Projects → Consultants); tag projects with their
+  consultant. Each gets a public archive /spc/<name>/ (taxonomy-spc.html) listing
+  their projects, and project pages show a linked "Specification consultant"
+  credit. Setup needed by the team: create consultants + assign to projects.
 - [x] **Homepage stats band** (countries supplied, # of projects) — DONE as an
   editable pattern (Home · Reach stats). Drop it on the homepage and edit numbers.
 - [x] **Partner logos + partner feedback/testimonials area** — DONE as editable
