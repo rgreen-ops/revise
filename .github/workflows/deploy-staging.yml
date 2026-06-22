@@ -72,3 +72,9 @@ jobs:
             **/.git*
             **/.git*/**
             **/.DS_Store
+
+      # Auto-clear the staging PHP OPcache so the new code runs immediately —
+      # no Plesk / PHP-FPM restart needed. (Hits the theme's guarded flush URL.)
+      - name: Flush staging OPcache
+        run: |
+          curl -fsS --max-time 60 "https://staging.ricoman.com/wp-content/themes/ricoman/opcache-flush.php?key=ricoman-flush-2026" || echo "OPcache flush ping failed (non-fatal)"

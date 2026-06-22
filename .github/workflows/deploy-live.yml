@@ -87,7 +87,16 @@ jobs:
             **/.DS_Store
 
       - name: Done
+        run: echo "Theme deployed to LIVE."
+
+      # Auto-clear the live PHP OPcache after deploy (no Plesk needed). Set the
+      # LIVE_URL secret to your live origin, e.g. https://ricoman.com
+      - name: Flush live OPcache
+        env:
+          LIVE_URL: ${{ secrets.LIVE_URL }}
         run: |
-          echo "Theme deployed to LIVE. Now clear the live OPcache:"
-          echo "  - restart PHP-FPM in the live Plesk, OR"
-          echo "  - visit https://<live-domain>/wp-content/themes/ricoman/opcache-flush.php?key=ricoman-flush-2026"
+          if [ -n "$LIVE_URL" ]; then
+            curl -fsS --max-time 60 "$LIVE_URL/wp-content/themes/ricoman/opcache-flush.php?key=ricoman-flush-2026" || echo "OPcache flush ping failed (non-fatal)"
+          else
+            echo "LIVE_URL secret not set — skipping auto OPcache flush. If code looks stale, visit the flush URL on the live domain once."
+          fi
