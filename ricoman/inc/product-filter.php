@@ -508,14 +508,17 @@ function ricoman_category_image( $term_id, $tax = 'product-cat' ) {
 		$ids = get_posts( array(
 			'post_type'      => 'product',
 			'post_status'    => 'publish',
-			'posts_per_page' => 12,
+			'posts_per_page' => 40,
 			'fields'         => 'ids',
 			'no_found_rows'  => true,
 			'tax_query'      => array( array( 'taxonomy' => $tax, 'terms' => (int) $term_id ) ),
 		) );
 		foreach ( $ids as $pid ) {
 			$cand = function_exists( 'ricoman_product_img' ) ? ricoman_product_img( $pid ) : get_the_post_thumbnail_url( $pid, 'large' );
-			if ( $cand ) {
+			// Skip a candidate whose LOCAL file is missing (migrated-but-not-on-disk),
+			// otherwise the tile shows a broken/empty background. Remote URLs (served
+			// via the live-origin fallback) are accepted as-is.
+			if ( $cand && ricoman_image_usable( $cand ) ) {
 				$img = $cand;
 				break;
 			}
@@ -523,6 +526,17 @@ function ricoman_category_image( $term_id, $tax = 'product-cat' ) {
 	}
 	$cache[ $term_id ] = $img;
 	return $img;
+}
+
+/** True if an image URL is safe to use: a remote URL, or a local file that
+ *  actually exists on disk (so we don't paint a broken background image). */
+function ricoman_image_usable( $url ) {
+	$up = wp_get_upload_dir();
+	if ( 0 !== strpos( $url, $up['baseurl'] ) ) {
+		return true; // remote / live-origin fallback URL — assume usable.
+	}
+	$path = str_replace( $up['baseurl'], $up['basedir'], strtok( $url, '?' ) );
+	return $path && file_exists( $path );
 }
 
 /**
