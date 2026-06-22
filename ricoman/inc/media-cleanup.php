@@ -183,12 +183,20 @@ function rm_mc_breakdown() {
 		 AND ( m.meta_value LIKE '%.jpg' OR m.meta_value LIKE '%.jpeg' OR m.meta_value LIKE '%.png'
 		    OR m.meta_value LIKE '%.gif' OR m.meta_value LIKE '%.webp' OR m.meta_value LIKE '%.avif' OR m.meta_value LIKE '%.bmp' OR m.meta_value LIKE '%.tiff' )"
 	);
+	// Re-uploaded copies: WordPress appends -2/-3/-4… when the SAME filename is
+	// uploaded again, so a name like "office6-4.webp" is almost always a repeat
+	// upload of "office6.webp". [.] matches a literal dot without escaping.
+	$reuploads = (int) $wpdb->get_var(
+		"SELECT COUNT(*) FROM {$wpdb->postmeta} WHERE meta_key='_wp_attached_file'
+		 AND meta_value REGEXP '-[0-9]+[.](jpe?g|png|gif|webp|avif|bmp|tiff)$'"
+	);
 	return array(
-		'total'    => $total,
-		'mime'     => $mime,
-		'empty'    => $empty,
-		'img_ext'  => $img_ext,
-		'other'    => max( 0, $total - $img_ext ),
+		'total'     => $total,
+		'mime'      => $mime,
+		'empty'     => $empty,
+		'img_ext'   => $img_ext,
+		'other'     => max( 0, $total - $img_ext ),
+		'reuploads' => $reuploads,
 	);
 }
 
@@ -215,8 +223,10 @@ function rm_mc_render_page() {
 	printf( '<tr><th>%s</th><td>%s</td></tr>', esc_html__( '— image files by extension (incl. empty mime)', 'ricoman' ), esc_html( number_format_i18n( $bd['img_ext'] ) ) );
 	printf( '<tr><th>%s</th><td>%s</td></tr>', esc_html__( '— with empty/missing mime type', 'ricoman' ), esc_html( number_format_i18n( $bd['empty'] ) ) );
 	printf( '<tr><th>%s</th><td>%s</td></tr>', esc_html__( '— non-image / other', 'ricoman' ), esc_html( number_format_i18n( $bd['other'] ) ) );
+	printf( '<tr><th>%s</th><td><strong>%s</strong></td></tr>', esc_html__( '— look like re-uploaded copies (name-2, name-3…)', 'ricoman' ), esc_html( number_format_i18n( $bd['reuploads'] ) ) );
 	echo '</tbody></table>';
 	echo '<p class="description">' . esc_html__( 'The old import saved thousands of attachment posts with a blank mime type, so a plain "image/*" count undercounts them. The indexer below now matches images by file extension, so it sees and de-duplicates these too.', 'ricoman' ) . '</p>';
+	echo '<p class="description"><strong>' . esc_html__( 'Important:', 'ricoman' ) . '</strong> ' . esc_html__( 'if "Image files in library" above is far below the Media Library total (e.g. 6,510 vs 42,526), the indexer is running the OLD code and can only see the properly-tagged images — deploy the latest theme and restart PHP (Plesk → PHP-FPM) so it can index the rest, then run Step 1 again.', 'ricoman' ) . '</p>';
 	echo '</details>';
 
 	$me = wp_get_current_user();
