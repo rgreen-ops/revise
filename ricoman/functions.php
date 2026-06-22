@@ -90,6 +90,7 @@ require_once get_theme_file_path( 'inc/admin.php' );         // Branded admin: C
 require_once get_theme_file_path( 'inc/push-live.php' );      // "Push to Live" sign-off screen (triggers the code-only live deploy).
 require_once get_theme_file_path( 'inc/staff.php' );          // Team / staff profiles: tag on news/projects, [ricoman_staff], profile pages.
 require_once get_theme_file_path( 'inc/go-live.php' );        // Go Live: launch pre-flight checklist + one-click finaliser.
+require_once get_theme_file_path( 'inc/configurator-visual.php' ); // Visual (tap-through) variant configurator — per-product alternative to the table.
 
 /**
  * Theme setup.

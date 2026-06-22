@@ -1529,6 +1529,13 @@ function ricoman_pf_sections( $pid ) {
 	// Prefer the linked variant-product rows (migrated staging data); fall back to
 	// the RICOBOT family table when the product is linked to a RICOBOT family.
 	$vtable    = ricoman_pf_variant_table( $pid );
+	// Optional visual configurator (per-product toggle) replaces the table.
+	if ( function_exists( 'ricoman_pf_visual_config_enabled' ) && ricoman_pf_visual_config_enabled( $pid ) ) {
+		$visual = ricoman_pf_visual_config( $pid );
+		if ( $visual ) {
+			$vtable = $visual;
+		}
+	}
 	$var_inner = $vtable ? $vtable : ( $has_fam ? do_shortcode( '[ricoman_family]' ) : '' );
 	$var_sec   = $var_inner
 		? '<div class="rm-section" id="variants"><div class="rm-pp-wrap"><h2 class="rm-shead">Configure Your Product</h2>' . $var_inner . '</div></div>'

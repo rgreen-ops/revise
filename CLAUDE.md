@@ -341,6 +341,21 @@ From Marketing's email for the new website. Status of each request:
   finalisation"** button (OPcache + permalinks + product caches + page/category
   SEO seeders + footer links). Safe/idempotent; fills empties, deletes nothing.
 
+## Visual configurator (built — inc/configurator-visual.php)
+- A tap-through alternative to the variant table (like unios.com/configurator):
+  each spec axis (Type/Model/Colour Temp/Wattage/Finish/Beam…) is a row of option
+  tiles; picking one **narrows** the rest (unavailable options grey out); when one
+  variant is pinned it shows full details + datasheet/LDT. Runs on the SAME variant
+  data as the table (family-aware). `assets/js/visual-config.js` renders from an
+  embedded JSON blob (axes + variants).
+- **Per-product toggle:** product edit screen → "Configure display" box →
+  Table (default) vs Visual. Meta `_ricoman_config_visual`; ricoman_pf_sections
+  swaps the table for `ricoman_pf_visual_config()` when on (falls back to the table
+  if there's nothing to configure).
+- Option tiles auto-use each option's representative variant image where the image
+  varies by that axis (Finish/Model); text tiles otherwise. Per-option custom
+  images can be added later (TODO if wanted).
+
 ## Constraints
 - Develop/push only to the branch above; never create PRs unless asked.
 - Content must persist across theme updates (installer is create-once).
