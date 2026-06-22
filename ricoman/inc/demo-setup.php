@@ -348,6 +348,13 @@ function ricoman_theme_page_map() {
 }
 
 add_action( 'admin_menu', function () {
+	// Hidden by default: this tool OVERWRITES page content with the built-in
+	// design, so it's a risk once pages are live and edited by the team. The code
+	// stays for a future bulk refresh — re-enable with:
+	//   add_filter( 'ricoman_show_page_designs', '__return_true' );
+	if ( ! apply_filters( 'ricoman_show_page_designs', false ) ) {
+		return;
+	}
 	add_submenu_page(
 		'ricoman-hub',
 		__( 'Page Designs', 'ricoman' ),
