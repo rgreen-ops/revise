@@ -104,6 +104,40 @@ function ricoman_resolve_old_path( $path ) {
 			}
 		}
 	}
+	// 4) A variant-product (order-code row) → its parent product page. These
+	// individual variant URLs have no page of their own.
+	if ( post_type_exists( 'variant-product' ) ) {
+		$vp = get_page_by_path( $slug, OBJECT, 'variant-product' );
+		if ( ! $vp ) {
+			$vf = get_posts( array( 'post_type' => 'variant-product', 'post_status' => 'publish', 'numberposts' => 1, 'fields' => 'ids', 'no_found_rows' => true, 'meta_query' => array( array( 'key' => '_wp_old_slug', 'value' => $slug ) ) ) ); // phpcs:ignore WordPress.DB.SlowDBQuery
+			$vp = $vf ? get_post( (int) $vf[0] ) : null;
+		}
+		if ( $vp ) {
+			$parent = function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( $vp->ID, 'parent_product' ) : get_post_meta( $vp->ID, 'parent_product', true );
+			$pid    = is_array( $parent ) ? ( isset( $parent['ID'] ) ? (int) $parent['ID'] : 0 ) : (int) $parent;
+			if ( $pid && 'publish' === get_post_status( $pid ) ) {
+				return $cache[ $path ] = get_permalink( $pid );
+			}
+		}
+	}
+	// 5) Near-miss slug (renamed without _wp_old_slug recorded) — e.g.
+	// /product/astrowave/ → "astrowave-neon-rope-light". Only a UNIQUE prefix
+	// match on a product/project is accepted, so we never guess between two.
+	if ( strlen( $slug ) >= 4 ) {
+		global $wpdb;
+		foreach ( array( 'product', 'project' ) as $t ) {
+			if ( ! post_type_exists( $t ) ) {
+				continue;
+			}
+			$rows = $wpdb->get_col( $wpdb->prepare(
+				"SELECT ID FROM {$wpdb->posts} WHERE post_type=%s AND post_status='publish' AND post_name LIKE %s LIMIT 2",
+				$t, $wpdb->esc_like( $slug ) . '-%'
+			) );
+			if ( 1 === count( $rows ) ) {
+				return $cache[ $path ] = get_permalink( (int) $rows[0] );
+			}
+		}
+	}
 	return $cache[ $path ] = '';
 }
 
