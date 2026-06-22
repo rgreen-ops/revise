@@ -37,11 +37,26 @@ function ricoman_register_legacy_acf_fields() {
 	if ( ! is_array( $groups ) ) {
 		return;
 	}
+	$retired = ricoman_acf_retired_groups();
 	foreach ( $groups as $group ) {
-		if ( is_array( $group ) && ! empty( $group['key'] ) ) {
+		if ( is_array( $group ) && ! empty( $group['key'] ) && ! in_array( $group['key'], $retired, true ) ) {
 			acf_add_local_field_group( $group );
 		}
 	}
+}
+
+/**
+ * Old "Family" category back-end groups that are no longer used in the new theme
+ * (the family page system is parked). They still rendered on the Product Category
+ * editor and were REQUIRED, so admins couldn't save a category at all. We neither
+ * register them (below) nor let them load from the DB (filter further down).
+ */
+function ricoman_acf_retired_groups() {
+	return array(
+		'group_64b79bcd3cb18', // Assign Family To This Category
+		'group_5c4efdcf36ff8', // Category Image (theme uses its own Studio/In-situ images)
+		'group_644774ef785b3', // Family category fields (banner, intro, repeater, etc.)
+	);
 }
 
 /**
@@ -178,21 +193,17 @@ add_filter( 'acf/location/rule_match/taxonomy_term_child', function ( $match, $r
 
 
 /**
- * Retire the old "Family" category back-end fields. The family page system is
- * not used in the new theme, but its migrated ACF groups still rendered on the
- * Product Category editor — and several were REQUIRED, so admins couldn't even
- * save a category. Mark these groups inactive so they don't render or validate
- * anywhere. (Data is left in place; nothing is deleted.)
+ * Remove the retired "Family" groups whenever ACF loads its field groups — this
+ * is the filter ACF actually runs (the per-group "acf/load_field_group" hook does
+ * not exist), and it catches both locally-registered and DB-stored copies, so the
+ * groups never render or validate on any screen. Data is left in place.
  */
-add_filter( 'acf/load_field_group', function ( $group ) {
-	$retired = array(
-		'group_64b79bcd3cb18', // Assign Family To This Category
-		'group_5c4efdcf36ff8', // Category Image (migrated; the theme uses its own Studio/In-situ images)
-		'group_644774ef785b3', // Family category fields (banner, intro, repeater, etc.)
-	);
-	if ( isset( $group['key'] ) && in_array( $group['key'], $retired, true ) ) {
-		$group['active']   = 0;
-		$group['location'] = array();
+add_filter( 'acf/load_field_groups', function ( $field_groups ) {
+	$retired = ricoman_acf_retired_groups();
+	foreach ( $field_groups as $i => $g ) {
+		if ( isset( $g['key'] ) && in_array( $g['key'], $retired, true ) ) {
+			unset( $field_groups[ $i ] );
+		}
 	}
-	return $group;
-} );
+	return array_values( $field_groups );
+}, 20 );
