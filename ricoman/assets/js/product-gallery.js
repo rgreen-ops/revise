@@ -522,3 +522,43 @@
 	if ( document.readyState !== 'loading' ) { scanFit(); }
 	else { document.addEventListener( 'DOMContentLoaded', scanFit ); }
 } )();
+
+/* ---- Global broken-image fallback ----
+ * Any product/content image whose file is missing (e.g. not yet pulled from the
+ * old site) would otherwise show a broken icon or a blank tile. Swap broken
+ * <img>s to the placeholder (hide small thumbnails), and give background-image
+ * tiles the placeholder too. Catches every render path in one place. */
+( function () {
+	var PH = ( window.rmGallery && window.rmGallery.ph ) || '';
+	function fixImg( img ) {
+		if ( ! img || img.dataset.rmfb ) { return; }
+		img.dataset.rmfb = '1';
+		var thumb = img.closest && img.closest( '.rm-cfg-thumb' );
+		if ( thumb ) { thumb.style.display = 'none'; return; }
+		if ( PH ) { img.src = PH; } else { img.style.visibility = 'hidden'; }
+	}
+	// Live errors (capture phase so it fires for any img).
+	document.addEventListener( 'error', function ( e ) {
+		var t = e.target;
+		if ( t && t.tagName === 'IMG' ) { fixImg( t ); }
+	}, true );
+	function bgTile( el ) {
+		if ( ! el || el.dataset.rmfb ) { return; }
+		var s = el.style.backgroundImage || '';
+		var m = s.match( /url\(["']?(.*?)["']?\)/i );
+		if ( ! m || ! m[1] ) { return; }
+		var probe = new Image();
+		probe.onerror = function () { el.dataset.rmfb = '1'; if ( PH ) { el.style.backgroundImage = 'url(' + PH + ')'; } };
+		probe.src = m[1];
+	}
+	function scan() {
+		// Images that already failed before this script ran.
+		document.querySelectorAll( 'img' ).forEach( function ( img ) {
+			if ( img.complete && img.naturalWidth === 0 && img.getAttribute( 'src' ) ) { fixImg( img ); }
+		} );
+		// Background-image tiles (related/accessories, category & project cards).
+		document.querySelectorAll( '.rm-relc-img,.rm-projcard,.rm-catcard-img,.rm-searchcard' ).forEach( bgTile );
+	}
+	if ( document.readyState !== 'loading' ) { scan(); }
+	else { document.addEventListener( 'DOMContentLoaded', scan ); }
+} )();

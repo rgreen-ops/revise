@@ -211,6 +211,10 @@ function ricoman_enqueue_assets() {
 		ricoman_asset_ver( 'assets/js/product-gallery.js' ),
 		true
 	);
+	// Placeholder used by the global broken-image fallback in product-gallery.js.
+	wp_localize_script( 'ricoman-product-gallery', 'rmGallery', array(
+		'ph' => get_theme_file_uri( 'assets/images/ceiling.webp' ),
+	) );
 
 	// Brand web font — self-hosted Poppins (see inc/performance.php for preload).
 	wp_enqueue_style(

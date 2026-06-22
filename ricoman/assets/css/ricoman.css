@@ -42,6 +42,10 @@ a{color:inherit;text-decoration:none}
 header.site,.ricoman-site-header{position:absolute;top:0;left:0;right:0;z-index:50}
 /* on pages without a dark hero, make the header a solid dark bar so it stays readable */
 body:not(.rm-hero) header.site,body:not(.rm-hero) .ricoman-site-header{position:static;background:var(--ink)}
+/* Kill the block-gap margin between the header and the main content (they're
+   siblings) — otherwise a white strip shows between the dark header and a dark
+   first section. */
+.wp-site-blocks > main,.wp-site-blocks > main.wp-block-group{margin-block-start:0!important}
 /* on hero pages the header overlays the image — a soft top gradient keeps the
    white menu legible over ANY content (so it's never an invisible white-on-white) */
 body.rm-hero header.site,body.rm-hero .ricoman-site-header{background:linear-gradient(180deg,rgba(0,0,0,.5) 0%,rgba(0,0,0,.14) 55%,rgba(0,0,0,0) 100%)}
