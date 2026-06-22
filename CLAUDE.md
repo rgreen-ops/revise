@@ -148,6 +148,15 @@ From Marketing's email for the new website. Status of each request:
   logos strip), then the SPC consultant pages (largest). All AFTER the current
   image/launch issues are settled. Content persists (installer is create-once).
 
+## Category filter enhancements — TRACKED (backlog)
+- [ ] **Cut-out size slider on Downlights** (and any cut-out category): add a
+  range slider like the existing Light output (lumens) / Power (wattage) sliders.
+  Cut-out diameter (mm) lives in the variant spec/ACF; extend the precomputed
+  variant metrics + `inc/product-filter.php` to emit a `cutout` min/max and a
+  slider. Make it CONDITIONAL — only render when the category's products actually
+  have cut-out data (so it won't show on pendants/linear etc.). Same UI/behaviour
+  as the lumens/watts sliders.
+
 ## Lead-gen system (built — `inc/lead-gate.php`, `accounts.php`, `project-lists.php`)
 - **Download gate** (`inc/lead-gate.php` + `assets/js/lead-gate.js`): logged-out
   visitors clicking any doc download get a popup (name + email + customer type, or
