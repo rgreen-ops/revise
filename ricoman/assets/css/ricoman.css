@@ -768,6 +768,10 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-dl-hero{padding:8px 0 30px;border-bottom:1px solid var(--line);margin-bottom:36px}
 .rm-dl-title{font-size:clamp(2.1rem,4.4vw,3.4rem);font-weight:500;line-height:1.04;margin:.1em 0 .25em}
 .rm-dl-lead{color:var(--muted);font-size:clamp(1rem,1.4vw,1.2rem);max-width:64ch}
+.rm-dlsearch{display:flex;gap:10px;margin:22px 0 0;max-width:560px}
+.rm-dlsearch input[type=search]{flex:1;padding:14px 18px;border:1px solid var(--line);border-radius:10px;font-size:1rem;background:#fff}
+.rm-dlsearch input[type=search]:focus{outline:none;border-color:var(--blue)}
+.rm-dlsearch .btn{padding:0 26px}
 .rm-dl-head{margin:0 0 22px}
 .rm-dlgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
 .rm-dlcard{display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;text-decoration:none;transition:.25s ease}

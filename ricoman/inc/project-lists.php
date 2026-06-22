@@ -580,8 +580,15 @@ function ricoman_find_brochure_id( $keywords ) {
  */
 function ricoman_brochure_cover( $id, $title ) {
 	$src = $id ? wp_get_attachment_image_url( $id, 'large' ) : '';
+	// Only use a real preview if it's an image AND the file actually exists on
+	// disk — PDF previews were often not generated (disk was full), which left
+	// broken <img>s. Otherwise fall back to the branded placeholder cover.
 	if ( $src && preg_match( '#\.(jpe?g|png|webp|gif|avif)(\?|$)#i', $src ) ) {
-		return '<span class="rm-dlcard-cover"><img src="' . esc_url( $src ) . '" alt="' . esc_attr( wp_strip_all_tags( html_entity_decode( $title ) ) . ' — Ricoman brochure' ) . '" loading="lazy"></span>';
+		$up   = wp_get_upload_dir();
+		$path = str_replace( $up['baseurl'], $up['basedir'], strtok( $src, '?' ) );
+		if ( $path && file_exists( $path ) ) {
+			return '<span class="rm-dlcard-cover"><img src="' . esc_url( $src ) . '" alt="' . esc_attr( wp_strip_all_tags( html_entity_decode( $title ) ) . ' — Ricoman brochure' ) . '" loading="lazy"></span>';
+		}
 	}
 	return '<span class="rm-dlcard-cover rm-dlcard-cover-ph"><span class="rm-dlcard-badge">PDF</span><span class="rm-dlcard-cover-t">' . wp_kses_post( $title ) . '</span></span>';
 }
@@ -657,9 +664,18 @@ function ricoman_downloads_page_html() {
 		. '<p>' . esc_html__( 'Datasheets, installation instructions, photometric (IES/LDT) and Revit files for each fitting live on its own product page, in the Downloads section.', 'ricoman' ) . '</p>'
 		. '<a class="btn btn-line-d" href="/products/">' . esc_html__( 'Browse all products', 'ricoman' ) . ' &rarr;</a></div>';
 
+	// Search: type to filter the brochures instantly; Enter searches all
+	// products/datasheets via the site search.
+	$search = '<form class="rm-dlsearch" role="search" method="get" action="' . esc_url( home_url( '/' ) ) . '">'
+		. '<input type="search" name="s" id="rm-dlsearch-in" placeholder="' . esc_attr__( 'Search brochures, products & datasheets…', 'ricoman' ) . '" autocomplete="off">'
+		. '<button type="submit" class="btn btn-solid">' . esc_html__( 'Search', 'ricoman' ) . '</button>'
+		. '</form>'
+		. '<script>(function(){var i=document.getElementById("rm-dlsearch-in");if(!i)return;i.addEventListener("input",function(){var q=this.value.toLowerCase().trim();document.querySelectorAll(".rm-dlgrid .rm-dlcard").forEach(function(c){c.style.display=(!q||c.textContent.toLowerCase().indexOf(q)>-1)?"":"none";});});})();</script>';
+
 	$hero = '<div class="rm-dl-hero"><p class="rm-eyebrow">' . esc_html__( 'Downloads &amp; Resources', 'ricoman' ) . '</p>'
 		. '<h1 class="rm-dl-title">' . esc_html__( 'Catalogues, datasheets &amp; BIM', 'ricoman' ) . '</h1>'
-		. '<p class="rm-dl-lead">' . esc_html__( 'Everything you need to specify Ricoman — brochures, technical datasheets, photometric (IES/LDT) files and BIM objects.', 'ricoman' ) . '</p></div>';
+		. '<p class="rm-dl-lead">' . esc_html__( 'Everything you need to specify Ricoman — brochures, technical datasheets, photometric (IES/LDT) files and BIM objects.', 'ricoman' ) . '</p>'
+		. $search . '</div>';
 
 	// alignfull lets the theme widen this out of the narrow content column the
 	// correct way (works with the global zoom; a 100vw hack does not).
