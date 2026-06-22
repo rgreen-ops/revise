@@ -81,6 +81,33 @@ add_action( 'init', function () {
 		'<!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">Send us your drawings and our in-house lighting designers will return a fully specified, costed scheme — usually within 3–5 days.</p><!-- /wp:paragraph -->' .
 		$buttons( $btn( 'Start a Project', '/lighting-design/' ) . $btn( 'Talk to the team', '/about/', false ), true ), 60, 'center center', 70 ) );
 
+	// ---- Marketing wishlist: reach stats, partner logos, testimonials ----
+	// Reach stats band (countries supplied / projects) — edit the numbers inline.
+	$p['home-reach'] = array( 'Home · Reach stats', $sec(
+		$eyebrow( 'Our reach' ) . $shead( 'Trusted on projects here and abroad' ) .
+		'<!-- wp:columns --><div class="wp-block-columns">' . $stat( '30+', 'Countries supplied' ) . $stat( '500+', 'Projects delivered' ) . $stat( '2,000+', 'Components in stock' ) . $stat( '5-year', 'Standard warranty' ) . '</div><!-- /wp:columns -->', 'rm-facts' ) );
+
+	// Partner logos strip — placeholder boxes; select each and replace with a logo image.
+	$plogo = function ( $name ) {
+		return '<!-- wp:column {"verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center"><!-- wp:group {"className":"rm-logo","layout":{"type":"constrained"}} --><div class="wp-block-group rm-logo"><!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">' . $name . '</p><!-- /wp:paragraph --></div><!-- /wp:group --></div><!-- /wp:column -->';
+	};
+	$p['home-partners'] = array( 'Home · Partner logos', $sec(
+		$eyebrow( 'Partners' ) . $shead( 'Specified &amp; installed with leading teams' ) .
+		$para( 'Replace each placeholder with a partner or client logo — select the box and swap it for an image.', true ) .
+		'<!-- wp:columns {"className":"rm-logos"} --><div class="wp-block-columns rm-logos">' . $plogo( 'Logo' ) . $plogo( 'Logo' ) . $plogo( 'Logo' ) . $plogo( 'Logo' ) . $plogo( 'Logo' ) . '</div><!-- /wp:columns -->', 'rm-partners-sec' ) );
+
+	// Testimonials — partner / client feedback cards. Edit the quotes inline.
+	$quote = function ( $q, $who ) {
+		return '<!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"rm-quote","layout":{"type":"constrained"}} --><div class="wp-block-group rm-quote"><!-- wp:paragraph {"className":"rm-quote-t"} --><p class="rm-quote-t">' . $q . '</p><!-- /wp:paragraph --><!-- wp:paragraph {"className":"rm-quote-who","textColor":"muted"} --><p class="rm-quote-who has-muted-color has-text-color">' . $who . '</p><!-- /wp:paragraph --></div><!-- /wp:group --></div><!-- /wp:column -->';
+	};
+	$p['home-testimonials'] = array( 'Home · Testimonials', $sec(
+		$eyebrow( 'What partners say' ) . $shead( 'Specified, delivered, trusted' ) .
+		'<!-- wp:columns --><div class="wp-block-columns">'
+		. $quote( '&ldquo;The free scheme design saved us days, and the lead time was exactly as promised.&rdquo;', 'Lighting Designer, London' )
+		. $quote( '&ldquo;Bespoke curves to our exact drawings &mdash; installed first time, no fuss.&rdquo;', 'M&amp;E Contractor, Manchester' )
+		. $quote( '&ldquo;Genuine UK manufacturing, and people who actually pick up the phone.&rdquo;', 'Interior Designer, Leeds' )
+		. '</div><!-- /wp:columns -->', 'rm-quotes-sec' ) );
+
 	// ---- shared helpers for content pages ----
 	$bignum   = function ( $n, $l ) { return '<!-- wp:column --><div class="wp-block-column"><!-- wp:heading {"level":3,"className":"rm-statnum"} --><h3 class="wp-block-heading rm-statnum">' . $n . '</h3><!-- /wp:heading --><!-- wp:paragraph {"className":"rm-flabel"} --><p class="rm-flabel">' . $l . '</p><!-- /wp:paragraph --></div><!-- /wp:column -->'; };
 	$darkgroup = function ( $inner ) { return '<!-- wp:group {"align":"full","backgroundColor":"ink","textColor":"base","className":"rm-dark","style":{"spacing":{"padding":{"top":"var:preset|spacing|70","bottom":"var:preset|spacing|70","left":"var:preset|spacing|50","right":"var:preset|spacing|50"}}},"layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-dark has-base-color has-ink-background-color has-text-color has-background" style="padding-top:var(--wp--preset--spacing--70);padding-bottom:var(--wp--preset--spacing--70);padding-left:var(--wp--preset--spacing--50);padding-right:var(--wp--preset--spacing--50)">' . $inner . '</div><!-- /wp:group -->'; };

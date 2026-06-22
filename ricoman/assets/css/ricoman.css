@@ -346,6 +346,17 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-flabel{font-family:Poppins;text-transform:uppercase;letter-spacing:.2em;font-size:.6rem;font-weight:600;color:var(--muted);margin:0 0 .8em}
 .rm-fval{font-family:Poppins;font-weight:500;font-size:clamp(1.05rem,1.4vw,1.4rem);letter-spacing:-.02em;color:var(--ink);margin:0}
 @media(max-width:781px){.rm-facts .wp-block-column{border-right:0;border-bottom:1px solid var(--line);padding-bottom:18px}}
+/* Partner logos strip (placeholder boxes the team swaps for real logos). */
+.rm-logos{align-items:stretch;gap:18px}
+.rm-logos .rm-logo{min-height:78px;display:flex;align-items:center;justify-content:center;border:1px dashed var(--line);border-radius:10px;background:#fafafa}
+.rm-logos .rm-logo p{margin:0;font-family:Poppins;font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:.75rem;color:var(--muted)}
+.rm-logos .wp-block-image{margin:0}
+.rm-logos .wp-block-image img{max-height:54px;width:auto;object-fit:contain;filter:grayscale(1);opacity:.8;transition:.2s}
+.rm-logos .wp-block-image:hover img{filter:none;opacity:1}
+/* Testimonial / partner-feedback cards. */
+.rm-quote{border:1px solid var(--line);border-radius:14px;padding:26px;height:100%}
+.rm-quote-t{font-family:Poppins;font-weight:500;font-size:1.05rem;line-height:1.45;margin:0}
+.rm-quote-who{font-size:.82rem;margin:14px 0 0}
 /* cards (ranges) */
 .rm-card{display:block}
 .rm-card img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:transform .6s ease}
