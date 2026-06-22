@@ -134,9 +134,9 @@ From Marketing's email for the new website. Status of each request:
   auto internal linking). TODO below for the writer/contributor byline.
 - [ ] **News: writer / contributor byline area** — PARTIAL; needs an author/
   contributor display on news articles.
-- [ ] **About page split: Why us / About us / Sustainability / Team & culture**
-  — PARTIAL: About exists, Sustainability is already a full landing page; add
-  "Why us" + "Team & culture" sections/blocks.
+- [x] **About page split: Why us / About us / Sustainability / Team & culture**
+  — DONE. Added "About · Why us" + "About · Team & culture" patterns; About us +
+  Sustainability already existed (Sustainability is a full page).
 - [x] **FAQ area on product pages** — DONE. New "Product FAQs" metabox (Q:/A:
   text) on the product edit screen; renders as a product **FAQ section** (with
   FAQPage schema) via ricoman_pf_sections + a `faq` section block. Independent of

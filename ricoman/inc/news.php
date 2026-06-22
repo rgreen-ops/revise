@@ -561,8 +561,20 @@ add_filter( 'the_content', function ( $content ) {
 	if ( '' !== trim( $dek ) ) {
 		$out .= '<p class="rm-news-standfirst">' . esc_html( $dek ) . '</p>';
 	}
-	$out .= '<p class="rm-news-byline"><span>' . esc_html( get_the_date() ) . '</span>'
-		. '<span class="rm-news-readt">' . (int) ricoman_news_readtime( $pid ) . ' min read</span></p>';
+	$writer = trim( (string) get_post_meta( $pid, '_rmn_author', true ) );
+	if ( '' === $writer ) {
+		$writer = (string) get_the_author_meta( 'display_name', (int) get_post_field( 'post_author', $pid ) );
+	}
+	$wrole   = trim( (string) get_post_meta( $pid, '_rmn_author_role', true ) );
+	$contrib = trim( (string) get_post_meta( $pid, '_rmn_contributor', true ) );
+	$out    .= '<p class="rm-news-byline">';
+	if ( '' !== $writer ) {
+		$out .= '<span class="rm-news-by">By ' . esc_html( $writer ) . ( '' !== $wrole ? ', ' . esc_html( $wrole ) : '' ) . '</span>';
+	}
+	$out .= '<span>' . esc_html( get_the_date() ) . '</span>'
+		. '<span class="rm-news-readt">' . (int) ricoman_news_readtime( $pid ) . ' min read</span>'
+		. ( '' !== $contrib ? '<span class="rm-news-contrib">' . esc_html( $contrib ) . '</span>' : '' )
+		. '</p>';
 	$out .= '</div></div>';
 
 	$hero = ricoman_news_img( $pid, 'large' );
@@ -648,6 +660,13 @@ function ricoman_news_metabox( $post ) {
 	echo '<div class="rmn-fld"><label>Key takeaways <span class="desc">— one per line. Shown as a scannable box near the top (good for SEO snippets).</span></label>';
 	echo '<textarea name="_rmn_takeaways" rows="4">' . $f( '_rmn_takeaways' ) . '</textarea></div>';
 
+	echo '<hr><p><strong>' . esc_html__( 'Byline', 'ricoman' ) . '</strong> <span class="desc">(shown under the title — leave Writer blank to use the WordPress author)</span></p>';
+	echo '<div class="rmn-grid">';
+	echo '<div class="rmn-fld"><label>Writer</label><input type="text" name="_rmn_author" value="' . $v( '_rmn_author' ) . '" placeholder="e.g. Jane Smith"></div>';
+	echo '<div class="rmn-fld"><label>Writer role</label><input type="text" name="_rmn_author_role" value="' . $v( '_rmn_author_role' ) . '" placeholder="e.g. Lighting Designer"></div>';
+	echo '</div>';
+	echo '<div class="rmn-fld"><label>Contributor(s) <span class="desc">— optional credit, e.g. photography / co-author</span></label><input type="text" name="_rmn_contributor" value="' . $v( '_rmn_contributor' ) . '" placeholder="e.g. With photography by …"></div>';
+
 	echo '<div class="rmn-fld"><label>Products in this article <span class="desc">— one product name or full URL per line. Renders linked product cards.</span></label>';
 	echo '<textarea name="_rmn_products" rows="3">' . $f( '_rmn_products' ) . '</textarea></div>';
 
@@ -673,7 +692,7 @@ add_action( 'save_post_news', function ( $post_id ) {
 			update_post_meta( $post_id, $k, sanitize_textarea_field( wp_unslash( $_POST[ $k ] ) ) );
 		}
 	}
-	$line = array( '_rmn_cta_head', '_rmn_cta_btn', '_rmn_cta_url' );
+	$line = array( '_rmn_cta_head', '_rmn_cta_btn', '_rmn_cta_url', '_rmn_author', '_rmn_author_role', '_rmn_contributor' );
 	foreach ( $line as $k ) {
 		if ( isset( $_POST[ $k ] ) ) {
 			update_post_meta( $post_id, $k, sanitize_text_field( wp_unslash( $_POST[ $k ] ) ) );
