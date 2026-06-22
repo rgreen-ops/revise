@@ -296,7 +296,12 @@ function ricoman_cat_order_page() {
 	$terms = ricoman_cat_sort_terms( $terms, 'name' );
 
 	echo '<div class="wrap"><h1>' . esc_html__( 'Reorder Categories', 'ricoman' ) . '</h1>';
-	echo '<p>' . esc_html__( 'Drag the categories into the order you want them to appear — across the mega menu, the /products/ tiles and the homepage range grid — then Save. Products within a category are ordered by the product\'s own "Order" attribute.', 'ricoman' ) . '</p>';
+	echo '<p>' . esc_html__( 'Drag the categories into the order you want them to appear — across the mega menu, the /products/ tiles and the homepage range grid — then Save.', 'ricoman' )
+		. ' ' . sprintf(
+			/* translators: %s: link to the Reorder Products screen */
+			esc_html__( 'To change the order of products inside a category, use %s.', 'ricoman' ),
+			'<a href="' . esc_url( admin_url( 'admin.php?page=ricoman-product-order' ) ) . '"><strong>' . esc_html__( 'Reorder Products', 'ricoman' ) . '</strong></a>'
+		) . '</p>';
 
 	if ( ! $terms ) {
 		echo '<p><em>' . esc_html__( 'No product categories found.', 'ricoman' ) . '</em></p></div>';
@@ -410,7 +415,12 @@ function ricoman_product_order_page() {
 	$cur   = isset( $_GET['cat'] ) ? sanitize_title( wp_unslash( $_GET['cat'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
 	echo '<div class="wrap"><h1>' . esc_html__( 'Reorder Products', 'ricoman' ) . '</h1>';
-	echo '<p>' . esc_html__( 'Pick a category, then drag its products into the order you want them to appear on the category page and product tiles. Save writes each product\'s "Order" attribute.', 'ricoman' ) . '</p>';
+	echo '<p>' . esc_html__( 'Pick a category, then drag its products into the order you want them to appear on the category page and product tiles. Save writes each product\'s "Order" attribute.', 'ricoman' )
+		. ' ' . sprintf(
+			/* translators: %s: link to the Reorder Categories screen */
+			esc_html__( 'To change the order of the categories themselves, use %s.', 'ricoman' ),
+			'<a href="' . esc_url( admin_url( 'admin.php?page=ricoman-cat-order' ) ) . '"><strong>' . esc_html__( 'Reorder Categories', 'ricoman' ) . '</strong></a>'
+		) . '</p>';
 
 	// Category picker (reloads the page for the chosen category).
 	echo '<form method="get" style="margin:0 0 18px"><input type="hidden" name="page" value="ricoman-product-order">';
