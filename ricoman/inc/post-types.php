@@ -491,15 +491,22 @@ function ricoman_first_term_name( $pid, $taxes ) {
 /** Display image for a product: featured image, else first ACF gallery image. */
 function ricoman_product_img( $pid ) {
 	$tid = get_post_thumbnail_id( $pid );
+	// Only use the featured image if its file is actually on disk. Otherwise a
+	// missing thumbnail makes cards (e.g. the accessories carousel) fall back to
+	// the placeholder while the product's OWN page shows the right gallery image —
+	// so cards looked wrong/identical. Falling through to the gallery keeps them
+	// consistent with the product page.
 	if ( $tid ) {
-		// Prefer a generated WebP copy of the featured image.
-		$webp = function_exists( 'ricoman_webp_url' ) ? ricoman_webp_url( $tid ) : '';
-		if ( $webp ) {
-			return $webp;
-		}
-		$img = wp_get_attachment_image_url( $tid, 'large' );
-		if ( $img ) {
-			return $img;
+		$tpath = get_attached_file( $tid );
+		if ( $tpath && file_exists( $tpath ) ) {
+			$webp = function_exists( 'ricoman_webp_url' ) ? ricoman_webp_url( $tid ) : '';
+			if ( $webp ) {
+				return $webp;
+			}
+			$img = wp_get_attachment_image_url( $tid, 'large' );
+			if ( $img ) {
+				return $img;
+			}
 		}
 	}
 	// Real ricoman.com products keep images in the ACF gallery, not the thumbnail.
