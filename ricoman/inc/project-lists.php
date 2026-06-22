@@ -553,6 +553,39 @@ function ricoman_find_brochure_pdf( $keywords ) {
 	return '';
 }
 
+/** Like ricoman_find_brochure_pdf but returns the attachment ID (0 if none). */
+function ricoman_find_brochure_id( $keywords ) {
+	global $wpdb;
+	foreach ( (array) $keywords as $kw ) {
+		$like = '%' . $wpdb->esc_like( $kw ) . '%';
+		$id   = (int) $wpdb->get_var( $wpdb->prepare(
+			"SELECT p.ID FROM {$wpdb->posts} p
+			 LEFT JOIN {$wpdb->postmeta} f ON f.post_id=p.ID AND f.meta_key='_wp_attached_file'
+			 WHERE p.post_type='attachment' AND p.post_status<>'trash' AND p.post_mime_type=%s
+			 AND ( p.post_title LIKE %s OR p.post_name LIKE %s OR f.meta_value LIKE %s )
+			 ORDER BY p.ID DESC LIMIT 1",
+			'application/pdf', $like, $like, $like
+		) );
+		if ( $id ) {
+			return $id;
+		}
+	}
+	return 0;
+}
+
+/**
+ * Cover visual for a brochure card: the PDF's generated preview image if one
+ * exists (needs Imagick on the server), otherwise a branded placeholder cover
+ * with the title + a PDF badge — so every card has a document image either way.
+ */
+function ricoman_brochure_cover( $id, $title ) {
+	$src = $id ? wp_get_attachment_image_url( $id, 'large' ) : '';
+	if ( $src && preg_match( '#\.(jpe?g|png|webp|gif|avif)(\?|$)#i', $src ) ) {
+		return '<span class="rm-dlcard-cover"><img src="' . esc_url( $src ) . '" alt="' . esc_attr( wp_strip_all_tags( html_entity_decode( $title ) ) . ' — Ricoman brochure' ) . '" loading="lazy"></span>';
+	}
+	return '<span class="rm-dlcard-cover rm-dlcard-cover-ph"><span class="rm-dlcard-badge">PDF</span><span class="rm-dlcard-cover-t">' . wp_kses_post( $title ) . '</span></span>';
+}
+
 /** How many technical files of a bulk type are actually on the server. */
 function ricoman_bulk_file_count( $type ) {
 	$types = ricoman_bulk_file_types();
@@ -595,14 +628,17 @@ function ricoman_downloads_page_html() {
 	$cards = '';
 	foreach ( ricoman_brochure_list() as $b ) {
 		list( $title, $desc, $kw ) = $b;
-		$url  = ricoman_find_brochure_pdf( $kw );
-		$href = $url ? $url : '/contact/';
-		$cta  = $url ? esc_html__( 'Download', 'ricoman' ) . ' &darr;' : esc_html__( 'Request', 'ricoman' ) . ' &rarr;';
-		$dl   = $url ? ' download' : '';
-		$cards .= '<a class="rm-dlcard" href="' . esc_url( $href ) . '"' . $dl . '>'
+		$id    = ricoman_find_brochure_id( $kw );
+		$url   = $id ? wp_get_attachment_url( $id ) : '';
+		$href  = $url ? $url : '/contact/';
+		$cta   = $url ? esc_html__( 'Download', 'ricoman' ) . ' &darr;' : esc_html__( 'Request', 'ricoman' ) . ' &rarr;';
+		$dl    = $url ? ' download' : '';
+		$cards .= '<a class="rm-dlcard' . ( $url ? '' : ' is-request' ) . '" href="' . esc_url( $href ) . '"' . $dl . '>'
+			. ricoman_brochure_cover( $id, $title )
+			. '<span class="rm-dlcard-body">'
 			. '<span class="rm-dlcard-t">' . wp_kses_post( $title ) . '</span>'
 			. '<span class="rm-dlcard-d">' . wp_kses_post( $desc ) . '</span>'
-			. '<span class="rm-dlcard-go">' . $cta . '</span></a>';
+			. '<span class="rm-dlcard-go">' . $cta . '</span></span></a>';
 	}
 
 	$ldt   = ricoman_bulk_file_count( 'ldt' );
@@ -621,11 +657,18 @@ function ricoman_downloads_page_html() {
 		. '<p>' . esc_html__( 'Datasheets, installation instructions, photometric (IES/LDT) and Revit files for each fitting live on its own product page, in the Downloads section.', 'ricoman' ) . '</p>'
 		. '<a class="btn btn-line-d" href="/products/">' . esc_html__( 'Browse all products', 'ricoman' ) . ' &rarr;</a></div>';
 
-	return '<div class="rm-section rm-downloads">'
+	$hero = '<div class="rm-dl-hero"><p class="rm-eyebrow">' . esc_html__( 'Downloads &amp; Resources', 'ricoman' ) . '</p>'
+		. '<h1 class="rm-dl-title">' . esc_html__( 'Catalogues, datasheets &amp; BIM', 'ricoman' ) . '</h1>'
+		. '<p class="rm-dl-lead">' . esc_html__( 'Everything you need to specify Ricoman — brochures, technical datasheets, photometric (IES/LDT) files and BIM objects.', 'ricoman' ) . '</p></div>';
+
+	// Full-bleed wrapper (breaks out of the theme's narrow content column) with a
+	// centred inner container.
+	return '<div class="rm-dlpage"><div class="rm-dlpage-in">'
+		. $hero
 		. '<div class="rm-dl-head"><p class="rm-eyebrow">' . esc_html__( 'Brochures', 'ricoman' ) . '</p>'
 		. '<h2 class="rm-shead">' . esc_html__( 'Catalogues &amp; range brochures', 'ricoman' ) . '</h2></div>'
 		. '<div class="rm-dlgrid">' . $cards . '</div>'
-		. $bulk . $single . '</div>';
+		. $bulk . $single . '</div></div>';
 }
 add_shortcode( 'ricoman_downloads', 'ricoman_downloads_page_html' );
 

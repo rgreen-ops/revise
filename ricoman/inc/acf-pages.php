@@ -28,10 +28,7 @@ add_filter( 'the_content', function ( $content ) {
 	// always reflects what's actually downloadable — overriding any stale block
 	// content left from an earlier build.
 	if ( 'downloads' === $slug && function_exists( 'ricoman_downloads_page_html' ) ) {
-		$hero = '<div class="rm-section rm-hdr rm-hdr-band"><p class="rm-eyebrow">' . esc_html__( 'Downloads &amp; Resources', 'ricoman' ) . '</p>'
-			. '<h1 class="rm-hdr-title">' . esc_html__( 'Catalogues, datasheets &amp; BIM', 'ricoman' ) . '</h1>'
-			. '<p class="rm-hdr-lead has-muted-color has-text-color">' . esc_html__( 'Everything you need to specify Ricoman — brochures, technical datasheets, photometric (IES/LDT) files and BIM objects.', 'ricoman' ) . '</p></div>';
-		return $hero . ricoman_downloads_page_html();
+		return ricoman_downloads_page_html();
 	}
 	if ( '' !== trim( wp_strip_all_tags( (string) $content ) ) ) {
 		return $content; // has real (block/classic) content already.

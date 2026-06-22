@@ -340,6 +340,21 @@ JS;
 	echo '<style>#rm-catord-list .rm-catord-ph{height:44px;border:2px dashed #c3c4c7;border-radius:8px;margin:0 0 8px;background:#f6f7f7}</style>';
 }
 
+/** Point people to the drag-to-reorder tool from the Product Categories screen. */
+add_action( 'admin_notices', function () {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+	$screen = get_current_screen();
+	if ( ! $screen || 'edit-' . ricoman_cat_tax() !== $screen->id ) {
+		return;
+	}
+	$url = admin_url( 'admin.php?page=ricoman-cat-order' );
+	echo '<div class="notice notice-info"><p>↕ <strong>' . esc_html__( 'Want to change the order categories appear in', 'ricoman' ) . '</strong> '
+		. esc_html__( '(mega menu, /products/ tiles, homepage grid)? Drag them into order here:', 'ricoman' )
+		. ' <a href="' . esc_url( $url ) . '" class="button button-primary button-small">' . esc_html__( 'Reorder Categories', 'ricoman' ) . '</a></p></div>';
+} );
+
 /** AJAX: persist the dragged category order as a clean 1..N _rm_cat_order. */
 add_action( 'wp_ajax_rm_cat_reorder', function () {
 	if ( ! current_user_can( 'manage_options' ) || ! check_ajax_referer( 'rm_cat_order', 'nonce', false ) ) {
