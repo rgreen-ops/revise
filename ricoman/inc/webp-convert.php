@@ -159,7 +159,7 @@ function ricoman_webp_for_url( $url ) {
 			$file    = $basedir . $relpath;
 			$twin    = preg_replace( '/\.(png|jpe?g)$/i', '-rmwebp.webp', $file );
 			$twinrel = preg_replace( '/\.(png|jpe?g)$/i', '-rmwebp.webp', $relpath );
-			if ( file_exists( $twin ) || ricoman_webp_make_file( $file, $twin ) ) {
+			if ( ( file_exists( $twin ) && filesize( $twin ) > 0 ) || ricoman_webp_make_file( $file, $twin ) ) {
 				$res = $baseurl . $twinrel;
 			}
 		}

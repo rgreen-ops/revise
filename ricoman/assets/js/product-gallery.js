@@ -530,26 +530,57 @@
  * tiles the placeholder too. Catches every render path in one place. */
 ( function () {
 	var PH = ( window.rmGallery && window.rmGallery.ph ) || '';
-	function fixImg( img ) {
-		if ( ! img || img.dataset.rmfb ) { return; }
+	// A failed "-rmwebp.webp" twin (WebP generation is dormant while the disk is
+	// full, so many twins don't exist) must fall back to the ORIGINAL image — which
+	// does exist — BEFORE ever showing the placeholder. This also fixes already
+	// page-cached HTML that has the twin URLs baked in.
+	function origAlts( url ) {
+		if ( ! url || ! /-rmwebp\.webp/i.test( url ) ) { return []; }
+		return [
+			url.replace( /-rmwebp\.webp/i, '.png' ),
+			url.replace( /-rmwebp\.webp/i, '.jpg' ),
+			url.replace( /-rmwebp\.webp/i, '.jpeg' )
+		];
+	}
+	function placeImg( img ) {
 		img.dataset.rmfb = '1';
 		var thumb = img.closest && img.closest( '.rm-cfg-thumb' );
 		if ( thumb ) { thumb.style.display = 'none'; return; }
 		if ( PH ) { img.src = PH; } else { img.style.visibility = 'hidden'; }
+	}
+	function fixImg( img ) {
+		if ( ! img || img.dataset.rmfb ) { return; }
+		var src = img.getAttribute( 'src' ) || '';
+		if ( img.dataset.rmtwin === undefined && /-rmwebp\.webp/i.test( src ) ) {
+			img.dataset.rmtwin = src; // remember the twin to build the alt chain.
+		}
+		if ( img.dataset.rmtwin !== undefined ) {
+			var alts = origAlts( img.dataset.rmtwin );
+			var n    = img.dataset.rmalt === undefined ? 0 : ( parseInt( img.dataset.rmalt, 10 ) + 1 );
+			if ( alts[ n ] ) { img.dataset.rmalt = String( n ); img.src = alts[ n ]; return; }
+		}
+		placeImg( img );
 	}
 	// Live errors (capture phase so it fires for any img).
 	document.addEventListener( 'error', function ( e ) {
 		var t = e.target;
 		if ( t && t.tagName === 'IMG' ) { fixImg( t ); }
 	}, true );
+	function setBgFallback( el, alts, i ) {
+		if ( i >= alts.length ) { el.dataset.rmfb = '1'; if ( PH ) { el.style.backgroundImage = 'url(' + PH + ')'; } return; }
+		var u = alts[ i ], p = new Image();
+		p.onload  = function () { el.style.backgroundImage = 'url(' + u + ')'; };
+		p.onerror = function () { setBgFallback( el, alts, i + 1 ); };
+		p.src = u;
+	}
 	function bgTile( el ) {
 		if ( ! el || el.dataset.rmfb ) { return; }
 		var s = el.style.backgroundImage || '';
 		var m = s.match( /url\(["']?(.*?)["']?\)/i );
 		if ( ! m || ! m[1] ) { return; }
-		var probe = new Image();
-		probe.onerror = function () { el.dataset.rmfb = '1'; if ( PH ) { el.style.backgroundImage = 'url(' + PH + ')'; } };
-		probe.src = m[1];
+		var url = m[1], probe = new Image();
+		probe.onerror = function () { setBgFallback( el, origAlts( url ), 0 ); };
+		probe.src = url;
 	}
 	function scan() {
 		// Images that already failed before this script ran.
