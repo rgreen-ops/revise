@@ -359,7 +359,7 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-aud-card p{color:var(--muted);font-size:.95rem;margin:0}
 /* dark split blocks already get white text via cover/ink group */
 .rm-dark{background:var(--ink)}
-.rm-dark :where(h2,h3,p,a){color:#fff}
+.rm-dark :where(h1,h2,h3,h4,p,a){color:#fff}
 .rm-dark p{color:rgba(255,255,255,.74)}
 /* stat band */
 .rm-statband{border-block:1px solid var(--line)}

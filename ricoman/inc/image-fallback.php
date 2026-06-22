@@ -162,3 +162,140 @@ add_filter( 'wp_calculate_image_srcset', function ( $sources ) {
 	}
 	return $sources;
 }, 20 );
+
+/* ============================================================ *
+ * Pull missing image files from the live origin into local uploads.
+ *
+ * For every image attachment whose file is missing on disk, download the same
+ * file from the live origin (ricoman_live_origin) and save it to its expected
+ * local path, then regenerate its sub-sizes. This permanently re-hosts images
+ * that were referenced by the migration but never copied across — so the new
+ * site stops depending on the live-origin fallback (and broken images vanish).
+ * Batched, resumable, capability-gated.
+ * ============================================================ */
+add_action( 'admin_menu', function () {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+	add_submenu_page(
+		'ricoman-hub',
+		__( 'Pull Missing Images', 'ricoman' ),
+		__( 'Pull Missing Images', 'ricoman' ),
+		'manage_options',
+		'ricoman-pull-images',
+		'ricoman_pull_images_page'
+	);
+}, 26 );
+
+function ricoman_pull_images_page() {
+	$origin = function_exists( 'ricoman_live_origin' ) ? ricoman_live_origin() : '';
+	echo '<div class="wrap"><h1>' . esc_html__( 'Pull Missing Images', 'ricoman' ) . '</h1>';
+	echo '<p>' . esc_html__( 'Finds every image whose file is missing on this server and downloads the matching file from the live site, saving it here permanently. Run after a migration to fix broken product/gallery images without copying the whole uploads folder. Safe to re-run; it only fetches what is missing.', 'ricoman' ) . '</p>';
+	if ( ! $origin ) {
+		echo '<div class="notice notice-error"><p>' . esc_html__( 'No live origin is set, so there is nowhere to pull images from. Define RICOMAN_LIVE_ORIGIN or the ricoman_live_origin option (e.g. https://ricoman.com).', 'ricoman' ) . '</p></div></div>';
+		return;
+	}
+	echo '<p>' . sprintf( esc_html__( 'Pulling from: %s', 'ricoman' ), '<code>' . esc_html( $origin ) . '</code>' ) . '</p>';
+	echo '<p><button class="button button-primary" id="rm-pull-go">' . esc_html__( 'Start / resume pulling', 'ricoman' ) . '</button> <span id="rm-pull-out" style="margin-left:10px"></span></p>';
+	echo '<div id="rm-pull-bar-wrap" style="display:none;max-width:560px;background:#e2e4e7;border-radius:6px;overflow:hidden;height:18px;margin:8px 0"><div id="rm-pull-bar" style="height:100%;width:0;background:#2271b1"></div></div>';
+	$nonce = wp_create_nonce( 'rm_pull_images' );
+	?>
+	<script>
+	(function(){
+		var go=document.getElementById('rm-pull-go'),out=document.getElementById('rm-pull-out');
+		var barW=document.getElementById('rm-pull-bar-wrap'),bar=document.getElementById('rm-pull-bar');
+		var nonce=<?php echo wp_json_encode( $nonce ); ?>, ajax=<?php echo wp_json_encode( admin_url( 'admin-ajax.php' ) ); ?>;
+		var running=false,pulled=0,failed=0;
+		function batch(offset){
+			var body=new URLSearchParams({action:'ricoman_pull_images',nonce:nonce,offset:offset});
+			fetch(ajax,{method:'POST',body:body,credentials:'same-origin'}).then(function(r){return r.json();}).then(function(j){
+				if(!j||!j.success){ out.textContent='Error — check logs.'; running=false; go.disabled=false; return; }
+				var d=j.data; pulled+=d.pulled; failed+=d.failed;
+				barW.style.display='block';
+				var pct=d.total?Math.min(100,Math.round(d.done/d.total*100)):100;
+				bar.style.width=pct+'%';
+				out.textContent='Scanned '+d.done.toLocaleString()+' of '+d.total.toLocaleString()+' — pulled '+pulled.toLocaleString()+', failed '+failed.toLocaleString()+'…';
+				if(d.next!==null){ setTimeout(function(){batch(d.next);}, 120); }
+				else { out.textContent='Done — pulled '+pulled.toLocaleString()+' missing image(s), '+failed.toLocaleString()+' could not be fetched.'; running=false; go.disabled=false; }
+			}).catch(function(){ out.textContent='Network error — click to resume.'; running=false; go.disabled=false; });
+		}
+		go.addEventListener('click',function(){ if(running)return; running=true; go.disabled=true; pulled=0; failed=0; out.textContent='Starting…'; batch(0); });
+	})();
+	</script>
+	</div>
+	<?php
+}
+
+add_action( 'wp_ajax_ricoman_pull_images', function () {
+	if ( ! current_user_can( 'manage_options' ) || ! check_ajax_referer( 'rm_pull_images', 'nonce', false ) ) {
+		wp_send_json_error();
+	}
+	$origin = function_exists( 'ricoman_live_origin' ) ? ricoman_live_origin() : '';
+	if ( ! $origin ) {
+		wp_send_json_error();
+	}
+	global $wpdb;
+	$batch  = 12;
+	$offset = max( 0, (int) ( $_POST['offset'] ?? 0 ) );
+	$home_host = strtolower( (string) wp_parse_url( home_url(), PHP_URL_HOST ) );
+
+	$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type='attachment' AND post_status<>'trash'" );
+	$ids   = $wpdb->get_col( $wpdb->prepare(
+		"SELECT ID FROM {$wpdb->posts} WHERE post_type='attachment' AND post_status<>'trash' ORDER BY ID ASC LIMIT %d OFFSET %d",
+		$batch, $offset
+	) );
+
+	require_once ABSPATH . 'wp-admin/includes/file.php';
+	require_once ABSPATH . 'wp-admin/includes/image.php';
+
+	$pulled = 0;
+	$failed = 0;
+	foreach ( $ids as $id ) {
+		$id   = (int) $id;
+		$path = get_attached_file( $id );
+		if ( ! $path ) {
+			continue;
+		}
+		// Only images, and only those actually missing on disk.
+		$ext = strtolower( pathinfo( $path, PATHINFO_EXTENSION ) );
+		if ( ! in_array( $ext, array( 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'bmp', 'tiff' ), true ) ) {
+			continue;
+		}
+		if ( file_exists( $path ) ) {
+			continue;
+		}
+		// wp_get_attachment_url is filtered to the live origin when the file is
+		// missing, giving us the source to download.
+		$src = wp_get_attachment_url( $id );
+		if ( ! $src || strtolower( (string) wp_parse_url( $src, PHP_URL_HOST ) ) === $home_host ) {
+			$failed++;
+			continue;
+		}
+		$tmp = download_url( $src, 30 );
+		if ( is_wp_error( $tmp ) ) {
+			$failed++;
+			continue;
+		}
+		wp_mkdir_p( dirname( $path ) );
+		if ( @copy( $tmp, $path ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			@unlink( $tmp ); // phpcs:ignore
+			$meta = wp_generate_attachment_metadata( $id, $path );
+			if ( $meta ) {
+				wp_update_attachment_metadata( $id, $meta );
+			}
+			$pulled++;
+		} else {
+			@unlink( $tmp ); // phpcs:ignore
+			$failed++;
+		}
+	}
+
+	$done = $offset + count( $ids );
+	wp_send_json_success( array(
+		'total'  => $total,
+		'done'   => $done,
+		'pulled' => $pulled,
+		'failed' => $failed,
+		'next'   => count( $ids ) < $batch ? null : $done,
+	) );
+} );

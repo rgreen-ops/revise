@@ -149,21 +149,29 @@
 	border-color: transparent;
 }
 
+/* Match the site's standard .btn .btn-solid (square black) so enquiry,
+   callback and newsletter buttons are all one consistent style. */
 .ricoman-lead-submit {
 	align-self: flex-start;
-	background: var(--wp--preset--color--primary);
+	display: inline-flex;
+	align-items: center;
+	gap: .8em;
+	background: var(--ink, #0b0b0c);
 	color: #fff;
-	border: 0;
-	border-radius: 999px;
-	padding: 0.85rem 1.75rem;
-	font-family: var(--wp--preset--font-family--heading);
-	font-weight: 700;
-	font-size: 1rem;
+	border: 1px solid transparent;
+	border-radius: 0;
+	padding: 1.15em 2em;
+	font-family: Poppins, sans-serif;
+	font-weight: 600;
+	font-size: .8rem;
+	letter-spacing: .06em;
+	text-transform: uppercase;
 	cursor: pointer;
+	transition: .3s ease;
 }
 
 .ricoman-lead-submit:hover {
-	background: var(--wp--preset--color--primary-dark);
+	background: var(--blue, #004899);
 }
 
 .ricoman-lead-success {
