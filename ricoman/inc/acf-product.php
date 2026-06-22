@@ -598,6 +598,28 @@ function ricoman_pf_dimension_diagrams( $pid ) {
 /** Colour/size variants (Product Variation By Color): name + main image + icon. */
 function ricoman_pf_color_variants( $pid ) {
 	$rows = array();
+	// Builder-managed finishes (Product Editor) take precedence — a clean JSON
+	// list of { name, main, icon } where images may be an ID or a URL.
+	$custom = get_post_meta( $pid, '_ricoman_finishes', true );
+	if ( $custom ) {
+		$d = json_decode( $custom, true );
+		if ( is_array( $d ) ) {
+			foreach ( $d as $r ) {
+				if ( ! is_array( $r ) ) {
+					continue;
+				}
+				$name = isset( $r['name'] ) ? (string) $r['name'] : '';
+				$main = isset( $r['main'] ) ? ricoman_pf_imgurl( $r['main'] ) : '';
+				$icon = isset( $r['icon'] ) ? ricoman_pf_imgurl( $r['icon'] ) : '';
+				if ( $name || $main || $icon ) {
+					$rows[] = array( 'name' => $name, 'main' => $main, 'icon' => $icon );
+				}
+			}
+			if ( $rows ) {
+				return $rows;
+			}
+		}
+	}
 	foreach ( array( 'product_variation_by_color', 'variation_by_color', 'product_color_variation', 'get_swatch_product_data', 'color_variant', 'product_variant_color', 'show_swatch_product_data' ) as $fname ) {
 		$v = ricoman_pf_get( $pid, $fname );
 		if ( ! is_array( $v ) || ! $v ) {
