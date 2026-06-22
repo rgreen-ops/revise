@@ -210,8 +210,40 @@ function ricoman_register_taxonomies() {
 			'rewrite'           => false,
 		)
 	);
+
+	// Specification Consultant (SPC): the person who specified / supported a
+	// project. Tag projects with their consultant; each consultant gets a public
+	// archive (/spc/<name>/) listing all their projects (taxonomy-spc.html).
+	register_taxonomy(
+		'spc',
+		'project',
+		array(
+			'labels'            => array(
+				'name'          => __( 'Consultants (SPC)', 'ricoman' ),
+				'singular_name' => __( 'Consultant', 'ricoman' ),
+				'menu_name'     => __( 'Consultants', 'ricoman' ),
+				'add_new_item'  => __( 'Add Consultant', 'ricoman' ),
+			),
+			'hierarchical'      => false,
+			'public'            => true,
+			'show_ui'           => true,
+			'show_admin_column' => true,
+			'show_in_rest'      => true,
+			'rewrite'           => array( 'slug' => 'spc', 'with_front' => false ),
+		)
+	);
 }
 add_action( 'init', 'ricoman_register_taxonomies' );
+
+// One-time rewrite flush so the new public /spc/ consultant archives resolve
+// without anyone re-saving permalinks.
+add_action( 'init', function () {
+	if ( get_option( 'ricoman_spc_rewrite_v1' ) ) {
+		return;
+	}
+	flush_rewrite_rules( false );
+	update_option( 'ricoman_spc_rewrite_v1', '1' );
+}, 11 );
 
 /**
  * Register the variant "axis" taxonomies the old data model used (wattage,
@@ -427,6 +459,25 @@ add_shortcode( 'ricoman_sector_projects', function () {
 	return '<div class="rm-section rm-sectorproj" id="projects"><div class="rm-projwide">'
 		. '<h2 class="rm-shead">Selected ' . esc_html( $term->name ) . ' projects</h2>'
 		. '<div class="rm-projgrid">' . $cards . '</div></div></div>';
+} );
+
+/** Consultant (SPC) archive header — name, intro and project count. */
+add_shortcode( 'ricoman_spc_hero', function () {
+	$term = get_queried_object();
+	if ( ! ( $term instanceof WP_Term ) ) {
+		return '';
+	}
+	$desc  = trim( (string) term_description( $term ) );
+	$count = (int) $term->count;
+	$out   = '<div class="rm-section rm-hdr rm-hdr-editorial"><div class="rm-pp-wrap rm-spc-head">';
+	$out  .= '<p class="rm-eyebrow">' . esc_html__( 'Specification Consultant', 'ricoman' ) . '</p>';
+	$out  .= '<h1 class="rm-hdr-title">' . esc_html( $term->name ) . '</h1>';
+	if ( '' !== $desc ) {
+		$out .= '<div class="rm-hdr-lead">' . wp_kses_post( wpautop( $desc ) ) . '</div>';
+	}
+	$out  .= '<p class="rm-eyebrow rm-spc-count">' . esc_html( sprintf( _n( '%d project', '%d projects', $count, 'ricoman' ), $count ) ) . '</p>';
+	$out  .= '</div></div>';
+	return $out;
 } );
 
 /** Flat text of the product names used on a project (for search). */

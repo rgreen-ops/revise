@@ -154,6 +154,20 @@ add_filter( 'the_content', function ( $content ) {
 	if ( $fr ) {
 		$out .= '<div class="rm-projhead-facts">' . $fr . '</div>';
 	}
+	// Specification consultant(s) — linked to their project archive (/spc/<name>/).
+	if ( taxonomy_exists( 'spc' ) ) {
+		$spc = get_the_terms( $pid, 'spc' );
+		if ( $spc && ! is_wp_error( $spc ) ) {
+			$links = array();
+			foreach ( $spc as $st ) {
+				$stl = get_term_link( $st );
+				$links[] = is_wp_error( $stl ) ? esc_html( $st->name ) : '<a href="' . esc_url( $stl ) . '">' . esc_html( $st->name ) . '</a>';
+			}
+			if ( $links ) {
+				$out .= '<p class="rm-projhead-spc"><span class="rm-flabel">' . esc_html__( 'Specification consultant', 'ricoman' ) . '</span> ' . implode( ', ', $links ) . '</p>';
+			}
+		}
+	}
 	$out .= '</div></div>';
 
 	// ---- Lead image: contained + rounded, never a 70vh wall ---------------
