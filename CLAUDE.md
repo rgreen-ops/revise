@@ -167,8 +167,11 @@ From Marketing's email for the new website. Status of each request:
   their variants to one parent), make `ricoman_pf_variant_table()` query variants
   across all family members, and add an **"Aperture / Type"** filter column
   (Opal / Wallwasher / Square aperture / Black louvre / White louvre /
-  Microprismatic) alongside the existing Lumens/Wattage/etc. dropdowns. Decision
-  needed: how to define family membership (recommend a shared family field).
+  Microprismatic) alongside the existing Lumens/Wattage/etc. dropdowns.
+  DECISION (confirmed): family membership via a **shared family field/taxonomy**
+  on products (tag Estrella types into it) — reusable for other ranges (Flow,
+  etc.), no variant re-linking. NOTE: this is a NEW grouping for the configure
+  table; do not confuse with the old retired "Assign Family" category ACF group.
 
 ## Lead-gen system (built — `inc/lead-gate.php`, `accounts.php`, `project-lists.php`)
 - **Download gate** (`inc/lead-gate.php` + `assets/js/lead-gate.js`): logged-out
