@@ -28,6 +28,12 @@ function ricoman_live_origin() {
 	if ( null !== $origin ) {
 		return $origin;
 	}
+	// Hard off-switch: once the old site is gone (and images are pulled local),
+	// stop the fallback ever reaching it. Set on the Pull Missing Images screen.
+	if ( get_option( 'ricoman_live_origin_off' ) ) {
+		$origin = '';
+		return $origin;
+	}
 	$live = '';
 	if ( defined( 'RICOMAN_LIVE_ORIGIN' ) ) {
 		$live = (string) RICOMAN_LIVE_ORIGIN;
@@ -189,10 +195,28 @@ add_action( 'admin_menu', function () {
 
 function ricoman_pull_images_page() {
 	$origin = function_exists( 'ricoman_live_origin' ) ? ricoman_live_origin() : '';
+	$off    = (bool) get_option( 'ricoman_live_origin_off' );
 	echo '<div class="wrap"><h1>' . esc_html__( 'Pull Missing Images', 'ricoman' ) . '</h1>';
 	echo '<p>' . esc_html__( 'Finds every image whose file is missing on this server and downloads the matching file from the live site, saving it here permanently. Run after a migration to fix broken product/gallery images without copying the whole uploads folder. Safe to re-run; it only fetches what is missing.', 'ricoman' ) . '</p>';
+
+	// Cut-the-cord toggle (always shown so you can re-enable too).
+	if ( isset( $_GET['rm_origin'] ) ) {
+		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Live-origin fallback setting updated.', 'ricoman' ) . '</p></div>';
+	}
+	$toggle = admin_url( 'admin-post.php' );
+	echo '<div class="card" style="max-width:760px;padding:6px 20px 16px;margin:14px 0">';
+	echo '<h2>' . esc_html__( 'Independence from the old site', 'ricoman' ) . '</h2>';
+	echo '<p>' . ( $off
+		? '<strong style="color:#b32d2e">' . esc_html__( 'Live-origin fallback is OFF.', 'ricoman' ) . '</strong> ' . esc_html__( 'The site never borrows images from the old domain — everything must be local.', 'ricoman' )
+		: '<strong style="color:#2271b1">' . esc_html__( 'Live-origin fallback is ON.', 'ricoman' ) . '</strong> ' . esc_html__( 'Missing images are still borrowed from the old site. Turn this OFF only once you have pulled (or copied) every image locally — otherwise missing ones will break.', 'ricoman' ) ) . '</p>';
+	echo '<form method="post" action="' . esc_url( $toggle ) . '"><input type="hidden" name="action" value="ricoman_toggle_origin">';
+	wp_nonce_field( 'ricoman_toggle_origin' );
+	echo '<input type="hidden" name="off" value="' . ( $off ? '0' : '1' ) . '">';
+	submit_button( $off ? __( 'Re-enable live-origin fallback', 'ricoman' ) : __( 'Disable live-origin fallback (cut the cord)', 'ricoman' ), $off ? 'secondary' : 'delete', 'submit', false );
+	echo '</form></div>';
+
 	if ( ! $origin ) {
-		echo '<div class="notice notice-error"><p>' . esc_html__( 'No live origin is set, so there is nowhere to pull images from. Define RICOMAN_LIVE_ORIGIN or the ricoman_live_origin option (e.g. https://ricoman.com).', 'ricoman' ) . '</p></div></div>';
+		echo '<div class="notice notice-warning"><p>' . esc_html__( 'No live origin is available (it may be turned off above), so there is nothing to pull from. Re-enable it to pull, or define RICOMAN_LIVE_ORIGIN / the ricoman_live_origin option.', 'ricoman' ) . '</p></div></div>';
 		return;
 	}
 	echo '<p>' . sprintf( esc_html__( 'Pulling from: %s', 'ricoman' ), '<code>' . esc_html( $origin ) . '</code>' ) . '</p>';
@@ -225,6 +249,19 @@ function ricoman_pull_images_page() {
 	</div>
 	<?php
 }
+
+add_action( 'admin_post_ricoman_toggle_origin', function () {
+	if ( ! current_user_can( 'manage_options' ) || ! check_admin_referer( 'ricoman_toggle_origin' ) ) {
+		wp_die( esc_html__( 'Not allowed.', 'ricoman' ) );
+	}
+	if ( ! empty( $_POST['off'] ) ) {
+		update_option( 'ricoman_live_origin_off', 1 );
+	} else {
+		delete_option( 'ricoman_live_origin_off' );
+	}
+	wp_safe_redirect( add_query_arg( array( 'page' => 'ricoman-pull-images', 'rm_origin' => 1 ), admin_url( 'admin.php' ) ) );
+	exit;
+} );
 
 add_action( 'wp_ajax_ricoman_pull_images', function () {
 	if ( ! current_user_can( 'manage_options' ) || ! check_ajax_referer( 'rm_pull_images', 'nonce', false ) ) {

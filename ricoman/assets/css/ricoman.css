@@ -1529,7 +1529,13 @@ a.rm-projhead-sectorlink:hover{color:var(--ink)}
   /* Shrink the main image so it + the thumbnail row fit in the fold. flex:0 0 auto
      so the explicit height holds — in this column layout flex:1 (basis 0) would
      collapse the viz now that the image is absolutely positioned. */
-  .rm-pdp-gallery .rm-cfg-viz{flex:0 0 auto;height:min(40vh,360px)}}
+  .rm-pdp-gallery .rm-cfg-viz{flex:0 0 auto;height:min(52vh,440px)}}
+/* Mobile: let the product gallery use almost the full screen width + a bigger
+   image (less side padding, smaller internal padding). */
+@media(max-width:600px){
+  .rm-cfghero{padding-inline:12px}
+  .rm-pdp-gallery .rm-cfg-img{padding:1.5%}
+}
 .rm-gthumbs .rm-cfg-thumb.on{border-color:var(--ink);border-width:2px}
 .rm-gthumbs .rm-cfg-thumb img{width:100%;height:100%;object-fit:contain}
 @media(max-width:900px){.rm-pdp .rm-pdp-gallery{position:static}}
