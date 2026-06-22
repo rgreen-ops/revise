@@ -488,40 +488,36 @@ function ricoman_first_term_name( $pid, $taxes ) {
 	return '';
 }
 
-/** Display image for a product: featured image, else first ACF gallery image. */
+/** Display image for a product: ACF gallery image (what the page shows), else featured. */
 function ricoman_product_img( $pid ) {
-	$tid = get_post_thumbnail_id( $pid );
-	// Only use the featured image if its file is actually on disk. Otherwise a
-	// missing thumbnail makes cards (e.g. the accessories carousel) fall back to
-	// the placeholder while the product's OWN page shows the right gallery image —
-	// so cards looked wrong/identical. Falling through to the gallery keeps them
-	// consistent with the product page.
-	if ( $tid ) {
-		$tpath = get_attached_file( $tid );
-		if ( $tpath && file_exists( $tpath ) ) {
-			$webp = function_exists( 'ricoman_webp_url' ) ? ricoman_webp_url( $tid ) : '';
-			if ( $webp ) {
-				return $webp;
-			}
-			$img = wp_get_attachment_image_url( $tid, 'large' );
-			if ( $img ) {
-				return $img;
+	// Prefer the ACF gallery image — that's exactly what the product PAGE shows,
+	// and it resolves reliably (ricoman_pf_imgurl re-hosts and drops missing
+	// sub-sizes to the original). Using the featured image's "large" size first
+	// made cards 404 -> office placeholder while the page itself looked fine,
+	// because migrated products often have no generated "large" file on disk.
+	if ( function_exists( 'ricoman_pf_get' ) && function_exists( 'ricoman_pf_imgurl' ) ) {
+		$g     = ricoman_pf_get( $pid, 'product_gallery_image' );
+		$first = is_array( $g ) ? reset( $g ) : $g;
+		if ( $first ) {
+			$u = ricoman_pf_imgurl( $first );
+			if ( $u ) {
+				return $u;
 			}
 		}
 	}
-	// Real ricoman.com products keep images in the ACF gallery, not the thumbnail.
-	if ( function_exists( 'ricoman_pf_get' ) && function_exists( 'ricoman_pf_imgurl' ) ) {
-		$g = ricoman_pf_get( $pid, 'product_gallery_image' );
-		if ( is_array( $g ) && ! empty( $g ) ) {
-			$u = ricoman_pf_imgurl( reset( $g ) );
-			if ( $u ) {
-				return $u;
-			}
-		} elseif ( $g ) {
-			$u = ricoman_pf_imgurl( $g );
-			if ( $u ) {
-				return $u;
-			}
+	// Fall back to the featured image (newer, theme-created products).
+	$tid = get_post_thumbnail_id( $pid );
+	if ( $tid ) {
+		$webp = function_exists( 'ricoman_webp_url' ) ? ricoman_webp_url( $tid ) : '';
+		if ( $webp ) {
+			return $webp;
+		}
+		$img = wp_get_attachment_image_url( $tid, 'large' );
+		if ( ! $img ) {
+			$img = wp_get_attachment_url( $tid );
+		}
+		if ( $img ) {
+			return $img;
 		}
 	}
 	return '';
