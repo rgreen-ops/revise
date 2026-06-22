@@ -521,6 +521,59 @@ function ricoman_product_img( $pid ) {
 }
 
 /**
+ * Visual search results: an image grid of matching products/projects/news/pages,
+ * each with the right image (product gallery / project photo / featured image),
+ * a type or category label and the title. Replaces the plain title+excerpt list.
+ * [ricoman_search_results]
+ */
+add_shortcode( 'ricoman_search_results', function () {
+	$s     = get_search_query();
+	$paged = max( 1, (int) get_query_var( 'paged' ), (int) get_query_var( 'page' ) );
+	$q     = new WP_Query( array(
+		'post_type'      => array_values( array_filter( array( 'product', 'project', 'news', 'page', 'post' ), 'post_type_exists' ) ),
+		's'              => $s,
+		'post_status'    => 'publish',
+		'posts_per_page' => 24,
+		'paged'          => $paged,
+	) );
+	if ( ! $q->have_posts() ) {
+		return '<p class="rm-search-none">' . esc_html( sprintf( __( 'No results for “%s”. Try a different term.', 'ricoman' ), $s ) ) . '</p>';
+	}
+	$labels = array( 'product' => __( 'Product', 'ricoman' ), 'project' => __( 'Project', 'ricoman' ), 'news' => __( 'News', 'ricoman' ), 'page' => __( 'Page', 'ricoman' ), 'post' => __( 'Article', 'ricoman' ) );
+	$cards  = '';
+	while ( $q->have_posts() ) {
+		$q->the_post();
+		$pid = get_the_ID();
+		$pt  = get_post_type( $pid );
+		if ( 'product' === $pt && function_exists( 'ricoman_product_img' ) ) {
+			$img = ricoman_product_img( $pid );
+		} elseif ( 'project' === $pt && function_exists( 'ricoman_project_img' ) ) {
+			$img = ricoman_project_img( $pid );
+		} else {
+			$img = get_the_post_thumbnail_url( $pid, 'large' );
+		}
+		if ( $img && function_exists( 'ricoman_image_usable' ) && ! ricoman_image_usable( $img ) ) {
+			$img = '';
+		}
+		$label = '';
+		if ( 'product' === $pt && function_exists( 'ricoman_first_term_name' ) ) {
+			$label = ricoman_first_term_name( $pid, array( 'product-cat', 'product_cat' ) );
+		}
+		if ( ! $label ) {
+			$label = isset( $labels[ $pt ] ) ? $labels[ $pt ] : '';
+		}
+		$cards .= '<a class="rm-projcard rm-searchcard' . ( $img ? '' : ' rm-projcard-noimg' ) . '" href="' . esc_url( get_permalink() ) . '"' . ( $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '' ) . '>'
+			. '<span class="rm-projcard-ov">'
+			. ( $label ? '<span class="rm-eyebrow">' . esc_html( $label ) . '</span>' : '' )
+			. '<span class="rm-projcard-t">' . esc_html( get_the_title() ) . '</span></span></a>';
+	}
+	$max = (int) $q->max_num_pages;
+	wp_reset_postdata();
+	$pag = $max > 1 ? paginate_links( array( 'total' => $max, 'current' => $paged, 'type' => 'list', 'prev_text' => '‹', 'next_text' => '›' ) ) : '';
+	return '<div class="rm-searchgrid">' . $cards . '</div>' . ( $pag ? '<nav class="rm-search-pag">' . $pag . '</nav>' : '' );
+} );
+
+/**
  * The real product catalogue: category quick-nav + faceted filter bar (light
  * output / power sliders + feature tick-boxes) + every product grouped by
  * category. Powers the /products/ archive. [ricoman_catalogue]
