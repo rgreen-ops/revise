@@ -157,6 +157,19 @@ From Marketing's email for the new website. Status of each request:
   have cut-out data (so it won't show on pendants/linear etc.). Same UI/behaviour
   as the lumens/watts sliders.
 
+## Configure-table enhancements — TRACKED (backlog)
+- [ ] **Whole-family configure table (Estrella)**: the "Configure Your Product"
+  table currently loads only `variant-product` posts where `parent_product` =
+  THIS product (e.g. Estrella Pro Opal). Marketing want ONE table spanning the
+  whole Estrella range — Opal, Wallwasher, Square aperture, Black louvre, White
+  louvre, Microprismatic. Plan: group the Estrella member products into a
+  "configure family" (shared family key/taxonomy on the products, or re-link all
+  their variants to one parent), make `ricoman_pf_variant_table()` query variants
+  across all family members, and add an **"Aperture / Type"** filter column
+  (Opal / Wallwasher / Square aperture / Black louvre / White louvre /
+  Microprismatic) alongside the existing Lumens/Wattage/etc. dropdowns. Decision
+  needed: how to define family membership (recommend a shared family field).
+
 ## Lead-gen system (built — `inc/lead-gate.php`, `accounts.php`, `project-lists.php`)
 - **Download gate** (`inc/lead-gate.php` + `assets/js/lead-gate.js`): logged-out
   visitors clicking any doc download get a popup (name + email + customer type, or
