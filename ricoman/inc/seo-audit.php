@@ -97,6 +97,10 @@ function ricoman_seo_audit_collect() {
 }
 
 add_action( 'admin_menu', function () {
+	// Hidden when a dedicated SEO plugin is active (Yoast does its own analysis).
+	if ( function_exists( 'ricoman_seo_plugin_active' ) && ricoman_seo_plugin_active() ) {
+		return;
+	}
 	add_submenu_page(
 		'ricoman-hub',
 		__( 'SEO Audit', 'ricoman' ),

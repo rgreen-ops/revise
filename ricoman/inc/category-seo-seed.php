@@ -175,6 +175,12 @@ add_shortcode( 'ricoman_products_seo', function () {
 /* ------------------------------------------------------------------ admin -- */
 
 add_action( 'admin_menu', function () {
+	// Hidden when a dedicated SEO plugin (Yoast etc.) is active — avoids a
+	// confusing second SEO area; the category intro/FAQ copy is editable per
+	// category in the term editor regardless.
+	if ( function_exists( 'ricoman_seo_plugin_active' ) && ricoman_seo_plugin_active() ) {
+		return;
+	}
 	add_submenu_page(
 		'ricoman-hub',
 		__( 'Category SEO', 'ricoman' ),

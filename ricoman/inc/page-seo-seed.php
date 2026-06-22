@@ -112,8 +112,13 @@ function ricoman_page_seo_seed_all() {
 	return $written;
 }
 
-/** Admin page: Ricoman → Page SEO. */
+/** Admin page: Ricoman → Page SEO. Hidden when a dedicated SEO plugin (Yoast,
+ * Rank Math, etc.) is active — that plugin owns titles/descriptions, so this
+ * parallel screen would only confuse the team (and its copy wouldn't be used). */
 add_action( 'admin_menu', function () {
+	if ( function_exists( 'ricoman_seo_plugin_active' ) && ricoman_seo_plugin_active() ) {
+		return;
+	}
 	add_submenu_page(
 		'ricoman-hub',
 		__( 'Page SEO', 'ricoman' ),
