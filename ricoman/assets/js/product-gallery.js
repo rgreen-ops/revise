@@ -10,6 +10,28 @@
 ( function () {
 	'use strict';
 
+	// Shared: original-image candidates for a failed "-rmwebp.webp" twin (WebP
+	// generation is dormant while the disk is full, so many twins don't exist).
+	function rmOrigAlts( url ) {
+		if ( ! url || ! /-rmwebp\.webp/i.test( url ) ) { return []; }
+		return [ url.replace( /-rmwebp\.webp/i, '.png' ), url.replace( /-rmwebp\.webp/i, '.jpg' ), url.replace( /-rmwebp\.webp/i, '.jpeg' ) ];
+	}
+	// Set an <img> src with graceful fallback: try the URL, then its original
+	// (non-webp) candidates, before the placeholder — so clicking a thumbnail whose
+	// webp twin is missing shows the REAL photo, not the ceiling placeholder.
+	function rmSetImg( im, url ) {
+		if ( ! im || ! url ) { return; }
+		var chain = [ url ].concat( rmOrigAlts( url ) ), i = 0;
+		im.onerror = function () {
+			i++;
+			if ( i < chain.length ) { im.src = chain[ i ]; return; }
+			im.onerror = null;
+			var PH = ( window.rmGallery && window.rmGallery.ph ) || '';
+			if ( PH ) { im.src = PH; }
+		};
+		im.src = chain[0];
+	}
+
 	/* ---- Sticky header: solid bar once scrolled ---- */
 	( function () {
 		var hdr = document.querySelector( 'header.site' ) || document.querySelector( '.ricoman-site-header' );
@@ -31,7 +53,7 @@
 		var btn = e.target.closest( '.rm-cfg-thumb, .rm-cv-sw' );
 		if ( btn ) {
 			var wrap = wrapOf( btn ), im = mainImg( wrap );
-			if ( btn.dataset.img && im ) { im.src = btn.dataset.img; }
+			if ( btn.dataset.img && im ) { rmSetImg( im, btn.dataset.img ); }
 			var sel = btn.classList.contains( 'rm-cv-sw' ) ? '.rm-cv-sw' : '.rm-cfg-thumb';
 			var group = btn.parentNode;
 			group.querySelectorAll( sel ).forEach( function ( x ) { x.classList.remove( 'on' ); } );
