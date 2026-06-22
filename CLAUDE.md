@@ -158,7 +158,14 @@ From Marketing's email for the new website. Status of each request:
   as the lumens/watts sliders.
 
 ## Configure-table enhancements — TRACKED (backlog)
-- [ ] **Whole-family configure table (Estrella)**: the "Configure Your Product"
+- [x] **Whole-family configure table (Estrella)** — DONE. New `config-family`
+  taxonomy (Products → Configure Families); tag member products into one family.
+  `ricoman_pf_variant_table()` then loads variants across all family members and
+  adds a **Type** column + filter drop-down (labels auto-derived from member
+  titles with the shared prefix stripped, e.g. Opal / Wallwasher / Square
+  aperture / Black louvre / White louvre / Microprismatic). Setup needed by the
+  team: create the family term and assign the products. Original plan below:
+- [ ] (superseded) **Whole-family configure table (Estrella)**: the "Configure Your Product"
   table currently loads only `variant-product` posts where `parent_product` =
   THIS product (e.g. Estrella Pro Opal). Marketing want ONE table spanning the
   whole Estrella range — Opal, Wallwasher, Square aperture, Black louvre, White
