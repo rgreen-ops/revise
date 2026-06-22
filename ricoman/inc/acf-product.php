@@ -879,6 +879,22 @@ function ricoman_variant_columns_for( $pid ) {
 }
 
 /**
+ * Column labels whose FILTER dropdown is hidden (the column data still shows in
+ * the table). Per-product `_ricoman_filter_off`, else global option, else none.
+ */
+function ricoman_variant_filters_off( $pid ) {
+	if ( ! empty( $GLOBALS['rm_pe_preview'] ) && (int) $GLOBALS['rm_pe_preview']['pid'] === (int) $pid && isset( $GLOBALS['rm_pe_preview']['filteroff'] ) && is_array( $GLOBALS['rm_pe_preview']['filteroff'] ) ) {
+		return $GLOBALS['rm_pe_preview']['filteroff'];
+	}
+	$per = get_post_meta( $pid, '_ricoman_filter_off', true );
+	if ( is_array( $per ) ) {
+		return $per;
+	}
+	$glob = get_option( 'ricoman_spec_filters_off' );
+	return is_array( $glob ) ? $glob : array();
+}
+
+/**
  * Configure / order-codes table, built from the linked `variant-product` posts
  * (ACF `parent_product` == this product). Shows every spec column that actually
  * has data across the variants — meta fields AND axis taxonomies (Lumens,
@@ -985,8 +1001,12 @@ function ricoman_pf_variant_table( $pid ) {
 			}
 		}
 	}
-	$filterable = array();
+	$filters_off = ricoman_variant_filters_off( $pid );
+	$filterable  = array();
 	foreach ( $cols as $label ) {
+		if ( in_array( $label, $filters_off, true ) ) {
+			continue; // column data still shows; just no filter dropdown.
+		}
 		if ( ! empty( $distinct[ $label ] ) && count( $distinct[ $label ] ) > 1 ) {
 			$vals = array_keys( $distinct[ $label ] );
 			natcasesort( $vals );
