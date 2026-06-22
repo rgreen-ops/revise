@@ -89,6 +89,9 @@ function ricoman_cat_img( $term_id, $which = 'insitu', $tax = '' ) {
 /** One image picker row (label + preview + choose/remove buttons + hidden id). */
 function ricoman_cat_img_field( $key, $label, $help, $value = 0 ) {
 	$url = $value ? wp_get_attachment_image_url( (int) $value, 'medium' ) : '';
+	if ( $value && ! $url ) { // migrated images may have no "medium" sub-size on disk.
+		$url = wp_get_attachment_url( (int) $value );
+	}
 	ob_start();
 	?>
 	<div class="rm-catimg-field" style="margin:6px 0 14px">
@@ -136,11 +139,11 @@ add_action( 'admin_init', function () {
 	$tax = ricoman_cat_tax();
 	add_action( "{$tax}_add_form_fields", function () {
 		echo '<div class="form-field">';
-		echo wp_kses_post( ricoman_cat_img_field( '_rm_cat_img_insitu', 'In-situ image (lifestyle)', 'Shown by default on the Products page tiles.' ) );
-		echo wp_kses_post( ricoman_cat_img_field( '_rm_cat_img_studio', 'Studio image (on white)', 'Shown when the visitor toggles to “Studio”.' ) );
-		echo wp_kses_post( ricoman_cat_order_field( 0 ) );
-		echo wp_kses_post( ricoman_cat_text_field( '_rm_cat_seo_intro', 'SEO intro (above products)', 'Short keyword-rich copy shown under the category heading. Basic HTML allowed.', '', 4 ) );
-		echo wp_kses_post( ricoman_cat_text_field( '_rm_cat_seo_body', 'SEO body / FAQ (below products)', 'Longer description or FAQ shown beneath the product grid. Basic HTML allowed.', '', 8 ) );
+		echo ricoman_cat_img_field( '_rm_cat_img_insitu', 'In-situ image (lifestyle)', 'Shown by default on the Products page tiles.' );
+		echo ricoman_cat_img_field( '_rm_cat_img_studio', 'Studio image (on white)', 'Shown when the visitor toggles to “Studio”.' );
+		echo ricoman_cat_order_field( 0 );
+		echo ricoman_cat_text_field( '_rm_cat_seo_intro', 'SEO intro (above products)', 'Short keyword-rich copy shown under the category heading. Basic HTML allowed.', '', 4 );
+		echo ricoman_cat_text_field( '_rm_cat_seo_body', 'SEO body / FAQ (below products)', 'Longer description or FAQ shown beneath the product grid. Basic HTML allowed.', '', 8 );
 		echo '</div>';
 	} );
 
@@ -149,17 +152,17 @@ add_action( 'admin_init', function () {
 		$insitu = (int) get_term_meta( $term->term_id, '_rm_cat_img_insitu', true );
 		$studio = (int) get_term_meta( $term->term_id, '_rm_cat_img_studio', true );
 		echo '<tr class="form-field"><th scope="row">Category images</th><td>';
-		echo wp_kses_post( ricoman_cat_img_field( '_rm_cat_img_insitu', 'In-situ image (lifestyle)', 'Shown by default on the Products page tiles.', $insitu ) );
-		echo wp_kses_post( ricoman_cat_img_field( '_rm_cat_img_studio', 'Studio image (on white)', 'Shown when the visitor toggles to “Studio”.', $studio ) );
+		echo ricoman_cat_img_field( '_rm_cat_img_insitu', 'In-situ image (lifestyle)', 'Shown by default on the Products page tiles.', $insitu );
+		echo ricoman_cat_img_field( '_rm_cat_img_studio', 'Studio image (on white)', 'Shown when the visitor toggles to “Studio”.', $studio );
 		echo '</td></tr>';
 
 		echo '<tr class="form-field"><th scope="row">Display order</th><td>';
-		echo wp_kses_post( ricoman_cat_order_field( ricoman_cat_order( $term->term_id ) ) );
+		echo ricoman_cat_order_field( ricoman_cat_order( $term->term_id ) );
 		echo '</td></tr>';
 
 		echo '<tr class="form-field"><th scope="row">SEO copy</th><td>';
-		echo wp_kses_post( ricoman_cat_text_field( '_rm_cat_seo_intro', 'SEO intro (above products)', 'Short keyword-rich copy shown under the category heading. Basic HTML allowed.', ricoman_cat_seo( $term->term_id, 'intro' ), 4 ) );
-		echo wp_kses_post( ricoman_cat_text_field( '_rm_cat_seo_body', 'SEO body / FAQ (below products)', 'Longer description or FAQ shown beneath the product grid. Basic HTML allowed.', ricoman_cat_seo( $term->term_id, 'body' ), 8 ) );
+		echo ricoman_cat_text_field( '_rm_cat_seo_intro', 'SEO intro (above products)', 'Short keyword-rich copy shown under the category heading. Basic HTML allowed.', ricoman_cat_seo( $term->term_id, 'intro' ), 4 );
+		echo ricoman_cat_text_field( '_rm_cat_seo_body', 'SEO body / FAQ (below products)', 'Longer description or FAQ shown beneath the product grid. Basic HTML allowed.', ricoman_cat_seo( $term->term_id, 'body' ), 8 );
 		echo '</td></tr>';
 	} );
 } );
