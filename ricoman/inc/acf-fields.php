@@ -176,3 +176,23 @@ add_filter( 'acf/location/rule_match/taxonomy_term_child', function ( $match, $r
 	return ( '!=' === $rule['operator'] ) ? ( $tax !== $rule['value'] ) : ( $tax === $rule['value'] );
 }, 10, 3 );
 
+
+/**
+ * Retire the old "Family" category back-end fields. The family page system is
+ * not used in the new theme, but its migrated ACF groups still rendered on the
+ * Product Category editor — and several were REQUIRED, so admins couldn't even
+ * save a category. Mark these groups inactive so they don't render or validate
+ * anywhere. (Data is left in place; nothing is deleted.)
+ */
+add_filter( 'acf/load_field_group', function ( $group ) {
+	$retired = array(
+		'group_64b79bcd3cb18', // Assign Family To This Category
+		'group_5c4efdcf36ff8', // Category Image (migrated; the theme uses its own Studio/In-situ images)
+		'group_644774ef785b3', // Family category fields (banner, intro, repeater, etc.)
+	);
+	if ( isset( $group['key'] ) && in_array( $group['key'], $retired, true ) ) {
+		$group['active']   = 0;
+		$group['location'] = array();
+	}
+	return $group;
+} );
