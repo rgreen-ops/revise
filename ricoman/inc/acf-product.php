@@ -901,10 +901,76 @@ function ricoman_variant_filters_off( $pid ) {
  * Wattage, Colour Temp, IP, CRI, Beam Angle, …) — horizontally scrollable, like
  * the old site's Configure Your Product table. No pricing.
  */
+/** Product IDs sharing a configure-family with $pid (includes $pid). */
+function ricoman_pf_family_products( $pid ) {
+	if ( ! taxonomy_exists( 'config-family' ) ) {
+		return array( (int) $pid );
+	}
+	$terms = get_the_terms( $pid, 'config-family' );
+	if ( ! $terms || is_wp_error( $terms ) ) {
+		return array( (int) $pid );
+	}
+	$ids = get_posts( array(
+		'post_type'      => 'product',
+		'post_status'    => 'publish',
+		'posts_per_page' => 200,
+		'fields'         => 'ids',
+		'no_found_rows'  => true,
+		'orderby'        => 'menu_order title',
+		'order'          => 'ASC',
+		'tax_query'      => array( array( 'taxonomy' => 'config-family', 'field' => 'term_id', 'terms' => wp_list_pluck( $terms, 'term_id' ) ) ),
+	) );
+	$ids = array_map( 'intval', (array) $ids );
+	if ( ! in_array( (int) $pid, $ids, true ) ) {
+		$ids[] = (int) $pid;
+	}
+	return $ids ? $ids : array( (int) $pid );
+}
+
+/** Short "Type" labels for family members: titles with the shared leading words stripped. */
+function ricoman_pf_type_labels( $ids ) {
+	$titles = array();
+	foreach ( $ids as $id ) {
+		$titles[ (int) $id ] = get_the_title( $id );
+	}
+	if ( count( $titles ) < 2 ) {
+		return $titles;
+	}
+	$common = null; // longest common leading words across every title.
+	foreach ( $titles as $t ) {
+		$w = preg_split( '/\s+/', trim( (string) $t ) );
+		if ( null === $common ) {
+			$common = $w;
+			continue;
+		}
+		$n = 0;
+		while ( $n < count( $common ) && $n < count( $w ) && 0 === strcasecmp( $common[ $n ], $w[ $n ] ) ) {
+			$n++;
+		}
+		$common = array_slice( $common, 0, $n );
+	}
+	$strip = $common ? count( $common ) : 0;
+	$out   = array();
+	foreach ( $titles as $id => $t ) {
+		$w     = preg_split( '/\s+/', trim( (string) $t ) );
+		$label = trim( implode( ' ', array_slice( $w, $strip ) ) );
+		$out[ $id ] = ( '' !== $label ) ? $label : (string) $t; // never blank.
+	}
+	return $out;
+}
+
 function ricoman_pf_variant_table( $pid ) {
 	if ( ! post_type_exists( 'variant-product' ) ) {
 		return '';
 	}
+	// A product can belong to a "configure family" (e.g. all Estrella apertures);
+	// when it does, the table spans every member and gains a "Type" filter.
+	$family_ids  = function_exists( 'ricoman_pf_family_products' ) ? ricoman_pf_family_products( $pid ) : array( (int) $pid );
+	$is_family   = count( $family_ids ) > 1;
+	$type_labels = $is_family ? ricoman_pf_type_labels( $family_ids ) : array();
+	$meta_query  = $is_family
+		? array( array( 'key' => 'parent_product', 'value' => array_map( 'strval', $family_ids ), 'compare' => 'IN' ) )
+		: array( array( 'key' => 'parent_product', 'value' => (string) $pid ) );
 	$q = new WP_Query( array(
 		'post_type'      => 'variant-product',
 		'post_status'    => 'publish',
@@ -914,7 +980,7 @@ function ricoman_pf_variant_table( $pid ) {
 		'no_found_rows'  => true,
 		'orderby'        => 'menu_order title',
 		'order'          => 'ASC',
-		'meta_query'     => array( array( 'key' => 'parent_product', 'value' => (string) $pid ) ),
+		'meta_query'     => $meta_query,
 	) );
 	if ( ! $q->have_posts() ) {
 		return '';
@@ -963,6 +1029,11 @@ function ricoman_pf_variant_table( $pid ) {
 		foreach ( $pairs as $label => $val ) {
 			$has_col[ $label ] = true;
 		}
+		$vtype = '';
+		if ( $is_family ) {
+			$vpar  = (int) ricoman_pf_get( $vid, 'parent_product' );
+			$vtype = isset( $type_labels[ $vpar ] ) ? $type_labels[ $vpar ] : '';
+		}
 		$variants[] = array(
 			'code'  => (string) $code,
 			'desc'  => wp_strip_all_tags( (string) $desc ),
@@ -970,6 +1041,7 @@ function ricoman_pf_variant_table( $pid ) {
 			'ldt'   => ricoman_pf_fileurl( ricoman_pf_get( $vid, 'download_led' ) ),
 			'ds'    => function_exists( 'ricoman_variant_datasheet_url' ) ? ricoman_variant_datasheet_url( $vid, $pid ) : $datasheet,
 			'pairs' => $pairs,
+			'type'  => $vtype,
 		);
 	}
 	wp_reset_postdata();
@@ -1013,9 +1085,29 @@ function ricoman_pf_variant_table( $pid ) {
 			$filterable[ $label ] = array_values( $vals );
 		}
 	}
+	// Family "Type" filter (e.g. Estrella: Opal / Wallwasher / Square aperture …).
+	$type_vals = array();
+	if ( $is_family ) {
+		foreach ( $variants as $v ) {
+			if ( ! empty( $v['type'] ) ) {
+				$type_vals[ $v['type'] ] = true;
+			}
+		}
+	}
+	$has_type = count( $type_vals ) > 1;
+
 	$fbar = '';
-	if ( $filterable ) {
+	if ( $filterable || $has_type ) {
 		$fbar = '<div class="rm-vt-filters">';
+		if ( $has_type ) {
+			$tv   = array_keys( $type_vals );
+			natcasesort( $tv );
+			$opts = '<option value="">Type: All</option>';
+			foreach ( $tv as $vv ) {
+				$opts .= '<option value="' . esc_attr( $vv ) . '">' . esc_html( $vv ) . '</option>';
+			}
+			$fbar .= '<select class="rm-vt-filter" data-col="type" aria-label="Filter by type">' . $opts . '</select>';
+		}
 		foreach ( $filterable as $label => $vals ) {
 			$opts = '<option value="">' . esc_html( $label ) . ': All</option>';
 			foreach ( $vals as $vv ) {
@@ -1027,6 +1119,9 @@ function ricoman_pf_variant_table( $pid ) {
 	}
 
 	$head = '<th></th><th>Part Code</th><th>Description</th>';
+	if ( $has_type ) {
+		$head .= '<th>Type</th>';
+	}
 	foreach ( $cols as $label ) {
 		$head .= '<th>' . esc_html( $label ) . '</th>';
 	}
@@ -1037,6 +1132,9 @@ function ricoman_pf_variant_table( $pid ) {
 		$timg    = $v['img'] ? $v['img'] : $parent_img;
 		$thumb   = $timg ? '<img src="' . esc_url( $timg ) . '" alt="" loading="lazy"' . $onerr . '>' : '';
 		$rowattr = '';
+		if ( $has_type ) {
+			$rowattr .= ' data-f-type="' . esc_attr( $v['type'] ) . '"';
+		}
 		foreach ( $filterable as $label => $vals ) {
 			$rowattr .= ' data-f-' . $slugify( $label ) . '="' . esc_attr( isset( $v['pairs'][ $label ] ) ? $v['pairs'][ $label ] : '' ) . '"';
 		}
@@ -1054,7 +1152,8 @@ function ricoman_pf_variant_table( $pid ) {
 		) ) ) . '"';
 		$rows .= '<tr class="vt-row' . ( $i >= 10 ? ' rm-vt-hide' : '' ) . '" data-vt="' . $i . '"' . $rowattr . ' tabindex="0"><td class="vt-thumb">' . $thumb . '</td>'
 			. '<td class="vt-code">' . esc_html( $v['code'] ) . '</td>'
-			. '<td class="vt-desc">' . esc_html( $v['desc'] ) . '</td>';
+			. '<td class="vt-desc">' . esc_html( $v['desc'] ) . '</td>'
+			. ( $has_type ? '<td class="vt-spec">' . esc_html( '' !== $v['type'] ? $v['type'] : '–' ) . '</td>' : '' );
 		foreach ( $cols as $label ) {
 			$cell = isset( $v['pairs'][ $label ] ) ? $v['pairs'][ $label ] : '–';
 			$rows .= '<td class="vt-spec">' . esc_html( $cell ) . '</td>';

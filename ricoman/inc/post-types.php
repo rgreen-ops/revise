@@ -187,6 +187,29 @@ function ricoman_register_taxonomies() {
 			'rewrite'           => array( 'slug' => 'sector', 'with_front' => false ),
 		)
 	);
+
+	// Configure family: groups related products (e.g. all Estrella apertures —
+	// Opal, Wallwasher, Square aperture, Black/White louvre, Microprismatic) so
+	// their "Configure Your Product" table can span the whole range with a Type
+	// drop-down. Tag every member product into one family term.
+	register_taxonomy(
+		'config-family',
+		'product',
+		array(
+			'labels'            => array(
+				'name'          => __( 'Configure Families', 'ricoman' ),
+				'singular_name' => __( 'Configure Family', 'ricoman' ),
+				'menu_name'     => __( 'Configure Families', 'ricoman' ),
+				'add_new_item'  => __( 'Add Configure Family', 'ricoman' ),
+			),
+			'hierarchical'      => true,
+			'public'            => false,
+			'show_ui'           => true,
+			'show_admin_column' => true,
+			'show_in_rest'      => true,
+			'rewrite'           => false,
+		)
+	);
 }
 add_action( 'init', 'ricoman_register_taxonomies' );
 
