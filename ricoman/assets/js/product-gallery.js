@@ -426,14 +426,35 @@
 	if ( document.readyState !== 'loading' ) { rmNewsInit(); } else { document.addEventListener( 'DOMContentLoaded', rmNewsInit ); }
 
 	/* ---- Variant spec popup ---- */
+	function vtEsc( s ) {
+		var d = document.createElement( 'div' );
+		d.textContent = ( s == null ) ? '' : String( s );
+		return d.innerHTML;
+	}
 	function openVariant( row ) {
 		var vp = row.closest( '.rm-vp' ); if ( ! vp ) { return; }
-		var idx = row.getAttribute( 'data-vt' );
-		var detail = vp.querySelector( '.rm-vt-details .vt-detail[data-vt="' + idx + '"]' );
 		var modal = vp.querySelector( '.rm-vt-modal' );
 		var body = modal && modal.querySelector( '.rm-vt-body' );
-		if ( ! detail || ! modal || ! body ) { return; }
-		body.innerHTML = detail.innerHTML;
+		if ( ! modal || ! body ) { return; }
+		var d; try { d = JSON.parse( row.getAttribute( 'data-d' ) || '{}' ); } catch ( e ) { d = {}; }
+		// Detail panel is built here (client-side) from the row's compact spec data.
+		var img = d.img ? '<div class="vt-d-img"><img src="' + encodeURI( d.img ) + '" alt="' + vtEsc( d.code ) + '"></div>' : '';
+		var html = '<div class="vt-detail"><div class="vt-d-head">' + img
+			+ '<div class="vt-d-head-t"><p class="vt-d-eyebrow">Order code</p><h3 class="vt-d-code">' + vtEsc( d.code ) + '</h3>'
+			+ ( d.desc ? '<p class="vt-d-desc">' + vtEsc( d.desc ) + '</p>' : '' ) + '</div></div>';
+		var pairs = d.pairs || {}, keys = Object.keys( pairs );
+		if ( keys.length ) {
+			html += '<dl class="vt-d-specs">';
+			keys.forEach( function ( k ) { html += '<div class="vt-d-row"><dt>' + vtEsc( k ) + '</dt><dd>' + vtEsc( pairs[ k ] ) + '</dd></div>'; } );
+			html += '</dl>';
+		} else {
+			html += '<p class="vt-d-empty">No specification recorded for this variant yet.</p>';
+		}
+		html += '<div class="vt-d-acts">'
+			+ ( d.ldt ? '<a class="btn btn-line-d" href="' + encodeURI( d.ldt ) + '" target="_blank" rel="noopener">LDT file ↓</a>' : '' )
+			+ ( d.ds ? '<a class="btn btn-solid" href="' + encodeURI( d.ds ) + '" target="_blank" rel="noopener">Download datasheet ↓</a>' : '' )
+			+ '</div></div>';
+		body.innerHTML = html;
 		modal.hidden = false;
 		document.body.style.overflow = 'hidden';
 	}

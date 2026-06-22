@@ -1012,8 +1012,7 @@ function ricoman_pf_variant_table( $pid ) {
 	}
 	$head .= '<th>LDT</th><th>Datasheet</th>';
 
-	$rows    = '';
-	$details = '';
+	$rows = '';
 	foreach ( $variants as $i => $v ) {
 		$timg    = $v['img'] ? $v['img'] : $parent_img;
 		$thumb   = $timg ? '<img src="' . esc_url( $timg ) . '" alt="" loading="lazy"' . $onerr . '>' : '';
@@ -1021,6 +1020,18 @@ function ricoman_pf_variant_table( $pid ) {
 		foreach ( $filterable as $label => $vals ) {
 			$rowattr .= ' data-f-' . $slugify( $label ) . '="' . esc_attr( isset( $v['pairs'][ $label ] ) ? $v['pairs'][ $label ] : '' ) . '"';
 		}
+		// Full spec carried as compact JSON; the detail modal is built client-side
+		// on row click. Pre-rendering a ~30-row detail panel for every variant added
+		// thousands of hidden DOM nodes (≈900KB HTML), which made the page slow —
+		// especially on mobile.
+		$rowattr .= ' data-d="' . esc_attr( (string) wp_json_encode( array(
+			'img'   => $timg,
+			'code'  => $v['code'],
+			'desc'  => $v['desc'],
+			'ldt'   => $v['ldt'],
+			'ds'    => $v['ds'],
+			'pairs' => $v['pairs'],
+		) ) ) . '"';
 		$rows .= '<tr class="vt-row' . ( $i >= 10 ? ' rm-vt-hide' : '' ) . '" data-vt="' . $i . '"' . $rowattr . ' tabindex="0"><td class="vt-thumb">' . $thumb . '</td>'
 			. '<td class="vt-code">' . esc_html( $v['code'] ) . '</td>'
 			. '<td class="vt-desc">' . esc_html( $v['desc'] ) . '</td>';
@@ -1030,23 +1041,6 @@ function ricoman_pf_variant_table( $pid ) {
 		}
 		$rows .= '<td class="vt-dl">' . ( $v['ldt'] ? '<a href="' . esc_url( $v['ldt'] ) . '" target="_blank" rel="noopener" aria-label="LDT file">LDT ↓</a>' : '—' ) . '</td>'
 			. '<td class="vt-dl"><a href="' . esc_url( $v['ds'] ) . '" target="_blank" rel="noopener" aria-label="Datasheet">Datasheet ↓</a></td></tr>';
-
-		// Per-variant detail "datasheet" panel (shown in a modal on row click).
-		$dl = '';
-		foreach ( $v['pairs'] as $label => $val ) {
-			$dl .= '<div class="vt-d-row"><dt>' . esc_html( $label ) . '</dt><dd>' . esc_html( $val ) . '</dd></div>';
-		}
-		$dmg  = $v['img'] ? $v['img'] : $parent_img;
-		$dimg = $dmg ? '<div class="vt-d-img"><img src="' . esc_url( $dmg ) . '" alt="' . esc_attr( $v['code'] ) . '"' . $onerr . '></div>' : '';
-		$acts = '<div class="vt-d-acts">'
-			. ( $v['ldt'] ? '<a class="btn btn-line-d" href="' . esc_url( $v['ldt'] ) . '" target="_blank" rel="noopener">LDT file ↓</a>' : '' )
-			. '<a class="btn btn-solid" href="' . esc_url( $v['ds'] ) . '" target="_blank" rel="noopener">Download datasheet ↓</a></div>';
-		$details .= '<div class="vt-detail" data-vt="' . $i . '">'
-			. '<div class="vt-d-head">' . $dimg . '<div class="vt-d-head-t"><p class="vt-d-eyebrow">Order code</p>'
-			. '<h3 class="vt-d-code">' . esc_html( $v['code'] ) . '</h3>'
-			. ( $v['desc'] ? '<p class="vt-d-desc">' . esc_html( $v['desc'] ) . '</p>' : '' ) . '</div></div>'
-			. ( $dl ? '<dl class="vt-d-specs">' . $dl . '</dl>' : '<p class="vt-d-empty">No specification recorded for this variant yet.</p>' )
-			. $acts . '</div>';
 	}
 
 	$total    = count( $variants );
@@ -1058,7 +1052,6 @@ function ricoman_pf_variant_table( $pid ) {
 		. $fbar
 		. '<div class="rm-vptable-wrap"><table class="rm-vptable"><thead><tr>' . $head . '</tr></thead><tbody>' . $rows . '</tbody></table></div>'
 		. $showmore
-		. '<div class="rm-vt-details" hidden>' . $details . '</div>'
 		. '<div class="rm-vt-modal" hidden><div class="rm-vt-modal-box"><button type="button" class="rm-vt-x" aria-label="Close">&times;</button><div class="rm-vt-body"></div></div></div>'
 		. '</div>';
 }
