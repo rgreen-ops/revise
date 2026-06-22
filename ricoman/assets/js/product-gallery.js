@@ -636,3 +636,62 @@
 	if ( document.readyState !== 'loading' ) { scan(); }
 	else { document.addEventListener( 'DOMContentLoaded', scan ); }
 } )();
+
+/* ---- Thumbnail rail: match the main image height and add tiny up/down arrows
+ * (never a scrollbar) when there are more thumbnails than fit. ---- */
+( function () {
+	function build( wrap ) {
+		var thumbs = wrap.querySelector( '.rm-gthumbs' );
+		if ( ! thumbs || thumbs.dataset.railed ) { return wrap._rmrail || null; }
+		thumbs.dataset.railed = '1';
+		var rail = document.createElement( 'div' );
+		rail.className = 'rm-thumbrail';
+		thumbs.parentNode.insertBefore( rail, thumbs );
+		var up = document.createElement( 'button' );
+		up.type = 'button'; up.className = 'rm-thumbrail-btn rm-thumbrail-up';
+		up.setAttribute( 'aria-label', 'Scroll thumbnails up' ); up.innerHTML = '▲';
+		var dn = document.createElement( 'button' );
+		dn.type = 'button'; dn.className = 'rm-thumbrail-btn rm-thumbrail-dn';
+		dn.setAttribute( 'aria-label', 'Scroll thumbnails down' ); dn.innerHTML = '▼';
+		rail.appendChild( up ); rail.appendChild( thumbs ); rail.appendChild( dn );
+		function step( d ) { thumbs.scrollBy( { top: d * Math.round( thumbs.clientHeight * 0.85 ), behavior: 'smooth' } ); }
+		up.addEventListener( 'click', step.bind( null, -1 ) );
+		dn.addEventListener( 'click', step.bind( null, 1 ) );
+		thumbs.addEventListener( 'scroll', function () { ends( wrap ); } );
+		wrap._rmrail = { rail: rail, up: up, dn: dn, thumbs: thumbs };
+		return wrap._rmrail;
+	}
+	function ends( wrap ) {
+		var r = wrap._rmrail; if ( ! r ) { return; }
+		r.up.classList.toggle( 'rm-off', r.thumbs.scrollTop <= 1 );
+		r.dn.classList.toggle( 'rm-off', r.thumbs.scrollTop + r.thumbs.clientHeight >= r.thumbs.scrollHeight - 1 );
+	}
+	function sync( wrap ) {
+		var r = build( wrap ); if ( ! r ) { return; }
+		var stage = wrap.querySelector( '.rm-cfg-viz' ) || wrap.querySelector( '.rm-cfg-stage' );
+		if ( window.matchMedia( '(max-width:600px)' ).matches || ! stage ) {
+			r.rail.classList.add( 'rm-thumbrail--flat' );
+			r.rail.style.height = ''; r.up.style.display = r.dn.style.display = 'none';
+			return;
+		}
+		r.rail.classList.remove( 'rm-thumbrail--flat' );
+		r.up.style.display = r.dn.style.display = 'none';
+		var h = Math.round( stage.getBoundingClientRect().height );
+		if ( h > 40 ) { r.rail.style.height = h + 'px'; }
+		if ( r.thumbs.scrollHeight > r.thumbs.clientHeight + 2 ) {
+			r.up.style.display = r.dn.style.display = '';
+		}
+		ends( wrap );
+	}
+	function all() { document.querySelectorAll( '.rm-pdp-gallery' ).forEach( sync ); }
+	function init() {
+		all();
+		window.addEventListener( 'load', all );
+		window.addEventListener( 'resize', all );
+		document.querySelectorAll( '.rm-pdp-gallery .rm-cfg-img' ).forEach( function ( im ) {
+			im.addEventListener( 'load', all );
+		} );
+	}
+	if ( document.readyState !== 'loading' ) { init(); }
+	else { document.addEventListener( 'DOMContentLoaded', init ); }
+} )();

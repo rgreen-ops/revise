@@ -977,6 +977,12 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-projcard-t{font-family:Poppins;font-weight:600;font-size:1.2rem;letter-spacing:-.01em;line-height:1.15;color:#fff;display:block}
 .rm-projcard-loc{font-family:Poppins;font-size:.82rem;font-weight:400;color:rgba(255,255,255,.85);display:block;margin-top:.35em}
 .rm-projcard img{width:100%;height:100%;object-fit:cover}
+/* Product cards (filter grid): show the WHOLE product — studio shots were being
+   cropped by the lifestyle "cover" treatment. Uniform square tile, image
+   contained on a neutral frame, title still overlaid at the bottom. */
+.rm-fgrid .rm-projcard{grid-row:auto!important;min-height:0;aspect-ratio:1/1;background-color:#e4e4e4;background-size:contain;background-position:center}
+.rm-fgrid .rm-projcard::after{background:linear-gradient(180deg,rgba(0,0,0,0) 60%,rgba(0,0,0,.5))}
+.rm-fgrid .rm-projcard img{object-fit:contain}
 /* Search results — uniform visual grid reusing the projcard look */
 .rm-searchgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin:0 0 36px}
 .rm-searchgrid .rm-searchcard{min-height:260px}
@@ -1114,7 +1120,7 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-catarch-body ul,.rm-catarch-body ol{margin:0 0 1em 1.2em}
 .rm-catarch-body li{margin:.3em 0}
 .rm-catarch-body a{color:var(--accent);text-decoration:underline}
-.rm-catgrid-wrap{display:grid;grid-template-columns:248px 1fr;gap:clamp(24px,3vw,48px);align-items:start}
+.rm-catgrid-wrap{display:grid;grid-template-columns:248px 1fr;gap:clamp(24px,3vw,48px);align-items:start;margin-bottom:clamp(56px,7vw,96px)}
 .rm-facets{position:sticky;top:100px;border:1px solid var(--line);border-radius:14px;padding:22px}
 .rm-facets-head{font-family:Poppins;font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.14em;color:var(--ink);margin:0 0 16px}
 .rm-facets-sub{font-family:Poppins;font-weight:600;font-size:.66rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:6px 0 10px}
@@ -1533,6 +1539,15 @@ a.rm-projhead-sectorlink:hover{color:var(--ink)}
 .rm-pdp-gallery .rm-cfg-viz{flex:1;min-width:0}
 .rm-gtabs{margin:14px 0 0}
 .rm-gthumbs{display:flex;flex-direction:column;flex-wrap:wrap;gap:10px;width:88px;flex:0 0 88px;margin-top:0;overflow:visible}
+/* Thumbnail rail: column capped to the main-image height, tiny arrow scrollers
+   (no scrollbar) when thumbnails overflow. JS wraps .rm-gthumbs in .rm-thumbrail. */
+.rm-thumbrail{display:flex;flex-direction:column;gap:6px;flex:0 0 88px}
+.rm-thumbrail:not(.rm-thumbrail--flat) .rm-gthumbs{flex-direction:column;flex-wrap:nowrap;width:88px;flex:1 1 auto;min-height:0;overflow:hidden;scrollbar-width:none}
+.rm-thumbrail:not(.rm-thumbrail--flat) .rm-gthumbs::-webkit-scrollbar{display:none}
+.rm-thumbrail-btn{flex:0 0 auto;width:88px;height:20px;border:1px solid var(--line);background:#fff;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.58rem;color:var(--ink);padding:0;line-height:1;transition:.15s}
+.rm-thumbrail-btn:hover{background:var(--ink);color:#fff}
+.rm-thumbrail-btn.rm-off{opacity:.25;pointer-events:none}
+.rm-thumbrail--flat{display:contents}
 .rm-gthumbs .rm-cfg-thumb{width:88px;height:64px;flex:0 0 auto;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#e4e4e4;cursor:pointer;padding:6px}
 @media(max-width:600px){.rm-pdp-row{flex-direction:column-reverse}.rm-gthumbs{flex-direction:row;flex-wrap:wrap;width:auto;flex:0 0 auto;max-height:none;overflow:visible}.rm-gthumbs .rm-cfg-thumb{flex:0 0 56px;height:48px}
   /* Shrink the main image so it + the thumbnail row fit in the fold. flex:0 0 auto
