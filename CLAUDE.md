@@ -120,6 +120,34 @@ GLOBAL: [ ] Header / mega-menu  [ ] Footer
 - Branch: `claude/wordpress-theme-s5u19q`. NO PRICING anywhere. Don't put the
   model id in commits/PRs/code.
 
+## Marketing wishlist (roadmap step 4 — enhanced pages) — TRACKED
+From Marketing's email for the new website. Status of each request:
+- [x] **Breadcrumbs from products** — DONE (visible `Home / Products / Cat / …`
+  + BreadcrumbList schema). Fixes their "not set up correctly on current site".
+- [x] **Backend with design freedom** — DONE (Product Page Builder, Page Designs
+  refresh, Category SEO + Page SEO editors — team edits without a developer).
+- [x] **Downloads → a "lighting" resource area** (brochures + lighting guides +
+  BIM + instructions, as a menu of options) — LARGELY DONE: gated Downloads,
+  per-product datasheet/instructions/IES-LDT, BIM/Revit request-on-demand,
+  project-pack ZIP. TODO: surface "lighting guides" as a distinct download type.
+- [x] **News: choose between topics** — DONE (Topic taxonomy + auto-tagging +
+  auto internal linking). TODO below for the writer/contributor byline.
+- [ ] **News: writer / contributor byline area** — PARTIAL; needs an author/
+  contributor display on news articles.
+- [ ] **About page split: Why us / About us / Sustainability / Team & culture**
+  — PARTIAL: About exists, Sustainability is already a full landing page; add
+  "Why us" + "Team & culture" sections/blocks.
+- [ ] **FAQ area on product pages** — PARTIAL: FAQ engine + FAQPage schema exist
+  on category/feature pages ([ricoman_faq]); extend to product pages via builder.
+- [ ] **SPC area on project pages + a page per SPC** (e.g. Neasha, Colin) listing
+  all that consultant's projects — NEW. Needs a "consultant/specifier" profile
+  (CPT or taxonomy) linked to projects + an archive page per person.
+- [ ] **Homepage stats band** (countries supplied, # of projects) — NEW.
+- [ ] **Partner logos + partner feedback/testimonials area** — NEW.
+- Sequencing: do quick wins first (FAQ on products, homepage stats band, partner
+  logos strip), then the SPC consultant pages (largest). All AFTER the current
+  image/launch issues are settled. Content persists (installer is create-once).
+
 ## Lead-gen system (built — `inc/lead-gate.php`, `accounts.php`, `project-lists.php`)
 - **Download gate** (`inc/lead-gate.php` + `assets/js/lead-gate.js`): logged-out
   visitors clicking any doc download get a popup (name + email + customer type, or
