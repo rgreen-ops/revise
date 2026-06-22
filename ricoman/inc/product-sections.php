@@ -245,3 +245,143 @@ add_action( 'save_post_product', function ( $pid ) {
 	// Refresh product-derived caches so the FAQ shows immediately.
 	update_option( 'rm_products_ver', (string) time(), false );
 } );
+
+/* ============================================================ *
+ * Colour finishes / variants — the chips shown on the product image.
+ *
+ * Each chip = a name + a swatch (the little colour dot) + the main photo shown
+ * when that chip is clicked. Stored as a clean JSON list in _ricoman_finishes,
+ * which ricoman_pf_color_variants() reads FIRST (falling back to the migrated
+ * "Product Variation By Color" ACF field). Image values are an attachment ID
+ * (new picks) or a URL (kept from migrated data) — both resolve via pf_imgurl.
+ * ============================================================ */
+
+/** Make the media library available on the product edit screen. */
+add_action( 'admin_enqueue_scripts', function ( $hook ) {
+	if ( ( 'post.php' === $hook || 'post-new.php' === $hook ) && function_exists( 'get_current_screen' ) ) {
+		$s = get_current_screen();
+		if ( $s && 'product' === $s->post_type ) {
+			wp_enqueue_media();
+		}
+	}
+} );
+
+/** Sanitize one image value: an attachment ID (numeric) or a URL. */
+function ricoman_cv_clean( $v ) {
+	$v = trim( (string) $v );
+	if ( '' === $v ) {
+		return '';
+	}
+	return is_numeric( $v ) ? (string) (int) $v : esc_url_raw( $v );
+}
+
+/** One finish row (server render; also used as the JS template for new rows). */
+function ricoman_cv_row( $name = '', $main = '', $icon = '', $mainprev = '', $iconprev = '' ) {
+	$ico = $iconprev ? ' style="background-image:url(' . esc_url( $iconprev ) . ')"' : '';
+	$mai = $mainprev ? ' style="background-image:url(' . esc_url( $mainprev ) . ')"' : '';
+	return '<div class="rmcv-row">'
+		. '<span class="rmcv-move"><button type="button" class="rmcv-up" title="Move up" aria-label="Move up">&#9650;</button><button type="button" class="rmcv-dn" title="Move down" aria-label="Move down">&#9660;</button></span>'
+		. '<span class="rmcv-pic rmcv-swatch"><button type="button" class="rmcv-pick"' . $ico . '>' . ( $iconprev ? '' : esc_html__( 'Swatch', 'ricoman' ) ) . '</button><input type="hidden" class="rmcv-val" name="rmcv_icon[]" value="' . esc_attr( $icon ) . '"></span>'
+		. '<input type="text" class="rmcv-name" name="rmcv_name[]" value="' . esc_attr( $name ) . '" placeholder="' . esc_attr__( 'Finish name (e.g. Matte Black)', 'ricoman' ) . '">'
+		. '<span class="rmcv-pic rmcv-image"><button type="button" class="rmcv-pick"' . $mai . '>' . ( $mainprev ? '' : esc_html__( 'Main image', 'ricoman' ) ) . '</button><input type="hidden" class="rmcv-val" name="rmcv_main[]" value="' . esc_attr( $main ) . '"></span>'
+		. '<button type="button" class="rmcv-remove" title="Remove finish" aria-label="Remove finish">&times;</button>'
+		. '</div>';
+}
+
+add_action( 'add_meta_boxes_product', function () {
+	add_meta_box( 'ricoman_colour_finishes', __( 'Colour finishes (image chips)', 'ricoman' ), 'ricoman_colour_finishes_box', 'product', 'normal', 'low' );
+} );
+
+function ricoman_colour_finishes_box( $post ) {
+	wp_nonce_field( 'ricoman_colour_finishes', 'ricoman_colour_finishes_nonce' );
+	$rows = array();
+	$raw  = get_post_meta( $post->ID, '_ricoman_finishes', true );
+	if ( $raw ) {
+		$d = json_decode( $raw, true );
+		if ( is_array( $d ) ) {
+			foreach ( $d as $r ) {
+				if ( is_array( $r ) ) {
+					$rows[] = array(
+						'name' => isset( $r['name'] ) ? (string) $r['name'] : '',
+						'main' => isset( $r['main'] ) ? $r['main'] : '',
+						'icon' => isset( $r['icon'] ) ? $r['icon'] : '',
+					);
+				}
+			}
+		}
+	}
+	$seeded = false;
+	if ( ! $rows && function_exists( 'ricoman_pf_color_variants' ) ) {
+		foreach ( ricoman_pf_color_variants( $post->ID ) as $cv ) {
+			$rows[] = array( 'name' => $cv['name'], 'main' => $cv['main'], 'icon' => $cv['icon'] );
+		}
+		$seeded = (bool) $rows;
+	}
+	$prev = function ( $v ) { return ( '' !== $v && function_exists( 'ricoman_pf_imgurl' ) ) ? ricoman_pf_imgurl( $v ) : ( is_string( $v ) ? $v : '' ); };
+
+	echo '<style>'
+		. '.rmcv-row{display:flex;align-items:center;gap:10px;margin:0 0 10px;padding:8px;border:1px solid #e0e0e0;border-radius:8px;background:#fff}'
+		. '.rmcv-move{display:flex;flex-direction:column}.rmcv-move button{border:0;background:none;cursor:pointer;line-height:1;color:#787c82;font-size:11px;padding:1px}'
+		. '.rmcv-pick{cursor:pointer;background-size:cover;background-position:center;font-size:9px;color:#50575e;padding:0;border:1px solid #c3c4c7;border-radius:8px}'
+		. '.rmcv-swatch .rmcv-pick{width:42px;height:42px;border-radius:50%}'
+		. '.rmcv-image .rmcv-pick{width:58px;height:58px}'
+		. '.rmcv-name{flex:1}'
+		. '.rmcv-remove{border:0;background:none;color:#b32d2e;cursor:pointer;font-size:16px;line-height:1}'
+		. '</style>';
+	echo '<p class="description">' . esc_html__( 'Each row is a colour chip on the product image: a name, a swatch (the small colour dot), and the main photo shown when that chip is selected. Use the arrows to reorder. Remove all rows to fall back to the migrated colour data.', 'ricoman' ) . '</p>';
+	if ( $seeded ) {
+		echo '<p class="description"><em>' . esc_html__( 'Loaded from the existing migrated colour data — click Update to save it here so you can edit it.', 'ricoman' ) . '</em></p>';
+	}
+	echo '<div id="rmcv-rows">';
+	if ( ! $rows ) {
+		$rows[] = array( 'name' => '', 'main' => '', 'icon' => '' );
+	}
+	foreach ( $rows as $r ) {
+		echo ricoman_cv_row( $r['name'], $r['main'], $r['icon'], $prev( $r['main'] ), $prev( $r['icon'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+	echo '</div>';
+	echo '<p><button type="button" class="button button-secondary" id="rmcv-add">&#65291; ' . esc_html__( 'Add finish', 'ricoman' ) . '</button></p>';
+
+	$tpl = ricoman_cv_row();
+	echo '<script>(function(){var box=document.getElementById("rmcv-rows");if(!box)return;var TPL=' . wp_json_encode( $tpl ) . ';'
+		. 'function pickImg(cb){if(!window.wp||!wp.media){window.alert("Media library not ready — reload the page.");return;}var f=wp.media({title:"Select image",multiple:false,library:{type:"image"}});f.on("select",function(){var a=f.state().get("selection").first().toJSON();var u=(a.sizes&&a.sizes.medium?a.sizes.medium.url:a.url);cb(a.id,u);});f.open();}'
+		. 'document.addEventListener("click",function(e){'
+		. 'var add=e.target.closest("#rmcv-add");if(add){e.preventDefault();box.insertAdjacentHTML("beforeend",TPL);return;}'
+		. 'var pick=e.target.closest(".rmcv-pick");if(pick){e.preventDefault();var inp=pick.parentNode.querySelector(".rmcv-val");pickImg(function(id,u){inp.value=id;pick.style.backgroundImage="url("+u+")";pick.textContent="";});return;}'
+		. 'var rm=e.target.closest(".rmcv-remove");if(rm){e.preventDefault();var r=rm.closest(".rmcv-row");if(r)r.parentNode.removeChild(r);return;}'
+		. 'var up=e.target.closest(".rmcv-up");if(up){e.preventDefault();var ru=up.closest(".rmcv-row");if(ru&&ru.previousElementSibling)ru.parentNode.insertBefore(ru,ru.previousElementSibling);return;}'
+		. 'var dn=e.target.closest(".rmcv-dn");if(dn){e.preventDefault();var rd=dn.closest(".rmcv-row");if(rd&&rd.nextElementSibling)rd.parentNode.insertBefore(rd.nextElementSibling,rd);return;}'
+		. '});})();</script>';
+}
+
+add_action( 'save_post_product', function ( $pid ) {
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	if ( ! isset( $_POST['ricoman_colour_finishes_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['ricoman_colour_finishes_nonce'] ) ), 'ricoman_colour_finishes' ) ) {
+		return;
+	}
+	if ( ! current_user_can( 'edit_post', $pid ) ) {
+		return;
+	}
+	$names = isset( $_POST['rmcv_name'] ) ? (array) wp_unslash( $_POST['rmcv_name'] ) : array();
+	$mains = isset( $_POST['rmcv_main'] ) ? (array) wp_unslash( $_POST['rmcv_main'] ) : array();
+	$icons = isset( $_POST['rmcv_icon'] ) ? (array) wp_unslash( $_POST['rmcv_icon'] ) : array();
+	$out   = array();
+	$n     = max( count( $names ), count( $mains ), count( $icons ) );
+	for ( $i = 0; $i < $n; $i++ ) {
+		$name = isset( $names[ $i ] ) ? sanitize_text_field( $names[ $i ] ) : '';
+		$main = isset( $mains[ $i ] ) ? ricoman_cv_clean( $mains[ $i ] ) : '';
+		$icon = isset( $icons[ $i ] ) ? ricoman_cv_clean( $icons[ $i ] ) : '';
+		if ( '' === $name && '' === $main && '' === $icon ) {
+			continue;
+		}
+		$out[] = array( 'name' => $name, 'main' => $main, 'icon' => $icon );
+	}
+	if ( $out ) {
+		update_post_meta( $pid, '_ricoman_finishes', wp_json_encode( $out ) );
+	} else {
+		delete_post_meta( $pid, '_ricoman_finishes' );
+	}
+	update_option( 'rm_products_ver', (string) time(), false );
+} );

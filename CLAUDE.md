@@ -273,6 +273,16 @@ From Marketing's email for the new website. Status of each request:
   Media Cleanup → Step 3b (permanent delete) to reclaim the 248GB of duplicates.
   WebP generation stays dormant until space is freed.
 
+## Colour finishes / variants manager (built)
+- The chips on the product image (name + swatch + main photo) are managed by a
+  **Colour finishes (image chips)** metabox on the product edit screen
+  (inc/product-sections.php). Each row = name + swatch image + main image, with
+  add / remove / reorder; saves a clean JSON list to `_ricoman_finishes`, which
+  `ricoman_pf_color_variants()` reads FIRST (falling back to the migrated
+  "Product Variation By Color" ACF field). Image values are an attachment ID or a
+  URL — both resolve via `ricoman_pf_imgurl`. Opening a product with no saved
+  finishes seeds the box from the migrated data so the team can edit + Update.
+
 ## RICOBOT parked (roadmap step 5) — switch to re-enable
 - The old "product API" + family loader are gated behind `apply_filters(
   'ricoman_use_product_api', false )`. While off, product pages render from migrated
