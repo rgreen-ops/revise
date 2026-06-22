@@ -85,8 +85,93 @@ function ricoman_go_live_screen() {
 		</form>
 
 		<p style="margin-top:18px"><em><?php esc_html_e( 'Full step-by-step (Plesk copy + backup/rollback) is in the launch guide: reference/launch-guide.md.', 'ricoman' ); ?></em></p>
+
+		<hr style="margin:30px 0">
+		<h2><?php esc_html_e( 'Launch-day checklist', 'ricoman' ); ?> <span id="rmgl-prog" style="font-size:13px;color:#646970;font-weight:400"></span></h2>
+		<p class="description" style="max-width:760px"><?php esc_html_e( 'Work top to bottom on launch morning. Your ticks are saved in this browser, so you can stop and come back. If anything fails, tell Claude what you saw — don’t worry, it’s fixable.', 'ricoman' ); ?>
+			<button type="button" class="button button-small" id="rmgl-reset" style="margin-left:8px"><?php esc_html_e( 'Reset ticks', 'ricoman' ); ?></button></p>
+		<div id="rmgl-list" style="max-width:820px">
+			<?php
+			$gi = 0;
+			foreach ( ricoman_go_live_tasks() as $group => $items ) :
+				?>
+				<div style="background:#fff;border:1px solid #dcdcde;border-radius:10px;padding:14px 18px;margin:0 0 14px">
+					<h3 style="margin:.2em 0 .6em"><?php echo esc_html( $group ); ?></h3>
+					<?php foreach ( $items as $item ) : $gi++; ?>
+						<label style="display:block;margin:7px 0;line-height:1.5"><input type="checkbox" class="rmgl-chk" data-k="rmgl-<?php echo (int) $gi; ?>"> <?php echo wp_kses( $item, array( 'strong' => array(), 'code' => array(), 'em' => array() ) ); ?></label>
+					<?php endforeach; ?>
+				</div>
+			<?php endforeach; ?>
+		</div>
+		<script>
+		( function () {
+			var chks = document.querySelectorAll( '.rmgl-chk' ), prog = document.getElementById( 'rmgl-prog' );
+			function save( c ) { try { localStorage.setItem( c.dataset.k, c.checked ? '1' : '' ); } catch ( e ) {} }
+			function tally() {
+				var done = 0; chks.forEach( function ( c ) { if ( c.checked ) { done++; } } );
+				if ( prog ) { prog.textContent = '— ' + done + ' / ' + chks.length + ' done'; }
+			}
+			chks.forEach( function ( c ) {
+				try { c.checked = localStorage.getItem( c.dataset.k ) === '1'; } catch ( e ) {}
+				c.addEventListener( 'change', function () { save( c ); tally(); } );
+			} );
+			var rst = document.getElementById( 'rmgl-reset' );
+			if ( rst ) { rst.addEventListener( 'click', function () { chks.forEach( function ( c ) { c.checked = false; save( c ); } ); tally(); } ); }
+			tally();
+		} )();
+		</script>
 	</div>
 	<?php
+}
+
+/** Launch-day QA tasks, grouped. Plain English; technical bits flagged. */
+function ricoman_go_live_tasks() {
+	return array(
+		__( 'First (technical — Richard)', 'ricoman' ) => array(
+			__( 'Full backup of the LIVE site taken <strong>before</strong> the copy (your rollback).', 'ricoman' ),
+			__( 'Staging copied onto live via Plesk WordPress Toolkit (Copy Data).', 'ricoman' ),
+			__( '<strong>https://ricoman.com</strong> loads with a padlock (SSL valid).', 'ricoman' ),
+			__( 'Settings → Reading → <strong>“Discourage search engines” is UNTICKED</strong>.', 'ricoman' ),
+			__( 'Ricoman → 🚀 Go Live → <strong>Run launch finalisation</strong> clicked (all checks green).', 'ricoman' ),
+		),
+		__( 'Pages look right', 'ricoman' ) => array(
+			__( 'Homepage: hero, images/video, all sections show correctly.', 'ricoman' ),
+			__( 'Top menu / mega-menu links all work; footer links all work.', 'ricoman' ),
+			__( 'Products page + a few category pages (filters + sliders work).', 'ricoman' ),
+			__( '3–4 product pages: gallery, colour chips, Configure table, downloads, FAQ.', 'ricoman' ),
+			__( 'News list + an article (byline, topics). Projects list + a project.', 'ricoman' ),
+			__( 'Team page + a staff profile (their projects/news show).', 'ricoman' ),
+			__( 'About, Contact, Sustainability + feature pages (Casambi, etc.).', 'ricoman' ),
+			__( 'Legal pages (Privacy, Terms, Cookies…) open.', 'ricoman' ),
+			__( 'Search returns results; a made-up URL shows the friendly 404 page.', 'ricoman' ),
+			__( 'Spot-check on a phone (menu, a product, the contact form).', 'ricoman' ),
+		),
+		__( 'Forms & functions work', 'ricoman' ) => array(
+			__( 'Contact / enquiry form submits → appears in <strong>Ricoman → Leads</strong> + email arrives.', 'ricoman' ),
+			__( 'Newsletter signup works.', 'ricoman' ),
+			__( 'Download gate: logged out, click a datasheet → popup → submit → file downloads + lead logged.', 'ricoman' ),
+			__( 'BIM/Revit “request” logs a lead and emails lightingdesign@ricoman.com.', 'ricoman' ),
+			__( 'Register an account + log in; “Add to My Project” + project pack ZIP work.', 'ricoman' ),
+			__( 'Request a callback form works. Flow Designer loads.', 'ricoman' ),
+		),
+		__( 'Old links redirect (301s) — SEO critical', 'ricoman' ) => array(
+			__( 'Test a sample of <strong>old</strong> URLs (product, category, news, project) → each lands on the right new page, not a 404.', 'ricoman' ),
+			__( 'Check <strong>Ricoman → Links & Redirects</strong> — map is loaded; add any missing ones.', 'ricoman' ),
+			__( 'Watch the <strong>404 log</strong> over the first hours/days and redirect any stragglers.', 'ricoman' ),
+			__( 'robots.txt allows crawling; sitemap loads (usually /sitemap_index.xml or /sitemap.xml).', 'ricoman' ),
+			__( 'Submit the sitemap in <strong>Google Search Console</strong>; request indexing of the homepage.', 'ricoman' ),
+		),
+		__( 'SEO & analytics', 'ricoman' ) => array(
+			__( 'View a product’s source → it has a title + meta description (no “noindex”).', 'ricoman' ),
+			__( 'Analytics/GTM firing (real-time view shows your visit).', 'ricoman' ),
+			__( 'Run one product URL through Google’s Rich Results test (Product/FAQ schema OK).', 'ricoman' ),
+		),
+		__( 'Sign-off & watch', 'ricoman' ) => array(
+			__( 'Everything above ticked → tell the team it’s live. 🎉', 'ricoman' ),
+			__( 'For the first few days: keep an eye on Leads, the 404 log, and any error reports.', 'ricoman' ),
+			__( 'Remember: from now on, content edits go live with Draft → Preview → Publish, and code via 🚀 Push to Live. Never copy staging over live again.', 'ricoman' ),
+		),
+	);
 }
 
 add_action( 'admin_post_ricoman_go_live_finalise', function () {
