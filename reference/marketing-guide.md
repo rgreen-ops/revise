@@ -40,11 +40,18 @@ action. You don't touch GitHub or Plesk — you just say **"push it live"** and
 Claude runs the deploy. Live keeps all its real data (customer leads, accounts) —
 the push only updates the website's code, never your data.
 
-## "Push to live" — what to say
+## "Push to live" — the sign-off screen
 
-When a staging change is approved, say: **"push the latest to live."**
-Claude triggers the deploy and confirms when it's done. The live site clears its
-own cache automatically, so the change shows right away.
+When a staging change is approved, go to **Ricoman → 🚀 Push to Live** in the WP
+admin menu. It's a deliberate, can't-do-it-by-accident screen:
+
+1. Tick the two boxes (you've checked it on staging; you understand it goes live).
+2. Type **PUBLISH** in the box.
+3. Click **Publish to LIVE now** and confirm the final prompt.
+
+The live site updates within a minute or two and clears its own cache — you never
+touch Plesk. (You can also just ask Claude to "push the latest to live" and it
+does the same thing.)
 
 ## If something looks wrong — don't worry
 

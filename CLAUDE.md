@@ -291,6 +291,18 @@ From Marketing's email for the new website. Status of each request:
 - `the_content` product render runs at **priority 11** (after wpautop) to avoid
   stray `<p>` wrapping the gallery image.
 
+## Push to live — in-WP sign-off screen (non-technical, no Plesk)
+- **Ricoman → 🚀 Push to Live** (`inc/push-live.php`): a deliberate sign-off page —
+  two tick-boxes + type `PUBLISH` + a final confirm() — that triggers the
+  deploy-live GitHub Action via the API (workflow_dispatch, inputs.confirm=DEPLOY).
+  CODE ONLY; never touches live data/leads. Capability `ricoman_push_live_cap`
+  (default manage_options). One-time setup: `define('RICOMAN_GH_TOKEN', …)` in
+  wp-config (fine-grained PAT, Actions read/write) — or paste a token on the page;
+  repo/branch default to rgreen-ops/revise + the working branch, editable there.
+- Deploys **auto-flush OPcache** (curl the flush URL) so NO Plesk is ever needed;
+  staging flush is automatic, live flush runs when the LIVE_URL secret is set.
+- Plain-English handover: `reference/marketing-guide.md`.
+
 ## Push to live (code/theme) — built, manual-only
 - `.github/workflows/deploy-live.yml`: a **manual** (workflow_dispatch) GitHub
   Action that FTP-deploys the `ricoman/` theme to the LIVE site. CODE ONLY — it

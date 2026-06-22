@@ -87,6 +87,7 @@ require_once get_theme_file_path( 'inc/my-project.php' );    // "My Project" spe
 require_once get_theme_file_path( 'inc/demo-setup.php' );    // One-time: create linked pages + pretty links.
 require_once get_theme_file_path( 'inc/pattern-library.php' );// 25+ ready-made section patterns.
 require_once get_theme_file_path( 'inc/admin.php' );         // Branded admin: Control Center, widget, login.
+require_once get_theme_file_path( 'inc/push-live.php' );      // "Push to Live" sign-off screen (triggers the code-only live deploy).
 
 /**
  * Theme setup.
