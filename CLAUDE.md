@@ -329,6 +329,18 @@ From Marketing's email for the new website. Status of each request:
   fields="…"]` (grid of all). Patterns: "Team · Grid" + "Team · Single member".
   Name/photo link to the profile page (= their content listing).
 
+## Go-Live (launch) tooling — built
+- `reference/launch-guide.md`: step-by-step one-time staging→live launch for the
+  SAME Plesk server — free space (clear old backups), back up live (rollback),
+  WordPress Toolkit **Copy Data** (staging→live, auto URL-replace), then finish in
+  WP. Reassures re: size (you copy the CLEANED staging over live; old bloat is
+  replaced, not carried). NEVER copy staging over live again after launch (it
+  would wipe live leads) — use 🚀 Push to Live for ongoing code.
+- **Ricoman → 🚀 Go Live** (`inc/go-live.php`): pre-flight checklist (indexable,
+  permalinks, disk space, SEO seeded, caches, homepage) + one **"Run launch
+  finalisation"** button (OPcache + permalinks + product caches + page/category
+  SEO seeders + footer links). Safe/idempotent; fills empties, deletes nothing.
+
 ## Constraints
 - Develop/push only to the branch above; never create PRs unless asked.
 - Content must persist across theme updates (installer is create-once).
