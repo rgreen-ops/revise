@@ -48,6 +48,9 @@ add_shortcode( 'ricoman_section_accessories', function () {
 add_shortcode( 'ricoman_section_related', function () {
 	return ricoman_section_render( 'related' );
 } );
+add_shortcode( 'ricoman_section_faq', function () {
+	return ricoman_section_render( 'faq' );
+} );
 add_shortcode( 'ricoman_section_cta', function () {
 	return ricoman_section_render( 'cta' );
 } );
@@ -60,6 +63,7 @@ function ricoman_section_defs() {
 		'configure'   => __( 'Product: Configure & order codes', 'ricoman' ),
 		'accessories' => __( 'Product: Accessories', 'ricoman' ),
 		'related'     => __( 'Product: You may also like', 'ricoman' ),
+		'faq'         => __( 'Product: FAQs', 'ricoman' ),
 		'cta'         => __( 'Product: Specify call-to-action', 'ricoman' ),
 	);
 }
@@ -196,3 +200,48 @@ function ricoman_product_layout_box( $post ) {
 	echo '<p class="description">' . esc_html__( 'Build this product’s page — edit the content with a live preview and drop patterns between sections — on the dedicated editor:', 'ricoman' ) . '</p>';
 	echo '<p><a class="button button-primary button-large" href="' . esc_url( $url ) . '">' . esc_html__( 'Open Product Page Editor', 'ricoman' ) . '</a></p>';
 }
+
+/**
+ * Product FAQs editor — a simple Q:/A: textarea on the product edit screen. The
+ * content renders as the product's FAQ section (with FAQPage schema) via
+ * ricoman_pf_sections(). Kept independent of the visual builder so it always works.
+ */
+add_action( 'add_meta_boxes_product', function () {
+	add_meta_box(
+		'ricoman_product_faq',
+		__( 'Product FAQs', 'ricoman' ),
+		'ricoman_product_faq_box',
+		'product',
+		'normal',
+		'low'
+	);
+} );
+
+function ricoman_product_faq_box( $post ) {
+	wp_nonce_field( 'ricoman_product_faq', 'ricoman_product_faq_nonce' );
+	$val = (string) get_post_meta( $post->ID, '_ricoman_faq', true );
+	echo '<p class="description">' . esc_html__( 'One question/answer per pair, e.g.', 'ricoman' ) . ' <code>Q: ...</code> ' . esc_html__( 'then', 'ricoman' ) . ' <code>A: ...</code>. ' . esc_html__( 'Shows as an FAQ section on the product page and adds FAQ schema for SEO.', 'ricoman' ) . '</p>';
+	echo '<textarea name="ricoman_product_faq" rows="10" style="width:100%;font-family:monospace" placeholder="Q: Is this fitting dimmable?&#10;A: Yes — it supports mains and DALI dimming.">' . esc_textarea( $val ) . '</textarea>';
+}
+
+add_action( 'save_post_product', function ( $pid ) {
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	if ( ! isset( $_POST['ricoman_product_faq_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['ricoman_product_faq_nonce'] ) ), 'ricoman_product_faq' ) ) {
+		return;
+	}
+	if ( ! current_user_can( 'edit_post', $pid ) ) {
+		return;
+	}
+	if ( isset( $_POST['ricoman_product_faq'] ) ) {
+		$v = wp_kses_post( wp_unslash( $_POST['ricoman_product_faq'] ) );
+		if ( '' !== trim( $v ) ) {
+			update_post_meta( $pid, '_ricoman_faq', $v );
+		} else {
+			delete_post_meta( $pid, '_ricoman_faq' );
+		}
+	}
+	// Refresh product-derived caches so the FAQ shows immediately.
+	update_option( 'rm_products_ver', (string) time(), false );
+} );

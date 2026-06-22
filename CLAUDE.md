@@ -137,13 +137,18 @@ From Marketing's email for the new website. Status of each request:
 - [ ] **About page split: Why us / About us / Sustainability / Team & culture**
   — PARTIAL: About exists, Sustainability is already a full landing page; add
   "Why us" + "Team & culture" sections/blocks.
-- [ ] **FAQ area on product pages** — PARTIAL: FAQ engine + FAQPage schema exist
-  on category/feature pages ([ricoman_faq]); extend to product pages via builder.
+- [x] **FAQ area on product pages** — DONE. New "Product FAQs" metabox (Q:/A:
+  text) on the product edit screen; renders as a product **FAQ section** (with
+  FAQPage schema) via ricoman_pf_sections + a `faq` section block. Independent of
+  the visual builder so it always works.
 - [ ] **SPC area on project pages + a page per SPC** (e.g. Neasha, Colin) listing
   all that consultant's projects — NEW. Needs a "consultant/specifier" profile
   (CPT or taxonomy) linked to projects + an archive page per person.
-- [ ] **Homepage stats band** (countries supplied, # of projects) — NEW.
-- [ ] **Partner logos + partner feedback/testimonials area** — NEW.
+- [x] **Homepage stats band** (countries supplied, # of projects) — DONE as an
+  editable pattern (Home · Reach stats). Drop it on the homepage and edit numbers.
+- [x] **Partner logos + partner feedback/testimonials area** — DONE as editable
+  patterns (Home · Partner logos = placeholder boxes to swap for logos; Home ·
+  Testimonials = feedback cards). Drop onto the homepage and edit inline.
 - Sequencing: do quick wins first (FAQ on products, homepage stats band, partner
   logos strip), then the SPC consultant pages (largest). All AFTER the current
   image/launch issues are settled. Content persists (installer is create-once).

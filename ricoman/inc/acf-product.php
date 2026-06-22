@@ -1543,6 +1543,16 @@ function ricoman_pf_sections( $pid ) {
 			? '<div class="rm-section"><div class="rm-pp-wrap">' . $acc_live . '</div></div>' : '';
 	}
 
+	// ---- Product FAQs (edited via the Product FAQs metabox; emits FAQPage schema) ----
+	$faq_raw = (string) get_post_meta( $pid, '_ricoman_faq', true );
+	$faq_sec = '';
+	if ( '' !== trim( $faq_raw ) && function_exists( 'ricoman_faq_shortcode' ) ) {
+		$faq_inner = ricoman_faq_shortcode( array(), $faq_raw );
+		if ( $faq_inner ) {
+			$faq_sec = '<div class="rm-section" id="faq"><div class="rm-pp-wrap"><h2 class="rm-shead">Frequently asked questions</h2>' . $faq_inner . '</div></div>';
+		}
+	}
+
 	// ---- You may also like ----
 	$related = ricoman_pf_related( $pid );
 
@@ -1554,6 +1564,7 @@ function ricoman_pf_sections( $pid ) {
 		'configure'   => $var_sec,
 		'accessories' => $acc_block,
 		'related'     => $related,
+		'faq'         => $faq_sec,
 		'cta'         => $cta,
 	);
 	if ( $cacheable ) {
@@ -1636,7 +1647,7 @@ add_shortcode( 'ricoman_product_page', function () {
 	}
 	// Fallback: read ACF/meta fields directly, assembled from the section map.
 	$s = ricoman_pf_sections( $pid );
-	return $s['hero'] . $s['specs'] . $s['configure'] . $s['accessories'] . $s['related'] . $s['cta'];
+	return $s['hero'] . $s['specs'] . $s['configure'] . $s['accessories'] . $s['related'] . ( isset( $s['faq'] ) ? $s['faq'] : '' ) . $s['cta'];
 } );
 
 /* When a product has no block content (the ACF products), render the field page. */

@@ -397,7 +397,7 @@ function ricoman_product_editor_render() {
 	// Section meta for the left list (icon hints).
 	$icons = array(
 		'hero' => 'format-image', 'specs' => 'list-view', 'configure' => 'editor-table',
-		'accessories' => 'screenoptions', 'related' => 'grid-view', 'cta' => 'megaphone',
+		'accessories' => 'screenoptions', 'related' => 'grid-view', 'faq' => 'editor-help', 'cta' => 'megaphone',
 	);
 
 	// Configure-table columns: all options + the product's current selection.
