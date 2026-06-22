@@ -291,6 +291,20 @@ From Marketing's email for the new website. Status of each request:
 - `the_content` product render runs at **priority 11** (after wpautop) to avoid
   stray `<p>` wrapping the gallery image.
 
+## Push to live (code/theme) — built, manual-only
+- `.github/workflows/deploy-live.yml`: a **manual** (workflow_dispatch) GitHub
+  Action that FTP-deploys the `ricoman/` theme to the LIVE site. CODE ONLY — it
+  never touches the live DB / content / uploads / users / captured leads. Requires
+  typing `DEPLOY` to run, so it can't fire by accident or before launch.
+- One-time setup: add repo secrets FTP_LIVE_SERVER / FTP_LIVE_USERNAME /
+  FTP_LIVE_PASSWORD / FTP_LIVE_SERVER_DIR (the live theme dir). After a run, clear
+  the live OPcache (restart PHP-FPM on live, or hit opcache-flush.php on the live
+  domain) + purge any live page cache.
+- WHY code-only: live captures real leads/users on the front end; a full-DB push
+  would wipe them. The one-time staging→live **launch** (whole DB+uploads, roadmap
+  step 3) is a separate migration job, not this button. Selective content sync can
+  be added later if needed.
+
 ## Constraints
 - Develop/push only to the branch above; never create PRs unless asked.
 - Content must persist across theme updates (installer is create-once).
