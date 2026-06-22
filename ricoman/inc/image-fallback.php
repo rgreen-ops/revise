@@ -213,7 +213,30 @@ function ricoman_pull_images_page() {
 	wp_nonce_field( 'ricoman_toggle_origin' );
 	echo '<input type="hidden" name="off" value="' . ( $off ? '0' : '1' ) . '">';
 	submit_button( $off ? __( 'Re-enable live-origin fallback', 'ricoman' ) : __( 'Disable live-origin fallback (cut the cord)', 'ricoman' ), $off ? 'secondary' : 'delete', 'submit', false );
-	echo '</form></div>';
+	echo '</form>';
+	// Independence checker — counts images whose file is missing locally.
+	$chk_nonce = wp_create_nonce( 'rm_pull_images' );
+	echo '<p style="margin-top:14px"><button class="button" id="rm-chk-go">' . esc_html__( 'Check how many images are missing locally', 'ricoman' ) . '</button> <span id="rm-chk-out" style="margin-left:10px"></span></p>';
+	?>
+	<script>
+	(function(){
+		var go=document.getElementById('rm-chk-go'),out=document.getElementById('rm-chk-out');
+		var nonce=<?php echo wp_json_encode( $chk_nonce ); ?>, ajax=<?php echo wp_json_encode( admin_url( 'admin-ajax.php' ) ); ?>;
+		var running=false,missing=0;
+		function batch(offset){
+			fetch(ajax,{method:'POST',credentials:'same-origin',body:new URLSearchParams({action:'ricoman_check_missing',nonce:nonce,offset:offset})}).then(function(r){return r.json();}).then(function(j){
+				if(!j||!j.success){ out.textContent='Error.'; running=false; go.disabled=false; return; }
+				var d=j.data; missing+=d.missing;
+				out.textContent='Scanned '+d.done.toLocaleString()+' of '+d.total.toLocaleString()+' — '+missing.toLocaleString()+' image file(s) missing locally so far…';
+				if(d.next!==null){ batch(d.next); }
+				else { out.innerHTML='<strong>'+missing.toLocaleString()+'</strong> image file(s) are missing locally'+(missing?' — pull or copy these before cutting the cord.':' ✓ the site is fully independent.'); running=false; go.disabled=false; }
+			}).catch(function(){ out.textContent='Network error.'; running=false; go.disabled=false; });
+		}
+		go.addEventListener('click',function(){ if(running)return; running=true; go.disabled=true; missing=0; out.textContent='Scanning…'; batch(0); });
+	})();
+	</script>
+	<?php
+	echo '</div>';
 
 	if ( ! $origin ) {
 		echo '<div class="notice notice-warning"><p>' . esc_html__( 'No live origin is available (it may be turned off above), so there is nothing to pull from. Re-enable it to pull, or define RICOMAN_LIVE_ORIGIN / the ricoman_live_origin option.', 'ricoman' ) . '</p></div></div>';
@@ -261,6 +284,41 @@ add_action( 'admin_post_ricoman_toggle_origin', function () {
 	}
 	wp_safe_redirect( add_query_arg( array( 'page' => 'ricoman-pull-images', 'rm_origin' => 1 ), admin_url( 'admin.php' ) ) );
 	exit;
+} );
+
+add_action( 'wp_ajax_ricoman_check_missing', function () {
+	if ( ! current_user_can( 'manage_options' ) || ! check_ajax_referer( 'rm_pull_images', 'nonce', false ) ) {
+		wp_send_json_error();
+	}
+	global $wpdb;
+	$batch  = 200;
+	$offset = max( 0, (int) ( $_POST['offset'] ?? 0 ) );
+	$total  = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type='attachment' AND post_status<>'trash'" );
+	$ids    = $wpdb->get_col( $wpdb->prepare(
+		"SELECT ID FROM {$wpdb->posts} WHERE post_type='attachment' AND post_status<>'trash' ORDER BY ID ASC LIMIT %d OFFSET %d",
+		$batch, $offset
+	) );
+	$missing = 0;
+	foreach ( $ids as $id ) {
+		$path = get_attached_file( (int) $id );
+		if ( ! $path ) {
+			continue;
+		}
+		$ext = strtolower( pathinfo( $path, PATHINFO_EXTENSION ) );
+		if ( ! in_array( $ext, array( 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'bmp', 'tiff' ), true ) ) {
+			continue;
+		}
+		if ( ! file_exists( $path ) ) {
+			$missing++;
+		}
+	}
+	$done = $offset + count( $ids );
+	wp_send_json_success( array(
+		'total'   => $total,
+		'done'    => $done,
+		'missing' => $missing,
+		'next'    => count( $ids ) < $batch ? null : $done,
+	) );
 } );
 
 add_action( 'wp_ajax_ricoman_pull_images', function () {
