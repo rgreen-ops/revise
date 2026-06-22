@@ -502,10 +502,12 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
    add a gap at the top. Un-zoom and hide the site chrome when a tool is present;
    the tool has its own top bar + back link. */
 .wp-site-blocks:has(.rm-tool){zoom:1}
+.wp-site-blocks:has(.rm-tool) > header,
+.wp-site-blocks:has(.rm-tool) header.wp-block-template-part,
 .wp-site-blocks:has(.rm-tool) header.site,
 .wp-site-blocks:has(.rm-tool) .ricoman-site-header,
-body:has(.rm-tool) > footer,
 .wp-site-blocks:has(.rm-tool) > footer,
+.wp-site-blocks:has(.rm-tool) footer.wp-block-template-part,
 .wp-site-blocks:has(.rm-tool) .site-footer{display:none!important}
 .rm-tool-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;background:var(--ink);color:#fff;padding:10px 18px;font-family:Poppins;font-weight:600;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase}
 .rm-tool-bar a{color:#fff;text-decoration:none}
@@ -751,6 +753,10 @@ body:has(.rm-tool) > footer,
 /* Core cover layout — WordPress only enqueues its cover-block CSS on pages that
    contain a real cover block, so raw-HTML covers (e.g. the product-page CTA) need
    it here or the background image renders at full natural size (giant). */
+/* Auto-fix the little white gaps between stacked full-bleed sections: any
+   full-width block directly following another butts straight up to it (their
+   own padding gives the breathing room). One rule sorts them site-wide. */
+.alignfull + .alignfull{margin-block-start:0!important}
 .wp-block-cover{position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;background-size:cover;background-position:center}
 .wp-block-cover img.wp-block-cover__image-background{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;margin:0;max-width:none;padding:0}
 .wp-block-cover > .wp-block-cover__background{position:absolute;inset:0;z-index:1}

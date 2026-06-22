@@ -457,19 +457,29 @@ add_action( 'admin_init', function () {
 } );
 
 /**
- * One-time: put the Downloads page on the full-width "Blank Canvas" template so
- * its dynamic, wide brochure grid isn't capped at the 760px content width. The
- * page renders its own hero, so the no-title canvas template suits it.
+ * One-time: put every designed marketing page on the full-width "Blank Canvas"
+ * template. Each renders its own hero, so the default page template's centred
+ * title, constrained content (full-bleed sections couldn't break out) and top
+ * padding (a gap above the hero) were all working against them. Canvas = no
+ * title, full-width post-content, no padding — heroes/CTAs go edge-to-edge.
+ * (Legal/news pages aren't in the map, so they keep the titled template.)
  */
 add_action( 'admin_init', function () {
-	if ( get_option( 'ricoman_downloads_canvas_v1' ) || ! current_user_can( 'manage_options' ) ) {
+	if ( get_option( 'ricoman_pages_canvas_v2' ) || ! current_user_can( 'manage_options' ) || ! function_exists( 'ricoman_theme_page_map' ) ) {
 		return;
 	}
-	$page = get_page_by_path( 'downloads' );
-	if ( $page && 'page' === $page->post_type ) {
-		update_post_meta( $page->ID, '_wp_page_template', 'page-canvas' );
+	$slugs = array_keys( ricoman_theme_page_map() );
+	$slugs = array_merge( $slugs, array( 'downloads', 'my-project' ) );
+	foreach ( array_unique( $slugs ) as $slug ) {
+		if ( 'home' === $slug ) {
+			continue; // home uses front-page.html.
+		}
+		$page = get_page_by_path( $slug );
+		if ( $page && 'page' === $page->post_type ) {
+			update_post_meta( $page->ID, '_wp_page_template', 'page-canvas' );
+		}
 	}
-	update_option( 'ricoman_downloads_canvas_v1', 1 );
+	update_option( 'ricoman_pages_canvas_v2', 1 );
 } );
 
 add_action( 'admin_post_ricoman_refresh_pages', function () {	if ( ! current_user_can( 'manage_options' ) ) {
