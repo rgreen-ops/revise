@@ -31,6 +31,7 @@ function ricoman_variant_csv_columns() {
 		'product_sort_description',
 		'lumens',
 		'dimensions',
+		'cut_out',
 		'efficacy',
 		'cri',
 		'beam_angle',

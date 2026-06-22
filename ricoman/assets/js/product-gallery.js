@@ -238,8 +238,10 @@
 		if ( ! cards.length ) { return; }
 		var lmMin = w.querySelector( '.rm-lm-min' ), lmMax = w.querySelector( '.rm-lm-max' );
 		var wMin = w.querySelector( '.rm-w-min' ), wMax = w.querySelector( '.rm-w-max' );
+		var coMin = w.querySelector( '.rm-co-min' ), coMax = w.querySelector( '.rm-co-max' );
 		var lmLo = w.querySelector( '.rm-lm-lo' ), lmHi = w.querySelector( '.rm-lm-hi' );
 		var wLo = w.querySelector( '.rm-w-lo' ), wHi = w.querySelector( '.rm-w-hi' );
+		var coLo = w.querySelector( '.rm-co-lo' ), coHi = w.querySelector( '.rm-co-hi' );
 		var count = w.querySelector( '.rm-fcount b' ), none = w.querySelector( '.rm-fnone' );
 		function ticks() {
 			return [].slice.call( w.querySelectorAll( '.rm-ftick input:checked' ) ).map( function ( i ) { return i.value; } );
@@ -247,21 +249,26 @@
 		function apply() {
 			var loLm = lmMin ? +lmMin.value : 0, hiLm = lmMax ? +lmMax.value : 1e9;
 			var loW = wMin ? +wMin.value : 0, hiW = wMax ? +wMax.value : 1e9;
+			var loCo = coMin ? +coMin.value : 0, hiCo = coMax ? +coMax.value : 1e9;
 			var lmFull = ! lmMin || ( loLm <= +lmMin.min && hiLm >= +lmMax.max );
 			var wFull = ! wMin || ( loW <= +wMin.min && hiW >= +wMax.max );
+			var coFull = ! coMin || ( loCo <= +coMin.min && hiCo >= +coMax.max );
 			if ( lmLo ) { lmLo.textContent = loLm.toLocaleString(); }
 			if ( lmHi ) { lmHi.textContent = hiLm.toLocaleString(); }
 			if ( wLo ) { wLo.textContent = loW; }
 			if ( wHi ) { wHi.textContent = hiW; }
+			if ( coLo ) { coLo.textContent = loCo; }
+			if ( coHi ) { coHi.textContent = hiCo; }
 			var want = ticks(), shown = 0;
 			cards.forEach( function ( c ) {
-				var clm = +c.dataset.lm || 0, cw = +c.dataset.w || 0, cf = ( c.dataset.feat || '' ).split( ' ' );
+				var clm = +c.dataset.lm || 0, cw = +c.dataset.w || 0, cco = +c.dataset.co || 0, cf = ( c.dataset.feat || '' ).split( ' ' );
 				var ok = true;
 				// When a range filter is active, products without that metric
 				// (accessories, track housing, etc.) are excluded — they can't
-				// satisfy a lumen/wattage requirement.
+				// satisfy a lumen/wattage/cut-out requirement.
 				if ( ! lmFull && ( clm <= 0 || clm < loLm || clm > hiLm ) ) { ok = false; }
 				if ( ! wFull && ( cw <= 0 || cw < loW || cw > hiW ) ) { ok = false; }
+				if ( ! coFull && ( cco <= 0 || cco < loCo || cco > hiCo ) ) { ok = false; }
 				want.forEach( function ( f ) { if ( cf.indexOf( f ) < 0 ) { ok = false; } } );
 				c.hidden = ! ok; if ( ok ) { shown++; }
 			} );
@@ -278,12 +285,13 @@
 			min.addEventListener( 'input', function () { if ( +min.value > +max.value - gap ) { min.value = Math.max( +min.min, +max.value - gap ); } apply(); } );
 			max.addEventListener( 'input', function () { if ( +max.value < +min.value + gap ) { max.value = Math.min( +max.max, +min.value + gap ); } apply(); } );
 		}
-		pair( lmMin, lmMax, 100 ); pair( wMin, wMax, 1 );
+		pair( lmMin, lmMax, 100 ); pair( wMin, wMax, 1 ); pair( coMin, coMax, 1 );
 		w.querySelectorAll( '.rm-ftick input' ).forEach( function ( i ) { i.addEventListener( 'change', apply ); } );
 		w.querySelectorAll( '.rm-fclear' ).forEach( function ( b ) {
 			b.addEventListener( 'click', function () {
 				if ( lmMin ) { lmMin.value = lmMin.min; } if ( lmMax ) { lmMax.value = lmMax.max; }
 				if ( wMin ) { wMin.value = wMin.min; } if ( wMax ) { wMax.value = wMax.max; }
+				if ( coMin ) { coMin.value = coMin.min; } if ( coMax ) { coMax.value = coMax.max; }
 				w.querySelectorAll( '.rm-ftick input' ).forEach( function ( i ) { i.checked = false; } ); apply();
 			} );
 		} );

@@ -760,6 +760,7 @@ function ricoman_variant_spec_defs() {
 		array( 'meta', 'operating_temperatures', 'Operating Temp' ),
 		array( 'meta', 'operating_hours', 'Operating Hours' ),
 		array( 'tax', 'size', 'Size' ),
+		array( 'meta', 'cut_out', 'Cut-out (mm)' ),
 		array( 'meta', 'dimensions', 'Dimensions (mm)' ),
 		array( 'meta', 'unit_weight', 'Weight' ),
 		array( 'meta', 'optics', 'Optics' ),

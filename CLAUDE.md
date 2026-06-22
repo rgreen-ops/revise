@@ -158,13 +158,12 @@ From Marketing's email for the new website. Status of each request:
   image/launch issues are settled. Content persists (installer is create-once).
 
 ## Category filter enhancements — TRACKED (backlog)
-- [ ] **Cut-out size slider on Downlights** (and any cut-out category): add a
-  range slider like the existing Light output (lumens) / Power (wattage) sliders.
-  Cut-out diameter (mm) lives in the variant spec/ACF; extend the precomputed
-  variant metrics + `inc/product-filter.php` to emit a `cutout` min/max and a
-  slider. Make it CONDITIONAL — only render when the category's products actually
-  have cut-out data (so it won't show on pendants/linear etc.). Same UI/behaviour
-  as the lumens/watts sliders.
+- [x] **Cut-out size slider on Downlights** — DONE. New `cut_out` variant CSV
+  column + spec def (shows in the configure table/datasheet). Variant metrics
+  aggregate a max cut-out (mm) per product (parsed from variant meta + parent
+  text); the category filter renders a dual-range "Cut-out … mm" slider
+  CONDITIONALLY (only when the category's products have cut-out data), matching
+  the lumens/wattage sliders. Populate via the variant CSV (cut_out column).
 
 ## Configure-table enhancements — TRACKED (backlog)
 - [x] **Whole-family configure table (Estrella)** — DONE. New `config-family`

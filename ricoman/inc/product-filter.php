@@ -125,15 +125,23 @@ function ricoman_pf_compute_metrics( $pid ) {
 			$feats[ $label ] = true;
 		}
 	}
-	// Merge variant-derived lumens/wattage/features.
+	// Cut-out diameter from the parent text (e.g. "68mm cut-out" / "cut-out Ø68").
+	$co = 0;
+	if ( preg_match_all( '/cut[\s-]?out\D{0,8}(\d{2,3})/i', $lc, $m ) ) {
+		foreach ( $m[1] as $n ) {
+			$co = max( $co, (int) $n );
+		}
+	}
+	// Merge variant-derived lumens/wattage/cut-out/features.
 	$vm = ricoman_pf_variant_metrics( $pid );
 	$lm = max( $lm, (int) ( $vm['lm'] ?? 0 ) );
 	$w  = max( $w, (int) ( $vm['w'] ?? 0 ) );
+	$co = max( $co, (int) ( $vm['co'] ?? 0 ) );
 	foreach ( (array) ( $vm['feats'] ?? array() ) as $f => $on ) {
 		// variant_metrics returns feats as label=>true; normalise to label keys.
 		$feats[ is_int( $f ) ? $on : $f ] = true;
 	}
-	return array( 'lm' => $lm, 'w' => $w, 'feats' => array_keys( $feats ) );
+	return array( 'lm' => $lm, 'w' => $w, 'co' => $co, 'feats' => array_keys( $feats ) );
 }
 
 /**
@@ -206,9 +214,10 @@ function ricoman_pf_variant_metrics( $pid ) {
 	global $wpdb;
 	$lm    = 0;
 	$w     = 0;
+	$co    = 0;
 	$feats = array();
 	if ( ! post_type_exists( 'variant-product' ) ) {
-		return array( 'lm' => 0, 'w' => 0, 'feats' => $feats );
+		return array( 'lm' => 0, 'w' => 0, 'co' => 0, 'feats' => $feats );
 	}
 
 	// Variant IDs for this product (one indexed meta query).
@@ -222,11 +231,17 @@ function ricoman_pf_variant_metrics( $pid ) {
 		'meta_query'     => array( array( 'key' => 'parent_product', 'value' => (string) $pid ) ),
 	) );
 	if ( ! $ids ) {
-		return array( 'lm' => 0, 'w' => 0, 'feats' => $feats );
+		return array( 'lm' => 0, 'w' => 0, 'co' => 0, 'feats' => $feats );
 	}
 
 	// Lumens: one MAX query restricted by post_id (indexed) — no table scan.
 	$ids_in   = implode( ',', array_map( 'absint', $ids ) );
+	// Cut-out diameter (mm) — MAX across variants (strip "mm"/spaces/commas).
+	$co = (int) $wpdb->get_var(
+		"SELECT MAX(CAST(REPLACE(REPLACE(REPLACE(LOWER(meta_value),'mm',''),' ',''),',','') AS UNSIGNED))
+		 FROM {$wpdb->postmeta}
+		 WHERE post_id IN ($ids_in) AND meta_key = 'cut_out'"
+	);
 	$lm_keys  = array( 'lumens', 'lumen', 'lumen_output', 'lumens_output', 'total_lumens', 'output_lumens', 'lumen_value' );
 	$keys_in  = implode( ',', array_fill( 0, count( $lm_keys ), '%s' ) );
 	$lm = (int) $wpdb->get_var( $wpdb->prepare(
@@ -274,7 +289,7 @@ function ricoman_pf_variant_metrics( $pid ) {
 			}
 		}
 	}
-	return array( 'lm' => $lm, 'w' => $w, 'feats' => $feats );
+	return array( 'lm' => $lm, 'w' => $w, 'co' => $co, 'feats' => $feats );
 }
 
 /** Rebuild a product's variant metrics when it (or a variant) is saved. */
@@ -327,6 +342,7 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 	$cards   = '';
 	$maxlm   = 0;
 	$maxw    = 0;
+	$maxco   = 0;
 	$allfeat = array();
 	while ( $q->have_posts() ) {
 		$q->the_post();
@@ -334,6 +350,8 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 		$mx    = ricoman_pf_metrics( $pid );
 		$maxlm = max( $maxlm, $mx['lm'] );
 		$maxw  = max( $maxw, $mx['w'] );
+		$co    = (int) ( $mx['co'] ?? 0 );
+		$maxco = max( $maxco, $co );
 		$fslug = array();
 		foreach ( $mx['feats'] as $f ) {
 			$allfeat[ $f ] = true;
@@ -346,7 +364,7 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 		// on the card: a product spans many variants with different output/power,
 		// so a single figure on the card would mislead.
 		$cards .= '<a class="rm-projcard rm-fcard" href="' . esc_url( get_permalink() ) . '"'
-			. ' data-lm="' . (int) $mx['lm'] . '" data-w="' . (int) $mx['w'] . '" data-feat="' . esc_attr( implode( ' ', $fslug ) ) . '"' . $style . '>'
+			. ' data-lm="' . (int) $mx['lm'] . '" data-w="' . (int) $mx['w'] . '" data-co="' . $co . '" data-feat="' . esc_attr( implode( ' ', $fslug ) ) . '"' . $style . '>'
 			. '<span class="rm-projcard-ov">'
 			. ( $sub ? '<span class="rm-eyebrow">' . esc_html( $sub ) . '</span>' : '' )
 			. '<span class="rm-projcard-t">' . esc_html( get_the_title() ) . '</span>'
@@ -357,6 +375,7 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 	$total = $q->post_count;
 	$maxlm = $maxlm > 0 ? (int) ( ceil( $maxlm / 500 ) * 500 ) : 0;
 	$maxw  = $maxw > 0 ? (int) ( ceil( $maxw / 5 ) * 5 ) : 0;
+	$maxco = $maxco > 0 ? (int) ( ceil( $maxco / 5 ) * 5 ) : 0;
 
 	// Feature tick-boxes (skip junk labels + the excluded set).
 	ksort( $allfeat );
@@ -379,6 +398,10 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 	$wslider  = $maxw ? '<div class="rm-frange rm-dual"><label>Power <b class="rm-w-lo">0</b> – <b class="rm-w-hi">' . $maxw . '</b> W</label>'
 		. '<div class="rm-dual-track"><input type="range" class="rm-w-min" min="0" max="' . $maxw . '" step="1" value="0">'
 		. '<input type="range" class="rm-w-max" min="0" max="' . $maxw . '" step="1" value="' . $maxw . '"></div></div>' : '';
+	// Cut-out slider — only when this category's products actually have cut-out data.
+	$coslider = $maxco ? '<div class="rm-frange rm-dual"><label>Cut-out <b class="rm-co-lo">0</b> – <b class="rm-co-hi">' . $maxco . '</b> mm</label>'
+		. '<div class="rm-dual-track"><input type="range" class="rm-co-min" min="0" max="' . $maxco . '" step="1" value="0">'
+		. '<input type="range" class="rm-co-max" min="0" max="' . $maxco . '" step="1" value="' . $maxco . '"></div></div>' : '';
 
 	// Per-category SEO copy (editable on the category screen): intro above the
 	// grid, body/FAQ below it.
@@ -404,10 +427,10 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 	$out .= '<h1 class="rm-catarch-title">' . esc_html( $title ) . ' <span class="rm-catarch-count">' . (int) $total . '</span></h1>';
 	$out .= $seo_intro;
 	$out .= '<div class="rm-catgrid-wrap"><aside class="rm-facets">'
-		. ( $lmslider || $wslider || $ticks ? '<p class="rm-facets-head">Filter</p>' : '' )
-		. $lmslider . $wslider
+		. ( $lmslider || $wslider || $coslider || $ticks ? '<p class="rm-facets-head">Filter</p>' : '' )
+		. $lmslider . $wslider . $coslider
 		. ( $ticks ? '<div class="rm-fgroup"><p class="rm-facets-sub">Features</p>' . $ticks . '</div>' : '' )
-		. ( $lmslider || $wslider || $ticks ? '<button type="button" class="rm-fclear">Clear filters</button>' : '' )
+		. ( $lmslider || $wslider || $coslider || $ticks ? '<button type="button" class="rm-fclear">Clear filters</button>' : '' )
 		. '</aside>';
 	$out .= '<div class="rm-catgrid"><p class="rm-fcount"><b>' . (int) $total . '</b> products</p>'
 		. '<div class="rm-projgrid rm-prodgrid rm-fgrid">' . $cards . '</div>'
