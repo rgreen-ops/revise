@@ -675,9 +675,9 @@
 			return;
 		}
 		r.rail.classList.remove( 'rm-thumbrail--flat' );
+		// Height is matched to the main image in CSS (same min(56vh,520px)); here we
+		// only decide whether the up/down arrows are needed.
 		r.up.style.display = r.dn.style.display = 'none';
-		var h = Math.round( stage.getBoundingClientRect().height );
-		if ( h > 40 ) { r.rail.style.height = h + 'px'; }
 		if ( r.thumbs.scrollHeight > r.thumbs.clientHeight + 2 ) {
 			r.up.style.display = r.dn.style.display = '';
 		}

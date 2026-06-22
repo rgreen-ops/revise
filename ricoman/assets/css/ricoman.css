@@ -1543,6 +1543,8 @@ a.rm-projhead-sectorlink:hover{color:var(--ink)}
 /* Thumbnail rail: column capped to the main-image height, tiny arrow scrollers
    (no scrollbar) when thumbnails overflow. JS wraps .rm-gthumbs in .rm-thumbrail. */
 .rm-thumbrail{display:flex;flex-direction:column;gap:6px;flex:0 0 88px}
+/* Match the rail height to the main image exactly (same value as .rm-cfg-viz). */
+.rm-pdp-gallery .rm-thumbrail{height:min(56vh,520px)}
 .rm-thumbrail:not(.rm-thumbrail--flat) .rm-gthumbs{flex-direction:column;flex-wrap:nowrap;width:88px;flex:1 1 auto;min-height:0;overflow:hidden;scrollbar-width:none}
 .rm-thumbrail:not(.rm-thumbrail--flat) .rm-gthumbs::-webkit-scrollbar{display:none}
 .rm-thumbrail-btn{flex:0 0 auto;width:88px;height:20px;border:1px solid var(--line);background:#fff;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.58rem;color:var(--ink);padding:0;line-height:1;transition:.15s}
