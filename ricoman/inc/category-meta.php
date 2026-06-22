@@ -207,8 +207,14 @@ function ricoman_cat_img_save( $term_id ) {
 		update_option( 'rm_products_ver', (string) time(), false );
 	}
 }
-add_action( 'created_' . ricoman_cat_tax(), 'ricoman_cat_img_save' );
-add_action( 'edited_' . ricoman_cat_tax(), 'ricoman_cat_img_save' );
+// Bind the save to BOTH possible taxonomy names. These add_action calls run at
+// file-load time, before the taxonomy is registered on `init`, so ricoman_cat_tax()
+// would resolve to the wrong name here and the save would never fire. Registering
+// for both names is harmless and guarantees it runs for the real taxonomy.
+foreach ( array( 'product-cat', 'product_cat' ) as $rm_save_tax ) {
+	add_action( 'created_' . $rm_save_tax, 'ricoman_cat_img_save' );
+	add_action( 'edited_' . $rm_save_tax, 'ricoman_cat_img_save' );
+}
 
 /** Show the manual display order as a column in the category list table. */
 add_action( 'admin_init', function () {
