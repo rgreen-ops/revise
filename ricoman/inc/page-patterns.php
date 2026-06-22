@@ -227,9 +227,37 @@ add_action( 'init', function () {
 	$p['custom-cta'] = array( 'Customisation · CTA', $cover( $u( 'rico-soundslikelight.webp' ), '<!-- wp:heading {"textAlign":"center","level":2} --><h2 class="wp-block-heading has-text-align-center">Start a bespoke project</h2><!-- /wp:heading --><!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">Use the Flow+ Designer to draw your run, or send us a sketch and we&rsquo;ll spec it end to end.</p><!-- /wp:paragraph -->' . $buttons( $btn( 'Open Flow+ Designer', '/flow-designer/' ) . $btn( 'Talk to the team →', '/contact/', false ), true ), 52, 'center center', 70 ) );
 
 	/* ===== Contact ===== */
-	// Contact — compact band (utility page): the enquiry form is the priority.
-	$p['contact-hero'] = array( 'Contact · Hero', $hdr_band( 'Contact', 'Let&rsquo;s talk lighting.', 'Send us a project, a drawing or a question — our Manchester team will get straight back to you.' ) );
-	$p['contact-body'] = array( 'Contact · Form &amp; details', $sec( '<!-- wp:columns --><div class="wp-block-columns"><!-- wp:column {"width":"58%"} --><div class="wp-block-column" style="flex-basis:58%">' . $eyebrow( 'Send an enquiry' ) . $shead( 'Tell us about your project' ) . '<!-- wp:shortcode -->[ricoman_lead_form]<!-- /wp:shortcode --></div><!-- /wp:column --><!-- wp:column {"width":"42%"} --><div class="wp-block-column" style="flex-basis:42%"><!-- wp:group {"className":"rm-soft","style":{"spacing":{"padding":{"top":"var:preset|spacing|40","bottom":"var:preset|spacing|40","left":"var:preset|spacing|40","right":"var:preset|spacing|40"}}},"layout":{"type":"constrained"}} --><div class="wp-block-group rm-soft" style="padding-top:var(--wp--preset--spacing--40);padding-bottom:var(--wp--preset--spacing--40);padding-left:var(--wp--preset--spacing--40);padding-right:var(--wp--preset--spacing--40)"><!-- wp:heading {"level":3} --><h3 class="wp-block-heading">Get in touch</h3><!-- /wp:heading -->' . $para( 'Metroplex Business Park<br>520 Broadway, M50 2UE<br>Manchester, UK' ) . $para( '<strong>0161 451 5913</strong><br>sales@ricoman.com' ) . $para( 'Mon–Thu 8:30–17:00 · Fri 8:30–16:00' ) . '</div><!-- /wp:group --><!-- wp:shortcode -->[ricoman_callback]<!-- /wp:shortcode --></div><!-- /wp:column --></div><!-- /wp:columns -->' ) );
+	// Contact — engaging, visual: split hero w/ image + quick-contact chips, a row
+	// of "ways to reach us" cards, then the enquiry form beside "what happens next".
+	$p['contact-hero'] = array( 'Contact · Hero', $hdr_split(
+		'Contact',
+		'Let&rsquo;s light your next project.',
+		'Send a drawing, a finishes schedule or just a question. We design, make and deliver in Manchester — and we actually pick up the phone.',
+		$u( 'rico-office.webp' ),
+		$buttons( $btn( 'Call 0161 451 5913', 'tel:01614515913', false ) . $btn( 'Email the team', 'mailto:sales@ricoman.com', false ) )
+	) );
+	$p['contact-ways'] = array( 'Contact · Ways to reach us', $sec(
+		$eyebrow( 'Ways to reach us' ) . $shead( 'However suits you best' )
+		. '<!-- wp:columns --><div class="wp-block-columns">'
+		. $aud( '☏', '<a href="tel:01614515913">0161 451 5913</a>', 'Mon&ndash;Thu 8:30&ndash;17:00 &middot; Fri 8:30&ndash;16:00. Talk to a real person.' )
+		. $aud( '✉', '<a href="mailto:sales@ricoman.com">sales@ricoman.com</a>', 'We reply the same working day — usually within hours.' )
+		. $aud( '⌖', 'Visit the showroom', 'Metroplex Business Park, 520 Broadway, M50 2UE, Manchester.' )
+		. $aud( '✎', 'Free scheme design', 'Send your drawings and get a costed, photometric scheme in 3&ndash;5 days.' )
+		. '</div><!-- /wp:columns -->'
+	, 'rm-contact-ways' ) );
+	$cf_form  = '<!-- wp:group {"className":"rm-soft rm-contact-formcard","style":{"spacing":{"padding":{"top":"var:preset|spacing|50","bottom":"var:preset|spacing|50","left":"var:preset|spacing|50","right":"var:preset|spacing|50"}}},"layout":{"type":"constrained"}} --><div class="wp-block-group rm-soft rm-contact-formcard" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--50);padding-left:var(--wp--preset--spacing--50);padding-right:var(--wp--preset--spacing--50)">'
+		. $eyebrow( 'Send an enquiry' ) . $shead( 'Tell us about your project' )
+		. $para( 'A project on the board, a tricky detail or a quick question — tell us what you need and the right person will come back to you.', true )
+		. '<!-- wp:shortcode -->[ricoman_lead_form]<!-- /wp:shortcode --></div><!-- /wp:group -->';
+	$cf_side  = $eyebrow( 'What happens next' )
+		. $checklist( array(
+			'<strong>We read it properly</strong> — a lighting designer, not a bot.',
+			'<strong>We come back fast</strong> — within one working day.',
+			'<strong>We design &amp; cost it</strong> — a full scheme in 3&ndash;5 days, free.',
+			'<strong>Made in Britain</strong> — UK stock, ~6-day lead, 5-year warranty.',
+		) )
+		. '<!-- wp:shortcode -->[ricoman_callback]<!-- /wp:shortcode -->';
+	$p['contact-form'] = array( 'Contact · Enquiry form', $sec( $twocol( $cf_form, $cf_side ), 'rm-contact-form' ) );
 
 	/* ===== Feature / enhanced landing pages =====
 	 * Rich, editable landing pages for the marketing features (Casambi, Human
@@ -659,7 +687,7 @@ function ricoman_customisation_blocks() {
 	return ricoman_stack( array( 'custom-hero', 'custom-intro', 'custom-cta' ) );
 }
 function ricoman_contact_blocks() {
-	return ricoman_stack( array( 'contact-hero', 'contact-body' ) );
+	return ricoman_stack( array( 'contact-hero', 'contact-ways', 'contact-form' ) );
 }
 
 /* Feature / enhanced landing pages — each is one comprehensive editable pattern. */

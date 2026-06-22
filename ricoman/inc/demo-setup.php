@@ -457,6 +457,24 @@ add_action( 'admin_init', function () {
 } );
 
 /**
+ * One-time: re-apply the redesigned Contact layout (split hero + ways-to-reach-us
+ * cards + form beside "what happens next") over the old compact contact-body.
+ */
+add_action( 'admin_init', function () {
+	if ( get_option( 'ricoman_relayout_contact_v4' ) || ! current_user_can( 'manage_options' ) || ! function_exists( 'ricoman_contact_blocks' ) ) {
+		return;
+	}
+	$page = get_page_by_path( 'contact' );
+	if ( $page && 'page' === $page->post_type ) {
+		$content = ricoman_contact_blocks();
+		if ( $content ) {
+			wp_update_post( array( 'ID' => $page->ID, 'post_content' => $content ) );
+		}
+	}
+	update_option( 'ricoman_relayout_contact_v4', 1 );
+} );
+
+/**
  * One-time: put every designed marketing page on the full-width "Blank Canvas"
  * template. Each renders its own hero, so the default page template's centred
  * title, constrained content (full-bleed sections couldn't break out) and top

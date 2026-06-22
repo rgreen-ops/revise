@@ -134,6 +134,9 @@
 .ricoman-lead-form textarea {
 	font: inherit;
 	font-weight: 400;
+	width: 100%;
+	box-sizing: border-box;
+	max-width: 100%;
 	padding: 0.7rem 0.8rem;
 	border: 1px solid var(--wp--preset--color--line);
 	border-radius: 10px;

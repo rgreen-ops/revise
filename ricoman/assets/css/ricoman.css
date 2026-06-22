@@ -624,12 +624,23 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-news-msg{flex:1 0 100%;margin:6px 0 0;font-size:.85rem;color:#1a7f37}
 @media(max-width:560px){.rm-news-form .rm-news-go{flex:1 1 100%}}
 /* Request-a-callback (light card, reuses .rm-news typography) */
+/* Contact page — engaging ways-to-reach-us cards + form layout */
+.rm-contact-ways .rm-aud-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:26px;height:100%;transition:.25s ease}
+.rm-contact-ways .rm-aud-card:hover{border-color:#cfcdc8;box-shadow:0 12px 30px rgba(0,0,0,.07);transform:translateY(-3px)}
+.rm-contact-ways .rm-aud-card .rm-eyebrow{font-size:1.7rem;line-height:1;color:var(--blue);margin-bottom:.4em;letter-spacing:0}
+.rm-contact-ways .rm-aud-card h3{font-size:1.15rem;margin:0 0 .35em}
+.rm-contact-ways .rm-aud-card h3 a{color:var(--ink);text-decoration:none}
+.rm-contact-ways .rm-aud-card h3 a:hover{color:var(--blue)}
+.rm-contact-form .rm-flist li{margin-bottom:.7em}
+.rm-contact-form .rm-soft{background:#f7f7f7;border:1px solid var(--line)}
 .rm-callback{background:var(--rm-soft,#f5f6f8);border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:clamp(22px,3vw,34px)}
 .rm-callback-form{max-width:560px}
-.rm-callback-form .rm-cb-row{display:flex;flex-wrap:wrap;gap:12px}
-.rm-callback-form label{display:block;margin:0 0 12px;flex:1 1 200px}
+.rm-callback-form .rm-cb-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.rm-callback-form label{display:block;margin:0 0 12px}
+.rm-callback-form .rm-cb-row label{margin:0}
 .rm-callback-form label span{display:block;font-size:.82rem;font-weight:600;margin:0 0 4px;color:var(--ink,#16161a)}
-.rm-callback-form input,.rm-callback-form select{width:100%;padding:11px 13px;border-radius:10px;border:1px solid rgba(0,0,0,.18);background:#fff;color:var(--ink,#16161a);font-size:.95rem}
+.rm-callback-form input,.rm-callback-form select{width:100%;box-sizing:border-box;max-width:100%;padding:11px 13px;border-radius:10px;border:1px solid rgba(0,0,0,.18);background:#fff;color:var(--ink,#16161a);font-size:.95rem}
+@media(max-width:520px){.rm-callback-form .rm-cb-row{grid-template-columns:1fr}}
 /* Footer (dark) override */
 .rm-foot-news{margin-top:clamp(32px,4vw,56px);padding-top:28px;border-top:1px solid rgba(255,255,255,.12)}
 .rm-foot-news .rm-news{background:none;border:0;border-radius:0;padding:0}
