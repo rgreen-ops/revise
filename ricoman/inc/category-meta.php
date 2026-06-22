@@ -378,3 +378,123 @@ add_action( 'wp_ajax_rm_cat_reorder', function () {
 	update_option( 'rm_products_ver', (string) time(), false );
 	wp_send_json_success( array( 'count' => $pos - 1 ) );
 } );
+
+/* ============================================================ *
+ * Drag-to-reorder PRODUCTS within a category
+ *
+ * Products list by their native "Order" (menu_order). Typing a number on each
+ * product is fiddly, so this gives the same drag UI as categories: pick a
+ * category, drag its products into order, Save → writes menu_order 1..N.
+ * ============================================================ */
+add_action( 'admin_menu', function () {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+	add_submenu_page(
+		'ricoman-hub',
+		__( 'Reorder Products', 'ricoman' ),
+		__( 'Reorder Products', 'ricoman' ),
+		'manage_options',
+		'ricoman-product-order',
+		'ricoman_product_order_page'
+	);
+}, 32 );
+
+function ricoman_product_order_page() {
+	$tax   = ricoman_cat_tax();
+	$terms = get_terms( array( 'taxonomy' => $tax, 'hide_empty' => false ) );
+	if ( is_wp_error( $terms ) ) {
+		$terms = array();
+	}
+	$terms = ricoman_cat_sort_terms( $terms, 'name' );
+	$cur   = isset( $_GET['cat'] ) ? sanitize_title( wp_unslash( $_GET['cat'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+	echo '<div class="wrap"><h1>' . esc_html__( 'Reorder Products', 'ricoman' ) . '</h1>';
+	echo '<p>' . esc_html__( 'Pick a category, then drag its products into the order you want them to appear on the category page and product tiles. Save writes each product\'s "Order" attribute.', 'ricoman' ) . '</p>';
+
+	// Category picker (reloads the page for the chosen category).
+	echo '<form method="get" style="margin:0 0 18px"><input type="hidden" name="page" value="ricoman-product-order">';
+	echo '<select name="cat" onchange="this.form.submit()" style="min-width:280px"><option value="">' . esc_html__( '— Choose a category —', 'ricoman' ) . '</option>';
+	foreach ( $terms as $t ) {
+		echo '<option value="' . esc_attr( $t->slug ) . '"' . selected( $cur, $t->slug, false ) . '>' . esc_html( $t->name ) . ' (' . (int) $t->count . ')</option>';
+	}
+	echo '</select> <noscript><button class="button">' . esc_html__( 'Go', 'ricoman' ) . '</button></noscript></form>';
+
+	if ( ! $cur ) {
+		echo '</div>';
+		return;
+	}
+
+	$q = new WP_Query( array(
+		'post_type'      => 'product',
+		'post_status'    => 'publish',
+		'posts_per_page' => 600,
+		'no_found_rows'  => true,
+		'orderby'        => array( 'menu_order' => 'ASC', 'title' => 'ASC' ),
+		'tax_query'      => array( array( 'taxonomy' => $tax, 'field' => 'slug', 'terms' => $cur ) ), // phpcs:ignore WordPress.DB.SlowDBQuery
+	) );
+
+	if ( ! $q->have_posts() ) {
+		echo '<p><em>' . esc_html__( 'No products in this category.', 'ricoman' ) . '</em></p></div>';
+		return;
+	}
+
+	echo '<p><span id="rm-prodord-status" style="font-weight:600"></span></p>';
+	echo '<ol id="rm-prodord-list" style="list-style:none;margin:0;padding:0;max-width:620px">';
+	while ( $q->have_posts() ) {
+		$q->the_post();
+		$thumb = get_the_post_thumbnail_url( get_the_ID(), 'thumbnail' );
+		echo '<li class="rm-prodord-row" data-id="' . esc_attr( get_the_ID() ) . '" style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #dcdcde;border-radius:8px;padding:8px 14px;margin:0 0 8px;cursor:grab">'
+			. '<span aria-hidden="true" style="color:#a7aaad;font-size:18px;line-height:1">⠿</span>'
+			. ( $thumb ? '<img src="' . esc_url( $thumb ) . '" alt="" style="width:40px;height:40px;object-fit:cover;border-radius:4px">' : '<span style="width:40px;height:40px;background:#f0f0f1;border-radius:4px;display:inline-block"></span>' )
+			. '<strong style="flex:1">' . esc_html( get_the_title() ) . '</strong>'
+			. '</li>';
+	}
+	echo '</ol>';
+	wp_reset_postdata();
+	echo '<p><button class="button button-primary" id="rm-prodord-save">' . esc_html__( 'Save order', 'ricoman' ) . '</button></p>';
+	echo '</div>';
+
+	$nonce = wp_create_nonce( 'rm_product_order' );
+	$ajax  = admin_url( 'admin-ajax.php' );
+	wp_enqueue_script( 'jquery-ui-sortable' );
+	$js = <<<JS
+jQuery(function($){
+	$('#rm-prodord-list').sortable({axis:'y',cursor:'grabbing',placeholder:'rm-prodord-ph'});
+	$('#rm-prodord-save').on('click',function(){
+		var btn=$(this).prop('disabled',true);
+		var ids=$('#rm-prodord-list .rm-prodord-row').map(function(){return $(this).data('id');}).get();
+		$('#rm-prodord-status').css('color','#646970').text('Saving…');
+		$.post(%s,{action:'rm_product_reorder',nonce:%s,ids:ids}).done(function(r){
+			if(r&&r.success){ $('#rm-prodord-status').css('color','#00a32a').text('✓ Saved — order applied.'); }
+			else { $('#rm-prodord-status').css('color','#d63638').text('Could not save. Reload and try again.'); }
+		}).fail(function(){ $('#rm-prodord-status').css('color','#d63638').text('Network error. Try again.'); })
+		.always(function(){ btn.prop('disabled',false); });
+	});
+});
+JS;
+	$js = sprintf( $js, wp_json_encode( $ajax ), wp_json_encode( $nonce ) );
+	wp_add_inline_script( 'jquery-ui-sortable', $js );
+	echo '<style>#rm-prodord-list .rm-prodord-ph{height:58px;border:2px dashed #c3c4c7;border-radius:8px;margin:0 0 8px;background:#f6f7f7}</style>';
+}
+
+/** AJAX: persist the dragged product order as menu_order 1..N. */
+add_action( 'wp_ajax_rm_product_reorder', function () {
+	if ( ! current_user_can( 'manage_options' ) || ! check_ajax_referer( 'rm_product_order', 'nonce', false ) ) {
+		wp_send_json_error();
+	}
+	$ids = isset( $_POST['ids'] ) ? array_map( 'absint', (array) wp_unslash( $_POST['ids'] ) ) : array();
+	$ids = array_values( array_filter( $ids ) );
+	if ( ! $ids ) {
+		wp_send_json_error();
+	}
+	$pos = 1;
+	foreach ( $ids as $pid ) {
+		if ( 'product' === get_post_type( $pid ) ) {
+			wp_update_post( array( 'ID' => $pid, 'menu_order' => $pos ) );
+			$pos++;
+		}
+	}
+	update_option( 'rm_products_ver', (string) time(), false );
+	wp_send_json_success( array( 'count' => $pos - 1 ) );
+} );

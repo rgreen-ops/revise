@@ -182,6 +182,11 @@ add_filter( 'the_content', function ( $html ) {
 
 /* ------------------------------------------------------------------ admin -- */
 add_action( 'admin_menu', function () {
+	// One-time bulk converter — hidden by default (WebP twins are also served
+	// on the fly). Re-enable: add_filter('ricoman_show_setup_tools','__return_true');
+	if ( ! apply_filters( 'ricoman_show_setup_tools', false ) ) {
+		return;
+	}
 	add_submenu_page(
 		'ricoman-hub',
 		__( 'Image WebP', 'ricoman' ),

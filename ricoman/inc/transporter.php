@@ -26,6 +26,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /* ---- Admin menu ---- */
 add_action( 'admin_menu', function () {
+	// Pre-launch content migration tool — hidden by default. Re-enable with:
+	//   add_filter( 'ricoman_show_setup_tools', '__return_true' );
+	if ( ! apply_filters( 'ricoman_show_setup_tools', false ) ) {
+		return;
+	}
 	add_management_page(
 		__( 'Content Transporter', 'ricoman' ),
 		__( 'Content Transporter', 'ricoman' ),

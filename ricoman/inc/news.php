@@ -686,6 +686,11 @@ add_action( 'save_post_news', function ( $post_id ) {
  * from article content, then refine with Quick/Bulk Edit.
  * ----------------------------------------------------------------------- */
 add_action( 'admin_menu', function () {
+	// One-time bulk tagging — hidden by default (new posts auto-tag on save).
+	// Re-enable: add_filter('ricoman_show_setup_tools','__return_true');
+	if ( ! apply_filters( 'ricoman_show_setup_tools', false ) ) {
+		return;
+	}
 	add_submenu_page(
 		'edit.php?post_type=news',
 		__( 'Auto-tag Topics', 'ricoman' ),

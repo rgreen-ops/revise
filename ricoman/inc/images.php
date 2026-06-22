@@ -182,6 +182,11 @@ function ricoman_alt_fill_batch( $limit = 400 ) {
 }
 
 add_action( 'admin_menu', function () {
+	// One-time pre-launch backfill — hidden by default (new uploads still get
+	// alt text automatically). Re-enable: add_filter('ricoman_show_setup_tools','__return_true');
+	if ( ! apply_filters( 'ricoman_show_setup_tools', false ) ) {
+		return;
+	}
 	add_submenu_page(
 		'ricoman-hub',
 		__( 'Image Alt Text', 'ricoman' ),

@@ -138,6 +138,11 @@ function ricoman_gc_product( $pid, $apply ) {
 
 /* ------------------------------------------------------------------ admin */
 add_action( 'admin_menu', function () {
+	// One-time pre-launch/migration tool — hidden by default. Re-enable with:
+	//   add_filter( 'ricoman_show_setup_tools', '__return_true' );
+	if ( ! apply_filters( 'ricoman_show_setup_tools', false ) ) {
+		return;
+	}
 	add_submenu_page(
 		'ricoman-hub',
 		__( 'Studio / In-situ Sort', 'ricoman' ),
