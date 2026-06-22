@@ -661,9 +661,9 @@ function ricoman_downloads_page_html() {
 		. '<h1 class="rm-dl-title">' . esc_html__( 'Catalogues, datasheets &amp; BIM', 'ricoman' ) . '</h1>'
 		. '<p class="rm-dl-lead">' . esc_html__( 'Everything you need to specify Ricoman — brochures, technical datasheets, photometric (IES/LDT) files and BIM objects.', 'ricoman' ) . '</p></div>';
 
-	// Full-bleed wrapper (breaks out of the theme's narrow content column) with a
-	// centred inner container.
-	return '<div class="rm-dlpage"><div class="rm-dlpage-in">'
+	// alignfull lets the theme widen this out of the narrow content column the
+	// correct way (works with the global zoom; a 100vw hack does not).
+	return '<div class="rm-dlpage alignfull"><div class="rm-dlpage-in">'
 		. $hero
 		. '<div class="rm-dl-head"><p class="rm-eyebrow">' . esc_html__( 'Brochures', 'ricoman' ) . '</p>'
 		. '<h2 class="rm-shead">' . esc_html__( 'Catalogues &amp; range brochures', 'ricoman' ) . '</h2></div>'
