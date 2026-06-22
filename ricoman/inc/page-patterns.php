@@ -183,6 +183,27 @@ add_action( 'init', function () {
 	) );
 	$p['about-stats'] = array( 'About · Stats', $sec( '<!-- wp:columns --><div class="wp-block-columns">' . $bignum( '1999', 'Our journey began' ) . $bignum( '535', 'Lighting design projects in 2025' ) . $bignum( '2,000+', 'Components stocked, ready to build' ) . $bignum( '5 yr', 'Standard warranty' ) . '</div><!-- /wp:columns -->', 'rm-statband' ) );
 	$p['about-values'] = array( 'About · Values', $sec( $eyebrow( '03 · What we stand for' ) . $shead( 'The way we like to work' ) . '<!-- wp:columns --><div class="wp-block-columns">' . $aud( '↳ 01', 'Made in Britain', 'Designed, built, finished and tested in Manchester — full control, full traceability, shorter lead times.' ) . $aud( '↳ 02', 'Specifier-first', 'Free scheme design, clean photometrics and honest lead times. We make the spec easy to stand behind.' ) . $aud( '↳ 03', 'Built to last', 'Serviceable, high-CRI fittings backed by a 5-year warranty — good for the building and the planet.' ) . '</div><!-- /wp:columns -->' ) );
+	// Why us — benefit cards aimed at specifiers (marketing's "Why us" split).
+	$p['about-why'] = array( 'About · Why us', $sec(
+		$eyebrow( 'Why us' ) . $shead( 'Why specifiers choose Ricoman' ) .
+		'<!-- wp:columns --><div class="wp-block-columns">'
+		. $aud( '01', 'Free scheme design', 'Send drawings or a finishes schedule — our in-house designers return a costed, photometric scheme, usually within 3–5 days.' )
+		. $aud( '02', 'Made in Britain', 'Designed, assembled, finished and tested in Manchester — full control of quality, bespoke detail and lead times.' )
+		. $aud( '03', 'Bespoke as standard', 'Custom lengths, curves, finishes and colour temperatures to match your drawings — not the other way round.' )
+		. $aud( '04', 'Specified with confidence', 'Datasheets, IES/LDT and BIM for your spec pack, a 5-year warranty and real UK-based support.' )
+		. '</div><!-- /wp:columns -->'
+	) );
+
+	// Team & culture — placeholder people cards; swap each for a photo, name & role.
+	$person = function ( $name, $role ) {
+		return '<!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"rm-team-card","layout":{"type":"constrained"}} --><div class="wp-block-group rm-team-card"><!-- wp:group {"className":"rm-team-ph","layout":{"type":"constrained"}} --><div class="wp-block-group rm-team-ph"></div><!-- /wp:group --><!-- wp:heading {"level":3} --><h3 class="wp-block-heading">' . $name . '</h3><!-- /wp:heading --><!-- wp:paragraph {"textColor":"muted","fontSize":"small"} --><p class="has-muted-color has-text-color has-small-font-size">' . $role . '</p><!-- /wp:paragraph --></div><!-- /wp:group --></div><!-- /wp:column -->';
+	};
+	$p['about-team'] = array( 'About · Team &amp; culture', $sec(
+		$eyebrow( 'Team &amp; culture' ) . $shead( 'The people behind the light' ) .
+		$para( 'We&rsquo;re a close-knit Manchester team of designers, engineers and makers who care about getting light right. Replace these placeholders with your team — select a card and add a photo, name and role.', true ) .
+		'<!-- wp:columns --><div class="wp-block-columns">' . $person( 'Team member', 'Role / department' ) . $person( 'Team member', 'Role / department' ) . $person( 'Team member', 'Role / department' ) . $person( 'Team member', 'Role / department' ) . '</div><!-- /wp:columns -->'
+	) );
+
 	$contact_left  = $eyebrow( '04 · Get in touch' ) . $shead( 'Talk to the team' ) . $para( 'Quotes, lead times, a tricky detail or a full scheme — our Manchester team will get you a real answer, fast.', true ) . '<!-- wp:heading {"level":4} --><h4 class="wp-block-heading">Visit / Post</h4><!-- /wp:heading -->' . $para( 'Metroplex Business Park<br>520 Broadway, M50 2UE<br>Manchester, United Kingdom' ) . '<!-- wp:heading {"level":4} --><h4 class="wp-block-heading">Call</h4><!-- /wp:heading -->' . $para( '<a href="tel:01614515913">0161 451 5913</a>' ) . '<!-- wp:heading {"level":4} --><h4 class="wp-block-heading">Email</h4><!-- /wp:heading -->' . $para( '<a href="mailto:sales@ricoman.com">sales@ricoman.com</a>' ) . '<!-- wp:heading {"level":4} --><h4 class="wp-block-heading">Hours</h4><!-- /wp:heading -->' . $para( 'Mon&ndash;Thu 8:30&ndash;17:00 &middot; Fri 8:30&ndash;16:00' );
 	$contact_form  = '<!-- wp:group {"className":"rm-soft","style":{"spacing":{"padding":{"top":"var:preset|spacing|40","bottom":"var:preset|spacing|40","left":"var:preset|spacing|40","right":"var:preset|spacing|40"}}},"layout":{"type":"constrained"}} --><div class="wp-block-group rm-soft" style="padding-top:var(--wp--preset--spacing--40);padding-bottom:var(--wp--preset--spacing--40);padding-left:var(--wp--preset--spacing--40);padding-right:var(--wp--preset--spacing--40)"><!-- wp:paragraph {"className":"rm-eyebrow"} --><p class="rm-eyebrow">Send an enquiry</p><!-- /wp:paragraph --><!-- wp:shortcode -->[ricoman_lead_form]<!-- /wp:shortcode --></div><!-- /wp:group -->';
 	$p['about-contact'] = array( 'About · Contact &amp; enquiry', $sec( $twocol( $contact_left, $contact_form ) ) );

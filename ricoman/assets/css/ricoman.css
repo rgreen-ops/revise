@@ -357,6 +357,12 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-quote{border:1px solid var(--line);border-radius:14px;padding:26px;height:100%}
 .rm-quote-t{font-family:Poppins;font-weight:500;font-size:1.05rem;line-height:1.45;margin:0}
 .rm-quote-who{font-size:.82rem;margin:14px 0 0}
+/* Team & culture cards (placeholder avatar the team swaps for a photo). */
+.rm-team-card{text-align:center}
+.rm-team-ph{aspect-ratio:1/1;border-radius:14px;background:#e4e4e4;margin-bottom:14px}
+.rm-team-card h3{font-family:Poppins;font-size:1.05rem;margin:0}
+.rm-team-card .wp-block-image{margin:0 0 14px}
+.rm-team-card .wp-block-image img{aspect-ratio:1/1;object-fit:cover;border-radius:14px;width:100%}
 /* cards (ranges) */
 .rm-card{display:block}
 .rm-card img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:transform .6s ease}
