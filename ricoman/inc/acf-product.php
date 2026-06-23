@@ -1145,18 +1145,9 @@ function ricoman_pf_variant_table( $pid ) {
 		foreach ( $filterable as $label => $vals ) {
 			$rowattr .= ' data-f-' . $slugify( $label ) . '="' . esc_attr( isset( $v['pairs'][ $label ] ) ? $v['pairs'][ $label ] : '' ) . '"';
 		}
-		// Full spec carried as compact JSON; the detail modal is built client-side
-		// on row click. Pre-rendering a ~30-row detail panel for every variant added
-		// thousands of hidden DOM nodes (≈900KB HTML), which made the page slow —
-		// especially on mobile.
-		$rowattr .= ' data-d="' . esc_attr( (string) wp_json_encode( array(
-			'img'   => $timg,
-			'code'  => $v['code'],
-			'desc'  => $v['desc'],
-			'ldt'   => $v['ldt'],
-			'ds'    => $v['ds'],
-			'pairs' => $v['pairs'],
-		) ) ) . '"';
+		// The click-modal is built client-side from the row's own cells (see
+		// product-gallery.js) — we no longer embed a full-spec JSON blob per row,
+		// which on big ranges (Estrella ~2000 rows) added megabytes to the page.
 		$rows .= '<tr class="vt-row' . ( $i >= 10 ? ' rm-vt-hide' : '' ) . '" data-vt="' . $i . '"' . $rowattr . ' tabindex="0"><td class="vt-thumb">' . $thumb . '</td>'
 			. '<td class="vt-code">' . esc_html( $v['code'] ) . '</td>'
 			. '<td class="vt-desc">' . esc_html( $v['desc'] ) . '</td>'
@@ -1641,7 +1632,7 @@ function ricoman_pf_configure_inner( $pid ) {
 
 /** Configurator HTML with its own transient cache (keyed like the section cache). */
 function ricoman_pf_configure_cached( $pid ) {
-	$key = 'rm_cfgsec_v2_' . (int) $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true ) . '_' . get_option( 'rm_cfgimg_ver', '0' );
+	$key = 'rm_cfgsec_v3_' . (int) $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true ) . '_' . get_option( 'rm_cfgimg_ver', '0' );
 	$pre = get_transient( $key );
 	if ( is_string( $pre ) ) {
 		return $pre;

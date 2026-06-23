@@ -504,23 +504,40 @@
 		var modal = vp.querySelector( '.rm-vt-modal' );
 		var body = modal && modal.querySelector( '.rm-vt-body' );
 		if ( ! modal || ! body ) { return; }
-		var d; try { d = JSON.parse( row.getAttribute( 'data-d' ) || '{}' ); } catch ( e ) { d = {}; }
-		// Detail panel is built here (client-side) from the row's compact spec data.
-		var img = d.img ? '<div class="vt-d-img"><img src="' + encodeURI( d.img ) + '" alt="' + vtEsc( d.code ) + '"></div>' : '';
+		// Built from the row's own cells + table headers (no per-row JSON blob).
+		var heads = vp.querySelectorAll( 'thead th' );
+		var cells = row.children;
+		var imgEl = row.querySelector( '.vt-thumb img' );
+		var imgU = imgEl ? imgEl.getAttribute( 'src' ) : '';
+		var codeEl = row.querySelector( '.vt-code' );
+		var code = codeEl ? codeEl.textContent : '';
+		var descEl = row.querySelector( '.vt-desc' );
+		var desc = descEl ? descEl.textContent : '';
+		var ldt = '', ds = '';
+		row.querySelectorAll( '.vt-dl a' ).forEach( function ( a ) {
+			var lbl = ( a.getAttribute( 'aria-label' ) || '' ).toLowerCase();
+			if ( lbl.indexOf( 'ldt' ) > -1 ) { ldt = a.href; } else { ds = a.href; }
+		} );
+		var img = imgU ? '<div class="vt-d-img"><img src="' + encodeURI( imgU ) + '" alt="' + vtEsc( code ) + '"></div>' : '';
 		var html = '<div class="vt-detail"><div class="vt-d-head">' + img
-			+ '<div class="vt-d-head-t"><p class="vt-d-eyebrow">Order code</p><h3 class="vt-d-code">' + vtEsc( d.code ) + '</h3>'
-			+ ( d.desc ? '<p class="vt-d-desc">' + vtEsc( d.desc ) + '</p>' : '' ) + '</div></div>';
-		var pairs = d.pairs || {}, keys = Object.keys( pairs );
-		if ( keys.length ) {
-			html += '<dl class="vt-d-specs">';
-			keys.forEach( function ( k ) { html += '<div class="vt-d-row"><dt>' + vtEsc( k ) + '</dt><dd>' + vtEsc( pairs[ k ] ) + '</dd></div>'; } );
-			html += '</dl>';
+			+ '<div class="vt-d-head-t"><p class="vt-d-eyebrow">Order code</p><h3 class="vt-d-code">' + vtEsc( code ) + '</h3>'
+			+ ( desc ? '<p class="vt-d-desc">' + vtEsc( desc ) + '</p>' : '' ) + '</div></div>';
+		var specRows = '';
+		for ( var i = 0; i < cells.length; i++ ) {
+			if ( cells[ i ].classList && cells[ i ].classList.contains( 'vt-spec' ) ) {
+				var label = heads[ i ] ? heads[ i ].textContent : '';
+				var val = cells[ i ].textContent;
+				if ( val && val !== '–' ) { specRows += '<div class="vt-d-row"><dt>' + vtEsc( label ) + '</dt><dd>' + vtEsc( val ) + '</dd></div>'; }
+			}
+		}
+		if ( specRows ) {
+			html += '<dl class="vt-d-specs">' + specRows + '</dl>';
 		} else {
 			html += '<p class="vt-d-empty">No specification recorded for this variant yet.</p>';
 		}
 		html += '<div class="vt-d-acts">'
-			+ ( d.ldt ? '<a class="btn btn-line-d" href="' + encodeURI( d.ldt ) + '" target="_blank" rel="noopener">LDT file ↓</a>' : '' )
-			+ ( d.ds ? '<a class="btn btn-solid" href="' + encodeURI( d.ds ) + '" target="_blank" rel="noopener">Download datasheet ↓</a>' : '' )
+			+ ( ldt ? '<a class="btn btn-line-d" href="' + encodeURI( ldt ) + '" target="_blank" rel="noopener">LDT file ↓</a>' : '' )
+			+ ( ds ? '<a class="btn btn-solid" href="' + encodeURI( ds ) + '" target="_blank" rel="noopener">Download datasheet ↓</a>' : '' )
 			+ '</div></div>';
 		body.innerHTML = html;
 		modal.hidden = false;
