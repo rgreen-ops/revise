@@ -142,13 +142,13 @@ add_shortcode( 'ricoman_header', function () {
 		. '}'
 		. '</style>';
 
-	return $crit . '<header class="site ricoman-site-header"><div class="wrap nav">'
+	return $crit . '<div class="site ricoman-site-header"><div class="wrap nav">'
 		. $brand
 		. '<input type="checkbox" id="rm-navtoggle" class="rm-navtoggle" hidden>'
 		. '<label for="rm-navtoggle" class="rm-burger" aria-label="Menu"><span></span><span></span><span></span></label>'
 		. '<ul class="rm-nav">' . $items . '</ul>'
 		. '<div class="rm-nav-right">' . $search . $myproj . $login . '</div>'
-		. '</div></header>';
+		. '</div></div>';
 } );
 
 /* ------------------------------------------------------------------ footer */
@@ -193,7 +193,7 @@ add_shortcode( 'ricoman_footer', function () {
 		$legal .= '<a href="' . esc_url( isset( $p[1] ) ? $p[1] : '#' ) . '">' . esc_html( $p[0] ) . '</a>';
 	}
 
-	return '<footer class="site ricoman-site-footer"><div class="wrap">'
+	return '<div class="site ricoman-site-footer"><div class="wrap">'
 		. '<div class="rm-foot-grid">'
 		. '<div class="rm-foot-brandcol"><div class="brand">' . $brand . '</div>'
 		. '<h2 class="rm-foot-h">Contact Us</h2><address class="rm-foot-addr">' . $addr . '</address>'
@@ -208,7 +208,7 @@ add_shortcode( 'ricoman_footer', function () {
 		. '</div>'
 		. ( function_exists( 'ricoman_newsletter_form' ) ? '<div class="rm-foot-news">' . ricoman_newsletter_form( array( 'source' => 'Footer', 'compact' => '1' ) ) . '</div>' : '' )
 		. '<div class="fbar"><span>&copy; ' . esc_html( gmdate( 'Y' ) ) . ' Ricoman Ltd &middot; Made in Britain</span><span class="rm-foot-legal">' . $legal . '</span></div>'
-		. '</div></footer>';
+		. '</div></div>';
 } );
 
 /* ------------------------------------------------ Flow+ rolling banner ----- */

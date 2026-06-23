@@ -393,15 +393,15 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 
 	// Dual-range (min + max) sliders for light output and power.
 	$lmslider = $maxlm ? '<div class="rm-frange rm-dual"><label>Light output <b class="rm-lm-lo">0</b> – <b class="rm-lm-hi">' . $maxlm . '</b> lm</label>'
-		. '<div class="rm-dual-track"><input type="range" class="rm-lm-min" min="0" max="' . $maxlm . '" step="100" value="0">'
-		. '<input type="range" class="rm-lm-max" min="0" max="' . $maxlm . '" step="100" value="' . $maxlm . '"></div></div>' : '';
+		. '<div class="rm-dual-track"><input type="range" class="rm-lm-min" aria-label="Minimum light output (lumens)" min="0" max="' . $maxlm . '" step="100" value="0">'
+		. '<input type="range" class="rm-lm-max" aria-label="Maximum light output (lumens)" min="0" max="' . $maxlm . '" step="100" value="' . $maxlm . '"></div></div>' : '';
 	$wslider  = $maxw ? '<div class="rm-frange rm-dual"><label>Power <b class="rm-w-lo">0</b> – <b class="rm-w-hi">' . $maxw . '</b> W</label>'
-		. '<div class="rm-dual-track"><input type="range" class="rm-w-min" min="0" max="' . $maxw . '" step="1" value="0">'
-		. '<input type="range" class="rm-w-max" min="0" max="' . $maxw . '" step="1" value="' . $maxw . '"></div></div>' : '';
+		. '<div class="rm-dual-track"><input type="range" class="rm-w-min" aria-label="Minimum power (watts)" min="0" max="' . $maxw . '" step="1" value="0">'
+		. '<input type="range" class="rm-w-max" aria-label="Maximum power (watts)" min="0" max="' . $maxw . '" step="1" value="' . $maxw . '"></div></div>' : '';
 	// Cut-out slider — only when this category's products actually have cut-out data.
 	$coslider = $maxco ? '<div class="rm-frange rm-dual"><label>Cut-out <b class="rm-co-lo">0</b> – <b class="rm-co-hi">' . $maxco . '</b> mm</label>'
-		. '<div class="rm-dual-track"><input type="range" class="rm-co-min" min="0" max="' . $maxco . '" step="1" value="0">'
-		. '<input type="range" class="rm-co-max" min="0" max="' . $maxco . '" step="1" value="' . $maxco . '"></div></div>' : '';
+		. '<div class="rm-dual-track"><input type="range" class="rm-co-min" aria-label="Minimum cut-out (mm)" min="0" max="' . $maxco . '" step="1" value="0">'
+		. '<input type="range" class="rm-co-max" aria-label="Maximum cut-out (mm)" min="0" max="' . $maxco . '" step="1" value="' . $maxco . '"></div></div>' : '';
 
 	// Per-category SEO copy (editable on the category screen): intro above the
 	// grid, body/FAQ below it.
@@ -573,7 +573,7 @@ add_shortcode( 'ricoman_category_cards', function ( $atts ) {
 	$ver    = function_exists( 'ricoman_products_ver' ) ? ricoman_products_ver() : '1';
 	// 'cm4' markup version: bump to invalidate cached cards when card markup OR
 	// ordering changes (here: manual per-category display order, then product count).
-	$ckey   = 'rm_catcards_' . md5( 'cm4' . wp_json_encode( $atts ) . $ver );
+	$ckey   = 'rm_catcards_' . md5( 'cm5' . wp_json_encode( $atts ) . $ver );
 	$cached = get_transient( $ckey );
 	if ( false !== $cached ) {
 		return $cached;

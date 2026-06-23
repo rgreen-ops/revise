@@ -658,7 +658,7 @@ add_shortcode( 'ricoman_search_results', function () {
 add_shortcode( 'ricoman_catalogue', function ( $atts ) {
 	// 'm2-' markup version: bump to invalidate cached HTML when the card markup
 	// changes (here: lazy data-bg images).
-	$ver   = 'm2-' . ( function_exists( 'ricoman_products_ver' ) ? ricoman_products_ver() : '1' );
+	$ver   = 'm3-' . ( function_exists( 'ricoman_products_ver' ) ? ricoman_products_ver() : '1' );
 	// Persisted option cache (not a transient — transients were not surviving on
 	// this host). Stored as [ver, html].
 	$store = get_option( 'rm_catalogue_cache' );
@@ -685,7 +685,7 @@ add_shortcode( 'ricoman_catalogue', function ( $atts ) {
  *  only runs in the background (cron) or once on the very first uncached request. */
 add_action( 'ricoman_catalogue_rebuild', 'ricoman_catalogue_build_and_store' );
 function ricoman_catalogue_build_and_store() {
-	$ver   = 'm2-' . ( function_exists( 'ricoman_products_ver' ) ? ricoman_products_ver() : '1' );
+	$ver   = 'm3-' . ( function_exists( 'ricoman_products_ver' ) ? ricoman_products_ver() : '1' );
 	$tax   = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
 	$terms = get_terms( array( 'taxonomy' => $tax, 'hide_empty' => true ) );
 
@@ -780,12 +780,12 @@ function ricoman_catalogue_build_and_store() {
 	// Dual-range (min + max) sliders for light output and power.
 	$lmS = $maxlm ? '<div class="rm-frange rm-dual"><label>Light output <b class="rm-lm-lo">0</b> – <b class="rm-lm-hi">' . $maxlm . '</b> lm</label>'
 		. '<div class="rm-dual-track">'
-		. '<input type="range" class="rm-lm-min" min="0" max="' . $maxlm . '" step="100" value="0">'
-		. '<input type="range" class="rm-lm-max" min="0" max="' . $maxlm . '" step="100" value="' . $maxlm . '"></div></div>' : '';
+		. '<input type="range" class="rm-lm-min" aria-label="Minimum light output (lumens)" min="0" max="' . $maxlm . '" step="100" value="0">'
+		. '<input type="range" class="rm-lm-max" aria-label="Maximum light output (lumens)" min="0" max="' . $maxlm . '" step="100" value="' . $maxlm . '"></div></div>' : '';
 	$wS  = $maxw ? '<div class="rm-frange rm-dual"><label>Power <b class="rm-w-lo">0</b> – <b class="rm-w-hi">' . $maxw . '</b> W</label>'
 		. '<div class="rm-dual-track">'
-		. '<input type="range" class="rm-w-min" min="0" max="' . $maxw . '" step="1" value="0">'
-		. '<input type="range" class="rm-w-max" min="0" max="' . $maxw . '" step="1" value="' . $maxw . '"></div></div>' : '';
+		. '<input type="range" class="rm-w-min" aria-label="Minimum power (watts)" min="0" max="' . $maxw . '" step="1" value="0">'
+		. '<input type="range" class="rm-w-max" aria-label="Maximum power (watts)" min="0" max="' . $maxw . '" step="1" value="' . $maxw . '"></div></div>' : '';
 	$filter = ( $lmS || $wS || $ticks )
 		? '<div class="rm-catfilter"><div class="rm-catfilter-ranges">' . $lmS . $wS . '</div>'
 			. ( $ticks ? '<div class="rm-catfilter-ticks"><span class="rm-facets-sub">Features</span>' . $ticks . '</div>' : '' )
