@@ -108,9 +108,14 @@ function ricoman_pe_build_content( $layout ) {
 			if ( ! isset( $item['on'] ) || $item['on'] ) {
 				$content .= '<!-- wp:ricoman/product-' . $item['key'] . ' /-->' . "\n";
 			}
-		} elseif ( 'pattern' === $type && ! empty( $item['name'] ) && $reg && $reg->is_registered( $item['name'] ) ) {
-			$pat      = $reg->get_registered( $item['name'] );
-			$content .= ( isset( $pat['content'] ) ? $pat['content'] : '' ) . "\n";
+		} elseif ( 'pattern' === $type && ! empty( $item['name'] ) ) {
+			// Per-page edited content wins; otherwise the shared registered template.
+			if ( ! empty( $item['html'] ) ) {
+				$content .= $item['html'] . "\n";
+			} elseif ( $reg && $reg->is_registered( $item['name'] ) ) {
+				$pat      = $reg->get_registered( $item['name'] );
+				$content .= ( isset( $pat['content'] ) ? $pat['content'] : '' ) . "\n";
+			}
 		}
 	}
 	return $content;
@@ -277,6 +282,23 @@ add_action( 'wp_ajax_ricoman_pe_draft', function () {
 		'insitu'       => $ids( 'insitu' ),
 	), HOUR_IN_SECONDS );
 	wp_send_json_success();
+} );
+
+/** Return a pattern's shared template content (to seed the per-page editor). */
+add_action( 'wp_ajax_ricoman_pe_patcontent', function () {
+	if ( ! current_user_can( 'edit_posts' ) || ! check_ajax_referer( 'ricoman_pe_thumb', 'nonce', false ) ) {
+		wp_send_json_error();
+	}
+	$name = isset( $_GET['name'] ) ? sanitize_text_field( wp_unslash( $_GET['name'] ) ) : '';
+	if ( '' === $name || ! class_exists( 'WP_Block_Patterns_Registry' ) ) {
+		wp_send_json_error();
+	}
+	$reg = WP_Block_Patterns_Registry::get_instance();
+	if ( ! $reg->is_registered( $name ) ) {
+		wp_send_json_error();
+	}
+	$p = $reg->get_registered( $name );
+	wp_send_json_success( isset( $p['content'] ) ? $p['content'] : '' );
 } );
 
 /**
@@ -832,6 +854,7 @@ function ricoman_product_editor_render() {
 		}
 		function renderSettings() {
 			teardownSpecEditor();
+			teardownPatEditor();
 			var box = $( 'rmpe-set' );
 			var it = state.layout[ state.sel ];
 			if ( ! it ) { box.innerHTML = '<div class="rmpe-empty">Select a section to edit it.</div>'; return; }
@@ -869,11 +892,39 @@ function ricoman_product_editor_render() {
 				html += '<p class="ttl">' + sectionName( it ) + '</p><p class="hint">This section renders from the product’s fields.</p>';
 				html += visRow( it );
 			} else {
-				html += '<p class="ttl">' + sectionName( it ) + '</p><p class="hint">Pattern block. Edit its content in the page editor; here you can position or remove it.</p>';
-				html += '<button class="danger" data-act="remove">Remove pattern</button>';
+				html += '<p class="ttl">' + sectionName( it ) + '</p><p class="hint">Edit this pattern’s text &amp; images for THIS page only.</p>';
+				html += '<textarea id="rmpe-pat" class="rmpe-wysiwyg">' + ( it.html ? it.html.replace( /</g, '&lt;' ) : '' ) + '</textarea>';
+				html += '<button class="danger" data-act="remove" style="margin-top:12px">Remove pattern</button>';
 			}
 			box.innerHTML = html;
 			if ( it.type === 'section' && it.key === 'specs' && ! B.isTpl ) { initSpecEditor(); }
+			if ( it.type === 'pattern' ) { initPatEditor( it ); }
+		}
+		function teardownPatEditor() {
+			if ( window.wp && wp.editor && document.getElementById( 'rmpe-pat' ) ) {
+				try { wp.editor.remove( 'rmpe-pat' ); } catch ( e ) {}
+			}
+		}
+		function initPatEditor( it ) {
+			if ( ! window.wp || ! wp.editor || ! document.getElementById( 'rmpe-pat' ) ) { return; }
+			wp.editor.initialize( 'rmpe-pat', {
+				tinymce: { toolbar1: 'bold italic bullist numlist link removeformat', toolbar2: '', menubar: false, statusbar: false, height: 360 },
+				quicktags: { buttons: 'strong,em,link,ul,ol,li,img' },
+				mediaButtons: true
+			} );
+			setTimeout( function () {
+				if ( ! window.tinymce ) { return; }
+				var ed = tinymce.get( 'rmpe-pat' );
+				if ( ! ed ) { return; }
+				// Seed from the shared pattern template the first time (no per-page copy yet).
+				if ( ! it.html && it.name ) {
+					var u = B.ajax + '?action=ricoman_pe_patcontent&nonce=' + encodeURIComponent( B.tnonce ) + '&name=' + encodeURIComponent( it.name );
+					fetch( u, { credentials: 'same-origin' } ).then( function ( r ) { return r.json(); } ).then( function ( j ) {
+						if ( j && j.success && ! it.html ) { ed.setContent( j.data || '' ); }
+					} );
+				}
+				ed.on( 'input change keyup undo redo SetContent ExecCommand', function () { it.html = ed.getContent(); pushDraft(); } );
+			}, 300 );
 		}
 		function field( key, label, type ) {
 			var v = ( state.fields[ key ] || '' ).replace( /</g, '&lt;' );
