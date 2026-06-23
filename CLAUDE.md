@@ -394,7 +394,12 @@ From Marketing's email for the new website. Status of each request:
   image per option value, resolved per-product → master → variant photo
   (`ricoman_config_option_image()`). A **per-product** "Configurator option images"
   metabox auto-lists the product's axis values (family-aware, cached) each with a
-  WP media picker (saved to `_ricoman_config_opt_images`); a **master** page
+  WP media picker (saved to `_ricoman_config_opt_images`). Because most products
+  are edited in the custom **Product Page Editor** (not the WP post screen) where
+  metaboxes don't show, the same per-product picker is also a standalone screen at
+  `admin.php?page=ricoman-config-images&product=PID`, linked from an **"Edit option
+  tile images ↗"** button in that editor's Configure panel (shown in visual mode).
+  A **master** page
   (Ricoman → Configurator Images) maps axis|value → image globally (option
   `rm_config_opt_images`). Setting any image forces that axis to render image
   tiles. Master saves bump `rm_cfgimg_ver` (in the section-cache key) to refresh

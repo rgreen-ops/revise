@@ -457,6 +457,7 @@ function ricoman_product_editor_render() {
 		'cols'     => array_values( $cur_cols ),
 		'filterOff' => array_values( (array) $cur_foff ),
 		'configVisual' => function_exists( 'ricoman_pf_visual_config_enabled' ) ? ricoman_pf_visual_config_enabled( $pid ) : false,
+		'optImgUrl' => admin_url( 'admin.php?page=ricoman-config-images&product=' . $pid ),
 		'saveUrl'  => admin_url( 'admin-post.php' ),
 		'saveNonce'=> wp_create_nonce( 'ricoman_save_product_page_' . $pid ),
 		'exitUrl'  => admin_url( 'edit.php?post_type=product' ),
@@ -887,6 +888,11 @@ function ricoman_product_editor_render() {
 				} );
 				html += '</div>';
 				html += '<label class="rmpe-colglobal"><input type="checkbox" data-act="colsglobal"' + ( state.colsGlobal ? ' checked' : '' ) + '> Apply to all products (global default)</label>';
+				if ( state.configVisual && B.optImgUrl ) {
+					html += '<p class="hint" style="margin-top:14px">🖼️ Want a custom picture on each tile (finishes, sizes…)? '
+						+ '<a href="' + B.optImgUrl + '" target="_blank" rel="noopener"><strong>Edit option tile images ↗</strong></a> '
+						+ '<br><span style="opacity:.7">Opens in a new tab — set, save, then reload this editor to preview.</span></p>';
+				}
 				html += visRow( it );
 			} else if ( it.type === 'section' ) {
 				html += '<p class="ttl">' + sectionName( it ) + '</p><p class="hint">This section renders from the product’s fields.</p>';

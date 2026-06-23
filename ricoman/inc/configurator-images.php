@@ -184,19 +184,16 @@ add_action( 'add_meta_boxes_product', function () {
 	add_meta_box( 'ricoman_config_images', __( 'Configurator option images', 'ricoman' ), 'ricoman_config_images_box', 'product', 'normal', 'default' );
 } );
 
-function ricoman_config_images_box( $post ) {
-	wp_nonce_field( 'ricoman_config_images', 'ricoman_config_images_nonce' );
-	ricoman_config_img_assets();
-	$axes  = ricoman_config_axis_values( $post->ID );
-	$saved = get_post_meta( $post->ID, '_ricoman_config_opt_images', true );
+/** The per-product option-image table (auto-listed axes), shared by the metabox
+ *  and the standalone editor page. Field names: rm_cfgimg[axis|value]. */
+function ricoman_config_images_fields_html( $pid ) {
+	$axes  = ricoman_config_axis_values( $pid );
+	$saved = get_post_meta( $pid, '_ricoman_config_opt_images', true );
 	$saved = is_array( $saved ) ? $saved : array();
-
-	echo '<p class="description">' . esc_html__( 'Set the picture shown on each tile in the visual configurator for this product. Leave blank to use the master image (Ricoman → Configurator Images) or the variant photo.', 'ricoman' ) . '</p>';
-
 	if ( ! $axes ) {
-		echo '<p>' . esc_html__( 'No configurable options found yet — add variants (order codes) with finishes, colours, sizes, etc.', 'ricoman' ) . '</p>';
-		return;
+		return '<p>' . esc_html__( 'No configurable options found yet — add variants (order codes) with finishes, colours, sizes, etc.', 'ricoman' ) . '</p>';
 	}
+	ob_start();
 	echo '<table class="rm-cfgopt-table"><thead><tr><th>' . esc_html__( 'Option', 'ricoman' ) . '</th><th>' . esc_html__( 'Image', 'ricoman' ) . '</th></tr></thead><tbody>';
 	foreach ( $axes as $label => $vals ) {
 		echo '<tr><td colspan="2" class="rm-cfgopt-axis">' . esc_html( $label ) . '</td></tr>';
@@ -210,6 +207,34 @@ function ricoman_config_images_box( $post ) {
 		}
 	}
 	echo '</tbody></table>';
+	return (string) ob_get_clean();
+}
+
+/** Persist a submitted rm_cfgimg map onto a product. */
+function ricoman_config_images_save_product( $pid, $raw ) {
+	$out = array();
+	foreach ( (array) $raw as $k => $v ) {
+		$v = trim( (string) $v );
+		if ( '' === $v ) {
+			continue;
+		}
+		$key         = strtolower( sanitize_text_field( $k ) );
+		$out[ $key ] = is_numeric( $v ) ? (int) $v : esc_url_raw( $v );
+	}
+	if ( $out ) {
+		update_post_meta( $pid, '_ricoman_config_opt_images', $out );
+	} else {
+		delete_post_meta( $pid, '_ricoman_config_opt_images' );
+	}
+	update_post_meta( $pid, '_rm_secver', time() );
+	update_option( 'rm_products_ver', (string) time(), false );
+}
+
+function ricoman_config_images_box( $post ) {
+	wp_nonce_field( 'ricoman_config_images', 'ricoman_config_images_nonce' );
+	ricoman_config_img_assets();
+	echo '<p class="description">' . esc_html__( 'Set the picture shown on each tile in the visual configurator for this product. Leave blank to use the master image (Ricoman → Configurator Images) or the variant photo.', 'ricoman' ) . '</p>';
+	echo ricoman_config_images_fields_html( $post->ID ); // phpcs:ignore WordPress.Security.EscapeOutput
 }
 
 add_action( 'save_post_product', function ( $pid ) {
@@ -222,23 +247,8 @@ add_action( 'save_post_product', function ( $pid ) {
 	if ( ! current_user_can( 'edit_post', $pid ) ) {
 		return;
 	}
-	$in  = isset( $_POST['rm_cfgimg'] ) && is_array( $_POST['rm_cfgimg'] ) ? wp_unslash( $_POST['rm_cfgimg'] ) : array();
-	$out = array();
-	foreach ( $in as $k => $v ) {
-		$v = trim( (string) $v );
-		if ( '' === $v ) {
-			continue;
-		}
-		$key = strtolower( sanitize_text_field( $k ) );
-		$out[ $key ] = is_numeric( $v ) ? (int) $v : esc_url_raw( $v );
-	}
-	if ( $out ) {
-		update_post_meta( $pid, '_ricoman_config_opt_images', $out );
-	} else {
-		delete_post_meta( $pid, '_ricoman_config_opt_images' );
-	}
-	update_post_meta( $pid, '_rm_secver', time() );
-	update_option( 'rm_products_ver', (string) time(), false );
+	$in = isset( $_POST['rm_cfgimg'] ) && is_array( $_POST['rm_cfgimg'] ) ? wp_unslash( $_POST['rm_cfgimg'] ) : array();
+	ricoman_config_images_save_product( $pid, $in );
 } );
 
 /* ===========================================================================
@@ -258,6 +268,12 @@ add_action( 'admin_menu', function () {
 
 function ricoman_config_images_page() {
 	if ( ! current_user_can( 'edit_posts' ) ) {
+		return;
+	}
+	// Per-product editor (linked from the Product Page Editor's configure panel).
+	$prod = isset( $_GET['product'] ) ? (int) $_GET['product'] : 0;
+	if ( $prod && 'product' === get_post_type( $prod ) ) {
+		ricoman_config_images_product_page( $prod );
 		return;
 	}
 	if ( isset( $_POST['rm_cfgmaster_nonce'] ) && wp_verify_nonce( sanitize_key( $_POST['rm_cfgmaster_nonce'] ), 'rm_cfgmaster' ) ) {
@@ -330,5 +346,31 @@ function ricoman_config_images_page() {
 
 	echo '<p><button type="button" class="button rm-cfgmaster-add">+ ' . esc_html__( 'Add option image', 'ricoman' ) . '</button></p>';
 	submit_button( __( 'Save master images', 'ricoman' ) );
+	echo '</form></div>';
+}
+
+/** Per-product option-image editor (Ricoman → Configurator Images?product=PID). */
+function ricoman_config_images_product_page( $pid ) {
+	if ( ! current_user_can( 'edit_post', $pid ) ) {
+		wp_die( esc_html__( 'Not allowed.', 'ricoman' ) );
+	}
+	if ( isset( $_POST['rm_cfgprod_nonce'] ) && wp_verify_nonce( sanitize_key( $_POST['rm_cfgprod_nonce'] ), 'rm_cfgprod_' . $pid ) ) {
+		$in = isset( $_POST['rm_cfgimg'] ) && is_array( $_POST['rm_cfgimg'] ) ? wp_unslash( $_POST['rm_cfgimg'] ) : array();
+		ricoman_config_images_save_product( $pid, $in );
+		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Option tile images saved for this product.', 'ricoman' ) . '</p></div>';
+	}
+	ricoman_config_img_assets();
+	$visual = function_exists( 'ricoman_pf_visual_config_enabled' ) && ricoman_pf_visual_config_enabled( $pid );
+
+	echo '<div class="wrap"><h1>' . esc_html__( 'Configurator option images', 'ricoman' ) . ' — ' . esc_html( get_the_title( $pid ) ) . '</h1>';
+	echo '<p><a href="' . esc_url( admin_url( 'admin.php?page=ricoman-product-editor&product=' . $pid ) ) . '">&larr; ' . esc_html__( 'Back to the product editor', 'ricoman' ) . '</a> &nbsp;·&nbsp; <a href="' . esc_url( get_permalink( $pid ) ) . '" target="_blank">' . esc_html__( 'View product ↗', 'ricoman' ) . '</a> &nbsp;·&nbsp; <a href="' . esc_url( admin_url( 'admin.php?page=ricoman-config-images' ) ) . '">' . esc_html__( 'Master images', 'ricoman' ) . '</a></p>';
+	if ( ! $visual ) {
+		echo '<div class="notice notice-info inline"><p>' . esc_html__( 'This product uses the table configurator, so these tile images won’t show until you switch it to “Visual configurator” in the product editor’s Configure panel.', 'ricoman' ) . '</p></div>';
+	}
+	echo '<p class="description" style="max-width:760px">' . esc_html__( 'Set the picture shown on each tap-through tile for this product. Leave blank to use the master image (set under Configurator Images) or, failing that, the variant photo.', 'ricoman' ) . '</p>';
+	echo '<form method="post">';
+	wp_nonce_field( 'rm_cfgprod_' . $pid, 'rm_cfgprod_nonce' );
+	echo ricoman_config_images_fields_html( $pid ); // phpcs:ignore WordPress.Security.EscapeOutput
+	submit_button( __( 'Save option images', 'ricoman' ) );
 	echo '</form></div>';
 }
