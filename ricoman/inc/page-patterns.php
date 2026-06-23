@@ -682,6 +682,194 @@ add_action( 'init', function () {
 		'cta_sub'    => 'Tell us what you&rsquo;re working on and we&rsquo;ll design, make and deliver the lighting — start to finish.',
 	) ) );
 
+	/* ===== Sector / application landing pages =====
+	 * Keyword-targeted hubs for the SEO Targets list (office, gym/sports hall,
+	 * education, retail, warehouse high-bay, feature & suspended linear). Same
+	 * rich $feature layout — split header, benefits, image+checklist, FAQ schema,
+	 * CTA — so every word stays click-to-edit and each emits FAQPage schema.
+	 */
+	$p['feat-office-lighting'] = array( 'Sector · Office Lighting', $feature( array(
+		'eyb'       => 'Workplace',
+		'title'     => 'Office lighting, designed and made in Britain.',
+		'lead'      => 'Low-glare, energy-efficient office lighting for productive workplaces — UGR&lt;19 linear and recessed luminaires, with a free photometric design service.',
+		'hero'      => $u( 'office2.webp' ),
+		'cta1'      => array( 'Design my office scheme', '/lighting-design/' ),
+		'cta2'      => array( 'Browse products', '/products/' ),
+		'ben_eyb'   => 'Why specify with us',
+		'ben_head'  => 'Comfortable, compliant, efficient',
+		'benefits'  => array(
+			array( '01', 'Low glare (UGR&lt;19)', 'Anti-glare optics keep office lighting comfortable on screens and compliant with EN 12464-1.' ),
+			array( '02', 'Free scheme design', 'Send a floor plan and our designers return a DIALux study — lux, uniformity and UGR proven before you commit.' ),
+			array( '03', 'Tunable &amp; controllable', 'Human-centric, tunable-white and Casambi options support wellbeing and energy savings.' ),
+		),
+		'split_img'  => $u( 'office5.webp' ),
+		'split_eyb'  => 'How we light offices',
+		'split_head' => 'Office lighting that works for people',
+		'split_body' => 'From open-plan floors to meeting rooms and breakout spaces, we specify low-glare luminaires and prove the scheme with a photometric study — then make it in Manchester.',
+		'split_items'=> array( '<strong>UGR&lt;19 linear &amp; recessed</strong> for screen-based work', '<strong>DIALux photometric study</strong> with every scheme', '<strong>Tunable white &amp; Casambi</strong> control options', '<strong>Suspended, surface &amp; recessed</strong> mounting', '<strong>UK-made</strong>, 5-year warranty &amp; fast lead times' ),
+		'faq_head'   => 'Office lighting FAQs',
+		'faqs'       => "Q: What is the recommended lux level for office lighting?\nA: EN 12464-1 recommends around 500 lux on the working plane for general office tasks, with controlled glare (UGR<19) — our designs are modelled to suit.\nQ: What does UGR<19 mean for office lighting?\nA: UGR is the Unified Glare Rating; UGR<19 is the comfort target for screen-based office work, which our anti-glare luminaires are designed to meet.\nQ: Do you provide an office lighting design?\nA: Yes — send a floor plan and our in-house team returns a free, costed, DIALux-backed scheme, usually within 3-5 working days.\nQ: Can office lighting be tunable or controllable?\nA: Yes — tunable-white (human-centric) and Casambi wireless control options are available across many ranges.",
+		'cta_img'    => $u( 'office1.webp' ),
+		'cta_head'   => 'Light your office the right way',
+		'cta_sub'    => 'Send us a floor plan and we&rsquo;ll return a low-glare, costed office lighting scheme — free.',
+	) ) );
+
+	$p['feat-gym-sports-lighting'] = array( 'Sector · Gym & Sports Hall Lighting', $feature( array(
+		'eyb'       => 'Sport &amp; Leisure',
+		'title'     => 'Gym &amp; sports hall lighting built for performance.',
+		'lead'      => 'High-output, glare-controlled gym and sports hall lighting — robust, efficient luminaires designed to the right lux levels for play, with a free design service.',
+		'hero'      => $u( 'rico-astrowave-banner.webp' ),
+		'cta1'      => array( 'Design my sports scheme', '/lighting-design/' ),
+		'cta2'      => array( 'Browse products', '/products/' ),
+		'ben_eyb'   => 'Why specify with us',
+		'ben_head'  => 'Bright, even, built to last',
+		'benefits'  => array(
+			array( '01', 'The right lux levels', 'Sports hall and gym lighting modelled to the lux and uniformity each activity and grade of play needs.' ),
+			array( '02', 'Glare-controlled &amp; even', 'Optics that keep light off players&rsquo; eyes and deliver even coverage across the floor.' ),
+			array( '03', 'Robust &amp; efficient', 'Impact-resistant, high-efficacy fittings that cut running costs in high-ceiling spaces.' ),
+		),
+		'split_img'  => $u( 'warehouse.webp' ),
+		'split_eyb'  => 'How we light sports spaces',
+		'split_head' => 'Gym &amp; sports hall lighting, proven on plan',
+		'split_body' => 'Whether it&rsquo;s a school sports hall, a leisure-centre gym or a multi-use games area, we model the lighting to the right standards and supply robust, efficient luminaires made in the UK.',
+		'split_items'=> array( '<strong>Designed to lux &amp; uniformity</strong> for the activity', '<strong>Impact-resistant</strong> options for ball-strike areas', '<strong>High-bay &amp; linear</strong> for tall and low ceilings', '<strong>Emergency &amp; controls</strong> integrated', '<strong>UK-made</strong>, efficient and warranted 5 years' ),
+		'faq_head'   => 'Gym &amp; sports hall lighting FAQs',
+		'faqs'       => "Q: What lux level is needed for sports hall lighting?\nA: It depends on the activity and grade of play — community use is often around 300-500 lux, with higher levels for competition. We model each scheme to the right standard.\nQ: Do you supply impact-resistant fittings for ball sports?\nA: Yes — for sports halls and MUGAs we specify robust, impact-resistant luminaires suited to ball-strike areas.\nQ: Can you light a gym with a high ceiling?\nA: Yes — high-bay and high-output linear luminaires deliver even, glare-controlled light in tall spaces.\nQ: Is a lighting design included?\nA: Yes — send a plan and our team returns a free, costed photometric scheme.",
+		'cta_img'    => $u( 'office1.webp' ),
+		'cta_head'   => 'Light your gym or sports hall',
+		'cta_sub'    => 'Send us the space and we&rsquo;ll design a bright, even, efficient scheme — free.',
+	) ) );
+
+	$p['feat-education-lighting'] = array( 'Sector · Education Lighting', $feature( array(
+		'eyb'       => 'Schools &amp; Education',
+		'title'     => 'School &amp; education lighting that helps pupils focus.',
+		'lead'      => 'Low-glare, efficient education lighting for classrooms, halls and corridors — designed to the right standards, with emergency, controls and a free design service.',
+		'hero'      => $u( 'office5.webp' ),
+		'cta1'      => array( 'Design my school scheme', '/lighting-design/' ),
+		'cta2'      => array( 'Browse products', '/products/' ),
+		'ben_eyb'   => 'Why specify with us',
+		'ben_head'  => 'Comfortable classrooms, lower bills',
+		'benefits'  => array(
+			array( '01', 'Low glare for learning', 'UGR&lt;19 luminaires keep classroom lighting comfortable for screens, boards and reading.' ),
+			array( '02', 'Efficient &amp; low-maintenance', 'High-efficacy LEDs and long life cut energy and maintenance across a school estate.' ),
+			array( '03', 'Compliant &amp; safe', 'Emergency lighting and controls designed to support building-regulation compliance.' ),
+		),
+		'split_img'  => $u( 'ceiling.webp' ),
+		'split_eyb'  => 'How we light schools',
+		'split_head' => 'Education lighting, designed properly',
+		'split_body' => 'From classrooms and labs to sports halls, libraries and circulation, we model each space to the right standards and supply efficient, low-maintenance luminaires made in Britain.',
+		'split_items'=> array( '<strong>UGR&lt;19 classroom</strong> luminaires', '<strong>Tunable white</strong> to support focus &amp; wellbeing', '<strong>Emergency &amp; controls</strong> for compliance', '<strong>Robust fittings</strong> for halls &amp; corridors', '<strong>UK-made</strong>, efficient, 5-year warranty' ),
+		'faq_head'   => 'School &amp; education lighting FAQs',
+		'faqs'       => "Q: What lighting do classrooms need?\nA: Comfortable, low-glare light — typically around 300-500 lux with UGR<19 — to suit reading, writing and screen work. We design each room to the right standard.\nQ: Can lighting help pupil concentration?\nA: Tunable-white (human-centric) lighting can support alertness and focus through the day; we can specify it where it helps.\nQ: Do you cover emergency lighting for schools?\nA: Yes — maintained and non-maintained emergency luminaires and signage designed to support BS 5266.\nQ: Is a lighting design included?\nA: Yes — send your plans and our team returns a free, costed scheme, usually within 3-5 days.",
+		'cta_img'    => $u( 'office1.webp' ),
+		'cta_head'   => 'Light your school the right way',
+		'cta_sub'    => 'Send us your plans and we&rsquo;ll design an efficient, low-glare education scheme — free.',
+	) ) );
+
+	$p['feat-retail-lighting'] = array( 'Sector · Retail Lighting', $feature( array(
+		'eyb'       => 'Retail &amp; Display',
+		'title'     => 'Retail lighting that makes products sell.',
+		'lead'      => 'High-CRI accent and track lighting that brings out colour, texture and focus in store — flexible, efficient and backed by a free design service.',
+		'hero'      => $u( 'retail.webp' ),
+		'cta1'      => array( 'Design my retail scheme', '/lighting-design/' ),
+		'cta2'      => array( 'Browse products', '/products/' ),
+		'ben_eyb'   => 'Why specify with us',
+		'ben_head'  => 'Light that flatters the merchandise',
+		'benefits'  => array(
+			array( '01', 'High-CRI colour', 'CRI 90+ light renders fabrics, food and finishes accurately so products look their best.' ),
+			array( '02', 'Flexible track &amp; accent', '48V track and adjustable accent luminaires let you re-aim light as displays change.' ),
+			array( '03', 'Warm &amp; efficient', 'Choose colour temperature to set the mood, with efficient LEDs that cut running costs.' ),
+		),
+		'split_img'  => $u( 'rico-kingsgate.webp' ),
+		'split_eyb'  => 'How we light retail',
+		'split_head' => 'Retail lighting that draws the eye',
+		'split_body' => 'From flagship stores to boutiques and showrooms, we layer ambient, accent and feature light to guide customers and make merchandise pop — designed on plan and made in the UK.',
+		'split_items'=> array( '<strong>CRI 90+</strong> for true-to-life colour', '<strong>48V magnetic track</strong> &amp; adjustable spots', '<strong>Warm dimming</strong> &amp; tunable options', '<strong>Feature &amp; decorative</strong> pendants', '<strong>UK-made</strong>, efficient, 5-year warranty' ),
+		'faq_head'   => 'Retail lighting FAQs',
+		'faqs'       => "Q: Why does CRI matter for retail lighting?\nA: A high Colour Rendering Index (CRI 90+) makes colours, fabrics and finishes look accurate and appealing, which helps products sell.\nQ: Is track lighting good for shops?\nA: Yes — 48V magnetic track with adjustable spots lets you re-aim and reconfigure accent light easily as displays change.\nQ: Can you match the colour temperature to our brand?\nA: Yes — we offer warm to cool and tunable options, and can advise on the right look for your store.\nQ: Do you provide a retail lighting design?\nA: Yes — send a plan and our team returns a free, costed scheme, usually within 3-5 days.",
+		'cta_img'    => $u( 'office1.webp' ),
+		'cta_head'   => 'Make your store shine',
+		'cta_sub'    => 'Send us your layout and we&rsquo;ll design accent and feature lighting that sells — free.',
+	) ) );
+
+	$p['feat-warehouse-highbay'] = array( 'Sector · Warehouse & High Bay Lighting', $feature( array(
+		'eyb'       => 'Industrial',
+		'title'     => 'Warehouse &amp; high bay lighting that cuts running costs.',
+		'lead'      => 'High-efficacy LED high bay and linear lighting for warehouses, factories and logistics — bright, even, controllable and built to last.',
+		'hero'      => $u( 'warehouse.webp' ),
+		'cta1'      => array( 'Design my warehouse scheme', '/lighting-design/' ),
+		'cta2'      => array( 'Browse products', '/products/' ),
+		'ben_eyb'   => 'Why specify with us',
+		'ben_head'  => 'Bright aisles, lower energy',
+		'benefits'  => array(
+			array( '01', 'High efficacy', 'Up to ~180 lm/W LED high bays slash energy versus older fittings in high-ceiling spaces.' ),
+			array( '02', 'Even, glare-free', 'Optics tuned for racking and aisles deliver even light with good vertical illuminance.' ),
+			array( '03', 'Sensors &amp; controls', 'Daylight and occupancy controls cut energy further where aisles aren&rsquo;t in use.' ),
+		),
+		'split_img'  => $u( 'rico-product-boards.webp' ),
+		'split_eyb'  => 'How we light warehouses',
+		'split_head' => 'High bay lighting, designed for the racking',
+		'split_body' => 'We model warehouse and factory lighting to the lux and uniformity the operation needs — including vertical light on racking — and supply efficient, long-life luminaires made in the UK.',
+		'split_items'=> array( '<strong>LED high bay</strong> for tall open spaces', '<strong>Linear &amp; batten</strong> for aisles &amp; production', '<strong>Occupancy &amp; daylight</strong> sensor controls', '<strong>Emergency</strong> &amp; life-safety integrated', '<strong>UK-made</strong>, high-efficacy, 5-year warranty' ),
+		'faq_head'   => 'Warehouse &amp; high bay lighting FAQs',
+		'faqs'       => "Q: What is high bay lighting?\nA: High bay luminaires are designed for spaces with tall ceilings — typically warehouses, factories and sports halls — delivering high output with optics suited to the mounting height.\nQ: How much can LED high bay lighting save?\nA: Switching older fittings to high-efficacy LED high bays (up to ~180 lm/W) with sensor controls can cut lighting energy substantially; we model the savings for your space.\nQ: Can you light racking aisles evenly?\nA: Yes — we design for both horizontal and vertical illuminance so labels and stock on racking are well lit.\nQ: Is a lighting design included?\nA: Yes — send a plan and our team returns a free, costed scheme.",
+		'cta_img'    => $u( 'office1.webp' ),
+		'cta_head'   => 'Cut your warehouse energy bill',
+		'cta_sub'    => 'Send us your plan and we&rsquo;ll design an efficient high bay scheme with the savings modelled — free.',
+	) ) );
+
+	$p['feat-feature-lighting'] = array( 'Commercial · Feature Lighting', $feature( array(
+		'eyb'       => 'Architectural',
+		'title'     => 'Feature lighting that makes a space unforgettable.',
+		'lead'      => 'Bespoke, sculptural feature lighting — curved linear runs, statement pendants and architectural details, designed with you and made to order in Britain.',
+		'hero'      => $u( 'rico-soundslikelight.webp' ),
+		'cta1'      => array( 'Design a feature', '/flow-designer/' ),
+		'cta2'      => array( 'See our work', '/projects/' ),
+		'ben_eyb'   => 'Why specify with us',
+		'ben_head'  => 'Statement light, made to order',
+		'benefits'  => array(
+			array( '01', 'Bespoke as standard', 'Curved runs, custom lengths and brand-matched finishes — feature lighting built to your drawing.' ),
+			array( '02', 'Seamless curves', 'Our Flow curved linear system creates continuous, dot-free runs that follow any architectural line.' ),
+			array( '03', 'Designed with you', 'Our in-house team helps shape the idea, then proves and costs it before you commit.' ),
+		),
+		'split_img'  => $u( 'rico-betfred-flow.webp' ),
+		'split_eyb'  => 'How we create features',
+		'split_head' => 'Feature lighting, from sketch to statement',
+		'split_body' => 'Reception desks, atria, hospitality and retail focal points — we turn a concept into a buildable, costed feature using bespoke linear, pendants and architectural detail, made in Manchester.',
+		'split_items'=> array( '<strong>Flow curved linear</strong> for seamless runs', '<strong>Custom lengths, radii &amp; finishes</strong>', '<strong>Statement &amp; decorative</strong> pendants', '<strong>Tunable white &amp; Casambi</strong> control', '<strong>UK-made</strong> to order, 5-year warranty' ),
+		'faq_head'   => 'Feature lighting FAQs',
+		'faqs'       => "Q: What is feature lighting?\nA: Feature (or architectural) lighting is a statement element of a scheme — a sculptural run, pendant or detail that defines a space rather than just illuminating it.\nQ: Can you make bespoke feature lighting?\nA: Yes — bespoke is how our factory works: curved linear runs, custom lengths, radii and finishes, all made to order in the UK.\nQ: Can feature lighting follow a curve?\nA: Yes — our Flow curved linear system creates continuous, dot-free runs that bend to any radius.\nQ: Will you help design the feature?\nA: Yes — our in-house designers help shape the idea and return a costed, buildable design.",
+		'cta_img'    => $u( 'office1.webp' ),
+		'cta_head'   => 'Create a lighting feature',
+		'cta_sub'    => 'Use the Flow+ Designer or send us a sketch — we&rsquo;ll design and make a feature that defines the space.',
+	) ) );
+
+	$p['feat-suspended-linear'] = array( 'Commercial · Suspended Linear Lighting', $feature( array(
+		'eyb'       => 'Linear Lighting',
+		'title'     => 'Suspended linear lighting, made to your run.',
+		'lead'      => 'Continuous suspended linear lighting for offices, retail and hospitality — low-glare, configurable up/down distribution, made to order in Britain.',
+		'hero'      => $u( 'rico-betfred-flow.webp' ),
+		'cta1'      => array( 'Design my linear run', '/lighting-design/' ),
+		'cta2'      => array( 'See Estrella linear', '/products/estrella-linear-lighting/' ),
+		'ben_eyb'   => 'Why specify with us',
+		'ben_head'  => 'Clean lines, comfortable light',
+		'benefits'  => array(
+			array( '01', 'Continuous runs', 'Seamless, dot-free suspended linear runs made to your exact length — straight or curved.' ),
+			array( '02', 'Low glare', 'UGR&lt;19 optics and up/down distribution for comfortable, screen-friendly light.' ),
+			array( '03', 'Configurable', 'Choose output, colour temperature, finish, mounting height and controls to suit the space.' ),
+		),
+		'split_img'  => $u( 'rico-acoustic-corridor.webp' ),
+		'split_eyb'  => 'How we light with linear',
+		'split_head' => 'Suspended linear, designed and made',
+		'split_body' => 'From single pendants to continuous runs and curved features, we configure suspended linear lighting to your drawing, prove it with a photometric study, and make it in Manchester.',
+		'split_items'=> array( '<strong>Continuous &amp; curved</strong> runs to any length', '<strong>UGR&lt;19</strong> low-glare optics', '<strong>Up / down distribution</strong> options', '<strong>Tunable white &amp; Casambi</strong> control', '<strong>UK-made</strong> to order, 5-year warranty' ),
+		'faq_head'   => 'Suspended linear lighting FAQs',
+		'faqs'       => "Q: What is suspended linear lighting?\nA: Linear luminaires hung from the ceiling on cables or rods, often in continuous runs — popular in offices, retail and hospitality for clean lines and comfortable light.\nQ: Can suspended linear runs be made to a custom length?\nA: Yes — we make continuous runs to your exact length, straight or curved, to order in the UK.\nQ: Is suspended linear lighting low-glare?\nA: Yes — UGR<19 optics and up/down distribution options make it comfortable for screen-based work.\nQ: Do you design the linear layout?\nA: Yes — send a plan and our team returns a free, costed photometric scheme.",
+		'cta_img'    => $u( 'office1.webp' ),
+		'cta_head'   => 'Specify suspended linear lighting',
+		'cta_sub'    => 'Send us your drawing and we&rsquo;ll configure and cost a low-glare linear run — made to order.',
+	) ) );
+
 	// About — a designer layout aimed at specifiers (architects, interior &
 	// lighting designers, fit-out / D&B contractors): engage fast, sell benefits.
 	$p['about-pro'] = array( 'About · Designer', $feature( array(
@@ -777,6 +965,27 @@ function ricoman_our_showroom_blocks() {
 }
 function ricoman_our_services_blocks() {
 	return ricoman_stack( array( 'feat-our-services' ) );
+}
+function ricoman_office_lighting_blocks() {
+	return ricoman_stack( array( 'feat-office-lighting' ) );
+}
+function ricoman_gym_sports_lighting_blocks() {
+	return ricoman_stack( array( 'feat-gym-sports-lighting' ) );
+}
+function ricoman_education_lighting_blocks() {
+	return ricoman_stack( array( 'feat-education-lighting' ) );
+}
+function ricoman_retail_lighting_blocks() {
+	return ricoman_stack( array( 'feat-retail-lighting' ) );
+}
+function ricoman_warehouse_highbay_blocks() {
+	return ricoman_stack( array( 'feat-warehouse-highbay' ) );
+}
+function ricoman_feature_lighting_blocks() {
+	return ricoman_stack( array( 'feat-feature-lighting' ) );
+}
+function ricoman_suspended_linear_blocks() {
+	return ricoman_stack( array( 'feat-suspended-linear' ) );
 }
 
 /**

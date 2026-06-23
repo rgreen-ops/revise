@@ -218,6 +218,13 @@ function ricoman_footer_featured_links() {
 		'Trade'                    => '/trade/',
 		'Where to Buy'             => '/where-to-buy/',
 		'Our Showroom'             => '/our-showroom/',
+		'Office Lighting'          => '/office-lighting/',
+		'Retail Lighting'          => '/retail-lighting/',
+		'Warehouse & High Bay Lighting' => '/warehouse-high-bay-lighting/',
+		'Gym & Sports Hall Lighting'    => '/gym-sports-hall-lighting/',
+		'School & Education Lighting'   => '/education-lighting/',
+		'Feature Lighting'         => '/feature-lighting/',
+		'Suspended Linear Lighting'=> '/suspended-linear-lighting/',
 	) );
 }
 

@@ -24,18 +24,18 @@ function ricoman_seo_targets_default() {
 		array( 'term' => 'commercial LED lighting manufacturer UK', 'intent' => 'Identity', 'priority' => 'High', 'url' => '/about/' ),
 		array( 'term' => 'made in britain LED lighting', 'intent' => 'Identity', 'priority' => 'High', 'url' => '/made-in-britain/' ),
 		array( 'term' => 'LED linear lighting', 'intent' => 'Commercial', 'priority' => 'High', 'url' => '/products/estrella-linear-lighting/' ),
-		array( 'term' => 'UGR19 office linear lighting', 'intent' => 'Specifier', 'priority' => 'High', 'url' => '' ),
+		array( 'term' => 'UGR19 office linear lighting', 'intent' => 'Specifier', 'priority' => 'High', 'url' => '/office-lighting/' ),
 		array( 'term' => 'curved linear lighting', 'intent' => 'Specifier', 'priority' => 'High', 'url' => '/flow-designer/' ),
-		array( 'term' => 'suspended linear lighting', 'intent' => 'Commercial', 'priority' => 'Medium', 'url' => '' ),
+		array( 'term' => 'suspended linear lighting', 'intent' => 'Commercial', 'priority' => 'Medium', 'url' => '/suspended-linear-lighting/' ),
 		array( 'term' => 'commercial LED track lighting', 'intent' => 'Commercial', 'priority' => 'Medium', 'url' => '/product-category/48v-track/' ),
-		array( 'term' => 'office lighting', 'intent' => 'Sector', 'priority' => 'Medium', 'url' => '' ),
-		array( 'term' => 'gym sports hall lighting', 'intent' => 'Sector', 'priority' => 'Medium', 'url' => '' ),
+		array( 'term' => 'office lighting', 'intent' => 'Sector', 'priority' => 'Medium', 'url' => '/office-lighting/' ),
+		array( 'term' => 'gym sports hall lighting', 'intent' => 'Sector', 'priority' => 'Medium', 'url' => '/gym-sports-hall-lighting/' ),
 		array( 'term' => 'healthcare antimicrobial lighting', 'intent' => 'Sector', 'priority' => 'High', 'url' => '/antimicrobial-protection/' ),
-		array( 'term' => 'school education lighting', 'intent' => 'Sector', 'priority' => 'Medium', 'url' => '' ),
-		array( 'term' => 'retail lighting', 'intent' => 'Sector', 'priority' => 'Medium', 'url' => '' ),
-		array( 'term' => 'warehouse high bay lighting', 'intent' => 'Sector', 'priority' => 'Medium', 'url' => '' ),
+		array( 'term' => 'school education lighting', 'intent' => 'Sector', 'priority' => 'Medium', 'url' => '/education-lighting/' ),
+		array( 'term' => 'retail lighting', 'intent' => 'Sector', 'priority' => 'Medium', 'url' => '/retail-lighting/' ),
+		array( 'term' => 'warehouse high bay lighting', 'intent' => 'Sector', 'priority' => 'Medium', 'url' => '/warehouse-high-bay-lighting/' ),
 		array( 'term' => 'amenity lighting', 'intent' => 'Sector', 'priority' => 'Medium', 'url' => '/product-category/outdoor-exterior-lighting/' ),
-		array( 'term' => 'feature lighting', 'intent' => 'Commercial', 'priority' => 'Medium', 'url' => '' ),
+		array( 'term' => 'feature lighting', 'intent' => 'Commercial', 'priority' => 'Medium', 'url' => '/feature-lighting/' ),
 		array( 'term' => 'emergency lighting', 'intent' => 'Compliance', 'priority' => 'Medium', 'url' => '/fire-safety/' ),
 		array( 'term' => 'free lighting design service', 'intent' => 'Investigation', 'priority' => 'High', 'url' => '/lighting-design/' ),
 		array( 'term' => 'photometric IES LDT files', 'intent' => 'Download', 'priority' => 'Medium', 'url' => '/downloads/' ),
@@ -848,3 +848,66 @@ function ricoman_seo_targets_page() {
 	</div>
 	<?php
 }
+
+/* ----------------------------------------------- one-time pages + optimise */
+
+/**
+ * One-time (on existing, already-scaffolded sites): create the sector /
+ * application landing pages for the SEO targets, point any matching targets at
+ * them, and fill empty SEO fields for every target page. Everything is
+ * create-only / fill-empty, so it never overwrites edited content. Admin only.
+ */
+add_action( 'admin_init', function () {
+	if ( get_option( 'ricoman_seo_pages_v1' ) || ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+	$pages = array(
+		'office-lighting'             => array( 'Office Lighting', 'ricoman_office_lighting_blocks' ),
+		'gym-sports-hall-lighting'    => array( 'Gym & Sports Hall Lighting', 'ricoman_gym_sports_lighting_blocks' ),
+		'education-lighting'          => array( 'School & Education Lighting', 'ricoman_education_lighting_blocks' ),
+		'retail-lighting'            => array( 'Retail Lighting', 'ricoman_retail_lighting_blocks' ),
+		'warehouse-high-bay-lighting' => array( 'Warehouse & High Bay Lighting', 'ricoman_warehouse_highbay_blocks' ),
+		'feature-lighting'           => array( 'Feature Lighting', 'ricoman_feature_lighting_blocks' ),
+		'suspended-linear-lighting'   => array( 'Suspended Linear Lighting', 'ricoman_suspended_linear_blocks' ),
+	);
+	foreach ( $pages as $slug => $info ) {
+		if ( get_page_by_path( $slug ) ) {
+			continue; // already exists — never overwrite.
+		}
+		if ( function_exists( 'ricoman_make_post' ) && function_exists( $info[1] ) ) {
+			ricoman_make_post( 'page', $info[0], $slug, call_user_func( $info[1] ), 'page-plain' );
+		}
+	}
+	// Point matching stored targets at the new pages (fill-empty URL only).
+	$url_for = array(
+		'suspended linear lighting'    => '/suspended-linear-lighting/',
+		'office lighting'              => '/office-lighting/',
+		'ugr19 office linear lighting' => '/office-lighting/',
+		'gym sports hall lighting'     => '/gym-sports-hall-lighting/',
+		'school education lighting'    => '/education-lighting/',
+		'retail lighting'              => '/retail-lighting/',
+		'warehouse high bay lighting'  => '/warehouse-high-bay-lighting/',
+		'feature lighting'             => '/feature-lighting/',
+	);
+	$targets = ricoman_seo_targets();
+	$changed = false;
+	foreach ( $targets as $k => $t ) {
+		$norm = ricoman_seo_norm( $t['term'] );
+		if ( isset( $url_for[ $norm ] ) && '' === trim( (string) $t['url'] ) ) {
+			$targets[ $k ]['url'] = $url_for[ $norm ];
+			$changed = true;
+		}
+	}
+	if ( $changed ) {
+		update_option( 'ricoman_seo_targets', $targets, false );
+	}
+	// Fill empty SEO title/meta/focus for every target's page (fill-empty, safe).
+	foreach ( ricoman_seo_targets() as $t ) {
+		ricoman_seo_optimise_target( $t );
+	}
+	// Add the new pages to the footer feature-link column (skips ones already linked).
+	if ( function_exists( 'ricoman_footer_links_topup' ) ) {
+		ricoman_footer_links_topup();
+	}
+	update_option( 'ricoman_seo_pages_v1', 1 );
+} );

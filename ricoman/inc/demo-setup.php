@@ -159,6 +159,14 @@ function ricoman_scaffold_site() {
 		'uae-exports'             => array( 'UAE Exports', 'ricoman_uae_exports_blocks' ),
 		'our-showroom'            => array( 'Our Showroom', 'ricoman_our_showroom_blocks' ),
 		'our-services'            => array( 'Our Vision & Services', 'ricoman_our_services_blocks' ),
+		// Sector / application landing pages (SEO target hubs).
+		'office-lighting'            => array( 'Office Lighting', 'ricoman_office_lighting_blocks' ),
+		'gym-sports-hall-lighting'   => array( 'Gym & Sports Hall Lighting', 'ricoman_gym_sports_lighting_blocks' ),
+		'education-lighting'         => array( 'School & Education Lighting', 'ricoman_education_lighting_blocks' ),
+		'retail-lighting'            => array( 'Retail Lighting', 'ricoman_retail_lighting_blocks' ),
+		'warehouse-high-bay-lighting'=> array( 'Warehouse & High Bay Lighting', 'ricoman_warehouse_highbay_blocks' ),
+		'feature-lighting'           => array( 'Feature Lighting', 'ricoman_feature_lighting_blocks' ),
+		'suspended-linear-lighting'  => array( 'Suspended Linear Lighting', 'ricoman_suspended_linear_blocks' ),
 	);
 	foreach ( $native_pages as $slug => $info ) {
 		if ( get_page_by_path( $slug ) ) {
@@ -344,6 +352,13 @@ function ricoman_theme_page_map() {
 		'uae-exports'             => 'ricoman_uae_exports_blocks',
 		'our-showroom'            => 'ricoman_our_showroom_blocks',
 		'our-services'            => 'ricoman_our_services_blocks',
+		'office-lighting'            => 'ricoman_office_lighting_blocks',
+		'gym-sports-hall-lighting'   => 'ricoman_gym_sports_lighting_blocks',
+		'education-lighting'         => 'ricoman_education_lighting_blocks',
+		'retail-lighting'            => 'ricoman_retail_lighting_blocks',
+		'warehouse-high-bay-lighting'=> 'ricoman_warehouse_highbay_blocks',
+		'feature-lighting'           => 'ricoman_feature_lighting_blocks',
+		'suspended-linear-lighting'  => 'ricoman_suspended_linear_blocks',
 	);
 }
 
