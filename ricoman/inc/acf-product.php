@@ -1460,7 +1460,7 @@ function ricoman_pf_sections( $pid ) {
 	// 'm3' = markup version; bump to invalidate cached sections when section HTML
 	// changes. (Variant thumbnails use native loading="lazy"; the optimiser, not
 	// the theme, was the speed problem.)
-	$tkey      = 'rm_pfsec_m10_' . $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true ) . '_' . get_option( 'rm_cfgimg_ver', '0' );
+	$tkey      = 'rm_pfsec_m11_' . $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true ) . '_' . get_option( 'rm_cfgimg_ver', '0' );
 	if ( $cacheable ) {
 		$pre = get_transient( $tkey );
 		if ( is_array( $pre ) ) {
