@@ -113,6 +113,29 @@ add_action( 'admin_init', function () {
 	update_option( 'rm_estrella_seo_v1', 1 );
 } );
 
+/** The hub's optimised SEO title. */
+function ricoman_estrella_seo_title() {
+	return apply_filters( 'ricoman_estrella_seo_title', 'Estrella Linear Lighting | LED Linear Profiles | Ricoman' );
+}
+
+/**
+ * Belt-and-braces: force the hub's document <title> even if the stored SEO meta
+ * is still the stale migrated "…Wall washer" (i.e. before/independent of the
+ * one-time migration). Only steps in when the computed title is empty or still
+ * contains "wash"; otherwise it leaves an edited title alone. Covers Yoast and
+ * the native path.
+ */
+function ricoman_estrella_fix_title( $title ) {
+	if ( is_singular( 'product' ) && ricoman_estrella_is_hub( get_queried_object_id() ) ) {
+		if ( '' === trim( (string) $title ) || false !== stripos( (string) $title, 'wash' ) ) {
+			return ricoman_estrella_seo_title();
+		}
+	}
+	return $title;
+}
+add_filter( 'wpseo_title', 'ricoman_estrella_fix_title', 20 );
+add_filter( 'pre_get_document_title', 'ricoman_estrella_fix_title', 99 );
+
 /* ===========================================================================
  * All-optics LDT ZIP  (issue 3)
  * ======================================================================== */
