@@ -12,6 +12,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/* Surface the one-time setup / launch tools (Image Alt backfill, Pull Missing
+ * Images, …) in the Ricoman menu — they're hidden by default but the team needs
+ * them while preparing for launch. */
+add_filter( 'ricoman_show_setup_tools', '__return_true' );
+
 /* -------------------------------------------------------------------------
  * Shared: the links + status the hub, widget and admin bar all use.
  * ---------------------------------------------------------------------- */
