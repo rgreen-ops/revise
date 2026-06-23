@@ -75,6 +75,44 @@ add_action( 'admin_init', function () {
 	update_option( 'rm_estrella_setup_v1', 1 );
 } );
 
+/**
+ * One-time SEO optimisation for the Estrella hub. The migrated SEO title still
+ * said "Linear Wall washer" (it lives in its own meta — Yoast's _yoast_wpseo_title
+ * and/or our _ricoman_seo_title — not the post title), so the browser tab/search
+ * snippet was wrong. Write a keyword-targeted title, meta description and focus
+ * keyphrase to both Yoast and the theme SEO meta. Fills/overwrites only this page.
+ */
+add_action( 'admin_init', function () {
+	if ( get_option( 'rm_estrella_seo_v1' ) ) {
+		return;
+	}
+	$p = get_page_by_path( 'estrella-linear-lighting', OBJECT, 'product' );
+	if ( ! $p ) {
+		$q = get_posts( array(
+			'post_type'      => 'product',
+			'post_status'    => 'publish',
+			'posts_per_page' => 1,
+			'meta_key'       => '_ricoman_estrella_hub', // phpcs:ignore WordPress.DB.SlowDBQuery
+			'meta_value'     => '1',                      // phpcs:ignore WordPress.DB.SlowDBQuery
+		) );
+		$p = $q ? $q[0] : null;
+	}
+	if ( $p ) {
+		$title = 'Estrella Linear Lighting | LED Linear Profiles | Ricoman';
+		$desc  = 'Estrella Pro by Ricoman — a modular LED linear lighting system with seven optics, tunable white and Casambi control. UK-made, 5-year warranty. Configure yours.';
+		$kw    = 'linear lighting';
+		update_post_meta( $p->ID, '_ricoman_seo_title', $title );
+		update_post_meta( $p->ID, '_ricoman_seo_desc', $desc );
+		update_post_meta( $p->ID, '_ricoman_seo_focus', $kw );
+		// Yoast fields (active here) — these drive the <title> + snippet.
+		update_post_meta( $p->ID, '_yoast_wpseo_title', $title );
+		update_post_meta( $p->ID, '_yoast_wpseo_metadesc', $desc );
+		update_post_meta( $p->ID, '_yoast_wpseo_focuskw', $kw );
+		update_post_meta( $p->ID, '_rm_secver', time() );
+	}
+	update_option( 'rm_estrella_seo_v1', 1 );
+} );
+
 /* ===========================================================================
  * All-optics LDT ZIP  (issue 3)
  * ======================================================================== */
@@ -320,7 +358,7 @@ function ricoman_estrella_range_section( $pid ) {
 	$smartsec = '<div class="rm-section rm-es-smart"><div class="rm-pp-wrap">'
 		. '<p class="rm-eyebrow">Smart &amp; human-centric</p>'
 		. '<h2 class="rm-shead">Intelligent control with Casambi</h2>'
-		. '<p class="rm-es-sub">Specify tunable white (2700K–6500K) with Casambi to deliver human-centric lighting that works with the body’s circadian rhythm.</p>'
+		. '<p class="rm-es-sub">Specify tunable white (2700K–6500K) with <a href="' . esc_url( home_url( '/casambi/' ) ) . '">Casambi</a> to deliver <a href="' . esc_url( home_url( '/human-centric-lighting/' ) ) . '">human-centric lighting</a> that works with the body’s circadian rhythm — part of our commitment to <a href="' . esc_url( home_url( '/sustainability/' ) ) . '">sustainable lighting</a>.</p>'
 		. '<div class="rm-es-feats">' . $casitems . '</div>'
 		. '<h3 class="rm-es-subhead">Human-centric lighting</h3>'
 		. '<div class="rm-es-feats rm-es-feats--3">' . $hclitems . '</div>'
@@ -381,7 +419,26 @@ function ricoman_estrella_range_section( $pid ) {
 		. '<ul class="rm-es-badges">' . $bhtml . '</ul>'
 		. '</div></div>';
 
-	return $css . '<div class="rm-es-range">' . $intro . $opticsec . $smartsec . $techsec . '</div>';
+	/* --- 5. FAQ (emits FAQPage schema for rich results) ----------------- */
+	$faqsec = '';
+	if ( function_exists( 'ricoman_faq_shortcode' ) ) {
+		$faq_content = "Q: What is Estrella Pro?\n"
+			. "A: Estrella Pro is Ricoman's modular LED linear lighting system — a slim architectural profile used as standalone luminaires or continuous light-lines, configurable for offices, retail, hospitality, education and more.\n"
+			. "Q: Which optics are available?\n"
+			. "A: Seven optics: Opal, Square Aperture, Wallwash, Dark Louvre, White Louvre, Microprismatic and RGBW — each tuned for a different balance of output, glare control (UGR) and beam spread.\n"
+			. "Q: Can Estrella Pro create continuous runs and shapes?\n"
+			. "A: Yes. It links into continuous light-lines and L, T and + shapes in 532, 1064, 1596 and 2128mm lengths, with surface, suspended, recessed, track, wall and grid-ceiling mounting.\n"
+			. "Q: Does it support tunable white and Casambi control?\n"
+			. "A: Yes — specify tunable white (2700K–6500K) with Casambi for human-centric lighting that follows the body's circadian rhythm, plus DALI, PIR and emergency options.\n"
+			. "Q: Is it made in the UK and what warranty does it carry?\n"
+			. "A: Estrella Pro is UK-made with single-bin Samsung LEDs, CRI >90, IP40 (IP54 optional) and a 5-year warranty.\n";
+		$faq_inner = ricoman_faq_shortcode( array(), $faq_content );
+		if ( $faq_inner ) {
+			$faqsec = '<div class="rm-section rm-es-faq" id="faq"><div class="rm-pp-wrap"><h2 class="rm-shead">Estrella linear lighting — FAQs</h2>' . $faq_inner . '</div></div>';
+		}
+	}
+
+	return $css . '<div class="rm-es-range">' . $intro . $opticsec . $smartsec . $techsec . $faqsec . '</div>';
 }
 
 /** Range section styles (printed once). */
