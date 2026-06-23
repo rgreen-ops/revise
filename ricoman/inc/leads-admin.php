@@ -505,3 +505,54 @@ function ricoman_leads_dashboard_render() {
 	</div>
 	<?php
 }
+
+/* ----------------------------------------------------------------- export */
+/** "Export CSV" button above the Leads list. */
+add_action( 'manage_posts_extra_tablenav', function ( $which ) {
+	global $typenow;
+	if ( 'lead' !== $typenow || 'top' !== $which || ! current_user_can( 'edit_posts' ) ) {
+		return;
+	}
+	$url = wp_nonce_url( admin_url( 'admin-post.php?action=ricoman_leads_export' ), 'ricoman_leads_export' );
+	echo '<a href="' . esc_url( $url ) . '" class="button" style="margin-left:8px">' . esc_html__( 'Export CSV', 'ricoman' ) . '</a>';
+} );
+
+/** Stream all leads as a portable CSV (opens in Excel / Google Sheets / any CRM). */
+add_action( 'admin_post_ricoman_leads_export', function () {
+	if ( ! current_user_can( 'edit_posts' ) || ! isset( $_GET['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'ricoman_leads_export' ) ) {
+		wp_die( esc_html__( 'Not allowed.', 'ricoman' ) );
+	}
+	$q = new WP_Query( array(
+		'post_type'      => 'lead',
+		'post_status'    => 'any',
+		'posts_per_page' => -1,
+		'no_found_rows'  => true,
+		'orderby'        => 'date',
+		'order'          => 'DESC',
+	) );
+	$statuses = ricoman_lead_statuses();
+	nocache_headers();
+	header( 'Content-Type: text/csv; charset=utf-8' );
+	header( 'Content-Disposition: attachment; filename="ricoman-leads-' . gmdate( 'Y-m-d' ) . '.csv"' );
+	$out = fopen( 'php://output', 'w' );
+	fwrite( $out, "\xEF\xBB\xBF" ); // UTF-8 BOM so Excel shows accents correctly.
+	fputcsv( $out, array( 'Received', 'Name', 'Email', 'Customer type', 'Lead type', 'Product / company', 'Source', 'UTM', 'Status', 'Page' ) );
+	foreach ( $q->posts as $p ) {
+		$g  = function ( $k ) use ( $p ) { return (string) get_post_meta( $p->ID, $k, true ); };
+		$st = ricoman_lead_status( $p->ID );
+		fputcsv( $out, array(
+			get_the_date( 'Y-m-d H:i', $p ),
+			$g( '_lead_name' ),
+			$g( '_lead_email' ),
+			$g( '_lead_role' ),
+			$g( '_lead_type' ),
+			$g( '_lead_product' ),
+			$g( '_lead_attr_source' ),
+			$g( '_lead_utm' ),
+			isset( $statuses[ $st ] ) ? $statuses[ $st ][0] : $st,
+			$g( '_lead_page' ),
+		) );
+	}
+	fclose( $out );
+	exit;
+} );
