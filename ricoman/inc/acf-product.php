@@ -1192,7 +1192,7 @@ function ricoman_pf_variant_table( $pid ) {
 	}
 
 	if ( $srv ) {
-		set_transient( ricoman_variant_rows_key( $pid ), $store, 12 * HOUR_IN_SECONDS );
+		set_transient( ricoman_variant_rows_key( $pid ), ricoman_vrows_pack( $store ), 12 * HOUR_IN_SECONDS );
 		$remaining = max( 0, $total - $page_size );
 		$showmore  = '<div class="rm-vt-morewrap"><button type="button" class="rm-vt-morebtn" data-srv="1">' . esc_html__( 'Show more', 'ricoman' ) . ' <span class="rm-vt-morecount">(' . (int) $remaining . ' more)</span></button></div>';
 		$vpattr    = ' data-srv="1" data-page="1" data-product="' . (int) $pid . '" data-url="' . esc_url( admin_url( 'admin-ajax.php' ) ) . '" data-page-size="' . (int) $page_size . '" data-total="' . (int) $total . '"';
@@ -1213,7 +1213,37 @@ function ricoman_pf_variant_table( $pid ) {
 
 /** Transient key for a product's cached variant-row dataset (server pagination). */
 function ricoman_variant_rows_key( $pid ) {
-	return 'rm_vrows_' . (int) $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true );
+	return 'rm_vrows_v2_' . (int) $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true );
+}
+
+/**
+ * Pack/unpack the row dataset for storage. The raw set is megabytes of <tr> HTML,
+ * which silently fails to store in object caches with a per-item size cap (e.g.
+ * Memcached's 1MB). Compress + base64 so it's a small, binary-safe string.
+ */
+function ricoman_vrows_pack( $store ) {
+	$ser = serialize( $store ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize
+	if ( function_exists( 'gzcompress' ) ) {
+		return 'gz:' . base64_encode( gzcompress( $ser, 6 ) );
+	}
+	return 'raw:' . base64_encode( $ser );
+}
+function ricoman_vrows_unpack( $raw ) {
+	if ( ! is_string( $raw ) ) {
+		return false;
+	}
+	if ( 0 === strpos( $raw, 'gz:' ) && function_exists( 'gzuncompress' ) ) {
+		$d = @gzuncompress( base64_decode( substr( $raw, 3 ) ) ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
+	} elseif ( 0 === strpos( $raw, 'raw:' ) ) {
+		$d = base64_decode( substr( $raw, 4 ) );
+	} else {
+		return false;
+	}
+	if ( false === $d || '' === $d ) {
+		return false;
+	}
+	$arr = @unserialize( $d ); // phpcs:ignore
+	return is_array( $arr ) ? $arr : false;
 }
 
 /** AJAX: filtered + paginated variant rows for a server-paginated table. */
@@ -1234,10 +1264,10 @@ function ricoman_ajax_variant_rows() {
 			}
 		}
 	}
-	$store = get_transient( ricoman_variant_rows_key( $pid ) );
+	$store = ricoman_vrows_unpack( get_transient( ricoman_variant_rows_key( $pid ) ) );
 	if ( ! is_array( $store ) ) {
 		ricoman_pf_variant_table( $pid ); // rebuild + cache the dataset.
-		$store = get_transient( ricoman_variant_rows_key( $pid ) );
+		$store = ricoman_vrows_unpack( get_transient( ricoman_variant_rows_key( $pid ) ) );
 		if ( ! is_array( $store ) ) {
 			$store = array();
 		}
@@ -1727,7 +1757,7 @@ function ricoman_pf_configure_inner( $pid ) {
 
 /** Configurator HTML with its own transient cache (keyed like the section cache). */
 function ricoman_pf_configure_cached( $pid ) {
-	$key = 'rm_cfgsec_v4_' . (int) $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true ) . '_' . get_option( 'rm_cfgimg_ver', '0' );
+	$key = 'rm_cfgsec_v5_' . (int) $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true ) . '_' . get_option( 'rm_cfgimg_ver', '0' );
 	$pre = get_transient( $key );
 	if ( is_string( $pre ) ) {
 		return $pre;
