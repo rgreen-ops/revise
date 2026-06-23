@@ -134,17 +134,30 @@ function ricoman_pe_render_layout( $pid, $layout = null ) {
 	}
 	$sections = function_exists( 'ricoman_pf_sections' ) ? ricoman_pf_sections( $pid ) : array();
 	$reg      = class_exists( 'WP_Block_Patterns_Registry' ) ? WP_Block_Patterns_Registry::get_instance() : null;
-	$out      = '';
+	// Estrella-style range content isn't in older saved layouts, so inject it after
+	// the configure section for hub products (and don't double-render it).
+	$range_html = isset( $sections['range'] ) ? (string) $sections['range'] : '';
+	$range_done = '' === $range_html;
+	$out        = '';
 	foreach ( (array) $layout as $it ) {
 		$type = isset( $it['type'] ) ? $it['type'] : '';
 		if ( 'section' === $type && ! empty( $it['key'] ) ) {
 			if ( ! isset( $it['on'] ) || $it['on'] ) {
 				$out .= isset( $sections[ $it['key'] ] ) ? $sections[ $it['key'] ] : '';
 			}
+			if ( 'range' === $it['key'] ) {
+				$range_done = true; // layout already places it explicitly.
+			} elseif ( 'configure' === $it['key'] && ! $range_done ) {
+				$out       .= $range_html;
+				$range_done = true;
+			}
 		} elseif ( 'pattern' === $type && ! empty( $it['name'] ) && $reg && $reg->is_registered( $it['name'] ) ) {
 			$p    = $reg->get_registered( $it['name'] );
 			$out .= do_blocks( isset( $p['content'] ) ? $p['content'] : '' );
 		}
+	}
+	if ( ! $range_done ) {
+		$out .= $range_html; // no configure section in the layout — append at the end.
 	}
 	return $out;
 }
