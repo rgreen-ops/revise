@@ -116,7 +116,46 @@
 	} );
 
 	/* ---- Configure table: filters + "Show more" pagination ---- */
+	// Server-paginated tables (big ranges): fetch a page of rows for the current
+	// filter selection instead of shipping every row to the browser.
+	function vtFilters( vp ) {
+		var f = {};
+		vp.querySelectorAll( '.rm-vt-filter' ).forEach( function ( s ) {
+			if ( s.value ) { f[ s.getAttribute( 'data-col' ) ] = s.value; }
+		} );
+		return f;
+	}
+	function vtSrvLoad( vp, page, append ) {
+		var base = vp.getAttribute( 'data-url' ) || ( window.ajaxurl || '/wp-admin/admin-ajax.php' );
+		var pid = vp.getAttribute( 'data-product' );
+		var size = parseInt( vp.getAttribute( 'data-page-size' ) || '25', 10 );
+		var tbody = vp.querySelector( 'tbody' );
+		var more = vp.querySelector( '.rm-vt-morewrap' );
+		var btn = more && more.querySelector( '.rm-vt-morebtn' );
+		if ( ! tbody || vp.getAttribute( 'data-busy' ) ) { return; }
+		vp.setAttribute( 'data-busy', '1' );
+		if ( btn ) { btn.disabled = true; }
+		var url = base + '?action=rm_vrows&product=' + encodeURIComponent( pid ) + '&page=' + page + '&f=' + encodeURIComponent( JSON.stringify( vtFilters( vp ) ) );
+		fetch( url, { credentials: 'same-origin' } ).then( function ( r ) { return r.json(); } ).then( function ( d ) {
+			if ( append ) { tbody.insertAdjacentHTML( 'beforeend', d.rows || '' ); }
+			else { tbody.innerHTML = d.rows || ''; }
+			vp.setAttribute( 'data-page', String( d.page || 1 ) );
+			if ( more ) {
+				if ( d.hasMore ) {
+					more.style.display = '';
+					var c = more.querySelector( '.rm-vt-morecount' );
+					if ( c ) { c.textContent = '(' + Math.max( 0, ( d.total || 0 ) - ( d.page || 1 ) * size ) + ' more)'; }
+				} else { more.style.display = 'none'; }
+			}
+			vp.removeAttribute( 'data-busy' );
+			if ( btn ) { btn.disabled = false; }
+		} ).catch( function () {
+			vp.removeAttribute( 'data-busy' );
+			if ( btn ) { btn.disabled = false; }
+		} );
+	}
 	function vtApply( vp ) {
+		if ( vp.getAttribute( 'data-srv' ) ) { return; } // server-paginated; handled by AJAX.
 		var limit = parseInt( vp.getAttribute( 'data-limit' ) || '10', 10 );
 		var filters = {};
 		vp.querySelectorAll( '.rm-vt-filter' ).forEach( function ( s ) {
@@ -191,18 +230,24 @@
 	document.addEventListener( 'change', function ( e ) {
 		var s = e.target.closest( '.rm-vt-filter' ); if ( ! s ) { return; }
 		var vp = s.closest( '.rm-vp' ); if ( ! vp ) { return; }
+		if ( vp.getAttribute( 'data-srv' ) ) { vtSrvLoad( vp, 1, false ); return; }
 		vp.setAttribute( 'data-limit', '10' ); vtApply( vp );
 	} );
 	document.addEventListener( 'click', function ( e ) {
 		if ( e.target.closest( '.rm-vt-clear' ) ) {
 			var vpc = e.target.closest( '.rm-vp' ); if ( ! vpc ) { return; }
 			vpc.querySelectorAll( '.rm-vt-filter' ).forEach( function ( s ) { s.value = ''; } );
+			if ( vpc.getAttribute( 'data-srv' ) ) { vtSrvLoad( vpc, 1, false ); return; }
 			vpc.setAttribute( 'data-limit', '10' ); vtApply( vpc );
 			return;
 		}
 		var b = e.target.closest( '.rm-vt-morebtn' );
 		if ( ! b ) { return; }
 		var vp = b.closest( '.rm-vp' ); if ( ! vp ) { return; }
+		if ( vp.getAttribute( 'data-srv' ) ) {
+			vtSrvLoad( vp, parseInt( vp.getAttribute( 'data-page' ) || '1', 10 ) + 1, true );
+			return;
+		}
 		var step = parseInt( b.getAttribute( 'data-step' ) || '10', 10 );
 		vp.setAttribute( 'data-limit', String( ( parseInt( vp.getAttribute( 'data-limit' ) || '10', 10 ) ) + step ) );
 		vtApply( vp );

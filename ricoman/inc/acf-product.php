@@ -1134,44 +1134,139 @@ function ricoman_pf_variant_table( $pid ) {
 	}
 	$head .= '<th>LDT</th><th>Datasheet</th>';
 
-	$rows = '';
-	foreach ( $variants as $i => $v ) {
-		$timg    = $v['img'] ? $v['img'] : $parent_img;
-		$thumb   = $timg ? '<img src="' . esc_url( $timg ) . '" alt="" loading="lazy"' . $onerr . '>' : '';
-		$rowattr = '';
-		if ( $has_type ) {
-			$rowattr .= ' data-f-type="' . esc_attr( $v['type'] ) . '"';
-		}
-		foreach ( $filterable as $label => $vals ) {
-			$rowattr .= ' data-f-' . $slugify( $label ) . '="' . esc_attr( isset( $v['pairs'][ $label ] ) ? $v['pairs'][ $label ] : '' ) . '"';
-		}
-		// The click-modal is built client-side from the row's own cells (see
-		// product-gallery.js) — we no longer embed a full-spec JSON blob per row,
-		// which on big ranges (Estrella ~2000 rows) added megabytes to the page.
-		$rows .= '<tr class="vt-row' . ( $i >= 10 ? ' rm-vt-hide' : '' ) . '" data-vt="' . $i . '"' . $rowattr . ' tabindex="0"><td class="vt-thumb">' . $thumb . '</td>'
+	// Render one row's cells (thumb · code · desc · [type] · cols · LDT · datasheet).
+	$render_cells = function ( $v ) use ( $parent_img, $onerr, $has_type, $cols ) {
+		$timg  = $v['img'] ? $v['img'] : $parent_img;
+		$thumb = $timg ? '<img src="' . esc_url( $timg ) . '" alt="" loading="lazy"' . $onerr . '>' : '';
+		$c = '<td class="vt-thumb">' . $thumb . '</td>'
 			. '<td class="vt-code">' . esc_html( $v['code'] ) . '</td>'
 			. '<td class="vt-desc">' . esc_html( $v['desc'] ) . '</td>'
 			. ( $has_type ? '<td class="vt-spec">' . esc_html( '' !== $v['type'] ? $v['type'] : '–' ) . '</td>' : '' );
 		foreach ( $cols as $label ) {
 			$cell = isset( $v['pairs'][ $label ] ) ? $v['pairs'][ $label ] : '–';
-			$rows .= '<td class="vt-spec">' . esc_html( $cell ) . '</td>';
+			$c   .= '<td class="vt-spec">' . esc_html( $cell ) . '</td>';
 		}
-		$rows .= '<td class="vt-dl">' . ( $v['ldt'] ? '<a href="' . esc_url( $v['ldt'] ) . '" target="_blank" rel="noopener" aria-label="LDT file">LDT ↓</a>' : '—' ) . '</td>'
-			. '<td class="vt-dl"><a href="' . esc_url( $v['ds'] ) . '" target="_blank" rel="noopener" aria-label="Datasheet">Datasheet ↓</a></td></tr>';
+		$c .= '<td class="vt-dl">' . ( $v['ldt'] ? '<a href="' . esc_url( $v['ldt'] ) . '" target="_blank" rel="noopener" aria-label="LDT file">LDT ↓</a>' : '—' ) . '</td>'
+			. '<td class="vt-dl"><a href="' . esc_url( $v['ds'] ) . '" target="_blank" rel="noopener" aria-label="Datasheet">Datasheet ↓</a></td>';
+		return $c;
+	};
+
+	$total     = count( $variants );
+	$page_size = (int) apply_filters( 'ricoman_variant_page_size', 25 );
+	// Big tables paginate on the SERVER: only the first page ships in the page;
+	// filters + "Show more" fetch further pages via rm_vrows. This keeps a 2000-row
+	// range from shipping megabytes of <tr> to the browser. Small tables keep the
+	// instant client-side filtering (all rows present, hidden past 10).
+	$srv = $total > $page_size;
+
+	$rows    = '';
+	$store   = array();
+	$emitted = 0;
+	foreach ( $variants as $i => $v ) {
+		$cells = $render_cells( $v );
+		if ( $srv ) {
+			// Filtering is server-side, so the shipped rows don't carry data-f-*.
+			$fmap = array();
+			if ( $has_type ) {
+				$fmap['type'] = (string) $v['type'];
+			}
+			foreach ( $filterable as $label => $vals ) {
+				$fmap[ $slugify( $label ) ] = isset( $v['pairs'][ $label ] ) ? (string) $v['pairs'][ $label ] : '';
+			}
+			$rowhtml = '<tr class="vt-row" data-vt="' . $i . '" tabindex="0">' . $cells . '</tr>';
+			$store[] = array( 'f' => $fmap, 'h' => $rowhtml );
+			if ( $emitted < $page_size ) {
+				$rows .= $rowhtml;
+				$emitted++;
+			}
+		} else {
+			$rowattr = '';
+			if ( $has_type ) {
+				$rowattr .= ' data-f-type="' . esc_attr( $v['type'] ) . '"';
+			}
+			foreach ( $filterable as $label => $vals ) {
+				$rowattr .= ' data-f-' . $slugify( $label ) . '="' . esc_attr( isset( $v['pairs'][ $label ] ) ? $v['pairs'][ $label ] : '' ) . '"';
+			}
+			$rows .= '<tr class="vt-row' . ( $i >= 10 ? ' rm-vt-hide' : '' ) . '" data-vt="' . $i . '"' . $rowattr . ' tabindex="0">' . $cells . '</tr>';
+		}
 	}
 
-	$total    = count( $variants );
-	$showmore = $total > 10
-		? '<div class="rm-vt-morewrap"><button type="button" class="rm-vt-morebtn" data-step="10">Show more <span class="rm-vt-morecount">(' . ( $total - 10 ) . ' more)</span></button></div>'
-		: '';
+	if ( $srv ) {
+		set_transient( ricoman_variant_rows_key( $pid ), $store, 12 * HOUR_IN_SECONDS );
+		$remaining = max( 0, $total - $page_size );
+		$showmore  = '<div class="rm-vt-morewrap"><button type="button" class="rm-vt-morebtn" data-srv="1">' . esc_html__( 'Show more', 'ricoman' ) . ' <span class="rm-vt-morecount">(' . (int) $remaining . ' more)</span></button></div>';
+		$vpattr    = ' data-srv="1" data-page="1" data-product="' . (int) $pid . '" data-url="' . esc_url( admin_url( 'admin-ajax.php' ) ) . '" data-page-size="' . (int) $page_size . '" data-total="' . (int) $total . '"';
+	} else {
+		$showmore = $total > 10
+			? '<div class="rm-vt-morewrap"><button type="button" class="rm-vt-morebtn" data-step="10">' . esc_html__( 'Show more', 'ricoman' ) . ' <span class="rm-vt-morecount">(' . ( $total - 10 ) . ' more)</span></button></div>'
+			: '';
+		$vpattr = '';
+	}
 
-	return '<div class="rm-vp">'
+	return '<div class="rm-vp"' . $vpattr . '>'
 		. $fbar
 		. '<div class="rm-vptable-wrap"><table class="rm-vptable"><thead><tr>' . $head . '</tr></thead><tbody>' . $rows . '</tbody></table></div>'
 		. $showmore
 		. '<div class="rm-vt-modal" hidden><div class="rm-vt-modal-box"><button type="button" class="rm-vt-x" aria-label="Close">&times;</button><div class="rm-vt-body"></div></div></div>'
 		. '</div>';
 }
+
+/** Transient key for a product's cached variant-row dataset (server pagination). */
+function ricoman_variant_rows_key( $pid ) {
+	return 'rm_vrows_' . (int) $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true );
+}
+
+/** AJAX: filtered + paginated variant rows for a server-paginated table. */
+function ricoman_ajax_variant_rows() {
+	$pid = isset( $_GET['product'] ) ? (int) $_GET['product'] : 0;
+	if ( ! $pid || 'product' !== get_post_type( $pid ) ) {
+		status_header( 400 );
+		exit;
+	}
+	$page = max( 1, isset( $_GET['page'] ) ? (int) $_GET['page'] : 1 );
+	$size = (int) apply_filters( 'ricoman_variant_page_size', 25 );
+	$filters = array();
+	if ( isset( $_GET['f'] ) ) {
+		$raw = json_decode( wp_unslash( $_GET['f'] ), true );
+		if ( is_array( $raw ) ) {
+			foreach ( $raw as $k => $val ) {
+				$filters[ sanitize_key( (string) $k ) ] = (string) $val;
+			}
+		}
+	}
+	$store = get_transient( ricoman_variant_rows_key( $pid ) );
+	if ( ! is_array( $store ) ) {
+		ricoman_pf_variant_table( $pid ); // rebuild + cache the dataset.
+		$store = get_transient( ricoman_variant_rows_key( $pid ) );
+		if ( ! is_array( $store ) ) {
+			$store = array();
+		}
+	}
+	$matched = array();
+	foreach ( $store as $row ) {
+		$ok = true;
+		foreach ( $filters as $col => $val ) {
+			if ( '' === $val ) {
+				continue;
+			}
+			if ( ! isset( $row['f'][ $col ] ) || (string) $row['f'][ $col ] !== $val ) {
+				$ok = false;
+				break;
+			}
+		}
+		if ( $ok ) {
+			$matched[] = $row['h'];
+		}
+	}
+	$total = count( $matched );
+	$slice = array_slice( $matched, ( $page - 1 ) * $size, $size );
+	nocache_headers();
+	header( 'Content-Type: application/json; charset=utf-8' );
+	echo wp_json_encode( array( 'rows' => implode( '', $slice ), 'total' => $total, 'page' => $page, 'hasMore' => ( $page * $size ) < $total ) );
+	exit;
+}
+add_action( 'wp_ajax_rm_vrows', 'ricoman_ajax_variant_rows' );
+add_action( 'wp_ajax_nopriv_rm_vrows', 'ricoman_ajax_variant_rows' );
 
 /** In-situ images for a product — its own In-situ gallery + related projects' galleries. */
 function ricoman_pf_insitu_images( $pid ) {
@@ -1632,7 +1727,7 @@ function ricoman_pf_configure_inner( $pid ) {
 
 /** Configurator HTML with its own transient cache (keyed like the section cache). */
 function ricoman_pf_configure_cached( $pid ) {
-	$key = 'rm_cfgsec_v3_' . (int) $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true ) . '_' . get_option( 'rm_cfgimg_ver', '0' );
+	$key = 'rm_cfgsec_v4_' . (int) $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true ) . '_' . get_option( 'rm_cfgimg_ver', '0' );
 	$pre = get_transient( $key );
 	if ( is_string( $pre ) ) {
 		return $pre;
