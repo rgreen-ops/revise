@@ -1666,7 +1666,7 @@ function ricoman_pf_sections( $pid ) {
 		// deferring). Just a light skeleton; JS streams the real thing in.
 		$var_inner = '<div class="rm-cfg-lazy" data-product="' . (int) $pid . '" data-url="' . esc_url( admin_url( 'admin-ajax.php' ) ) . '" style="min-height:240px">'
 			. '<div class="rm-cfg-skel" aria-hidden="true" style="height:200px;border:1px solid #e7e9ee;border-radius:12px;background:#f6f7f9"></div>'
-			. '<p class="rm-cfg-loading" style="color:#8a909c;margin:12px 2px 0;font-size:.9rem">' . esc_html__( 'Loading the configurator…', 'ricoman' ) . '</p>'
+			. '<p class="rm-cfg-loading" style="color:#5b6270;margin:12px 2px 0;font-size:.9rem">' . esc_html__( 'Loading the configurator…', 'ricoman' ) . '</p>'
 			. '<noscript><a class="btn btn-line-d" href="' . esc_url( add_query_arg( array( 'action' => 'rm_cfg_section', 'product' => (int) $pid ), admin_url( 'admin-ajax.php' ) ) ) . '">' . esc_html__( 'View all order codes', 'ricoman' ) . '</a></noscript></div>';
 	} else {
 		$var_inner = ricoman_pf_configure_inner( $pid );
