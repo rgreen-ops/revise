@@ -357,7 +357,7 @@ function ricoman_render_acf_repeater( $label, $rows ) {
 			. ( $desc ? '<div class="rm-acard-desc">' . wp_kses_post( wpautop( $desc ) ) . '</div>' : '' )
 			. '</div>';
 		$cards .= $link
-			? '<a class="rm-acard" href="' . esc_url( $link ) . '">' . $inner . '</a>'
+			? '<a class="rm-acard" href="' . esc_url( $link ) . '" aria-label="' . esc_attr( ricoman_acard_label( $title ? $title : $desc, $link ) ) . '">' . $inner . '</a>'
 			: '<div class="rm-acard">' . $inner . '</div>';
 	}
 	if ( '' === $cards ) {
@@ -365,4 +365,20 @@ function ricoman_render_acf_repeater( $label, $rows ) {
 	}
 	$head = ( $label && ! preg_match( '/^(content|body|repeater|list|section)/i', $label ) ) ? '<h2 class="rm-shead">' . esc_html( $label ) . '</h2>' : '';
 	return $head . '<div class="rm-acards">' . $cards . '</div>';
+}
+
+/**
+ * An accessible name for a product/accessory card link, so empty migrated cards
+ * (no resolved title/image) never produce a link without discernible text.
+ * Falls back to a humanised version of the link's URL slug.
+ */
+function ricoman_acard_label( $name, $href ) {
+	$name = trim( wp_strip_all_tags( (string) $name ) );
+	if ( '' !== $name ) {
+		return $name;
+	}
+	$path = (string) wp_parse_url( (string) $href, PHP_URL_PATH );
+	$slug = basename( rtrim( $path, '/' ) );
+	$slug = trim( ucwords( str_replace( array( '-', '_' ), ' ', $slug ) ) );
+	return '' !== $slug ? $slug : __( 'View product', 'ricoman' );
 }

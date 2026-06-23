@@ -250,7 +250,8 @@ add_filter( 'the_content', function ( $content ) {
 			}
 			$inner   = ( $pu_img ? '<div class="rm-acard-img" style="background-image:url(' . esc_url( $pu_img ) . ')"></div>' : '' )
 				. '<div class="rm-acard-body"><h3>' . esc_html( $pu_name ) . '</h3></div>';
-			$cards  .= $pu_href ? '<a class="rm-acard" href="' . esc_url( $pu_href ) . '">' . $inner . '</a>' : '<div class="rm-acard">' . $inner . '</div>';
+			$pu_lbl  = function_exists( 'ricoman_acard_label' ) ? ricoman_acard_label( $pu_name, $pu_href ) : ( $pu_name ? $pu_name : 'View product' );
+			$cards  .= $pu_href ? '<a class="rm-acard" href="' . esc_url( $pu_href ) . '" aria-label="' . esc_attr( $pu_lbl ) . '">' . $inner . '</a>' : '<div class="rm-acard">' . $inner . '</div>';
 		}
 		if ( $cards ) {
 			$out .= '<div class="rm-section rm-projprod-sec"><div class="rm-pp-wrap"><h2 class="rm-shead">Products used</h2><div class="rm-acards">' . $cards . '</div></div></div>';

@@ -11,6 +11,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * A11y: the block templates already provide the page's <main> landmark, so a
+ * Group block authored to render as <main> in PAGE CONTENT (e.g. the My Project
+ * page) creates a duplicate-main violation. Demote any such block to a <div>.
+ */
+add_filter( 'render_block_data', function ( $block ) {
+	if ( isset( $block['blockName'], $block['attrs']['tagName'] )
+		&& 'core/group' === $block['blockName'] && 'main' === $block['attrs']['tagName'] ) {
+		$block['attrs']['tagName'] = 'div';
+	}
+	return $block;
+} );
+
 /** Render a list of "Label | url" lines as <li><a>…</a></li>. */
 function ricoman_render_links( $key ) {
 	$out = '';

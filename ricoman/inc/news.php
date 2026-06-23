@@ -536,7 +536,7 @@ function ricoman_news_related_products( $pid ) {
 		}
 		$inner = ( $img ? '<div class="rm-acard-img" style="background-image:url(' . esc_url( $img ) . ')"></div>' : '' )
 			. '<div class="rm-acard-body"><h3>' . esc_html( $name ) . '</h3></div>';
-		$cards .= '<a class="rm-acard" href="' . esc_url( $url ) . '">' . $inner . '</a>';
+		$cards .= '<a class="rm-acard" href="' . esc_url( $url ) . '" aria-label="' . esc_attr( function_exists( 'ricoman_acard_label' ) ? ricoman_acard_label( $name, $url ) : ( $name ? $name : 'View product' ) ) . '">' . $inner . '</a>';
 	}
 	return $cards ? '<div class="rm-news-prod"><h2 class="rm-shead">Products in this article</h2><div class="rm-acards">' . $cards . '</div></div>' : '';
 }
