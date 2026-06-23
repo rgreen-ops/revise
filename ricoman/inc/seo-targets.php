@@ -318,7 +318,119 @@ function ricoman_seo_suggest_page( $term ) {
 
 /* ------------------------------------------------- one-click optimisation */
 
-/** A keyword-led SEO title built from a term (≤ ~60 chars), brand suffixed. */
+/**
+ * Hand-written, keyword-led SEO title + meta description per target term.
+ * Keyed by the normalised term (see ricoman_seo_norm). Titles are kept ≤ ~60
+ * chars and lead with the phrase; descriptions ~150–160 chars with the phrase
+ * up front, a couple of USPs and a soft hook. Falls back to a generated version
+ * for any term not listed here.
+ */
+function ricoman_seo_target_copy_library() {
+	return array(
+		'commercial led lighting manufacturer uk' => array(
+			'Commercial LED Lighting Manufacturer UK | Ricoman',
+			'UK manufacturer of commercial LED lighting, designed & made in Manchester. Free lighting design, photometric & BIM files, UK stock and a 5-year warranty.',
+		),
+		'made in britain led lighting' => array(
+			'Made in Britain LED Lighting | Ricoman',
+			'British-made commercial LED lighting, designed & manufactured in Manchester. Fast UK lead times, free scheme design and a 5-year warranty.',
+		),
+		'led linear lighting' => array(
+			'LED Linear Lighting | UK Made | Ricoman',
+			'Commercial LED linear lighting made in Britain — continuous, low-glare runs in any length. Free photometric design, UK stock and a 5-year warranty.',
+		),
+		'ugr19 office linear lighting' => array(
+			'UGR<19 Office Linear Lighting | Ricoman',
+			'Low-glare UGR<19 office linear lighting, designed & made in the UK. Free DIALux scheme design proving lux, uniformity and glare. 5-year warranty.',
+		),
+		'curved linear lighting' => array(
+			'Curved Linear Lighting | Flow by Ricoman',
+			'Seamless curved linear lighting, made to any radius in Britain. Design your own continuous, dot-free run with the Flow+ Designer — UK-made.',
+		),
+		'suspended linear lighting' => array(
+			'Suspended Linear Lighting | UK Made | Ricoman',
+			'Suspended linear lighting made to your exact run — low-glare, configurable and British-made. Free photometric design and a 5-year warranty.',
+		),
+		'commercial led track lighting' => array(
+			'Commercial LED Track Lighting | Ricoman',
+			'48V magnetic LED track lighting for retail & commercial spaces — adjustable, high-CRI and UK-supplied with free design support and a 5-year warranty.',
+		),
+		'office lighting' => array(
+			'Office Lighting | UK Manufacturer | Ricoman',
+			'Low-glare, energy-efficient office lighting designed & made in Britain. Free DIALux scheme design, UGR<19 luminaires and a 5-year warranty.',
+		),
+		'gym sports hall lighting' => array(
+			'Gym & Sports Hall Lighting | Ricoman',
+			'High-output, glare-controlled gym & sports hall lighting designed to the right lux levels. UK-made, robust and efficient — free scheme design.',
+		),
+		'healthcare antimicrobial lighting' => array(
+			'Antimicrobial Healthcare Lighting | Ricoman',
+			'Antimicrobial LED lighting for healthcare & hygiene-critical spaces — sealed, easy-clean and IP-rated. British-made with a 5-year warranty.',
+		),
+		'school education lighting' => array(
+			'School & Education Lighting | Ricoman',
+			'Low-glare, efficient school & education lighting designed to standards — UGR<19 classrooms, emergency & controls. UK-made, 5-year warranty.',
+		),
+		'retail lighting' => array(
+			'Retail Lighting | High-CRI | Ricoman',
+			'High-CRI retail lighting that makes products sell — track, accent & feature lighting. UK-supplied with free design support and a 5-year warranty.',
+		),
+		'warehouse high bay lighting' => array(
+			'Warehouse & High Bay Lighting | Ricoman',
+			'Energy-saving LED high bay & warehouse lighting — bright, even and controllable, UK-made up to 180 lm/W. Free scheme design and a 5-year warranty.',
+		),
+		'amenity lighting' => array(
+			'Amenity & Exterior Lighting | Ricoman',
+			'Durable amenity & exterior LED lighting for outdoor commercial spaces — IP-rated, efficient and UK-supplied with free design support.',
+		),
+		'feature lighting' => array(
+			'Feature Lighting | Bespoke & UK-Made | Ricoman',
+			'Bespoke feature lighting — curved runs, statement pendants and architectural detail, designed with you and made to order in Britain.',
+		),
+		'emergency lighting' => array(
+			'Emergency Lighting | Fire-Rated | Ricoman',
+			'Emergency & fire-rated lighting designed to support BS 5266 — maintained, non-maintained and exit signage. British-made with a 5-year warranty.',
+		),
+		'free lighting design service' => array(
+			'Free Lighting Design Service | Ricoman',
+			'Free lighting design service — send your drawings and our UK team returns a costed DIALux photometric scheme, usually within 3–5 working days.',
+		),
+		'photometric ies ldt files' => array(
+			'Photometric IES, LDT & BIM Files | Ricoman',
+			'Download photometric IES & LDT files for Ricoman luminaires, ready for DIALux & Relux — plus datasheets, BIM/Revit objects and installation guides.',
+		),
+		'bim revit lighting files' => array(
+			'BIM, Revit & Photometric Files | Ricoman',
+			'BIM & Revit (RFA) lighting files for Ricoman luminaires, ready for your model — plus photometric IES/LDT files, datasheets and installation guides.',
+		),
+		'human centric lighting' => array(
+			'Human Centric Lighting | Tunable White | Ricoman',
+			'Human centric, tunable-white lighting that supports focus, comfort & wellbeing — for workplaces, healthcare & education. UK-made, CRI 90+.',
+		),
+	);
+}
+
+/** The best SEO title for a term: hand-written if we have it, else generated. */
+function ricoman_seo_target_title( $term, $fallback = '' ) {
+	$lib = ricoman_seo_target_copy_library();
+	$key = ricoman_seo_norm( $term );
+	if ( isset( $lib[ $key ][0] ) && '' !== $lib[ $key ][0] ) {
+		return $lib[ $key ][0];
+	}
+	return ricoman_seo_title_for_term( $term, $fallback );
+}
+
+/** The best meta description for a term: hand-written if we have it, else generated. */
+function ricoman_seo_target_desc( $term, $fallback = '' ) {
+	$lib = ricoman_seo_target_copy_library();
+	$key = ricoman_seo_norm( $term );
+	if ( isset( $lib[ $key ][1] ) && '' !== $lib[ $key ][1] ) {
+		return $lib[ $key ][1];
+	}
+	return ricoman_seo_desc_for_term( $term, $fallback );
+}
+
+/** A keyword-led SEO title built from a term (≤ ~60 chars), brand suffixed. (Generic fallback.) */
 function ricoman_seo_title_for_term( $term, $fallback = '' ) {
 	$t = trim( (string) $term );
 	if ( '' === $t ) {
@@ -332,7 +444,7 @@ function ricoman_seo_title_for_term( $term, $fallback = '' ) {
 	return $title;
 }
 
-/** A meta description built from a term (fill-empty fallback). */
+/** A meta description built from a term (generic fallback). */
 function ricoman_seo_desc_for_term( $term, $fallback = '' ) {
 	$t = trim( (string) $term );
 	if ( '' === $t ) {
@@ -341,29 +453,47 @@ function ricoman_seo_desc_for_term( $term, $fallback = '' ) {
 	return ucfirst( $t ) . ' from Ricoman — UK manufacturer of commercial LED lighting. Free lighting design, photometric & BIM files, UK stock and a 5-year warranty.';
 }
 
-/** Optimise one target's page for its term (fill-empty: never clobbers edits). Returns written-field count. */
-function ricoman_seo_optimise_target( $target ) {
+/**
+ * Optimise one target's page for its term. Writes the hand-written (or generated)
+ * SEO title / meta / focus keyphrase.
+ *
+ * Always fill-empty. When $force is true it ALSO upgrades values that were
+ * previously written by the generic auto-optimiser (i.e. still exactly equal to
+ * the old generated string) — but it never touches anything a human has edited.
+ * Returns the number of fields written.
+ */
+function ricoman_seo_optimise_target( $target, $force = false ) {
 	$resolved = ricoman_seo_target_resolve( isset( $target['url'] ) ? $target['url'] : '' );
 	$term     = isset( $target['term'] ) ? $target['term'] : '';
 	$written  = 0;
 	if ( '' === trim( (string) $term ) ) {
 		return 0;
 	}
+	$title_new = ricoman_seo_target_title( $term );
+	$desc_new  = ricoman_seo_target_desc( $term );
+	$title_gen = ricoman_seo_title_for_term( $term );   // what the generic optimiser wrote.
+	$desc_gen  = ricoman_seo_desc_for_term( $term );
+	// A field is writable if it's empty, or (in force mode) still equals the old generated value.
+	$writable  = function ( $current ) use ( $force, $title_gen, $desc_gen ) {
+		$current = trim( (string) $current );
+		if ( '' === $current ) {
+			return true;
+		}
+		return $force && ( $current === $title_gen || $current === $desc_gen );
+	};
 	if ( 'post' === $resolved['type'] ) {
 		$id = $resolved['id'];
-		if ( '' === trim( (string) get_post_meta( $id, '_yoast_wpseo_title', true ) ) ) {
-			update_post_meta( $id, '_yoast_wpseo_title', ricoman_seo_title_for_term( $term, get_the_title( $id ) ) );
-			$written++;
+		foreach ( array( '_yoast_wpseo_title', '_ricoman_seo_title' ) as $mk ) {
+			if ( $writable( get_post_meta( $id, $mk, true ) ) ) {
+				update_post_meta( $id, $mk, $title_new );
+				$written++;
+			}
 		}
-		if ( '' === trim( (string) get_post_meta( $id, '_ricoman_seo_title', true ) ) ) {
-			update_post_meta( $id, '_ricoman_seo_title', ricoman_seo_title_for_term( $term, get_the_title( $id ) ) );
-		}
-		if ( '' === trim( (string) get_post_meta( $id, '_yoast_wpseo_metadesc', true ) ) ) {
-			update_post_meta( $id, '_yoast_wpseo_metadesc', ricoman_seo_desc_for_term( $term ) );
-			$written++;
-		}
-		if ( '' === trim( (string) get_post_meta( $id, '_ricoman_seo_desc', true ) ) ) {
-			update_post_meta( $id, '_ricoman_seo_desc', ricoman_seo_desc_for_term( $term ) );
+		foreach ( array( '_yoast_wpseo_metadesc', '_ricoman_seo_desc' ) as $mk ) {
+			if ( $writable( get_post_meta( $id, $mk, true ) ) ) {
+				update_post_meta( $id, $mk, $desc_new );
+				$written++;
+			}
 		}
 		if ( '' === trim( (string) get_post_meta( $id, '_yoast_wpseo_focuskw', true ) ) ) {
 			update_post_meta( $id, '_yoast_wpseo_focuskw', sanitize_text_field( $term ) );
@@ -376,12 +506,12 @@ function ricoman_seo_optimise_target( $target ) {
 			$all[ $t->taxonomy ] = array();
 		}
 		$meta = isset( $all[ $t->taxonomy ][ $t->term_id ] ) ? $all[ $t->taxonomy ][ $t->term_id ] : array();
-		if ( empty( $meta['wpseo_title'] ) ) {
-			$meta['wpseo_title'] = ricoman_seo_title_for_term( $term, $t->name );
+		if ( $writable( isset( $meta['wpseo_title'] ) ? $meta['wpseo_title'] : '' ) ) {
+			$meta['wpseo_title'] = $title_new;
 			$written++;
 		}
-		if ( empty( $meta['wpseo_desc'] ) ) {
-			$meta['wpseo_desc'] = ricoman_seo_desc_for_term( $term );
+		if ( $writable( isset( $meta['wpseo_desc'] ) ? $meta['wpseo_desc'] : '' ) ) {
+			$meta['wpseo_desc'] = $desc_new;
 			$written++;
 		}
 		if ( empty( $meta['wpseo_focuskw'] ) ) {
@@ -400,7 +530,8 @@ add_action( 'admin_post_ricoman_seo_optimise', function () {
 		wp_die( esc_html__( 'Not allowed.', 'ricoman' ) );
 	}
 	$targets = ricoman_seo_targets();
-	$n       = isset( $targets[ $i ] ) ? ricoman_seo_optimise_target( $targets[ $i ] ) : 0;
+	// Force so a re-click also upgrades any earlier generic auto-fill (never human edits).
+	$n       = isset( $targets[ $i ] ) ? ricoman_seo_optimise_target( $targets[ $i ], true ) : 0;
 	wp_safe_redirect( add_query_arg( array( 'page' => 'ricoman-seo-targets', 'optimised' => $n ), admin_url( 'admin.php' ) ) );
 	exit;
 } );
@@ -910,4 +1041,19 @@ add_action( 'admin_init', function () {
 		ricoman_footer_links_topup();
 	}
 	update_option( 'ricoman_seo_pages_v1', 1 );
+} );
+
+/**
+ * One-time: upgrade the earlier generic auto-filled SEO copy to the hand-written,
+ * keyword-led titles & descriptions. Force mode overwrites ONLY values still equal
+ * to the old generated string — human edits are never touched.
+ */
+add_action( 'admin_init', function () {
+	if ( get_option( 'ricoman_seo_optimised_v2' ) || ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+	foreach ( ricoman_seo_targets() as $t ) {
+		ricoman_seo_optimise_target( $t, true );
+	}
+	update_option( 'ricoman_seo_optimised_v2', 1 );
 } );
