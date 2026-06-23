@@ -1764,6 +1764,7 @@ html,body{overflow-x:clip}
 .rm-catcards{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,2vw,26px);margin-top:clamp(18px,3vw,32px)}
 .rm-catcard{display:flex;flex-direction:column;text-decoration:none;color:var(--ink);group:0}
 .rm-catcard-img{display:block;aspect-ratio:4/3;border-radius:14px;background:var(--soft) center/cover no-repeat;transition:transform .4s ease}
+.rm-catcard-img--contain{background-size:contain;background-position:center}
 .rm-catcard:hover .rm-catcard-img{transform:scale(1.02)}
 .rm-catcard-meta{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-top:12px}
 .rm-catcard-t{font-family:Poppins;font-weight:600;font-size:1.05rem}

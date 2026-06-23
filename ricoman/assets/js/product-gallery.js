@@ -443,8 +443,15 @@
 		if ( ! cards.length ) { return; }
 		var mode = 'insitu';
 		function setBg( el ) {
-			var u = el.getAttribute( 'data-' + mode ) || el.getAttribute( 'data-insitu' ) || el.getAttribute( 'data-studio' );
-			if ( u ) { el.style.backgroundImage = 'url(' + u + ')'; }
+			var insitu = el.getAttribute( 'data-insitu' ) || '';
+			var studio = el.getAttribute( 'data-studio' ) || '';
+			var u = el.getAttribute( 'data-' + mode ) || insitu || studio;
+			if ( u ) {
+				el.style.backgroundImage = 'url(' + u + ')';
+				// Studio product shots (one product on white) get letterboxed so the
+				// whole fitting shows; in-situ lifestyle shots keep cover (fill).
+				el.classList.toggle( 'rm-catcard-img--contain', u === studio && u !== insitu );
+			}
 		}
 		var io = ( 'IntersectionObserver' in window )
 			? new IntersectionObserver( function ( ents ) {
