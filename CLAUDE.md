@@ -449,6 +449,21 @@ From Marketing's email for the new website. Status of each request:
   wins among targeted terms + new high-impression queries to consider).
   Setup: GCP service account + JSON key, enable Search Console API, add the
   service-account email as a user in Search Console → Settings → Users.
+- **Sector / application landing pages (gap fill):** seven keyword-targeted hubs
+  for the SEO targets — Office (`/office-lighting/`), Gym & Sports Hall
+  (`/gym-sports-hall-lighting/`), School & Education (`/education-lighting/`),
+  Retail (`/retail-lighting/`), Warehouse & High Bay
+  (`/warehouse-high-bay-lighting/`), Feature (`/feature-lighting/`) and Suspended
+  Linear (`/suspended-linear-lighting/`). Built as `feat-*` core-block patterns
+  from the shared `$feature` generator (split header, benefits, image+checklist,
+  FAQPage schema via [ricoman_faq], CTA) with `ricoman_*_blocks()` fns; wired into
+  the create-once installer + Page Designs map + footer feature links; SEO Targets
+  defaults point at them. A one-time `admin_init` migration
+  (`ricoman_seo_pages_v1`) creates any missing sector pages on existing staging
+  (create-only), points matching targets at them (fill-empty), and runs
+  `ricoman_seo_optimise_target()` across **every** target so the amber rows
+  (track, antimicrobial, amenity, downloads, fire-safety) also get their empty
+  SEO title/meta/focus filled — all fill-empty, never overwrites edits.
 
 ## Control Center (inc/admin.php)
 - Ricoman → Control Center is the back-office hub. Top card is a **"Things to do"**
