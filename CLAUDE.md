@@ -412,6 +412,44 @@ From Marketing's email for the new website. Status of each request:
   stored one is empty/contains "wash". Range content emits FAQPage schema
   ([ricoman_faq]) + internal links to Casambi / human-centric / sustainability.
 
+## SEO Targets register + GSC connector (inc/seo-targets.php, inc/seo-gsc.php)
+- **Ricoman → SEO Targets**: the back-office home for the focus keywords. Seeded
+  with the 20 terms from the keyword study (`ricoman_seo_targets_default()`,
+  stored in option `ricoman_seo_targets`), each = term + intent + priority +
+  target page URL. Editable table; add/remove rows; saved via
+  `admin_post_ricoman_seo_targets_save`.
+- **On-page coverage audit** (`ricoman_seo_target_audit`): resolves each URL to a
+  post/term and scores 0–100 + RAG — SEO title 25, H1 20, meta 15, body 15, slug
+  10, FAQ schema 5 (exact phrase = full, ≥60% word coverage = half). Also surfaces
+  internal-link count (`ricoman_seo_internal_links_count`) + schema types
+  (`ricoman_seo_schema_types`) as indicators (no score impact).
+- **One-click actions**: **Optimise** (`ricoman_seo_optimise_target`, admin-post
+  `ricoman_seo_optimise`) fills empty `_yoast_wpseo_title/_metadesc/_focuskw` (+
+  theme `_ricoman_seo_*`, + `wpseo_taxonomy_meta` for category targets) with a
+  term-led title/desc — **fill-empty only**, never clobbers edits. **Suggest**
+  (`ricoman_seo_suggest_page`) finds the best existing page/term for a gap (JS fills
+  the URL box). **Create page** (`admin_post_ricoman_seo_create_gap`) spins up a
+  draft landing page (H1 + intro + [ricoman_faq]) seeded with SEO meta and wires
+  its URL back into the target.
+- **Trends + digest**: weekly cron `ricoman_seo_targets_snapshot` records each
+  term's score (+ GSC position) into option `ricoman_seo_history` (last 26);
+  inline SVG sparkline (`ricoman_seo_sparkline`). Weekly cron
+  `ricoman_seo_weekly_digest` emails admin (`ricoman_seo_digest_to` filter) a
+  coverage summary + lowest-scoring terms + live page-2 wins. Both registered on
+  `init` with a custom `weekly` cron schedule. **CSV export**
+  (`admin_post_ricoman_seo_targets_export`).
+- **Google Search Console** (`inc/seo-gsc.php`): optional live data via a Google
+  **service account** (no OAuth dance) — paste the JSON key + property in the
+  collapsible connect panel on the SEO Targets screen (`ricoman_gsc_settings_panel`,
+  saved by `admin_post_ricoman_gsc_save` → options `ricoman_gsc_sa`/`ricoman_gsc_site`).
+  Mints a signed JWT (`ricoman_gsc_token`, RS256 via `openssl_sign`, cached 50min),
+  queries Search Analytics last 28d by query (`ricoman_gsc_rows`, cached 12h).
+  Adds a **Live rank** column (`ricoman_gsc_term_data` → position/clicks/impr per
+  term) + an **Opportunities** panel (`ricoman_gsc_opportunities`: page-2 quick
+  wins among targeted terms + new high-impression queries to consider).
+  Setup: GCP service account + JSON key, enable Search Console API, add the
+  service-account email as a user in Search Console → Settings → Users.
+
 ## Control Center (inc/admin.php)
 - Ricoman → Control Center is the back-office hub. Top card is a **"Things to do"**
   launch checklist + progress bar (`ricoman_admin_status()` returns
