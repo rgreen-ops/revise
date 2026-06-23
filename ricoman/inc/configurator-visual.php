@@ -19,6 +19,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /** Is the visual configurator turned on for this product? */
 function ricoman_pf_visual_config_enabled( $pid ) {
+	// Live builder preview override.
+	if ( ! empty( $GLOBALS['rm_pe_preview'] ) && (int) $GLOBALS['rm_pe_preview']['pid'] === (int) $pid && isset( $GLOBALS['rm_pe_preview']['configvisual'] ) ) {
+		return (bool) $GLOBALS['rm_pe_preview']['configvisual'];
+	}
 	return '1' === (string) get_post_meta( (int) $pid, '_ricoman_config_visual', true );
 }
 
