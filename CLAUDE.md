@@ -283,8 +283,15 @@ From Marketing's email for the new website. Status of each request:
   parent image.
 
 ## ⚠️ OPEN BLOCKERS (staging) — needed before the above PHP fully works
-- **PHP OPcache is stale** — restart PHP-FPM in Plesk (Tools & Settings → Services
-  Management) to release all PHP changes. CSS/JS already go live (W3Speedster purged).
+- **OPcache flush is AUTOMATIC — do NOT tell the user to restart PHP-FPM.** Every
+  push to the working branch runs `.github/workflows/deploy-staging.yml`, which
+  FTPS-uploads the theme then curls `ricoman/opcache-flush.php?key=ricoman-flush-2026`
+  to run `opcache_reset()`. Verified in the job logs ("OPcache flushed. The latest
+  PHP is now live"). So PHP changes (incl. NEW files via require_once) go live on
+  the next request — just reload. Section caches are WP transients keyed by version
+  (e.g. `rm_pfsec_m8`, `rm_cfgimg_ver`); bumping the key auto-invalidates them,
+  independent of OPcache. Manual Plesk restart is only a fallback if opcache_reset
+  is disabled or the flush curl can't reach staging.
 - **Disk is FULL** ("No space left on device" — backups failing). Run Ricoman →
   Media Cleanup → Step 3b (permanent delete) to reclaim the 248GB of duplicates.
   WebP generation stays dormant until space is freed.
