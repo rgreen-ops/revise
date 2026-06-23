@@ -278,8 +278,8 @@ function ricoman_pf_acc( $title, $content, $open = false ) {
 	if ( '' === trim( (string) $content ) ) {
 		return '';
 	}
-	return '<details class="rm-acc"' . ( $open ? ' open' : '' ) . '><summary class="rm-acc-h">' . esc_html( $title )
-		. '<span class="rm-acc-ic" aria-hidden="true"></span></summary><div class="rm-acc-body">' . $content . '</div></details>';
+	return '<details class="rm-acc"' . ( $open ? ' open' : '' ) . '><summary class="rm-acc-h"><h2 class="rm-acc-title">' . esc_html( $title )
+		. '</h2><span class="rm-acc-ic" aria-hidden="true"></span></summary><div class="rm-acc-body">' . $content . '</div></details>';
 }
 
 /** Resolve an ACF image value (ID, URL, or array) to a URL. */
