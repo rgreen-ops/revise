@@ -211,8 +211,22 @@ From Marketing's email for the new website. Status of each request:
 - **Project packs**: `?rm_pack=<projectId>` streams a ZIP (per-product folders of
   datasheet/instructions/IES-LDT files + a product-list index). Header has a My
   Project link w/ count + account/log-out.
-- **Leads log**: `lead` CPT now has admin columns (Type · Email · Product/Company ·
-  Source · Received).
+- **Leads CRM** (`inc/leads-admin.php` — single source of truth for the Leads list;
+  the old duplicate columns in `lead-capture.php` were removed so they don't clobber
+  it): rich columns (Type · Name · Role · Email · Location · Sales rep · Source ·
+  New lead · New download · Pipedrive · Status · Comment · Page · Received), a
+  gamified dashboard, status workflow + source attribution, filters and CSV
+  export. **Extra editable CRM fields** (`ricoman_lead_crm_fields()`): Location,
+  Sales rep, New lead, New download, On Pipedrive, Comment — all **inline-editable
+  from the list** (toggle / text, AJAX `rm_lead_setfield`, per-lead nonce), also on
+  the lead screen metabox, and round-tripped via **CSV import** (matched by the ID
+  column; updates only the editable fields + Status). Auto-fill on capture
+  (`ricoman_lead_autofill_crm` on `ricoman_lead_captured`): **New lead** = email not
+  seen before; **New download** = first Download-gate lead for that email; **Location**
+  = Cloudflare `HTTP_CF_IPCOUNTRY` → country name (filter `ricoman_lead_location`),
+  all still hand-editable. Filters added for Sales rep / Location / the three flags.
+  CSV Export/Import toolbar renders via `admin_notices` (outside the posts-filter
+  form, so the upload form isn't nested).
 - **Newsletter capture** (`inc/lead-capture.php`): `[ricoman_newsletter]` shortcode +
   a footer signup AND an end-of-news-article signup (email-only, low friction) logs
   "Newsletter" leads into the same CPT/CRM/Sheets pipeline; AJAX `rm_newsletter`,

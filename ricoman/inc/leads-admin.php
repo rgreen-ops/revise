@@ -34,20 +34,131 @@ function ricoman_lead_status( $post_id ) {
 	return ( $s && array_key_exists( $s, ricoman_lead_statuses() ) ) ? $s : 'logged';
 }
 
+/**
+ * The extra, hand-editable CRM fields layered on top of the captured lead data.
+ * Each is a column on the list (inline-editable), a field on the lead screen, and
+ * a CSV import/export column. 'bool' renders as a tick-toggle; 'text' as an input.
+ *
+ * meta key => [ 'label' => …, 'type' => 'text'|'bool', 'auto' => bool ]
+ *   auto = filled in automatically on capture where possible (still editable).
+ */
+function ricoman_lead_crm_fields() {
+	return array(
+		'_lead_location'  => array( 'label' => __( 'Location', 'ricoman' ),       'type' => 'text', 'auto' => true ),
+		'_lead_rep'       => array( 'label' => __( 'Sales rep', 'ricoman' ),      'type' => 'text', 'auto' => false ),
+		'_lead_is_new'    => array( 'label' => __( 'New lead', 'ricoman' ),       'type' => 'bool', 'auto' => true ),
+		'_lead_new_dl'    => array( 'label' => __( 'New download', 'ricoman' ),   'type' => 'bool', 'auto' => true ),
+		'_lead_pipedrive' => array( 'label' => __( 'On Pipedrive', 'ricoman' ),   'type' => 'bool', 'auto' => false ),
+		'_lead_comment'   => array( 'label' => __( 'Comment', 'ricoman' ),        'type' => 'text', 'auto' => false ),
+	);
+}
+
+/**
+ * Auto-fill the derivable CRM fields when a lead is captured (any source). Runs
+ * once, on the shared ricoman_lead_captured hook, so every capture point (enquiry,
+ * download gate, BIM, newsletter, callback) is covered without touching each one.
+ * Everything written here stays editable in the back end afterwards.
+ */
+function ricoman_lead_autofill_crm( $data, $lead_id ) {
+	if ( ! $lead_id ) {
+		return;
+	}
+	$email = (string) get_post_meta( $lead_id, '_lead_email', true );
+	$type  = (string) get_post_meta( $lead_id, '_lead_type', true );
+
+	// New lead? = no earlier lead shares this email. (No email → treat as new.)
+	$is_new = true;
+	if ( '' !== $email ) {
+		$prev = get_posts( array(
+			'post_type'      => 'lead',
+			'post_status'    => 'any',
+			'posts_per_page' => 1,
+			'fields'         => 'ids',
+			'no_found_rows'  => true,
+			'post__not_in'   => array( (int) $lead_id ),
+			'meta_query'     => array( array( 'key' => '_lead_email', 'value' => $email ) ),
+		) );
+		$is_new = empty( $prev );
+	}
+	update_post_meta( $lead_id, '_lead_is_new', $is_new ? '1' : '0' );
+
+	// New download customer? = a Download lead whose email we've not gated before.
+	if ( 0 === strcasecmp( $type, 'Download' ) ) {
+		$new_dl = true;
+		if ( '' !== $email ) {
+			$prev_dl = get_posts( array(
+				'post_type'      => 'lead',
+				'post_status'    => 'any',
+				'posts_per_page' => 1,
+				'fields'         => 'ids',
+				'no_found_rows'  => true,
+				'post__not_in'   => array( (int) $lead_id ),
+				'meta_query'     => array(
+					'relation' => 'AND',
+					array( 'key' => '_lead_email', 'value' => $email ),
+					array( 'key' => '_lead_type', 'value' => 'Download' ),
+				),
+			) );
+			$new_dl = empty( $prev_dl );
+		}
+		update_post_meta( $lead_id, '_lead_new_dl', $new_dl ? '1' : '0' );
+	}
+
+	// Location — best effort, editable. Uses the Cloudflare country header when the
+	// site is behind Cloudflare (zero-dependency); a filter can supply richer geo.
+	$loc = ricoman_lead_locate();
+	if ( '' !== $loc ) {
+		update_post_meta( $lead_id, '_lead_location', $loc );
+	}
+}
+add_action( 'ricoman_lead_captured', 'ricoman_lead_autofill_crm', 5, 2 );
+
+/** Best-effort visitor location string (editable afterwards). Filterable. */
+function ricoman_lead_locate() {
+	$loc = '';
+	$cc  = isset( $_SERVER['HTTP_CF_IPCOUNTRY'] ) ? strtoupper( substr( sanitize_text_field( wp_unslash( $_SERVER['HTTP_CF_IPCOUNTRY'] ) ), 0, 2 ) ) : '';
+	if ( $cc && ! in_array( $cc, array( 'XX', 'T1' ), true ) ) {
+		$loc = ricoman_country_name( $cc );
+	}
+	return (string) apply_filters( 'ricoman_lead_location', $loc );
+}
+
+/** ISO-3166 alpha-2 → English name for the common markets, else the raw code. */
+function ricoman_country_name( $cc ) {
+	$map = array(
+		'GB' => 'United Kingdom', 'IE' => 'Ireland', 'US' => 'United States', 'CA' => 'Canada',
+		'AE' => 'United Arab Emirates', 'SA' => 'Saudi Arabia', 'QA' => 'Qatar', 'KW' => 'Kuwait',
+		'BH' => 'Bahrain', 'OM' => 'Oman', 'IN' => 'India', 'PK' => 'Pakistan', 'AU' => 'Australia',
+		'NZ' => 'New Zealand', 'DE' => 'Germany', 'FR' => 'France', 'NL' => 'Netherlands',
+		'BE' => 'Belgium', 'ES' => 'Spain', 'IT' => 'Italy', 'PT' => 'Portugal', 'SE' => 'Sweden',
+		'NO' => 'Norway', 'DK' => 'Denmark', 'FI' => 'Finland', 'CH' => 'Switzerland', 'AT' => 'Austria',
+		'PL' => 'Poland', 'CZ' => 'Czechia', 'GR' => 'Greece', 'ZA' => 'South Africa', 'NG' => 'Nigeria',
+		'EG' => 'Egypt', 'CN' => 'China', 'HK' => 'Hong Kong', 'SG' => 'Singapore', 'MY' => 'Malaysia',
+		'JP' => 'Japan', 'KR' => 'South Korea',
+	);
+	return isset( $map[ $cc ] ) ? $map[ $cc ] : $cc;
+}
+
 /* ----------------------------------------------------------------- columns */
 
 add_filter( 'manage_lead_posts_columns', function ( $cols ) {
 	return array(
-		'cb'        => isset( $cols['cb'] ) ? $cols['cb'] : '<input type="checkbox" />',
-		'title'     => __( 'Lead', 'ricoman' ),
-		'rm_type'   => __( 'Type', 'ricoman' ),
-		'rm_name'   => __( 'Name', 'ricoman' ),
-		'rm_role'   => __( 'Role', 'ricoman' ),
-		'rm_email'  => __( 'Email', 'ricoman' ),
-		'rm_page'   => __( 'Page', 'ricoman' ),
-		'rm_source' => __( 'Source', 'ricoman' ),
-		'rm_status' => __( 'Status', 'ricoman' ),
-		'date'      => __( 'Received', 'ricoman' ),
+		'cb'           => isset( $cols['cb'] ) ? $cols['cb'] : '<input type="checkbox" />',
+		'title'        => __( 'Lead', 'ricoman' ),
+		'rm_type'      => __( 'Type', 'ricoman' ),
+		'rm_name'      => __( 'Name', 'ricoman' ),
+		'rm_role'      => __( 'Role', 'ricoman' ),
+		'rm_email'     => __( 'Email', 'ricoman' ),
+		'rm_location'  => __( 'Location', 'ricoman' ),
+		'rm_rep'       => __( 'Sales rep', 'ricoman' ),
+		'rm_source'    => __( 'Source', 'ricoman' ),
+		'rm_new'       => __( 'New lead', 'ricoman' ),
+		'rm_newdl'     => __( 'New download', 'ricoman' ),
+		'rm_pipedrive' => __( 'Pipedrive', 'ricoman' ),
+		'rm_status'    => __( 'Status', 'ricoman' ),
+		'rm_comment'   => __( 'Comment', 'ricoman' ),
+		'rm_page'      => __( 'Page', 'ricoman' ),
+		'date'         => __( 'Received', 'ricoman' ),
 	);
 } );
 
@@ -86,6 +197,24 @@ add_action( 'manage_lead_posts_custom_column', function ( $col, $post_id ) {
 				echo '<br><span style="color:#646970;font-size:11px">' . esc_html( $utm ) . '</span>';
 			}
 			break;
+		case 'rm_location':
+			ricoman_lead_field_control( $post_id, '_lead_location' );
+			break;
+		case 'rm_rep':
+			ricoman_lead_field_control( $post_id, '_lead_rep' );
+			break;
+		case 'rm_new':
+			ricoman_lead_field_control( $post_id, '_lead_is_new' );
+			break;
+		case 'rm_newdl':
+			ricoman_lead_field_control( $post_id, '_lead_new_dl' );
+			break;
+		case 'rm_pipedrive':
+			ricoman_lead_field_control( $post_id, '_lead_pipedrive' );
+			break;
+		case 'rm_comment':
+			ricoman_lead_field_control( $post_id, '_lead_comment' );
+			break;
 		case 'rm_status':
 			$cur      = ricoman_lead_status( $post_id );
 			$statuses = ricoman_lead_statuses();
@@ -100,7 +229,44 @@ add_action( 'manage_lead_posts_custom_column', function ( $col, $post_id ) {
 	}
 }, 10, 2 );
 
-/** Inline status editing from the list (AJAX) + the small script that drives it. */
+/**
+ * Render an inline-editable control for one CRM field, used in the list column and
+ * driven by the shared rm_lead_setfield AJAX endpoint below.
+ */
+function ricoman_lead_field_control( $post_id, $meta_key ) {
+	$fields = ricoman_lead_crm_fields();
+	if ( ! isset( $fields[ $meta_key ] ) ) {
+		return;
+	}
+	$f     = $fields[ $meta_key ];
+	$val   = (string) get_post_meta( $post_id, $meta_key, true );
+	$nonce = wp_create_nonce( 'rm_lead_field_' . $post_id );
+	$base  = ' data-lead="' . (int) $post_id . '" data-field="' . esc_attr( $meta_key ) . '" data-nonce="' . esc_attr( $nonce ) . '"';
+	if ( 'bool' === $f['type'] ) {
+		$on = ( '1' === $val );
+		echo '<label class="rm-lead-toggle" title="' . esc_attr( $f['label'] ) . '"><input type="checkbox" class="rm-lead-field"' . $base . ( $on ? ' checked' : '' ) . '><span class="rm-lead-toggle-ui" aria-hidden="true"></span></label>'; // phpcs:ignore WordPress.Security.EscapeOutput
+	} else {
+		$list = ( '_lead_rep' === $meta_key ) ? ' list="rm-lead-reps"' : '';
+		echo '<input type="text" class="rm-lead-field rm-lead-text"' . $base . $list . ' value="' . esc_attr( $val ) . '" placeholder="—">'; // phpcs:ignore WordPress.Security.EscapeOutput
+	}
+}
+
+/** A datalist of the sales reps already in use, so the rep field auto-completes. */
+add_action( 'admin_footer-edit.php', function () {
+	$screen = get_current_screen();
+	if ( ! $screen || 'edit-lead' !== $screen->id ) {
+		return;
+	}
+	global $wpdb;
+	$reps = $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT meta_value FROM {$wpdb->postmeta} WHERE meta_key=%s AND meta_value<>'' ORDER BY meta_value ASC LIMIT 100", '_lead_rep' ) );
+	echo '<datalist id="rm-lead-reps">';
+	foreach ( (array) $reps as $r ) {
+		echo '<option value="' . esc_attr( $r ) . '"></option>';
+	}
+	echo '</datalist>';
+} );
+
+/** Inline status + CRM-field editing from the list (AJAX) + the script driving it. */
 add_action( 'admin_enqueue_scripts', function ( $hook ) {
 	$screen = get_current_screen();
 	if ( ! $screen || 'edit-lead' !== $screen->id ) {
@@ -110,6 +276,17 @@ add_action( 'admin_enqueue_scripts', function ( $hook ) {
 	foreach ( ricoman_lead_statuses() as $k => $info ) {
 		$colours[ $k ] = array( 'label' => $info[0], 'colour' => $info[1] );
 	}
+	$css = '.rm-lead-text{width:100%;max-width:150px;font-size:12px;padding:3px 6px}'
+		. '.rm-lead-field.rm-saved{outline:2px solid #1a7f37;outline-offset:1px;transition:outline .2s}'
+		. '.rm-lead-toggle{display:inline-flex;cursor:pointer}.rm-lead-toggle input{position:absolute;opacity:0}'
+		. '.rm-lead-toggle-ui{width:34px;height:18px;border-radius:999px;background:#c3c4c7;position:relative;transition:background .15s}'
+		. '.rm-lead-toggle-ui:before{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:transform .15s}'
+		. '.rm-lead-toggle input:checked+.rm-lead-toggle-ui{background:#1a7f37}'
+		. '.rm-lead-toggle input:checked+.rm-lead-toggle-ui:before{transform:translateX(16px)}';
+	wp_register_style( 'rm-leads-inline', false );
+	wp_enqueue_style( 'rm-leads-inline' );
+	wp_add_inline_style( 'rm-leads-inline', $css );
+
 	$js = 'jQuery(function($){'
 		. 'var C=' . wp_json_encode( $colours ) . ';'
 		. '$(document).on("change",".rm-lead-statussel",function(){'
@@ -120,8 +297,38 @@ add_action( 'admin_enqueue_scripts', function ( $hook ) {
 		. 'if(r&&r.success&&C[val]){var b=$(".rm-lead-badge[data-lead=\""+lead+"\"]");b.text(C[val].label).css("background",C[val].colour);}'
 		. '});'
 		. '});'
+		. '$(document).on("change",".rm-lead-field",function(){'
+		. 'var el=$(this),cb=el.is(":checkbox"),val=cb?(el.is(":checked")?"1":"0"):el.val();'
+		. 'el.prop("disabled",true);'
+		. '$.post(ajaxurl,{action:"rm_lead_setfield",lead:el.data("lead"),field:el.data("field"),value:val,nonce:el.data("nonce")},function(r){'
+		. 'el.prop("disabled",false);'
+		. 'if(r&&r.success){el.addClass("rm-saved");setTimeout(function(){el.removeClass("rm-saved");},700);}'
+		. '});'
+		. '});'
 		. '});';
 	wp_add_inline_script( 'jquery-core', $js );
+} );
+
+/** AJAX: save one inline-edited CRM field on a lead. */
+add_action( 'wp_ajax_rm_lead_setfield', function () {
+	$lead  = isset( $_POST['lead'] ) ? (int) $_POST['lead'] : 0;
+	$field = isset( $_POST['field'] ) ? sanitize_key( wp_unslash( $_POST['field'] ) ) : '';
+	$defs  = ricoman_lead_crm_fields();
+	if ( ! $lead || ! current_user_can( 'edit_post', $lead ) || ! isset( $defs[ $field ] )
+		|| ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['nonce'] ), 'rm_lead_field_' . $lead ) ) {
+		wp_send_json_error();
+	}
+	if ( 'bool' === $defs[ $field ]['type'] ) {
+		update_post_meta( $lead, $field, ( isset( $_POST['value'] ) && '1' === (string) wp_unslash( $_POST['value'] ) ) ? '1' : '0' );
+	} else {
+		$val = isset( $_POST['value'] ) ? sanitize_text_field( wp_unslash( $_POST['value'] ) ) : '';
+		if ( '' === $val ) {
+			delete_post_meta( $lead, $field );
+		} else {
+			update_post_meta( $lead, $field, $val );
+		}
+	}
+	wp_send_json_success();
 } );
 
 add_action( 'wp_ajax_rm_lead_setstatus', function () {
@@ -178,6 +385,8 @@ add_action( 'restrict_manage_posts', function ( $post_type ) {
 		'_lead_attr_source' => __( 'All sources', 'ricoman' ),
 		'_lead_source'      => __( 'All channels', 'ricoman' ),
 		'_lead_type'        => __( 'All types', 'ricoman' ),
+		'_lead_rep'         => __( 'All sales reps', 'ricoman' ),
+		'_lead_location'    => __( 'All locations', 'ricoman' ),
 	) as $key => $all ) {
 		$vals = $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT meta_value FROM {$wpdb->postmeta} WHERE meta_key=%s AND meta_value<>'' ORDER BY meta_value ASC LIMIT 100", $key ) );
 		if ( ! $vals ) {
@@ -189,6 +398,19 @@ add_action( 'restrict_manage_posts', function ( $post_type ) {
 		foreach ( $vals as $v ) {
 			echo '<option value="' . esc_attr( $v ) . '"' . selected( $cv, $v, false ) . '>' . esc_html( $v ) . '</option>';
 		}
+		echo '</select>';
+	}
+
+	// Yes/no flags.
+	foreach ( array(
+		'rm_fnew'       => __( 'New lead?', 'ricoman' ),
+		'rm_fnewdl'     => __( 'New download?', 'ricoman' ),
+		'rm_fpipedrive' => __( 'On Pipedrive?', 'ricoman' ),
+	) as $param => $all ) {
+		$cv = isset( $_GET[ $param ] ) ? sanitize_key( $_GET[ $param ] ) : '';
+		echo '<select name="' . esc_attr( $param ) . '"><option value="">' . esc_html( $all ) . '</option>';
+		echo '<option value="1"' . selected( $cv, '1', false ) . '>' . esc_html__( 'Yes', 'ricoman' ) . '</option>';
+		echo '<option value="0"' . selected( $cv, '0', false ) . '>' . esc_html__( 'No', 'ricoman' ) . '</option>';
 		echo '</select>';
 	}
 } );
@@ -210,9 +432,23 @@ add_action( 'pre_get_posts', function ( $q ) {
 			$meta[] = array( 'key' => '_lead_status', 'value' => $st );
 		}
 	}
-	foreach ( array( 'rm_flead_attr_source' => '_lead_attr_source', 'rm_flead_source' => '_lead_source', 'rm_flead_type' => '_lead_type' ) as $param => $key ) {
+	foreach ( array( 'rm_flead_attr_source' => '_lead_attr_source', 'rm_flead_source' => '_lead_source', 'rm_flead_type' => '_lead_type', 'rm_flead_rep' => '_lead_rep', 'rm_flead_location' => '_lead_location' ) as $param => $key ) {
 		if ( ! empty( $_GET[ $param ] ) ) {
 			$meta[] = array( 'key' => $key, 'value' => sanitize_text_field( wp_unslash( $_GET[ $param ] ) ) );
+		}
+	}
+	foreach ( array( 'rm_fnew' => '_lead_is_new', 'rm_fnewdl' => '_lead_new_dl', 'rm_fpipedrive' => '_lead_pipedrive' ) as $param => $key ) {
+		if ( isset( $_GET[ $param ] ) && '' !== $_GET[ $param ] ) {
+			if ( '1' === sanitize_key( $_GET[ $param ] ) ) {
+				$meta[] = array( 'key' => $key, 'value' => '1' );
+			} else {
+				// "No" = explicitly 0 or never set.
+				$meta[] = array(
+					'relation' => 'OR',
+					array( 'key' => $key, 'value' => '1', 'compare' => '!=' ),
+					array( 'key' => $key, 'compare' => 'NOT EXISTS' ),
+				);
+			}
 		}
 	}
 	if ( $meta ) {
@@ -271,6 +507,21 @@ add_action( 'add_meta_boxes_lead', function () {
 			echo '<option value="' . esc_attr( $k ) . '"' . selected( $cur, $k, false ) . '>' . esc_html( $info[0] ) . '</option>';
 		}
 		echo '</select></label></p>';
+		// Hand-editable CRM fields (also editable inline on the list + via CSV).
+		echo '<hr><table class="form-table"><tbody>';
+		foreach ( ricoman_lead_crm_fields() as $key => $f ) {
+			$val   = (string) get_post_meta( $post->ID, $key, true );
+			$field = 'rm_field_' . ltrim( $key, '_' );
+			echo '<tr><th style="width:140px">' . esc_html( $f['label'] ) . '</th><td>';
+			if ( 'bool' === $f['type'] ) {
+				echo '<label><input type="checkbox" name="' . esc_attr( $field ) . '" value="1"' . checked( '1', $val, false ) . '> ' . esc_html__( 'Yes', 'ricoman' ) . '</label>';
+			} else {
+				echo '<input type="text" class="regular-text" name="' . esc_attr( $field ) . '" value="' . esc_attr( $val ) . '">';
+			}
+			echo '</td></tr>';
+		}
+		echo '</tbody></table>';
+
 		$notes = (string) get_post_meta( $post->ID, '_lead_notes', true );
 		echo '<p><label><strong>' . esc_html__( 'Notes', 'ricoman' ) . '</strong><br><textarea name="rm_lead_notes" rows="4" style="width:100%">' . esc_textarea( $notes ) . '</textarea></label></p>';
 	}, 'lead', 'normal', 'high' );
@@ -288,6 +539,19 @@ add_action( 'save_post_lead', function ( $post_id ) {
 	}
 	if ( isset( $_POST['rm_lead_notes'] ) ) {
 		update_post_meta( $post_id, '_lead_notes', sanitize_textarea_field( wp_unslash( $_POST['rm_lead_notes'] ) ) );
+	}
+	foreach ( ricoman_lead_crm_fields() as $key => $f ) {
+		$field = 'rm_field_' . ltrim( $key, '_' );
+		if ( 'bool' === $f['type'] ) {
+			update_post_meta( $post_id, $key, ! empty( $_POST[ $field ] ) ? '1' : '0' );
+		} elseif ( isset( $_POST[ $field ] ) ) {
+			$val = sanitize_text_field( wp_unslash( $_POST[ $field ] ) );
+			if ( '' === $val ) {
+				delete_post_meta( $post_id, $key );
+			} else {
+				update_post_meta( $post_id, $key, $val );
+			}
+		}
 	}
 } );
 
@@ -506,15 +770,29 @@ function ricoman_leads_dashboard_render() {
 	<?php
 }
 
-/* ----------------------------------------------------------------- export */
-/** "Export CSV" button above the Leads list. */
-add_action( 'manage_posts_extra_tablenav', function ( $which ) {
-	global $typenow;
-	if ( 'lead' !== $typenow || 'top' !== $which || ! current_user_can( 'edit_posts' ) ) {
+/* --------------------------------------------------------- import / export */
+/**
+ * CSV toolbar (Export + Import), rendered via admin_notices so the file-upload
+ * <form> sits OUTSIDE WordPress's posts-filter form (nested forms are invalid).
+ */
+add_action( 'admin_notices', function () {
+	$screen = get_current_screen();
+	if ( ! $screen || 'edit-lead' !== $screen->id ) {
 		return;
 	}
-	$url = wp_nonce_url( admin_url( 'admin-post.php?action=ricoman_leads_export' ), 'ricoman_leads_export' );
-	echo '<a href="' . esc_url( $url ) . '" class="button" style="margin-left:8px">' . esc_html__( 'Export CSV', 'ricoman' ) . '</a>';
+	$export = wp_nonce_url( admin_url( 'admin-post.php?action=ricoman_leads_export' ), 'ricoman_leads_export' );
+	echo '<div class="rm-leads-csvbar" style="margin:10px 0 0;display:flex;flex-wrap:wrap;gap:10px;align-items:center">';
+	echo '<a href="' . esc_url( $export ) . '" class="button button-primary">⬇ ' . esc_html__( 'Export CSV', 'ricoman' ) . '</a>';
+	if ( current_user_can( 'edit_others_posts' ) ) {
+		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" enctype="multipart/form-data" style="display:inline-flex;gap:6px;align-items:center">'
+			. '<input type="hidden" name="action" value="ricoman_leads_import">'
+			. '<input type="hidden" name="_wpnonce" value="' . esc_attr( wp_create_nonce( 'ricoman_leads_import' ) ) . '">'
+			. '<input type="file" name="leads_csv" accept=".csv,text/csv" required>'
+			. '<button type="submit" class="button">⬆ ' . esc_html__( 'Import CSV', 'ricoman' ) . '</button>'
+			. '<span class="description">' . esc_html__( 'updates Status, Location, Sales rep, flags & Comment by ID', 'ricoman' ) . '</span>'
+			. '</form>';
+	}
+	echo '</div>';
 } );
 
 /** Stream all leads as a portable CSV (opens in Excel / Google Sheets / any CRM). */
@@ -536,11 +814,15 @@ add_action( 'admin_post_ricoman_leads_export', function () {
 	header( 'Content-Disposition: attachment; filename="ricoman-leads-' . gmdate( 'Y-m-d' ) . '.csv"' );
 	$out = fopen( 'php://output', 'w' );
 	fwrite( $out, "\xEF\xBB\xBF" ); // UTF-8 BOM so Excel shows accents correctly.
-	fputcsv( $out, array( 'Received', 'Name', 'Email', 'Customer type', 'Lead type', 'Product / company', 'Source', 'UTM', 'Status', 'Page' ) );
+	// "ID" first so an edited file can be re-imported (matched on ID). The CRM
+	// columns after Status round-trip through Import CSV.
+	fputcsv( $out, array( 'ID', 'Received', 'Name', 'Email', 'Customer type', 'Lead type', 'Product / company', 'Source', 'UTM', 'Status', 'Location', 'Sales rep', 'New lead', 'New download', 'On Pipedrive', 'Comment', 'Page' ) );
+	$yn = function ( $v ) { return '1' === (string) $v ? 'Yes' : 'No'; };
 	foreach ( $q->posts as $p ) {
 		$g  = function ( $k ) use ( $p ) { return (string) get_post_meta( $p->ID, $k, true ); };
 		$st = ricoman_lead_status( $p->ID );
 		fputcsv( $out, array(
+			$p->ID,
 			get_the_date( 'Y-m-d H:i', $p ),
 			$g( '_lead_name' ),
 			$g( '_lead_email' ),
@@ -550,9 +832,121 @@ add_action( 'admin_post_ricoman_leads_export', function () {
 			$g( '_lead_attr_source' ),
 			$g( '_lead_utm' ),
 			isset( $statuses[ $st ] ) ? $statuses[ $st ][0] : $st,
+			$g( '_lead_location' ),
+			$g( '_lead_rep' ),
+			$yn( $g( '_lead_is_new' ) ),
+			$yn( $g( '_lead_new_dl' ) ),
+			$yn( $g( '_lead_pipedrive' ) ),
+			$g( '_lead_comment' ),
 			$g( '_lead_page' ),
 		) );
 	}
 	fclose( $out );
+	exit;
+} );
+
+/** Show the import result as an admin notice. */
+add_action( 'admin_notices', function () {
+	$screen = get_current_screen();
+	if ( ! $screen || 'edit-lead' !== $screen->id || ! isset( $_GET['rm_import'] ) ) {
+		return;
+	}
+	$n = (int) $_GET['rm_import'];
+	$cls = ! empty( $_GET['rm_import_err'] ) ? 'notice-error' : 'notice-success';
+	$msg = ! empty( $_GET['rm_import_err'] )
+		? __( 'Import failed — please upload a CSV exported from this Leads screen.', 'ricoman' )
+		: sprintf( _n( '%d lead updated from the CSV.', '%d leads updated from the CSV.', $n, 'ricoman' ), $n );
+	echo '<div class="notice ' . esc_attr( $cls ) . ' is-dismissible"><p>' . esc_html( $msg ) . '</p></div>';
+} );
+
+/**
+ * Handle the uploaded CSV: match each row on its ID column and update the
+ * editable CRM fields (Status, Location, Sales rep, New lead, New download, On
+ * Pipedrive, Comment). Captured fields (name/email/source…) are left untouched.
+ */
+add_action( 'admin_post_ricoman_leads_import', function () {
+	$back = admin_url( 'edit.php?post_type=lead' );
+	if ( ! current_user_can( 'edit_others_posts' ) || ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'ricoman_leads_import' ) ) {
+		wp_die( esc_html__( 'Not allowed.', 'ricoman' ) );
+	}
+	if ( empty( $_FILES['leads_csv']['tmp_name'] ) || ! is_uploaded_file( $_FILES['leads_csv']['tmp_name'] ) ) {
+		wp_safe_redirect( add_query_arg( array( 'rm_import' => 0, 'rm_import_err' => 1 ), $back ) );
+		exit;
+	}
+	$fh = fopen( $_FILES['leads_csv']['tmp_name'], 'r' ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+	if ( ! $fh ) {
+		wp_safe_redirect( add_query_arg( array( 'rm_import' => 0, 'rm_import_err' => 1 ), $back ) );
+		exit;
+	}
+	$header = fgetcsv( $fh );
+	if ( $header ) {
+		// Strip a UTF-8 BOM from the first cell if present.
+		$header[0] = preg_replace( '/^\xEF\xBB\xBF/', '', (string) $header[0] );
+	}
+	$idx = array();
+	foreach ( (array) $header as $i => $h ) {
+		$idx[ strtolower( trim( (string) $h ) ) ] = $i;
+	}
+	if ( ! isset( $idx['id'] ) ) {
+		fclose( $fh ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+		wp_safe_redirect( add_query_arg( array( 'rm_import' => 0, 'rm_import_err' => 1 ), $back ) );
+		exit;
+	}
+	$status_by_label = array();
+	foreach ( ricoman_lead_statuses() as $k => $info ) {
+		$status_by_label[ strtolower( $info[0] ) ] = $k;
+	}
+	$cell = function ( $row, $name ) use ( $idx ) {
+		return isset( $idx[ $name ], $row[ $idx[ $name ] ] ) ? trim( (string) $row[ $idx[ $name ] ] ) : null;
+	};
+	$yn = function ( $v ) {
+		$v = strtolower( trim( (string) $v ) );
+		return in_array( $v, array( 'yes', 'y', '1', 'true' ), true ) ? '1' : '0';
+	};
+	$count = 0;
+	while ( ( $row = fgetcsv( $fh ) ) !== false ) {
+		$id = (int) ( isset( $row[ $idx['id'] ] ) ? $row[ $idx['id'] ] : 0 );
+		if ( ! $id || 'lead' !== get_post_type( $id ) || ! current_user_can( 'edit_post', $id ) ) {
+			continue;
+		}
+		$touched = false;
+
+		$st = $cell( $row, 'status' );
+		if ( null !== $st && '' !== $st && isset( $status_by_label[ strtolower( $st ) ] ) ) {
+			update_post_meta( $id, '_lead_status', $status_by_label[ strtolower( $st ) ] );
+			$touched = true;
+		}
+		foreach ( array(
+			'location'  => '_lead_location',
+			'sales rep' => '_lead_rep',
+			'comment'   => '_lead_comment',
+		) as $col => $key ) {
+			$v = $cell( $row, $col );
+			if ( null !== $v ) {
+				if ( '' === $v ) {
+					delete_post_meta( $id, $key );
+				} else {
+					update_post_meta( $id, $key, sanitize_text_field( $v ) );
+				}
+				$touched = true;
+			}
+		}
+		foreach ( array(
+			'new lead'     => '_lead_is_new',
+			'new download' => '_lead_new_dl',
+			'on pipedrive' => '_lead_pipedrive',
+		) as $col => $key ) {
+			$v = $cell( $row, $col );
+			if ( null !== $v && '' !== $v ) {
+				update_post_meta( $id, $key, $yn( $v ) );
+				$touched = true;
+			}
+		}
+		if ( $touched ) {
+			$count++;
+		}
+	}
+	fclose( $fh ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+	wp_safe_redirect( add_query_arg( 'rm_import', $count, $back ) );
 	exit;
 } );

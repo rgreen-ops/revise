@@ -375,40 +375,11 @@ function ricoman_register_settings() {
 }
 add_action( 'admin_init', 'ricoman_register_settings' );
 
-/**
- * Show captured lead details in the admin list / editor (read-only).
+/*
+ * The Leads admin list (columns, inline editing, filters, dashboard, CSV
+ * import/export) lives in inc/leads-admin.php — the single source of truth so the
+ * captured fields and the editable CRM fields stay in one place.
  */
-function ricoman_lead_columns( $columns ) {
-	$columns = array(
-		'cb'         => $columns['cb'],
-		'title'      => __( 'Lead', 'ricoman' ),
-		'lead_email' => __( 'Email', 'ricoman' ),
-		'lead_role'  => __( 'Role', 'ricoman' ),
-		'lead_src'   => __( 'Source', 'ricoman' ),
-		'date'       => __( 'Received', 'ricoman' ),
-	);
-	return $columns;
-}
-add_filter( 'manage_lead_posts_columns', 'ricoman_lead_columns' );
-
-/**
- * Fill the custom lead columns.
- */
-function ricoman_lead_column_content( $column, $post_id ) {
-	switch ( $column ) {
-		case 'lead_email':
-			$email = get_post_meta( $post_id, '_lead_email', true );
-			echo $email ? '<a href="mailto:' . esc_attr( $email ) . '">' . esc_html( $email ) . '</a>' : '—';
-			break;
-		case 'lead_role':
-			echo esc_html( get_post_meta( $post_id, '_lead_role', true ) ?: '—' );
-			break;
-		case 'lead_src':
-			echo esc_html( get_post_meta( $post_id, '_lead_source', true ) ?: '—' );
-			break;
-	}
-}
-add_action( 'manage_lead_posts_custom_column', 'ricoman_lead_column_content', 10, 2 );
 
 /* ============================================================ Newsletter ====
  * A low-friction, email-only capture point (footer + [ricoman_newsletter]).
