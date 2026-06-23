@@ -206,8 +206,410 @@ function ricoman_seo_target_audit( $target ) {
 	}
 	$out['score'] = min( 100, $score );
 	$out['rag']   = $out['score'] >= 70 ? 'green' : ( $out['score'] >= 40 ? 'amber' : 'red' );
+	// Extra signals (don't affect the score, but surface what's there).
+	$out['internal_links'] = ricoman_seo_internal_links_count( $resolved );
+	$out['schema']         = ricoman_seo_schema_types( $resolved, $f );
+	$out['faq']            = $f['faq'];
 	return $out;
 }
+
+/* ------------------------------------------------------- extra page signals */
+
+/** How many published posts/pages link to this target (internal-link strength). */
+function ricoman_seo_internal_links_count( $resolved ) {
+	if ( 'post' !== $resolved['type'] && 'term' !== $resolved['type'] ) {
+		return 0;
+	}
+	$link = ( 'post' === $resolved['type'] ) ? get_permalink( $resolved['id'] ) : get_term_link( $resolved['term'] );
+	if ( is_wp_error( $link ) || ! $link ) {
+		return 0;
+	}
+	$path = trim( (string) wp_parse_url( $link, PHP_URL_PATH ), '/' );
+	if ( '' === $path ) {
+		return 0;
+	}
+	$cache = get_transient( 'rm_seo_ilinks' );
+	if ( ! is_array( $cache ) ) {
+		$cache = array();
+	}
+	if ( isset( $cache[ $path ] ) ) {
+		return (int) $cache[ $path ];
+	}
+	global $wpdb;
+	$like  = '%' . $wpdb->esc_like( '/' . $path ) . '%';
+	$count = (int) $wpdb->get_var( $wpdb->prepare(
+		"SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_status='publish' AND post_type IN ('page','post','product','project','news') AND post_content LIKE %s",
+		$like
+	) );
+	if ( 'post' === $resolved['type'] ) {
+		$count = max( 0, $count - 1 ); // don't count the page linking to itself.
+	}
+	$cache[ $path ] = $count;
+	set_transient( 'rm_seo_ilinks', $cache, 6 * HOUR_IN_SECONDS );
+	return $count;
+}
+
+/** Best-effort list of structured-data types the target page emits. */
+function ricoman_seo_schema_types( $resolved, $f ) {
+	$types = array();
+	if ( ! empty( $f['faq'] ) ) {
+		$types[] = 'FAQ';
+	}
+	if ( 'post' === $resolved['type'] ) {
+		$pt = get_post_type( $resolved['id'] );
+		if ( 'product' === $pt ) {
+			$types[] = 'Product';
+		} elseif ( 'news' === $pt || 'post' === $pt ) {
+			$types[] = 'Article';
+		}
+		$types[] = 'Breadcrumb';
+	} elseif ( 'term' === $resolved['type'] ) {
+		$types[] = 'CollectionPage';
+		$types[] = 'Breadcrumb';
+	}
+	return array_values( array_unique( $types ) );
+}
+
+/* --------------------------------------------------- auto-suggest a page */
+
+/** Suggest the best existing page/term for a gap/unresolved term. */
+function ricoman_seo_suggest_page( $term ) {
+	$best  = null;
+	$bestc = 0.0;
+	// Pages & key post types by title match.
+	$q = new WP_Query( array(
+		'post_type'      => array( 'page', 'product', 'project', 'news' ),
+		'post_status'    => 'publish',
+		'posts_per_page' => 60,
+		's'              => $term,
+		'no_found_rows'  => true,
+		'fields'         => 'ids',
+	) );
+	foreach ( $q->posts as $pid ) {
+		$cov = ricoman_seo_word_cov( get_the_title( $pid ), $term );
+		if ( $cov > $bestc ) {
+			$bestc = $cov;
+			$best  = array( 'label' => get_the_title( $pid ), 'url' => wp_make_link_relative( get_permalink( $pid ) ) );
+		}
+	}
+	wp_reset_postdata();
+	// Product categories by name.
+	foreach ( array( 'product-cat', 'product_cat', 'project-cat' ) as $tax ) {
+		if ( ! taxonomy_exists( $tax ) ) {
+			continue;
+		}
+		$terms = get_terms( array( 'taxonomy' => $tax, 'hide_empty' => false, 'number' => 200 ) );
+		if ( is_wp_error( $terms ) ) {
+			continue;
+		}
+		foreach ( $terms as $t ) {
+			$cov = ricoman_seo_word_cov( $t->name, $term );
+			if ( $cov > $bestc ) {
+				$link = get_term_link( $t );
+				if ( ! is_wp_error( $link ) ) {
+					$bestc = $cov;
+					$best  = array( 'label' => $t->name . ' (category)', 'url' => wp_make_link_relative( $link ) );
+				}
+			}
+		}
+	}
+	return ( $best && $bestc >= 0.6 ) ? $best : null;
+}
+
+/* ------------------------------------------------- one-click optimisation */
+
+/** A keyword-led SEO title built from a term (≤ ~60 chars), brand suffixed. */
+function ricoman_seo_title_for_term( $term, $fallback = '' ) {
+	$t = trim( (string) $term );
+	if ( '' === $t ) {
+		return $fallback;
+	}
+	$t     = ucwords( $t );
+	$title = $t . ' | Ricoman Lighting';
+	if ( strlen( $title ) > 60 ) {
+		$title = $t . ' | Ricoman';
+	}
+	return $title;
+}
+
+/** A meta description built from a term (fill-empty fallback). */
+function ricoman_seo_desc_for_term( $term, $fallback = '' ) {
+	$t = trim( (string) $term );
+	if ( '' === $t ) {
+		return $fallback;
+	}
+	return ucfirst( $t ) . ' from Ricoman — UK manufacturer of commercial LED lighting. Free lighting design, photometric & BIM files, UK stock and a 5-year warranty.';
+}
+
+/** Optimise one target's page for its term (fill-empty: never clobbers edits). Returns written-field count. */
+function ricoman_seo_optimise_target( $target ) {
+	$resolved = ricoman_seo_target_resolve( isset( $target['url'] ) ? $target['url'] : '' );
+	$term     = isset( $target['term'] ) ? $target['term'] : '';
+	$written  = 0;
+	if ( '' === trim( (string) $term ) ) {
+		return 0;
+	}
+	if ( 'post' === $resolved['type'] ) {
+		$id = $resolved['id'];
+		if ( '' === trim( (string) get_post_meta( $id, '_yoast_wpseo_title', true ) ) ) {
+			update_post_meta( $id, '_yoast_wpseo_title', ricoman_seo_title_for_term( $term, get_the_title( $id ) ) );
+			$written++;
+		}
+		if ( '' === trim( (string) get_post_meta( $id, '_ricoman_seo_title', true ) ) ) {
+			update_post_meta( $id, '_ricoman_seo_title', ricoman_seo_title_for_term( $term, get_the_title( $id ) ) );
+		}
+		if ( '' === trim( (string) get_post_meta( $id, '_yoast_wpseo_metadesc', true ) ) ) {
+			update_post_meta( $id, '_yoast_wpseo_metadesc', ricoman_seo_desc_for_term( $term ) );
+			$written++;
+		}
+		if ( '' === trim( (string) get_post_meta( $id, '_ricoman_seo_desc', true ) ) ) {
+			update_post_meta( $id, '_ricoman_seo_desc', ricoman_seo_desc_for_term( $term ) );
+		}
+		if ( '' === trim( (string) get_post_meta( $id, '_yoast_wpseo_focuskw', true ) ) ) {
+			update_post_meta( $id, '_yoast_wpseo_focuskw', sanitize_text_field( $term ) );
+			$written++;
+		}
+	} elseif ( 'term' === $resolved['type'] ) {
+		$t   = $resolved['term'];
+		$all = get_option( 'wpseo_taxonomy_meta', array() );
+		if ( ! isset( $all[ $t->taxonomy ] ) ) {
+			$all[ $t->taxonomy ] = array();
+		}
+		$meta = isset( $all[ $t->taxonomy ][ $t->term_id ] ) ? $all[ $t->taxonomy ][ $t->term_id ] : array();
+		if ( empty( $meta['wpseo_title'] ) ) {
+			$meta['wpseo_title'] = ricoman_seo_title_for_term( $term, $t->name );
+			$written++;
+		}
+		if ( empty( $meta['wpseo_desc'] ) ) {
+			$meta['wpseo_desc'] = ricoman_seo_desc_for_term( $term );
+			$written++;
+		}
+		if ( empty( $meta['wpseo_focuskw'] ) ) {
+			$meta['wpseo_focuskw'] = sanitize_text_field( $term );
+			$written++;
+		}
+		$all[ $t->taxonomy ][ $t->term_id ] = $meta;
+		update_option( 'wpseo_taxonomy_meta', $all );
+	}
+	return $written;
+}
+
+add_action( 'admin_post_ricoman_seo_optimise', function () {
+	$i = isset( $_GET['i'] ) ? (int) $_GET['i'] : -1;
+	if ( ! current_user_can( 'edit_posts' ) || ! isset( $_GET['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'ricoman_seo_opt_' . $i ) ) {
+		wp_die( esc_html__( 'Not allowed.', 'ricoman' ) );
+	}
+	$targets = ricoman_seo_targets();
+	$n       = isset( $targets[ $i ] ) ? ricoman_seo_optimise_target( $targets[ $i ] ) : 0;
+	wp_safe_redirect( add_query_arg( array( 'page' => 'ricoman-seo-targets', 'optimised' => $n ), admin_url( 'admin.php' ) ) );
+	exit;
+} );
+
+/* ------------------------------------------------- create a gap landing page */
+
+add_action( 'admin_post_ricoman_seo_create_gap', function () {
+	$i = isset( $_GET['i'] ) ? (int) $_GET['i'] : -1;
+	if ( ! current_user_can( 'publish_pages' ) || ! isset( $_GET['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'ricoman_seo_gap_' . $i ) ) {
+		wp_die( esc_html__( 'Not allowed.', 'ricoman' ) );
+	}
+	$targets = ricoman_seo_targets();
+	if ( ! isset( $targets[ $i ] ) ) {
+		wp_safe_redirect( admin_url( 'admin.php?page=ricoman-seo-targets' ) );
+		exit;
+	}
+	$term  = $targets[ $i ]['term'];
+	$title = ucwords( trim( (string) $term ) );
+	$intro = ricoman_seo_desc_for_term( $term );
+	$content  = '<!-- wp:heading {"level":1} --><h1>' . esc_html( $title ) . '</h1><!-- /wp:heading>';
+	$content .= '<!-- wp:paragraph --><p>' . esc_html( $intro ) . '</p><!-- /wp:paragraph -->';
+	$content .= '<!-- wp:paragraph --><p>' . esc_html__( 'Edit this page to add your copy, images and internal links. The FAQ block below emits FAQ schema.', 'ricoman' ) . '</p><!-- /wp:paragraph -->';
+	$content .= '<!-- wp:shortcode -->[ricoman_faq]<!-- /wp:shortcode -->';
+	$pid = wp_insert_post( array(
+		'post_type'    => 'page',
+		'post_status'  => 'draft',
+		'post_title'   => $title,
+		'post_name'    => sanitize_title( $term ),
+		'post_content' => $content,
+	), true );
+	if ( ! is_wp_error( $pid ) && $pid ) {
+		update_post_meta( $pid, '_yoast_wpseo_title', ricoman_seo_title_for_term( $term, $title ) );
+		update_post_meta( $pid, '_yoast_wpseo_metadesc', ricoman_seo_desc_for_term( $term ) );
+		update_post_meta( $pid, '_yoast_wpseo_focuskw', sanitize_text_field( $term ) );
+		update_post_meta( $pid, '_ricoman_seo_title', ricoman_seo_title_for_term( $term, $title ) );
+		update_post_meta( $pid, '_ricoman_seo_desc', ricoman_seo_desc_for_term( $term ) );
+		$targets[ $i ]['url'] = wp_make_link_relative( get_permalink( $pid ) );
+		update_option( 'ricoman_seo_targets', $targets, false );
+		wp_safe_redirect( add_query_arg( array( 'page' => 'ricoman-seo-targets', 'gapmade' => (int) $pid ), admin_url( 'admin.php' ) ) );
+		exit;
+	}
+	wp_safe_redirect( add_query_arg( array( 'page' => 'ricoman-seo-targets', 'gapfail' => 1 ), admin_url( 'admin.php' ) ) );
+	exit;
+} );
+
+/* --------------------------------------------------- history + sparklines */
+
+/** Snapshot every target's score (+ GSC position if connected) into history. */
+function ricoman_seo_targets_snapshot() {
+	$targets = ricoman_seo_targets();
+	$hist    = get_option( 'ricoman_seo_history', array() );
+	if ( ! is_array( $hist ) ) {
+		$hist = array();
+	}
+	$date = gmdate( 'Y-m-d' );
+	foreach ( $targets as $t ) {
+		$key = ricoman_seo_norm( $t['term'] );
+		if ( '' === $key ) {
+			continue;
+		}
+		$a   = ricoman_seo_target_audit( $t );
+		$pos = null;
+		if ( function_exists( 'ricoman_gsc_term_data' ) ) {
+			$g = ricoman_gsc_term_data( $t['term'] );
+			if ( $g ) {
+				$pos = $g['position'];
+			}
+		}
+		if ( ! isset( $hist[ $key ] ) || ! is_array( $hist[ $key ] ) ) {
+			$hist[ $key ] = array();
+		}
+		$hist[ $key ][ $date ] = array( 's' => (int) $a['score'], 'p' => $pos );
+		// Keep the last 26 snapshots per term.
+		if ( count( $hist[ $key ] ) > 26 ) {
+			$hist[ $key ] = array_slice( $hist[ $key ], -26, 26, true );
+		}
+	}
+	update_option( 'ricoman_seo_history', $hist, false );
+	return $hist;
+}
+add_action( 'ricoman_seo_targets_snapshot', 'ricoman_seo_targets_snapshot' );
+
+/** Inline SVG sparkline from a term's score history. */
+function ricoman_seo_sparkline( $term ) {
+	$hist = get_option( 'ricoman_seo_history', array() );
+	$key  = ricoman_seo_norm( $term );
+	if ( empty( $hist[ $key ] ) || ! is_array( $hist[ $key ] ) || count( $hist[ $key ] ) < 2 ) {
+		return '<span style="color:#aaa;font-size:11px">—</span>';
+	}
+	$vals = array();
+	foreach ( $hist[ $key ] as $row ) {
+		$vals[] = isset( $row['s'] ) ? (int) $row['s'] : 0;
+	}
+	$n   = count( $vals );
+	$w   = 64;
+	$h   = 18;
+	$max = 100;
+	$pts = array();
+	foreach ( $vals as $idx => $v ) {
+		$x = $n > 1 ? round( $idx / ( $n - 1 ) * ( $w - 2 ) + 1, 1 ) : 1;
+		$y = round( $h - 1 - ( $v / $max ) * ( $h - 2 ), 1 );
+		$pts[] = $x . ',' . $y;
+	}
+	$dir   = end( $vals ) - reset( $vals );
+	$color = $dir > 0 ? '#1a7f37' : ( $dir < 0 ? '#b32d2e' : '#888' );
+	$arrow = $dir > 0 ? '▲' : ( $dir < 0 ? '▼' : '▬' );
+	return '<svg width="' . $w . '" height="' . $h . '" viewBox="0 0 ' . $w . ' ' . $h . '" style="vertical-align:middle"><polyline fill="none" stroke="' . esc_attr( $color ) . '" stroke-width="1.5" points="' . esc_attr( implode( ' ', $pts ) ) . '"/></svg> <span style="color:' . esc_attr( $color ) . ';font-size:11px">' . $arrow . '</span>';
+}
+
+/* ----------------------------------------------------- weekly email digest */
+
+add_action( 'ricoman_seo_weekly_digest', 'ricoman_seo_send_digest' );
+function ricoman_seo_send_digest() {
+	// Take a fresh snapshot first so trends + the email agree.
+	ricoman_seo_targets_snapshot();
+	$targets = ricoman_seo_targets();
+	$green = $amber = $red = 0;
+	$worst = array();
+	foreach ( $targets as $t ) {
+		$a = ricoman_seo_target_audit( $t );
+		if ( 'green' === $a['rag'] ) {
+			$green++;
+		} elseif ( 'amber' === $a['rag'] ) {
+			$amber++;
+		} else {
+			$red++;
+		}
+		$worst[] = array( 'term' => $t['term'], 'score' => empty( $a['gap'] ) ? (int) $a['score'] : -1 );
+	}
+	usort( $worst, function ( $a, $b ) { return $a['score'] - $b['score']; } );
+	$lines   = array();
+	$lines[] = 'Ricoman SEO Targets — weekly review (' . gmdate( 'j M Y' ) . ')';
+	$lines[] = '';
+	$lines[] = "Coverage: {$green} well covered · {$amber} partial · {$red} gap/weak";
+	$lines[] = '';
+	$lines[] = 'Lowest-scoring terms to work on:';
+	foreach ( array_slice( $worst, 0, 6 ) as $w ) {
+		$lines[] = '  • ' . $w['term'] . ' — ' . ( $w['score'] < 0 ? 'no page yet' : $w['score'] . '%' );
+	}
+	if ( function_exists( 'ricoman_gsc_ready' ) && ricoman_gsc_ready() ) {
+		$opp = ricoman_gsc_opportunities( $targets );
+		if ( ! empty( $opp['page2'] ) ) {
+			$lines[] = '';
+			$lines[] = 'Page-2 quick wins (live, from Search Console):';
+			foreach ( array_slice( $opp['page2'], 0, 6 ) as $o ) {
+				$lines[] = '  • ' . $o['query'] . ' — pos ' . $o['position'] . ', ' . $o['impressions'] . ' impressions';
+			}
+		}
+	}
+	$lines[] = '';
+	$lines[] = 'Full review: ' . admin_url( 'admin.php?page=ricoman-seo-targets' );
+	$to      = apply_filters( 'ricoman_seo_digest_to', get_option( 'admin_email' ) );
+	if ( $to ) {
+		wp_mail( $to, 'Ricoman SEO — weekly targets review', implode( "\n", $lines ) );
+	}
+}
+
+/** Schedule weekly cron events on load (idempotent). */
+add_action( 'init', function () {
+	if ( ! wp_next_scheduled( 'ricoman_seo_weekly_digest' ) ) {
+		wp_schedule_event( strtotime( 'next monday 8:00' ), 'weekly', 'ricoman_seo_weekly_digest' );
+	}
+	if ( ! wp_next_scheduled( 'ricoman_seo_targets_snapshot' ) ) {
+		wp_schedule_event( time() + HOUR_IN_SECONDS, 'weekly', 'ricoman_seo_targets_snapshot' );
+	}
+} );
+// Ensure a 'weekly' schedule exists (WP core has none by default).
+add_filter( 'cron_schedules', function ( $s ) {
+	if ( ! isset( $s['weekly'] ) ) {
+		$s['weekly'] = array( 'interval' => WEEK_IN_SECONDS, 'display' => __( 'Once Weekly', 'ricoman' ) );
+	}
+	return $s;
+} );
+
+/* -------------------------------------------------------------- CSV export */
+
+add_action( 'admin_post_ricoman_seo_targets_export', function () {
+	if ( ! current_user_can( 'edit_posts' ) || ! isset( $_GET['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'ricoman_seo_export' ) ) {
+		wp_die( esc_html__( 'Not allowed.', 'ricoman' ) );
+	}
+	$targets = ricoman_seo_targets();
+	$gsc_on  = function_exists( 'ricoman_gsc_ready' ) && ricoman_gsc_ready();
+	nocache_headers();
+	header( 'Content-Type: text/csv; charset=utf-8' );
+	header( 'Content-Disposition: attachment; filename=ricoman-seo-targets-' . gmdate( 'Y-m-d' ) . '.csv' );
+	$out = fopen( 'php://output', 'w' );
+	fputcsv( $out, array( 'Term', 'Intent', 'Priority', 'Target URL', 'Coverage %', 'RAG', 'Internal links', 'Schema', 'GSC position', 'GSC clicks', 'GSC impressions', 'To fix' ) );
+	foreach ( $targets as $t ) {
+		$a   = ricoman_seo_target_audit( $t );
+		$gap = ! empty( $a['gap'] );
+		$bad = array();
+		foreach ( $a['checks'] as $c ) {
+			if ( false === $c[1] ) {
+				$bad[] = $c[0];
+			}
+		}
+		$g = $gsc_on ? ricoman_gsc_term_data( $t['term'] ) : null;
+		fputcsv( $out, array(
+			$t['term'], $t['intent'], $t['priority'], $t['url'],
+			$gap ? '' : (int) $a['score'], $a['rag'],
+			isset( $a['internal_links'] ) ? (int) $a['internal_links'] : 0,
+			isset( $a['schema'] ) ? implode( ' ', $a['schema'] ) : '',
+			$g ? $g['position'] : '', $g ? $g['clicks'] : '', $g ? $g['impressions'] : '',
+			implode( ' | ', $bad ),
+		) );
+	}
+	fclose( $out );
+	exit;
+} );
 
 /* -------------------------------------------------------------- admin screen */
 
@@ -268,13 +670,30 @@ function ricoman_seo_targets_page() {
 	}
 	$intents    = array( 'Identity', 'Commercial', 'Specifier', 'Sector', 'Investigation', 'Download', 'Compliance' );
 	$priorities = array( 'High', 'Medium', 'Low' );
+	$gsc_on     = function_exists( 'ricoman_gsc_ready' ) && ricoman_gsc_ready();
+	$export_url = wp_nonce_url( admin_url( 'admin-post.php?action=ricoman_seo_targets_export' ), 'ricoman_seo_export' );
 	?>
 	<div class="wrap rm-seotargets">
-		<h1><?php esc_html_e( 'SEO Targets', 'ricoman' ); ?></h1>
-		<?php if ( isset( $_GET['saved'] ) ) : ?>
-			<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Targets saved.', 'ricoman' ); ?></p></div>
-		<?php endif; ?>
-		<p class="description" style="max-width:820px"><?php esc_html_e( 'Your focus search terms and how well each target page covers them on-page (title, meta, H1, body, URL, FAQ schema). Edit the terms or the page each one targets; “gaps” are terms with no page yet — create the page, then assign its URL here. This reviews ON-PAGE coverage only; live ranking/impression data would come from a Google Search Console connection (separate setup).', 'ricoman' ); ?></p>
+		<h1><?php esc_html_e( 'SEO Targets', 'ricoman' ); ?>
+			<a href="<?php echo esc_url( $export_url ); ?>" class="page-title-action"><?php esc_html_e( 'Export CSV', 'ricoman' ); ?></a>
+		</h1>
+		<?php
+		if ( isset( $_GET['saved'] ) ) {
+			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Targets saved.', 'ricoman' ) . '</p></div>';
+		}
+		if ( isset( $_GET['optimised'] ) ) {
+			$n = (int) $_GET['optimised'];
+			echo '<div class="notice notice-success is-dismissible"><p>' . sprintf( esc_html__( 'Optimised — %d SEO field(s) filled (empty fields only; your edits are untouched).', 'ricoman' ), $n ) . '</p></div>';
+		}
+		if ( isset( $_GET['gapmade'] ) ) {
+			$pid = (int) $_GET['gapmade'];
+			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Draft landing page created and linked to the term.', 'ricoman' ) . ' <a href="' . esc_url( get_edit_post_link( $pid ) ) . '">' . esc_html__( 'Edit it →', 'ricoman' ) . '</a></p></div>';
+		}
+		if ( isset( $_GET['gapfail'] ) ) {
+			echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Could not create the page.', 'ricoman' ) . '</p></div>';
+		}
+		?>
+		<p class="description" style="max-width:860px"><?php esc_html_e( 'Your focus search terms and how well each target page covers them on-page (title, meta, H1, body, URL, FAQ schema). Use Optimise to fill empty SEO fields for a term, Suggest to find the best existing page for a gap, or Create page to spin up a draft. Connect Search Console (below) to add live position, clicks & impressions plus a quick-win finder. Coverage re-checks each time you open this page.', 'ricoman' ); ?></p>
 
 		<div class="rm-seo-sum">
 			<span class="rm-seo-pill green"><?php echo (int) $green; ?> <?php esc_html_e( 'well covered', 'ricoman' ); ?></span>
@@ -282,35 +701,71 @@ function ricoman_seo_targets_page() {
 			<span class="rm-seo-pill red"><?php echo (int) $red; ?> <?php esc_html_e( 'gap / weak', 'ricoman' ); ?></span>
 		</div>
 
+		<?php if ( function_exists( 'ricoman_gsc_settings_panel' ) ) { ricoman_gsc_settings_panel(); } ?>
+
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 			<input type="hidden" name="action" value="ricoman_seo_targets_save">
 			<?php wp_nonce_field( 'ricoman_seo_targets' ); ?>
 			<table class="widefat striped rm-seo-table">
 				<thead><tr>
-					<th style="width:22%"><?php esc_html_e( 'Target term', 'ricoman' ); ?></th>
+					<th style="width:20%"><?php esc_html_e( 'Target term', 'ricoman' ); ?></th>
 					<th><?php esc_html_e( 'Intent', 'ricoman' ); ?></th>
 					<th><?php esc_html_e( 'Priority', 'ricoman' ); ?></th>
-					<th style="width:22%"><?php esc_html_e( 'Target page (URL/path)', 'ricoman' ); ?></th>
-					<th style="width:9%"><?php esc_html_e( 'Coverage', 'ricoman' ); ?></th>
-					<th><?php esc_html_e( 'What to fix', 'ricoman' ); ?></th>
+					<th style="width:18%"><?php esc_html_e( 'Target page (URL/path)', 'ricoman' ); ?></th>
+					<th style="width:8%"><?php esc_html_e( 'Coverage', 'ricoman' ); ?></th>
+					<th style="width:8%"><?php esc_html_e( 'Trend', 'ricoman' ); ?></th>
+					<?php if ( $gsc_on ) : ?><th style="width:9%"><?php esc_html_e( 'Live rank', 'ricoman' ); ?></th><?php endif; ?>
+					<th><?php esc_html_e( 'What to fix / do', 'ricoman' ); ?></th>
 				</tr></thead>
 				<tbody>
 				<?php foreach ( $targets as $i => $t ) :
 					$a   = $audits[ $i ];
 					$rag = $a['rag'];
-					$gap = ! empty( $a['gap'] ); ?>
+					$gap = ! empty( $a['gap'] );
+					$opt_url = wp_nonce_url( admin_url( 'admin-post.php?action=ricoman_seo_optimise&i=' . $i ), 'ricoman_seo_opt_' . $i );
+					$gap_url = wp_nonce_url( admin_url( 'admin-post.php?action=ricoman_seo_create_gap&i=' . $i ), 'ricoman_seo_gap_' . $i );
+					?>
 					<tr>
 						<td><input type="text" name="t[<?php echo (int) $i; ?>][term]" value="<?php echo esc_attr( $t['term'] ); ?>" style="width:100%"></td>
 						<td><select name="t[<?php echo (int) $i; ?>][intent]"><?php foreach ( $intents as $opt ) { echo '<option' . selected( $t['intent'], $opt, false ) . '>' . esc_html( $opt ) . '</option>'; } ?></select></td>
 						<td><select name="t[<?php echo (int) $i; ?>][priority]"><?php foreach ( $priorities as $opt ) { echo '<option' . selected( $t['priority'], $opt, false ) . '>' . esc_html( $opt ) . '</option>'; } ?></select></td>
-						<td><input type="text" name="t[<?php echo (int) $i; ?>][url]" value="<?php echo esc_attr( $t['url'] ); ?>" placeholder="/page-slug/" style="width:78%">
+						<td><input type="text" name="t[<?php echo (int) $i; ?>][url]" value="<?php echo esc_attr( $t['url'] ); ?>" placeholder="/page-slug/" style="width:80%">
 							<?php if ( $a['edit'] ) : ?> <a href="<?php echo esc_url( $a['edit'] ); ?>" title="Edit page">✎</a><?php endif; ?>
+							<?php
+							if ( $gap || 'unresolved' === $a['resolved']['type'] ) {
+								$sugg = ricoman_seo_suggest_page( $t['term'] );
+								if ( $sugg ) {
+									echo '<div class="rm-seo-sugg">' . esc_html__( 'Suggested:', 'ricoman' ) . ' <a href="#" class="rm-seo-pick" data-url="' . esc_attr( $sugg['url'] ) . '" data-i="' . (int) $i . '">' . esc_html( $sugg['label'] ) . '</a></div>';
+								}
+							}
+							?>
 						</td>
-						<td><span class="rm-seo-score rm-<?php echo esc_attr( $rag ); ?>"><?php echo $gap ? '—' : (int) $a['score'] . '%'; ?></span></td>
+						<td>
+							<span class="rm-seo-score rm-<?php echo esc_attr( $rag ); ?>"><?php echo $gap ? '—' : (int) $a['score'] . '%'; ?></span>
+							<?php if ( ! $gap ) : ?>
+								<div class="rm-seo-sig">
+									<?php if ( ! empty( $a['internal_links'] ) ) : ?><span title="<?php esc_attr_e( 'internal links to this page', 'ricoman' ); ?>">🔗<?php echo (int) $a['internal_links']; ?></span><?php endif; ?>
+									<?php if ( ! empty( $a['schema'] ) ) : ?><span title="<?php echo esc_attr( implode( ', ', $a['schema'] ) . ' schema' ); ?>">⌗<?php echo count( $a['schema'] ); ?></span><?php endif; ?>
+								</div>
+							<?php endif; ?>
+						</td>
+						<td><?php echo ricoman_seo_sparkline( $t['term'] ); // phpcs:ignore WordPress.Security.EscapeOutput — SVG built internally. ?></td>
+						<?php if ( $gsc_on ) :
+							$g = ricoman_gsc_term_data( $t['term'] ); ?>
+							<td class="rm-seo-gsc">
+								<?php if ( $g ) : ?>
+									<strong title="<?php esc_attr_e( 'average position', 'ricoman' ); ?>"><?php echo esc_html( $g['position'] ); ?></strong>
+									<div class="rm-seo-gsc-sub"><?php echo (int) $g['impressions']; ?> <?php esc_html_e( 'impr', 'ricoman' ); ?> · <?php echo (int) $g['clicks']; ?> <?php esc_html_e( 'clk', 'ricoman' ); ?></div>
+								<?php else : ?>
+									<span style="color:#aaa">—</span>
+								<?php endif; ?>
+							</td>
+						<?php endif; ?>
 						<td class="rm-seo-checks">
 							<?php
 							if ( $gap ) {
-								echo '<strong style="color:#b32d2e">' . esc_html__( 'No page yet — create one and add its URL.', 'ricoman' ) . '</strong>';
+								echo '<strong style="color:#b32d2e">' . esc_html__( 'No page yet.', 'ricoman' ) . '</strong> ';
+								echo '<a class="button button-small" href="' . esc_url( $gap_url ) . '">' . esc_html__( 'Create page', 'ricoman' ) . '</a>';
 							} else {
 								$bad = array();
 								foreach ( $a['checks'] as $c ) {
@@ -318,7 +773,12 @@ function ricoman_seo_targets_page() {
 										$bad[] = $c[0];
 									}
 								}
-								echo $bad ? esc_html( implode( ' · ', $bad ) ) : '<span style="color:#1a7f37">' . esc_html__( 'All on-page signals present.', 'ricoman' ) . '</span>';
+								if ( $bad ) {
+									echo esc_html( implode( ' · ', $bad ) );
+									echo '<div style="margin-top:5px"><a class="button button-small" href="' . esc_url( $opt_url ) . '">' . esc_html__( 'Optimise (fill empty SEO fields)', 'ricoman' ) . '</a></div>';
+								} else {
+									echo '<span style="color:#1a7f37">' . esc_html__( 'All on-page signals present.', 'ricoman' ) . '</span>';
+								}
 							}
 							?>
 						</td>
@@ -328,14 +788,39 @@ function ricoman_seo_targets_page() {
 						<td><input type="text" name="t[new][term]" placeholder="<?php esc_attr_e( 'add a new term…', 'ricoman' ); ?>" style="width:100%"></td>
 						<td><select name="t[new][intent]"><?php foreach ( $intents as $opt ) { echo '<option>' . esc_html( $opt ) . '</option>'; } ?></select></td>
 						<td><select name="t[new][priority]"><?php foreach ( $priorities as $opt ) { echo '<option' . selected( 'Medium', $opt, false ) . '>' . esc_html( $opt ) . '</option>'; } ?></select></td>
-						<td><input type="text" name="t[new][url]" placeholder="/page-slug/" style="width:78%"></td>
-						<td>—</td><td><?php esc_html_e( '(new row)', 'ricoman' ); ?></td>
+						<td><input type="text" name="t[new][url]" placeholder="/page-slug/" style="width:80%"></td>
+						<td>—</td><td>—</td><?php if ( $gsc_on ) : ?><td>—</td><?php endif; ?><td><?php esc_html_e( '(new row)', 'ricoman' ); ?></td>
 					</tr>
 				</tbody>
 			</table>
 			<p><?php submit_button( __( 'Save targets', 'ricoman' ), 'primary', 'submit', false ); ?>
-				<span class="description" style="margin-left:10px"><?php esc_html_e( 'Coverage re-checks automatically each time you open this page.', 'ricoman' ); ?></span></p>
+				<span class="description" style="margin-left:10px"><?php esc_html_e( 'A weekly snapshot powers the trend sparkline + the emailed digest.', 'ricoman' ); ?></span></p>
 		</form>
+
+		<?php
+		if ( $gsc_on ) {
+			$opp = ricoman_gsc_opportunities( $targets );
+			if ( ! empty( $opp['page2'] ) || ! empty( $opp['new'] ) ) {
+				echo '<h2 style="margin-top:26px">' . esc_html__( 'Opportunities (from Search Console)', 'ricoman' ) . '</h2>';
+				echo '<div class="rm-seo-opps">';
+				if ( ! empty( $opp['page2'] ) ) {
+					echo '<div class="rm-seo-opp"><h3>' . esc_html__( 'Page-2 quick wins', 'ricoman' ) . '</h3><p class="description">' . esc_html__( 'Targeted terms ranking 11–20 with real impressions — a small push could move them to page 1.', 'ricoman' ) . '</p><table class="widefat striped"><thead><tr><th>' . esc_html__( 'Query', 'ricoman' ) . '</th><th>' . esc_html__( 'Pos', 'ricoman' ) . '</th><th>' . esc_html__( 'Impr', 'ricoman' ) . '</th></tr></thead><tbody>';
+					foreach ( $opp['page2'] as $o ) {
+						echo '<tr><td>' . esc_html( $o['query'] ) . '</td><td>' . esc_html( $o['position'] ) . '</td><td>' . (int) $o['impressions'] . '</td></tr>';
+					}
+					echo '</tbody></table></div>';
+				}
+				if ( ! empty( $opp['new'] ) ) {
+					echo '<div class="rm-seo-opp"><h3>' . esc_html__( 'New queries to consider targeting', 'ricoman' ) . '</h3><p class="description">' . esc_html__( 'High-impression searches you already appear for that aren’t in your target list yet.', 'ricoman' ) . '</p><table class="widefat striped"><thead><tr><th>' . esc_html__( 'Query', 'ricoman' ) . '</th><th>' . esc_html__( 'Pos', 'ricoman' ) . '</th><th>' . esc_html__( 'Impr', 'ricoman' ) . '</th></tr></thead><tbody>';
+					foreach ( $opp['new'] as $o ) {
+						echo '<tr><td>' . esc_html( $o['query'] ) . '</td><td>' . esc_html( $o['position'] ) . '</td><td>' . (int) $o['impressions'] . '</td></tr>';
+					}
+					echo '</tbody></table></div>';
+				}
+				echo '</div>';
+			}
+		}
+		?>
 
 		<style>
 		.rm-seo-sum{margin:10px 0 14px}
@@ -344,9 +829,22 @@ function ricoman_seo_targets_page() {
 		.rm-seo-table input[type=text],.rm-seo-table select{font-size:13px}
 		.rm-seo-score{display:inline-block;min-width:42px;text-align:center;padding:3px 8px;border-radius:6px;font-weight:700;color:#fff}
 		.rm-seo-score.rm-green{background:#1a7f37}.rm-seo-score.rm-amber{background:#b8860b}.rm-seo-score.rm-red{background:#b32d2e}
+		.rm-seo-sig{margin-top:4px;font-size:11px;color:#666}.rm-seo-sig span{margin-right:6px}
 		.rm-seo-checks{font-size:12.5px;color:#555}
+		.rm-seo-sugg{font-size:12px;margin-top:4px}
+		.rm-seo-gsc strong{font-size:15px}.rm-seo-gsc-sub{font-size:11px;color:#777}
 		.rm-seo-add td{background:#f6f7f9}
+		.rm-seo-opps{display:flex;gap:22px;flex-wrap:wrap}.rm-seo-opp{flex:1;min-width:340px}
 		</style>
+		<script>
+		jQuery(function($){
+			$('.rm-seo-pick').on('click',function(e){
+				e.preventDefault();
+				var i=$(this).data('i'), u=$(this).data('url');
+				$('input[name="t['+i+'][url]"]').val(u).css('background','#fffbcc');
+			});
+		});
+		</script>
 	</div>
 	<?php
 }
