@@ -40,6 +40,7 @@ function ricoman_admin_links() {
 		'pageseo'     => admin_url( 'admin.php?page=ricoman-page-seo' ),
 		'catseo'      => admin_url( 'admin.php?page=ricoman-category-seo' ),
 		'seoopt'      => admin_url( 'admin.php?page=ricoman-seo-optimiser' ),
+		'seotargets'  => admin_url( 'admin.php?page=ricoman-seo-targets' ),
 		// Catalogue & media tools.
 		'configimg'   => admin_url( 'admin.php?page=ricoman-config-images' ),
 		'catorder'    => admin_url( 'admin.php?page=ricoman-cat-order' ),
@@ -167,6 +168,7 @@ function ricoman_render_hub() {
 		<div class="rm-grid">
 			<?php
 			$tile( $l['leads'], 'email', __( 'Leads', 'ricoman' ), __( 'Enquiries & CRM', 'ricoman' ) );
+			$tile( $l['seotargets'], 'chart-line', __( 'SEO Targets', 'ricoman' ), __( 'Focus keywords + coverage review', 'ricoman' ) );
 			$tile( $l['tracking'], 'chart-area', __( 'Tracking & Scripts', 'ricoman' ), __( 'GA4, GTM, pixels, custom code', 'ricoman' ) );
 			$tile( $l['speed'], 'performance', __( 'SEO & Speed', 'ricoman' ), __( 'Scores + PageSpeed', 'ricoman' ) );
 			$tile( $l['seo'], 'search', __( 'SEO Settings', 'ricoman' ), __( 'Org, social, address, AI', 'ricoman' ) );
