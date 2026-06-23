@@ -283,6 +283,33 @@ From Marketing's email for the new website. Status of each request:
   family (2000) but shows 10 + Show-more, fully filterable; thumbs fall back to the
   parent image.
 
+## Performance & accessibility (whole-site, this session)
+- **All pages <1s warm** (sweep of 75 URLs; 0 over 2s). Big wins: variant axis terms
+  read from cache not per-variant DB (~48k queries→few); editors no longer skip the
+  section cache; the configure table/visual configurator **lazy-loads** + the table
+  is **server-paginated** (`rm_vrows`, 25/page) so a 2000-variant page ships KB not
+  MB; Downloads + News listings cached.
+- **Theme-level full-page cache** (`inc/page-cache.php`): serves a captured copy at
+  `template_redirect` for anonymous GET (no query string / auth cookie; excludes
+  my-project/dashboard/login/registration/checkout). Cuts server render; sends
+  `Cache-Control: public, s-maxage=3600` so Cloudflare/browser can edge-cache.
+  Logged-in users always bypass (see fresh). Auto-busts on edits + 1h TTL.
+  Disable: `define('RICOMAN_PAGE_CACHE', false)`. NOTE: can't beat WP boot (~0.39s)
+  — true <0.5s needs the s-maxage edge cache / W3Speedster page cache.
+- **WebP serving is OFF** (`ricoman_webp_on` default off) — this server's image
+  editor writes 0-byte WebPs for many sources; on-the-fly conversion isn't safe
+  here. Use Cloudflare Polish for images. (0-byte twins are guarded against.)
+- **Accessibility = 0 axe violations** sitewide (verified with axe-core across 10
+  page types): fixed duplicate header/footer landmarks (theme header/footer are
+  `<div>`, the wp-block-template-part provides the banner/contentinfo), unlabeled
+  category sliders, empty card links (`ricoman_acard_label`), CTA-outside-main
+  (templates), duplicate `<main>` (the_content demotes content `<main>`→`<div>`),
+  and mega-menu contrast. A `the_content` **heading-skip normaliser** fills any
+  skipped level (never touches the H1). Accordion titles are `<h2>` (were
+  non-heading `<summary>`); category H1 count is `aria-hidden`.
+- **Category tiles**: studio product shots use `contain` (class `rm-catcard-img--
+  contain`, set by JS) so the whole fitting shows; in-situ shots keep `cover`.
+
 ## ⚠️ OPEN BLOCKERS (staging) — needed before the above PHP fully works
 - **OPcache flush is AUTOMATIC — do NOT tell the user to restart PHP-FPM.** Every
   push to the working branch runs `.github/workflows/deploy-staging.yml`, which

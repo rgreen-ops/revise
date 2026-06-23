@@ -86,14 +86,14 @@ add_action( 'template_redirect', function () {
 
 	if ( is_string( $cached ) && '' !== $cached ) {
 		header( 'X-Ricoman-Cache: HIT' );
-		header( 'Cache-Control: public, max-age=0, s-maxage=' . max( 60, (int) apply_filters( 'ricoman_pagecache_smaxage', 300 ) ) );
+		header( 'Cache-Control: public, max-age=0, s-maxage=' . max( 60, (int) apply_filters( 'ricoman_pagecache_smaxage', 3600 ) ) );
 		header( 'Content-Type: text/html; charset=' . get_bloginfo( 'charset' ) );
 		echo $cached; // phpcs:ignore WordPress.Security.EscapeOutput — stored full-page HTML.
 		exit;
 	}
 
 	header( 'X-Ricoman-Cache: MISS' );
-	header( 'Cache-Control: public, max-age=0, s-maxage=' . max( 60, (int) apply_filters( 'ricoman_pagecache_smaxage', 300 ) ) );
+	header( 'Cache-Control: public, max-age=0, s-maxage=' . max( 60, (int) apply_filters( 'ricoman_pagecache_smaxage', 3600 ) ) );
 	ob_start( function ( $html ) use ( $key, $ttl ) {
 		// Only store a complete, successful HTML document.
 		if ( is_string( $html ) && strlen( $html ) > 500
