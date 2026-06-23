@@ -89,8 +89,13 @@ function ricoman_pf_visual_config( $pid ) {
 				$dist[ $label ][ (string) $v ] = true;
 			}
 		}
+		$desc = ricoman_pf_get( $vid, 'product_sort_description' );
+		if ( '' === trim( (string) $desc ) ) {
+			$desc = get_the_title();
+		}
 		$variants[] = array(
 			'code'  => (string) $code,
+			'desc'  => wp_strip_all_tags( (string) $desc ),
 			'img'   => $img,
 			'ds'    => function_exists( 'ricoman_variant_datasheet_url' ) ? ricoman_variant_datasheet_url( $vid, $pid ) : '',
 			'ldt'   => ricoman_pf_fileurl( ricoman_pf_get( $vid, 'download_led' ) ),
@@ -163,9 +168,26 @@ function ricoman_pf_visual_config( $pid ) {
 		foreach ( $axes as $ax ) {
 			$vals[ $ax['key'] ] = isset( $vt['pairs'][ $ax['label'] ] ) ? (string) $vt['pairs'][ $ax['label'] ] : '';
 		}
-		$vout[] = array( 'code' => $vt['code'], 'img' => $vt['img'], 'ds' => $vt['ds'], 'ldt' => $vt['ldt'], 'vals' => $vals, 'specs' => $vt['pairs'] );
+		$vout[] = array( 'code' => $vt['code'], 'desc' => $vt['desc'], 'img' => $vt['img'], 'ds' => $vt['ds'], 'ldt' => $vt['ldt'], 'vals' => $vals, 'specs' => $vt['pairs'] );
 	}
-	$data = wp_json_encode( array( 'axes' => $axes, 'variants' => $vout ), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT );
+
+	// Table columns for the narrowed-down result list — same set the configure
+	// table would show (chosen columns, else every populated column), in order.
+	$cols = array();
+	if ( $is_family && isset( $dist['Type'] ) ) {
+		$cols[] = 'Type';
+	}
+	foreach ( $order as $label ) {
+		if ( 'Type' === $label || ! isset( $dist[ $label ] ) ) {
+			continue;
+		}
+		if ( $use_sel && ! in_array( $label, $chosen, true ) ) {
+			continue;
+		}
+		$cols[] = $label;
+	}
+
+	$data = wp_json_encode( array( 'axes' => $axes, 'variants' => $vout, 'cols' => $cols ), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT );
 
 	return '<div class="rm-vcfg" data-fallback="' . esc_attr( $parent_img ) . '">'
 		. '<script type="application/json" class="rm-vcfg-data">' . $data . '</script>'

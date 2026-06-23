@@ -96,34 +96,24 @@
 					+ '</div></div>';
 				resEl.hidden = false;
 			} else if ( pool.length < 10 ) {
-				// A handful left — list them, summarising what DIFFERS between them
-				// (the axes that still vary and aren't chosen), so rows are distinct.
-				var varyAxes = axes.filter( function ( ax ) {
-					if ( sel[ ax.key ] ) { return false; }
-					var s = {}, c = 0;
-					pool.forEach( function ( v ) { var val = v.vals[ ax.key ] || ''; if ( ! ( val in s ) ) { s[ val ] = 1; c++; } } );
-					return c > 1;
-				} );
+				// A handful left — show them in the full variant table (same format
+				// as the configure table: Part Code, Description, the spec columns).
+				var cols = data.cols || [];
+				var head = '<th></th><th>Part Code</th><th>Description</th>';
+				cols.forEach( function ( c ) { head += '<th>' + esc( c ) + '</th>'; } );
+				head += '<th>LDT</th><th>Datasheet</th>';
 				var rows = '';
 				pool.forEach( function ( v ) {
-					var parts = [];
-					if ( varyAxes.length ) {
-						varyAxes.forEach( function ( ax ) { if ( v.vals[ ax.key ] ) { parts.push( ax.label + ': ' + v.vals[ ax.key ] ); } } );
-					} else {
-						var keys = Object.keys( v.specs || {} );
-						for ( var j = 0; j < keys.length && parts.length < 6; j++ ) { if ( v.specs[ keys[ j ] ] ) { parts.push( v.specs[ keys[ j ] ] ); } }
-					}
-					var dl = '';
-					if ( v.ldt ) { dl += '<a href="' + encodeURI( v.ldt ) + '" target="_blank" rel="noopener">LDT ↓</a>'; }
-					if ( v.ds ) { dl += '<a href="' + encodeURI( v.ds ) + '" target="_blank" rel="noopener">Datasheet ↓</a>'; }
-					rows += '<div class="rm-vcfg-row">'
-						+ ( ( v.img || fallback ) ? '<span class="rm-vcfg-rowimg" style="background-image:url(' + encodeURI( v.img || fallback ) + ')"></span>' : '' )
-						+ '<div class="rm-vcfg-rowbody"><p class="rm-vcfg-rowcode">' + esc( v.code ) + '</p><p class="rm-vcfg-rowspec">' + esc( parts.join( ' · ' ) ) + '</p></div>'
-						+ '<div class="rm-vcfg-rowdl">' + dl + '</div></div>';
+					rows += '<tr><td class="vt-thumb">' + ( ( v.img || fallback ) ? '<img src="' + encodeURI( v.img || fallback ) + '" alt="" loading="lazy">' : '' ) + '</td>'
+						+ '<td class="vt-code">' + esc( v.code ) + '</td>'
+						+ '<td class="vt-desc">' + esc( v.desc || '' ) + '</td>';
+					cols.forEach( function ( c ) { rows += '<td class="vt-spec">' + esc( ( v.specs && v.specs[ c ] ) ? v.specs[ c ] : '–' ) + '</td>'; } );
+					rows += '<td class="vt-dl">' + ( v.ldt ? '<a href="' + encodeURI( v.ldt ) + '" target="_blank" rel="noopener">LDT ↓</a>' : '—' ) + '</td>'
+						+ '<td class="vt-dl">' + ( v.ds ? '<a href="' + encodeURI( v.ds ) + '" target="_blank" rel="noopener">Datasheet ↓</a>' : '—' ) + '</td></tr>';
 				} );
 				resEl.innerHTML = '<div class="rm-vcfg-listhead"><strong>' + pool.length + ' matching options</strong> <span>— keep choosing to narrow further</span>'
 					+ ( chosenCount ? ' <button type="button" class="rm-vcfg-reset">Reset</button>' : '' ) + '</div>'
-					+ '<div class="rm-vcfg-list">' + rows + '</div>';
+					+ '<div class="rm-vptable-wrap"><table class="rm-vptable"><thead><tr>' + head + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
 				resEl.hidden = false;
 			} else {
 				resEl.innerHTML = '<div class="rm-vcfg-status">'
