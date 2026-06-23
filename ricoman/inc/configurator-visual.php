@@ -168,15 +168,6 @@ function ricoman_pf_visual_config( $pid ) {
 		$axes[] = array( 'key' => $slug( $label ), 'label' => $label, 'image' => $image_based, 'options' => $opts );
 	}
 
-	$vout = array();
-	foreach ( $variants as $vt ) {
-		$vals = array();
-		foreach ( $axes as $ax ) {
-			$vals[ $ax['key'] ] = isset( $vt['pairs'][ $ax['label'] ] ) ? (string) $vt['pairs'][ $ax['label'] ] : '';
-		}
-		$vout[] = array( 'code' => $vt['code'], 'desc' => $vt['desc'], 'img' => $vt['img'], 'ds' => $vt['ds'], 'ldt' => $vt['ldt'], 'vals' => $vals, 'specs' => $vt['pairs'] );
-	}
-
 	// Table columns for the narrowed-down result list — same set the configure
 	// table would show (chosen columns, else every populated column), in order.
 	$cols = array();
@@ -191,6 +182,31 @@ function ricoman_pf_visual_config( $pid ) {
 			continue;
 		}
 		$cols[] = $label;
+	}
+
+	// Build the embedded variant set as small as possible: collapse rows that are
+	// identical across the configurator axes (the tap-through can't tell them
+	// apart), and carry only the spec columns the result panel actually shows —
+	// not every spec label. On big ranges this cut the JSON from megabytes to KB.
+	$vout = array();
+	$seen = array();
+	foreach ( $variants as $vt ) {
+		$vals = array();
+		foreach ( $axes as $ax ) {
+			$vals[ $ax['key'] ] = isset( $vt['pairs'][ $ax['label'] ] ) ? (string) $vt['pairs'][ $ax['label'] ] : '';
+		}
+		$sig = implode( '|', $vals );
+		if ( isset( $seen[ $sig ] ) ) {
+			continue;
+		}
+		$seen[ $sig ] = true;
+		$specs = array();
+		foreach ( $cols as $c ) {
+			if ( isset( $vt['pairs'][ $c ] ) && '' !== (string) $vt['pairs'][ $c ] ) {
+				$specs[ $c ] = $vt['pairs'][ $c ];
+			}
+		}
+		$vout[] = array( 'code' => $vt['code'], 'desc' => $vt['desc'], 'img' => $vt['img'], 'ds' => $vt['ds'], 'ldt' => $vt['ldt'], 'vals' => $vals, 'specs' => $specs );
 	}
 
 	$data = wp_json_encode( array( 'axes' => $axes, 'variants' => $vout, 'cols' => $cols ), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT );
