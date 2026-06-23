@@ -174,12 +174,73 @@ function ricoman_variant_csv_page() {
 					<input type="text" name="prefix" id="rm-link-prefix" class="regular-text" placeholder="Estrella Pro" required>
 				</p>
 				<p><button type="submit" class="button button-primary"><?php esc_html_e( 'Link matching variants', 'ricoman' ); ?></button></p>
-				<p class="description"><?php esc_html_e( 'Re-runnable and reversible (just link them somewhere else). Only published variant-product rows are matched.', 'ricoman' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Re-runnable and reversible (use Unlink below). Only published variant-product rows are matched.', 'ricoman' ); ?></p>
+			</form>
+		</div>
+
+		<div class="card" style="max-width:760px;padding:8px 20px 18px;margin-top:18px;border-left:4px solid #d63638">
+			<h2><?php esc_html_e( 'Unlink variants from a parent (undo a bad link)', 'ricoman' ); ?></h2>
+			<p><?php esc_html_e( 'Reverts a “Link variants to a parent” you didn’t mean. Pick the product you linked them to — every variant currently attached to it has its parent link cleared (back to unlinked). Optionally limit by a title prefix.', 'ricoman' ); ?></p>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" onsubmit="return confirm('<?php echo esc_js( __( 'Unlink all variants currently attached to this product?', 'ricoman' ) ); ?>');">
+				<input type="hidden" name="action" value="ricoman_variant_unlink_parent">
+				<?php wp_nonce_field( 'ricoman_variant_unlink_parent' ); ?>
+				<p>
+					<label for="rm-unlink-parent"><?php esc_html_e( 'Parent product they’re attached to:', 'ricoman' ); ?></label>
+					<select name="parent" id="rm-unlink-parent" required>
+						<option value=""><?php esc_html_e( '— select —', 'ricoman' ); ?></option>
+						<?php foreach ( $products as $prod_id ) : ?>
+							<option value="<?php echo esc_attr( $prod_id ); ?>"><?php echo esc_html( get_the_title( $prod_id ) ); ?></option>
+						<?php endforeach; ?>
+					</select>
+				</p>
+				<p>
+					<label for="rm-unlink-prefix"><?php esc_html_e( 'Only titles starting with (optional):', 'ricoman' ); ?></label>
+					<input type="text" name="prefix" id="rm-unlink-prefix" class="regular-text" placeholder="Estrella Pro">
+				</p>
+				<p><button type="submit" class="button"><?php esc_html_e( 'Unlink matching variants', 'ricoman' ); ?></button></p>
+				<p class="description"><?php esc_html_e( 'If a previous parent was backed up when you linked, unlinking restores it; otherwise the variant becomes unlinked (the prior state for migrated Estrella variants).', 'ricoman' ); ?></p>
 			</form>
 		</div>
 	</div>
 	<?php
 }
+
+add_action( 'admin_post_ricoman_variant_unlink_parent', function () {
+	if ( ! current_user_can( 'edit_posts' ) || ! check_admin_referer( 'ricoman_variant_unlink_parent' ) ) {
+		wp_die( esc_html__( 'You do not have permission to do this.', 'ricoman' ) );
+	}
+	$parent = isset( $_POST['parent'] ) ? absint( $_POST['parent'] ) : 0;
+	$prefix = isset( $_POST['prefix'] ) ? sanitize_text_field( wp_unslash( $_POST['prefix'] ) ) : '';
+	$n      = 0;
+	if ( $parent && post_type_exists( 'variant-product' ) ) {
+		global $wpdb;
+		$sql  = "SELECT p.ID FROM {$wpdb->posts} p INNER JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = 'parent_product' WHERE p.post_type = 'variant-product' AND m.meta_value = %s";
+		$args = array( (string) $parent );
+		if ( '' !== $prefix ) {
+			$sql   .= ' AND p.post_title LIKE %s';
+			$args[] = $wpdb->esc_like( $prefix ) . '%';
+		}
+		$ids = $wpdb->get_col( $wpdb->prepare( $sql, $args ) ); // phpcs:ignore WordPress.DB
+		foreach ( $ids as $vid ) {
+			$prev = get_post_meta( (int) $vid, '_parent_product_prev', true );
+			if ( '' !== (string) $prev ) {
+				update_post_meta( (int) $vid, 'parent_product', (string) $prev );
+			} else {
+				delete_post_meta( (int) $vid, 'parent_product' );
+			}
+			delete_post_meta( (int) $vid, '_parent_product_prev' );
+			$n++;
+		}
+		if ( function_exists( 'ricoman_products_ver' ) ) {
+			update_option( 'rm_products_ver', (string) time(), false );
+		}
+	}
+	wp_safe_redirect( add_query_arg(
+		array( 'rm_csv' => rawurlencode( sprintf( /* translators: %d count */ __( 'Unlinked %d variant(s).', 'ricoman' ), $n ) ) ),
+		admin_url( 'edit.php?post_type=variant-product&page=ricoman-variant-csv' )
+	) );
+	exit;
+} );
 
 add_action( 'admin_post_ricoman_variant_link_parent', function () {
 	if ( ! current_user_can( 'edit_posts' ) || ! check_admin_referer( 'ricoman_variant_link_parent' ) ) {
@@ -197,8 +258,13 @@ add_action( 'admin_post_ricoman_variant_link_parent', function () {
 			$like
 		) );
 		foreach ( $ids as $vid ) {
+			// Back up the previous parent so a link is reversible to its exact prior state.
+			update_post_meta( (int) $vid, '_parent_product_prev', (string) get_post_meta( (int) $vid, 'parent_product', true ) );
 			update_post_meta( (int) $vid, 'parent_product', (string) $parent );
 			$n++;
+		}
+		if ( function_exists( 'ricoman_products_ver' ) ) {
+			update_option( 'rm_products_ver', (string) time(), false );
 		}
 	}
 	wp_safe_redirect( add_query_arg(
