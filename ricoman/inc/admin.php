@@ -34,6 +34,7 @@ function ricoman_admin_links() {
 		'tracking'    => admin_url( 'admin.php?page=ricoman-tracking' ),
 		'pageseo'     => admin_url( 'admin.php?page=ricoman-page-seo' ),
 		'catseo'      => admin_url( 'admin.php?page=ricoman-category-seo' ),
+		'seoopt'      => admin_url( 'admin.php?page=ricoman-seo-optimiser' ),
 		// Catalogue & media tools.
 		'configimg'   => admin_url( 'admin.php?page=ricoman-config-images' ),
 		'catorder'    => admin_url( 'admin.php?page=ricoman-cat-order' ),
@@ -62,12 +63,13 @@ function ricoman_admin_status() {
 	};
 	$seo      = get_option( 'ricoman_seo', array() );
 	$tracking = (array) get_option( 'ricoman_tracking', array() );
+	$seo_link = ( function_exists( 'ricoman_seo_plugin_active' ) && ricoman_seo_plugin_active() ) ? $l['seoopt'] : $l['pageseo'];
 	return array(
 		'front'    => array( 'Homepage set as front page', 'page' === get_option( 'show_on_front' ) && get_option( 'page_on_front' ), $l['pages'] ),
 		'logo'     => array( 'Site logo uploaded', has_custom_logo(), admin_url( 'site-editor.php' ) ),
 		'perma'    => array( 'Pretty permalinks enabled', '' !== (string) get_option( 'permalink_structure' ), $l['permalinks'] ),
 		'seo'      => array( 'SEO details filled in', is_array( $seo ) && ! empty( array_filter( $seo ) ), $l['seo'] ),
-		'seoseed'  => array( 'Page titles & descriptions seeded', (bool) get_option( 'ricoman_seo_seeded_v1' ), $l['pageseo'] ),
+		'seoseed'  => array( 'Page titles & descriptions seeded', (bool) get_option( 'ricoman_seo_seeded_v1' ), $seo_link ),
 		'tracking' => array( 'Analytics / tracking installed', ! empty( array_filter( $tracking ) ), $l['tracking'] ),
 		'product'  => array( 'Products added', $count( 'product' ) > 0, $l['products'] ),
 		'project'  => array( 'Projects added', $count( 'project' ) > 0, $l['projects'] ),
@@ -163,8 +165,14 @@ function ricoman_render_hub() {
 			$tile( $l['tracking'], 'chart-area', __( 'Tracking & Scripts', 'ricoman' ), __( 'GA4, GTM, pixels, custom code', 'ricoman' ) );
 			$tile( $l['speed'], 'performance', __( 'SEO & Speed', 'ricoman' ), __( 'Scores + PageSpeed', 'ricoman' ) );
 			$tile( $l['seo'], 'search', __( 'SEO Settings', 'ricoman' ), __( 'Org, social, address, AI', 'ricoman' ) );
-			$tile( $l['pageseo'], 'media-text', __( 'Page SEO', 'ricoman' ), __( 'Titles & meta descriptions', 'ricoman' ) );
-			$tile( $l['catseo'], 'category', __( 'Category SEO', 'ricoman' ), __( 'Range landing-page copy', 'ricoman' ) );
+			// Page SEO / Category SEO screens are hidden when an SEO plugin (Yoast)
+			// owns SEO; in that case show the Yoast-aware SEO Optimiser instead.
+			if ( function_exists( 'ricoman_seo_plugin_active' ) && ricoman_seo_plugin_active() ) {
+				$tile( $l['seoopt'], 'media-text', __( 'SEO Optimiser', 'ricoman' ), __( 'Push optimised titles & meta into Yoast', 'ricoman' ) );
+			} else {
+				$tile( $l['pageseo'], 'media-text', __( 'Page SEO', 'ricoman' ), __( 'Titles & meta descriptions', 'ricoman' ) );
+				$tile( $l['catseo'], 'category', __( 'Category SEO', 'ricoman' ), __( 'Range landing-page copy', 'ricoman' ) );
+			}
 			?>
 		</div>
 

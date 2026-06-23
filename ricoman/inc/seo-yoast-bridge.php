@@ -235,27 +235,49 @@ function ricoman_seo_apply_to_yoast() {
 	return $written;
 }
 
-/** Hook the bulk apply onto the Page SEO screen (admin-post action). */
+/** Hook the bulk apply onto its own screen (admin-post action). */
 add_action( 'admin_post_ricoman_seo_apply_yoast', function () {
 	if ( ! current_user_can( 'manage_options' ) || ! isset( $_GET['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'ricoman_seo_apply_yoast' ) ) {
 		wp_die( esc_html__( 'Not allowed.', 'ricoman' ) );
 	}
 	$n = ricoman_seo_apply_to_yoast();
-	wp_safe_redirect( add_query_arg( array( 'page' => 'ricoman-page-seo', 'rm_yoast' => (int) $n ), admin_url( 'admin.php' ) ) );
+	wp_safe_redirect( add_query_arg( array( 'page' => 'ricoman-seo-optimiser', 'rm_yoast' => (int) $n ), admin_url( 'admin.php' ) ) );
 	exit;
 } );
 
-/** Notice + button on the Page SEO screen. */
-add_action( 'admin_notices', function () {
-	$screen = get_current_screen();
-	if ( ! $screen || 'ricoman_page_ricoman-page-seo' !== $screen->id ) {
+/**
+ * A dedicated "SEO Optimiser" screen under Ricoman. This is needed because the
+ * Page SEO screen is hidden when an SEO plugin (Yoast) is active — which is
+ * exactly when the bulk apply is useful.
+ */
+add_action( 'admin_menu', function () {
+	add_submenu_page(
+		'ricoman-hub',
+		__( 'SEO Optimiser', 'ricoman' ),
+		__( 'SEO Optimiser', 'ricoman' ),
+		'manage_options',
+		'ricoman-seo-optimiser',
+		'ricoman_seo_optimiser_page'
+	);
+}, 31 );
+
+function ricoman_seo_optimiser_page() {
+	if ( ! current_user_can( 'manage_options' ) ) {
 		return;
 	}
+	$yoast = ricoman_seo_plugin_active();
+	echo '<div class="wrap"><h1>' . esc_html__( 'SEO Optimiser', 'ricoman' ) . '</h1>';
 	if ( isset( $_GET['rm_yoast'] ) ) {
 		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html( sprintf( __( 'Optimised SEO written into Yoast — %d fields filled (empties only).', 'ricoman' ), (int) $_GET['rm_yoast'] ) ) . '</p></div>';
 	}
-	$url = wp_nonce_url( admin_url( 'admin-post.php?action=ricoman_seo_apply_yoast' ), 'ricoman_seo_apply_yoast' );
-	echo '<div class="notice notice-info"><p><strong>' . esc_html__( 'Yoast bridge:', 'ricoman' ) . '</strong> '
-		. esc_html__( 'optimised titles & descriptions are served to Yoast automatically (empties only). To also fill Yoast’s own fields so they show in the Yoast editor/snippet, click:', 'ricoman' )
-		. ' <a class="button button-primary" href="' . esc_url( $url ) . '">' . esc_html__( 'Apply optimised SEO to Yoast', 'ricoman' ) . '</a></p></div>';
-} );
+	echo '<p style="max-width:760px">' . esc_html__( 'The theme already serves keyword-optimised titles, meta descriptions and social tags to Yoast automatically — filling only fields you haven’t set yourself (your manual Yoast edits always win).', 'ricoman' ) . '</p>';
+	if ( $yoast ) {
+		echo '<p style="max-width:760px">' . esc_html__( 'Click below to ALSO write those optimised titles & descriptions into Yoast’s own fields for every product, project, page, news post and product category (empties only) — so they show in the Yoast editor and the Google snippet preview.', 'ricoman' ) . '</p>';
+		$url = wp_nonce_url( admin_url( 'admin-post.php?action=ricoman_seo_apply_yoast' ), 'ricoman_seo_apply_yoast' );
+		echo '<p><a class="button button-primary button-hero" href="' . esc_url( $url ) . '">' . esc_html__( 'Apply optimised SEO to Yoast', 'ricoman' ) . '</a></p>';
+		echo '<p class="description">' . esc_html__( 'Safe to run repeatedly — it never overwrites a title or description you have already set in Yoast.', 'ricoman' ) . '</p>';
+	} else {
+		echo '<p>' . esc_html__( 'No SEO plugin is active, so the theme handles SEO output directly — nothing to apply. (This tool writes into Yoast’s fields and only matters when Yoast is active.)', 'ricoman' ) . '</p>';
+	}
+	echo '</div>';
+}
