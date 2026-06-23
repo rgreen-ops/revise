@@ -369,8 +369,16 @@ From Marketing's email for the new website. Status of each request:
   swaps the table for `ricoman_pf_visual_config()` when on (falls back to the table
   if there's nothing to configure).
 - Option tiles auto-use each option's representative variant image where the image
-  varies by that axis (Finish/Model); text tiles otherwise. Per-option custom
-  images can be added later (TODO if wanted).
+  varies by that axis (Finish/Model); text tiles otherwise.
+- **Per-option tile images (`inc/configurator-images.php`)** — DONE: deliberate
+  image per option value, resolved per-product → master → variant photo
+  (`ricoman_config_option_image()`). A **per-product** "Configurator option images"
+  metabox auto-lists the product's axis values (family-aware, cached) each with a
+  WP media picker (saved to `_ricoman_config_opt_images`); a **master** page
+  (Ricoman → Configurator Images) maps axis|value → image globally (option
+  `rm_config_opt_images`). Setting any image forces that axis to render image
+  tiles. Master saves bump `rm_cfgimg_ver` (in the section-cache key) to refresh
+  all products without thrashing the cache.
 
 ## Constraints
 - Develop/push only to the branch above; never create PRs unless asked.

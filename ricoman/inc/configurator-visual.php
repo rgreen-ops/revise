@@ -139,14 +139,19 @@ function ricoman_pf_visual_config( $pid ) {
 		$vals = array_keys( $dist[ $label ] );
 		natcasesort( $vals );
 		$vals = array_values( $vals );
-		$imgs = array();
-		$set  = array();
+		$imgs     = array();
+		$set      = array();
+		$explicit = false; // any deliberately-set option image (master / per-product)?
 		foreach ( $vals as $v ) {
-			$rep = '';
-			foreach ( $variants as $vt ) {
-				if ( isset( $vt['pairs'][ $label ] ) && (string) $vt['pairs'][ $label ] === $v && $vt['img'] ) {
-					$rep = $vt['img'];
-					break;
+			$rep = function_exists( 'ricoman_config_option_image' ) ? ricoman_config_option_image( $label, $v, $pid ) : '';
+			if ( $rep ) {
+				$explicit = true;
+			} else {
+				foreach ( $variants as $vt ) {
+					if ( isset( $vt['pairs'][ $label ] ) && (string) $vt['pairs'][ $label ] === $v && $vt['img'] ) {
+						$rep = $vt['img'];
+						break;
+					}
 				}
 			}
 			$imgs[ $v ] = $rep;
@@ -154,7 +159,8 @@ function ricoman_pf_visual_config( $pid ) {
 				$set[ $rep ] = true;
 			}
 		}
-		$image_based = count( $set ) > 1; // images differ across this axis = worth showing.
+		// Show image tiles when a deliberate image is set, or the photos differ.
+		$image_based = $explicit || count( $set ) > 1;
 		$opts        = array();
 		foreach ( $vals as $v ) {
 			$opts[] = array( 'v' => $v, 'img' => $image_based ? $imgs[ $v ] : '' );
