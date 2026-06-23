@@ -47,7 +47,6 @@ function ricoman_lead_crm_fields() {
 		'_lead_location'  => array( 'label' => __( 'Location', 'ricoman' ),       'type' => 'text', 'auto' => true ),
 		'_lead_rep'       => array( 'label' => __( 'Sales rep', 'ricoman' ),      'type' => 'text', 'auto' => false ),
 		'_lead_is_new'    => array( 'label' => __( 'New lead', 'ricoman' ),       'type' => 'bool', 'auto' => true ),
-		'_lead_new_dl'    => array( 'label' => __( 'New download', 'ricoman' ),   'type' => 'bool', 'auto' => true ),
 		'_lead_pipedrive' => array( 'label' => __( 'On Pipedrive', 'ricoman' ),   'type' => 'bool', 'auto' => false ),
 		'_lead_comment'   => array( 'label' => __( 'Comment', 'ricoman' ),        'type' => 'text', 'auto' => false ),
 	);
@@ -64,9 +63,9 @@ function ricoman_lead_autofill_crm( $data, $lead_id ) {
 		return;
 	}
 	$email = (string) get_post_meta( $lead_id, '_lead_email', true );
-	$type  = (string) get_post_meta( $lead_id, '_lead_type', true );
 
-	// New lead? = no earlier lead shares this email. (No email → treat as new.)
+	// New lead? = we've not seen this customer (email) before in our list — i.e.
+	// they've never enquired or downloaded with us. (No email → treat as new.)
 	$is_new = true;
 	if ( '' !== $email ) {
 		$prev = get_posts( array(
@@ -81,28 +80,6 @@ function ricoman_lead_autofill_crm( $data, $lead_id ) {
 		$is_new = empty( $prev );
 	}
 	update_post_meta( $lead_id, '_lead_is_new', $is_new ? '1' : '0' );
-
-	// New download customer? = a Download lead whose email we've not gated before.
-	if ( 0 === strcasecmp( $type, 'Download' ) ) {
-		$new_dl = true;
-		if ( '' !== $email ) {
-			$prev_dl = get_posts( array(
-				'post_type'      => 'lead',
-				'post_status'    => 'any',
-				'posts_per_page' => 1,
-				'fields'         => 'ids',
-				'no_found_rows'  => true,
-				'post__not_in'   => array( (int) $lead_id ),
-				'meta_query'     => array(
-					'relation' => 'AND',
-					array( 'key' => '_lead_email', 'value' => $email ),
-					array( 'key' => '_lead_type', 'value' => 'Download' ),
-				),
-			) );
-			$new_dl = empty( $prev_dl );
-		}
-		update_post_meta( $lead_id, '_lead_new_dl', $new_dl ? '1' : '0' );
-	}
 
 	// Location — best effort, editable. Uses the Cloudflare country header when the
 	// site is behind Cloudflare (zero-dependency); a filter can supply richer geo.
@@ -153,7 +130,6 @@ add_filter( 'manage_lead_posts_columns', function ( $cols ) {
 		'rm_rep'       => __( 'Sales rep', 'ricoman' ),
 		'rm_source'    => __( 'Source', 'ricoman' ),
 		'rm_new'       => __( 'New lead', 'ricoman' ),
-		'rm_newdl'     => __( 'New download', 'ricoman' ),
 		'rm_pipedrive' => __( 'Pipedrive', 'ricoman' ),
 		'rm_status'    => __( 'Status', 'ricoman' ),
 		'rm_comment'   => __( 'Comment', 'ricoman' ),
@@ -205,9 +181,6 @@ add_action( 'manage_lead_posts_custom_column', function ( $col, $post_id ) {
 			break;
 		case 'rm_new':
 			ricoman_lead_field_control( $post_id, '_lead_is_new' );
-			break;
-		case 'rm_newdl':
-			ricoman_lead_field_control( $post_id, '_lead_new_dl' );
 			break;
 		case 'rm_pipedrive':
 			ricoman_lead_field_control( $post_id, '_lead_pipedrive' );
@@ -404,7 +377,6 @@ add_action( 'restrict_manage_posts', function ( $post_type ) {
 	// Yes/no flags.
 	foreach ( array(
 		'rm_fnew'       => __( 'New lead?', 'ricoman' ),
-		'rm_fnewdl'     => __( 'New download?', 'ricoman' ),
 		'rm_fpipedrive' => __( 'On Pipedrive?', 'ricoman' ),
 	) as $param => $all ) {
 		$cv = isset( $_GET[ $param ] ) ? sanitize_key( $_GET[ $param ] ) : '';
@@ -437,7 +409,7 @@ add_action( 'pre_get_posts', function ( $q ) {
 			$meta[] = array( 'key' => $key, 'value' => sanitize_text_field( wp_unslash( $_GET[ $param ] ) ) );
 		}
 	}
-	foreach ( array( 'rm_fnew' => '_lead_is_new', 'rm_fnewdl' => '_lead_new_dl', 'rm_fpipedrive' => '_lead_pipedrive' ) as $param => $key ) {
+	foreach ( array( 'rm_fnew' => '_lead_is_new', 'rm_fpipedrive' => '_lead_pipedrive' ) as $param => $key ) {
 		if ( isset( $_GET[ $param ] ) && '' !== $_GET[ $param ] ) {
 			if ( '1' === sanitize_key( $_GET[ $param ] ) ) {
 				$meta[] = array( 'key' => $key, 'value' => '1' );
@@ -816,7 +788,7 @@ add_action( 'admin_post_ricoman_leads_export', function () {
 	fwrite( $out, "\xEF\xBB\xBF" ); // UTF-8 BOM so Excel shows accents correctly.
 	// "ID" first so an edited file can be re-imported (matched on ID). The CRM
 	// columns after Status round-trip through Import CSV.
-	fputcsv( $out, array( 'ID', 'Received', 'Name', 'Email', 'Customer type', 'Lead type', 'Product / company', 'Source', 'UTM', 'Status', 'Location', 'Sales rep', 'New lead', 'New download', 'On Pipedrive', 'Comment', 'Page' ) );
+	fputcsv( $out, array( 'ID', 'Received', 'Name', 'Email', 'Customer type', 'Lead type', 'Product / company', 'Source', 'UTM', 'Status', 'Location', 'Sales rep', 'New lead', 'On Pipedrive', 'Comment', 'Page' ) );
 	$yn = function ( $v ) { return '1' === (string) $v ? 'Yes' : 'No'; };
 	foreach ( $q->posts as $p ) {
 		$g  = function ( $k ) use ( $p ) { return (string) get_post_meta( $p->ID, $k, true ); };
@@ -835,7 +807,6 @@ add_action( 'admin_post_ricoman_leads_export', function () {
 			$g( '_lead_location' ),
 			$g( '_lead_rep' ),
 			$yn( $g( '_lead_is_new' ) ),
-			$yn( $g( '_lead_new_dl' ) ),
 			$yn( $g( '_lead_pipedrive' ) ),
 			$g( '_lead_comment' ),
 			$g( '_lead_page' ),
@@ -861,8 +832,8 @@ add_action( 'admin_notices', function () {
 
 /**
  * Handle the uploaded CSV: match each row on its ID column and update the
- * editable CRM fields (Status, Location, Sales rep, New lead, New download, On
- * Pipedrive, Comment). Captured fields (name/email/source…) are left untouched.
+ * editable CRM fields (Status, Location, Sales rep, New lead, On Pipedrive,
+ * Comment). Captured fields (name/email/source…) are left untouched.
  */
 add_action( 'admin_post_ricoman_leads_import', function () {
 	$back = admin_url( 'edit.php?post_type=lead' );
@@ -933,7 +904,6 @@ add_action( 'admin_post_ricoman_leads_import', function () {
 		}
 		foreach ( array(
 			'new lead'     => '_lead_is_new',
-			'new download' => '_lead_new_dl',
 			'on pipedrive' => '_lead_pipedrive',
 		) as $col => $key ) {
 			$v = $cell( $row, $col );
