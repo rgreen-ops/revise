@@ -645,7 +645,7 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-mega-col ul a:hover{color:var(--ink)!important}
 .rm-mega-col ul.rm-mega-coll a{display:flex;flex-direction:column;gap:2px}
 .rm-mega-name{font-weight:500;color:var(--ink)!important}
-.rm-mega-sub{font-size:.76rem;color:#9a9a9a!important}
+.rm-mega-sub{font-size:.76rem;color:#67665f!important}
 .rm-mega-cards{display:flex;flex-direction:column;gap:14px}
 .rm-mega-card{position:relative;display:flex;flex-direction:column;justify-content:flex-end;min-height:130px;border-radius:12px;overflow:hidden;background:#2a2a2a center/cover no-repeat;padding:16px 18px;color:#fff!important;text-transform:none;letter-spacing:0}
 .rm-mega-card::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.55))}
