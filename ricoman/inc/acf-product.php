@@ -1333,7 +1333,7 @@ function ricoman_pf_sections( $pid ) {
 	// 'm3' = markup version; bump to invalidate cached sections when section HTML
 	// changes. (Variant thumbnails use native loading="lazy"; the optimiser, not
 	// the theme, was the speed problem.)
-	$tkey      = 'rm_pfsec_m7_' . $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true );
+	$tkey      = 'rm_pfsec_m8_' . $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true );
 	if ( $cacheable ) {
 		$pre = get_transient( $tkey );
 		if ( is_array( $pre ) ) {
@@ -1433,6 +1433,7 @@ function ricoman_pf_sections( $pid ) {
 	}
 	// BIM / Revit is a made-to-request file (built by the lighting team on demand),
 	// so it's a request link on every product — not a direct download.
+	$dl = apply_filters( 'ricoman_pf_downloads_html', $dl, $pid );
 	$dl .= '<a class="rm-bim-req" href="#" data-product="' . esc_attr( $title ) . '"><span class="rm-dl-lbl">' . esc_html__( 'BIM / Revit', 'ricoman' ) . '</span> <span class="rm-dl-sub">' . esc_html__( '(RFA) · request', 'ricoman' ) . '</span></a>';
 	$downloads = '<div class="rm-prod-downloads"><div class="rm-dls">' . $dl . '</div></div>';
 
@@ -1566,10 +1567,14 @@ function ricoman_pf_sections( $pid ) {
 
 	$cta = '<div class="wp-block-cover alignfull has-base-color has-text-color" style="min-height:46vh"><span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-70 has-background-dim"></span><img class="wp-block-cover__image-background" alt="" src="' . esc_url( get_theme_file_uri( 'assets/images/office1.webp' ) ) . '" data-object-fit="cover"/><div class="wp-block-cover__inner-container"><h2 class="wp-block-heading has-text-align-center" style="text-align:center">Specify this product</h2><p class="has-text-align-center" style="text-align:center">Add it to your project or request a free lighting scheme.</p><div class="wp-block-buttons is-content-justification-center" style="display:flex;justify-content:center;gap:10px"><a class="btn btn-line" href="' . $enq . '">Add to My Project</a> <a class="btn btn-solid" href="' . esc_url( $ldu ) . '">' . esc_html( $ld ) . '</a></div></div></div>';
 
+	// Range hub content (Estrella) — brochure-derived sections; empty otherwise.
+	$range_sec = function_exists( 'ricoman_estrella_range_section' ) ? ricoman_estrella_range_section( $pid ) : '';
+
 	$cache[ $pid ] = array(
 		'hero'        => $hero_html,
 		'specs'       => $acc_sec,
 		'configure'   => $var_sec,
+		'range'       => $range_sec,
 		'accessories' => $acc_block,
 		'related'     => $related,
 		'faq'         => $faq_sec,
@@ -1655,7 +1660,7 @@ add_shortcode( 'ricoman_product_page', function () {
 	}
 	// Fallback: read ACF/meta fields directly, assembled from the section map.
 	$s = ricoman_pf_sections( $pid );
-	return $s['hero'] . $s['specs'] . $s['configure'] . $s['accessories'] . $s['related'] . ( isset( $s['faq'] ) ? $s['faq'] : '' ) . $s['cta'];
+	return $s['hero'] . $s['specs'] . $s['configure'] . ( isset( $s['range'] ) ? $s['range'] : '' ) . $s['accessories'] . $s['related'] . ( isset( $s['faq'] ) ? $s['faq'] : '' ) . $s['cta'];
 } );
 
 /* When a product has no block content (the ACF products), render the field page. */

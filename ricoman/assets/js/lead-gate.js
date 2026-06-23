@@ -113,7 +113,7 @@
 		if ( href.charAt( 0 ) === '#' || /^(mailto:|tel:|javascript:)/i.test( href ) ) { return false; }
 		if ( a.hasAttribute( 'download' ) ) { return true; }
 		if ( EXT.test( href ) ) { return true; }
-		if ( /[?&](datasheet|rm_pack|download)=/i.test( href ) ) { return true; }
+		if ( /[?&](datasheet|rm_pack|rm_ldtzip|download)=/i.test( href ) ) { return true; }
 		// Inside a known downloads area.
 		return !! a.closest( '.rm-dls, .rm-prod-downloads, .rm-acc-dl, .vt-dl, .rm-cfg-dl' );
 	}
