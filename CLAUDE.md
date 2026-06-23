@@ -357,6 +357,19 @@ From Marketing's email for the new website. Status of each request:
   finalisation"** button (OPcache + permalinks + product caches + page/category
   SEO seeders + footer links). Safe/idempotent; fills empties, deletes nothing.
 
+## Control Center (inc/admin.php)
+- Ricoman → Control Center is the back-office hub. Top card is a **"Things to do"**
+  launch checklist + progress bar (`ricoman_admin_status()` returns
+  `key => [label, done, fix-link]`): homepage front page, logo, pretty permalinks,
+  SEO details, Page SEO seeded (`ricoman_seo_seeded_v1`), analytics/tracking
+  installed (`ricoman_tracking` option non-empty), products + projects added.
+  Mirrored in the dashboard widget.
+- Tool tiles are grouped Content / Design / **Growth & marketing** (Leads,
+  Tracking & Scripts, SEO & Speed, SEO Settings, Page SEO, Category SEO) /
+  **Catalogue & media** (Configurator Images, Reorder Categories/Products, Image
+  Alt Text, Media Cleanup, RICOBOT) / **Launch** (Links & Redirects, Content
+  Transporter, Go Live, Push to Live). New links live in `ricoman_admin_links()`.
+
 ## Visual configurator (built — inc/configurator-visual.php)
 - A tap-through alternative to the variant table (like unios.com/configurator):
   each spec axis (Type/Model/Colour Temp/Wattage/Finish/Beam…) is a row of option

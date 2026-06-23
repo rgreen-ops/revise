@@ -30,23 +30,47 @@ function ricoman_admin_links() {
 		'ricobot'     => admin_url( 'options-general.php?page=ricoman-ricobot' ),
 		'leads'       => admin_url( 'edit.php?post_type=lead' ),
 		'transporter' => admin_url( 'tools.php?page=ricoman-transporter' ),
+		// Marketing / growth tools.
+		'tracking'    => admin_url( 'admin.php?page=ricoman-tracking' ),
+		'pageseo'     => admin_url( 'admin.php?page=ricoman-page-seo' ),
+		'catseo'      => admin_url( 'admin.php?page=ricoman-category-seo' ),
+		// Catalogue & media tools.
+		'configimg'   => admin_url( 'admin.php?page=ricoman-config-images' ),
+		'catorder'    => admin_url( 'admin.php?page=ricoman-cat-order' ),
+		'prodorder'   => admin_url( 'admin.php?page=ricoman-product-order' ),
+		'imagealt'    => admin_url( 'admin.php?page=ricoman-image-alt' ),
+		'pullimages'  => admin_url( 'admin.php?page=ricoman-pull-images' ),
+		'mediaclean'  => admin_url( 'admin.php?page=ricoman-media-cleanup' ),
+		// Launch tools.
+		'redirects'   => admin_url( 'admin.php?page=ricoman-redirects' ),
+		'golive'      => admin_url( 'admin.php?page=ricoman-go-live' ),
+		'pushlive'    => admin_url( 'admin.php?page=ricoman-push-live' ),
+		'permalinks'  => admin_url( 'options-permalink.php' ),
 		'view'        => home_url( '/' ),
 	);
 }
 
+/**
+ * The "Things to do" launch checklist: key => [ label, done(bool), fix-link ].
+ * Drives the progress bar at the top of the Control Center + the dashboard widget.
+ */
 function ricoman_admin_status() {
+	$l     = ricoman_admin_links();
 	$count = function ( $type ) {
 		$c = wp_count_posts( $type );
 		return $c && isset( $c->publish ) ? (int) $c->publish : 0;
 	};
-	$seo = get_option( 'ricoman_seo', array() );
+	$seo      = get_option( 'ricoman_seo', array() );
+	$tracking = (array) get_option( 'ricoman_tracking', array() );
 	return array(
-		'front'   => array( 'Homepage set as front page', 'page' === get_option( 'show_on_front' ) && get_option( 'page_on_front' ) ),
-		'logo'    => array( 'Site logo uploaded', has_custom_logo() ),
-		'seo'     => array( 'SEO details filled in', is_array( $seo ) && ! empty( array_filter( $seo ) ) ),
-		'ricobot' => array( 'RICOBOT connected (live product data)', function_exists( 'ricoman_ricobot_ready' ) && ricoman_ricobot_ready() ),
-		'product' => array( 'Products added', $count( 'product' ) > 0 ),
-		'project' => array( 'Projects added', $count( 'project' ) > 0 ),
+		'front'    => array( 'Homepage set as front page', 'page' === get_option( 'show_on_front' ) && get_option( 'page_on_front' ), $l['pages'] ),
+		'logo'     => array( 'Site logo uploaded', has_custom_logo(), admin_url( 'site-editor.php' ) ),
+		'perma'    => array( 'Pretty permalinks enabled', '' !== (string) get_option( 'permalink_structure' ), $l['permalinks'] ),
+		'seo'      => array( 'SEO details filled in', is_array( $seo ) && ! empty( array_filter( $seo ) ), $l['seo'] ),
+		'seoseed'  => array( 'Page titles & descriptions seeded', (bool) get_option( 'ricoman_seo_seeded_v1' ), $l['pageseo'] ),
+		'tracking' => array( 'Analytics / tracking installed', ! empty( array_filter( $tracking ) ), $l['tracking'] ),
+		'product'  => array( 'Products added', $count( 'product' ) > 0, $l['products'] ),
+		'project'  => array( 'Projects added', $count( 'project' ) > 0, $l['projects'] ),
 	);
 }
 
@@ -95,17 +119,18 @@ function ricoman_render_hub() {
 
 		<div class="rm-card rm-setup">
 			<div class="rm-setup-head">
-				<h2><?php esc_html_e( 'Setup checklist', 'ricoman' ); ?></h2>
-				<span class="rm-progress"><?php echo esc_html( $done . ' / ' . $total ); ?> <?php esc_html_e( 'complete', 'ricoman' ); ?></span>
+				<h2>✅ <?php esc_html_e( 'Things to do', 'ricoman' ); ?></h2>
+				<span class="rm-progress"><?php echo esc_html( $done . ' / ' . $total ); ?> <?php esc_html_e( 'set up', 'ricoman' ); ?></span>
 			</div>
 			<div class="rm-bar"><span style="width:<?php echo esc_attr( $total ? round( $done / $total * 100 ) : 0 ); ?>%"></span></div>
+			<p class="rm-setup-note"><?php echo $done >= $total ? esc_html__( 'All set — staging is ready. Use Go Live when you’re ready to launch.', 'ricoman' ) : esc_html( sprintf( __( '%d still to set up before launch.', 'ricoman' ), $total - $done ) ); ?></p>
 			<ul class="rm-check">
 				<?php foreach ( $status as $key => $s ) : ?>
 					<li class="<?php echo $s[1] ? 'ok' : 'todo'; ?>">
 						<span class="dashicons dashicons-<?php echo $s[1] ? 'yes-alt' : 'marker'; ?>"></span>
 						<?php echo esc_html( $s[0] ); ?>
-						<?php if ( ! $s[1] ) : ?>
-							<a href="<?php echo esc_url( 'ricobot' === $key ? $l['ricobot'] : ( 'seo' === $key ? $l['seo'] : ( 'logo' === $key ? admin_url( 'site-editor.php' ) : $l['pages'] ) ) ); ?>"><?php esc_html_e( 'Fix →', 'ricoman' ); ?></a>
+						<?php if ( ! $s[1] && ! empty( $s[2] ) ) : ?>
+							<a href="<?php echo esc_url( $s[2] ); ?>"><?php esc_html_e( 'Set up →', 'ricoman' ); ?></a>
 						<?php endif; ?>
 					</li>
 				<?php endforeach; ?>
@@ -131,14 +156,37 @@ function ricoman_render_hub() {
 			?>
 		</div>
 
-		<h2 class="rm-h2"><?php esc_html_e( 'Growth', 'ricoman' ); ?></h2>
+		<h2 class="rm-h2"><?php esc_html_e( 'Growth & marketing', 'ricoman' ); ?></h2>
 		<div class="rm-grid">
 			<?php
+			$tile( $l['leads'], 'email', __( 'Leads', 'ricoman' ), __( 'Enquiries & CRM', 'ricoman' ) );
+			$tile( $l['tracking'], 'chart-area', __( 'Tracking & Scripts', 'ricoman' ), __( 'GA4, GTM, pixels, custom code', 'ricoman' ) );
 			$tile( $l['speed'], 'performance', __( 'SEO & Speed', 'ricoman' ), __( 'Scores + PageSpeed', 'ricoman' ) );
 			$tile( $l['seo'], 'search', __( 'SEO Settings', 'ricoman' ), __( 'Org, social, address, AI', 'ricoman' ) );
+			$tile( $l['pageseo'], 'media-text', __( 'Page SEO', 'ricoman' ), __( 'Titles & meta descriptions', 'ricoman' ) );
+			$tile( $l['catseo'], 'category', __( 'Category SEO', 'ricoman' ), __( 'Range landing-page copy', 'ricoman' ) );
+			?>
+		</div>
+
+		<h2 class="rm-h2"><?php esc_html_e( 'Catalogue & media', 'ricoman' ); ?></h2>
+		<div class="rm-grid">
+			<?php
+			$tile( $l['configimg'], 'images-alt2', __( 'Configurator Images', 'ricoman' ), __( 'Master option-tile images', 'ricoman' ) );
+			$tile( $l['catorder'], 'sort', __( 'Reorder Categories', 'ricoman' ), __( 'Menu & grid order', 'ricoman' ) );
+			$tile( $l['prodorder'], 'sort', __( 'Reorder Products', 'ricoman' ), __( 'Order within a category', 'ricoman' ) );
+			$tile( $l['imagealt'], 'universal-access-alt', __( 'Image Alt Text', 'ricoman' ), __( 'SEO / accessibility backfill', 'ricoman' ) );
+			$tile( $l['mediaclean'], 'admin-media', __( 'Media Cleanup', 'ricoman' ), __( 'Remove duplicate images', 'ricoman' ) );
 			$tile( $l['ricobot'], 'rest-api', __( 'RICOBOT', 'ricoman' ), __( 'Live product data API', 'ricoman' ) );
-			$tile( $l['leads'], 'email', __( 'Leads', 'ricoman' ), __( 'My Project enquiries', 'ricoman' ) );
+			?>
+		</div>
+
+		<h2 class="rm-h2"><?php esc_html_e( 'Launch', 'ricoman' ); ?></h2>
+		<div class="rm-grid">
+			<?php
+			$tile( $l['redirects'], 'randomize', __( 'Links & Redirects', 'ricoman' ), __( 'Old-URL 301 map', 'ricoman' ) );
 			$tile( $l['transporter'], 'migrate', __( 'Content Transporter', 'ricoman' ), __( 'Import / convert content', 'ricoman' ) );
+			$tile( $l['golive'], 'flag', __( 'Go Live', 'ricoman' ), __( 'Pre-flight & launch finalise', 'ricoman' ) );
+			$tile( $l['pushlive'], 'superhero', __( 'Push to Live', 'ricoman' ), __( 'Deploy theme code to live', 'ricoman' ) );
 			?>
 		</div>
 	</div>
@@ -163,6 +211,7 @@ add_action( 'admin_head', function () {
 		.rm-setup-head { display:flex; align-items:center; justify-content:space-between; }
 		.rm-setup h2 { margin:0; font-size:16px; }
 		.rm-progress { font-weight:600; color:#1d4ed8; }
+		.rm-setup-note { margin:0 0 14px; color:#555; font-size:13px; }
 		.rm-bar { height:8px; background:#eef0f2; border-radius:99px; overflow:hidden; margin:14px 0 18px; }
 		.rm-bar span { display:block; height:100%; background:linear-gradient(90deg,#16335c,#1d4ed8); border-radius:99px; transition:width .4s; }
 		.rm-check { margin:0; display:grid; grid-template-columns:repeat(2,1fr); gap:10px 28px; }
@@ -205,15 +254,15 @@ function ricoman_dashboard_widget() {
 	$status = ricoman_admin_status();
 	$done   = count( array_filter( $status, function ( $s ) { return $s[1]; } ) );
 	$total  = count( $status );
-	echo '<p style="margin-top:0">' . esc_html__( 'Setup', 'ricoman' ) . ': <strong>' . esc_html( $done . '/' . $total ) . '</strong> ' . esc_html__( 'complete.', 'ricoman' ) . '</p>';
+	echo '<p style="margin-top:0">' . esc_html__( 'Things to do', 'ricoman' ) . ': <strong>' . esc_html( $done . '/' . $total ) . '</strong> ' . esc_html__( 'set up.', 'ricoman' ) . '</p>';
 	echo '<p>';
 	$btn = function ( $href, $label ) {
 		echo '<a class="button" style="margin:0 6px 6px 0" href="' . esc_url( $href ) . '">' . esc_html( $label ) . '</a>';
 	};
 	$btn( admin_url( 'admin.php?page=ricoman-hub' ), __( 'Control Center', 'ricoman' ) );
 	$btn( $l['home'], __( 'Edit Homepage', 'ricoman' ) );
+	$btn( $l['tracking'], __( 'Tracking & Scripts', 'ricoman' ) );
 	$btn( $l['speed'], __( 'SEO & Speed', 'ricoman' ) );
-	$btn( $l['ricobot'], __( 'RICOBOT', 'ricoman' ) );
 	echo '</p>';
 }
 
