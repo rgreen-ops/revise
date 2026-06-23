@@ -424,7 +424,7 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 
 	$out  = '<div class="rm-pp-wrap rm-catarch">';
 	$out .= '<div class="rm-pp-crumb">' . $crumb . '</div>';
-	$out .= '<h1 class="rm-catarch-title">' . esc_html( $title ) . ' <span class="rm-catarch-count">' . (int) $total . '</span></h1>';
+	$out .= '<h1 class="rm-catarch-title">' . esc_html( $title ) . ' <span class="rm-catarch-count" aria-hidden="true">' . (int) $total . '</span></h1>';
 	$out .= $seo_intro;
 	$out .= '<div class="rm-catgrid-wrap"><aside class="rm-facets">'
 		. ( $lmslider || $wslider || $coslider || $ticks ? '<p class="rm-facets-head">Filter</p>' : '' )

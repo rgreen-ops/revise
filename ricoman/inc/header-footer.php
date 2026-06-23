@@ -31,6 +31,39 @@ add_filter( 'the_content', function ( $html ) {
 	return $html;
 }, 9 );
 
+/**
+ * SEO/A11y: normalise heading levels in rendered singular content so no level is
+ * skipped (e.g. a legal page that jumps H1 → H5). Headings don't nest, so we walk
+ * them in order, demoting any heading that skips more than one level below the
+ * previous one. The H1 is never touched (it stays the single page H1), so this
+ * can only fix skips, never remove the H1 or make the outline worse. Runs at
+ * priority 12 — after the product renderer (11) — so it also tidies product
+ * pages. Filterable off via ricoman_normalise_headings.
+ */
+add_filter( 'the_content', function ( $html ) {
+	if ( is_admin() || ! is_singular() || ! in_the_loop() || ! is_main_query() ) {
+		return $html;
+	}
+	if ( ! is_string( $html ) || ! preg_match( '/<h[2-6]\b/i', $html ) || ! apply_filters( 'ricoman_normalise_headings', true ) ) {
+		return $html;
+	}
+	$prev  = 1; // the page H1.
+	$stack = array();
+	return preg_replace_callback( '#<(/?)h([1-6])(\b[^>]*)>#i', function ( $m ) use ( &$prev, &$stack ) {
+		if ( '/' === $m[1] ) {
+			$lvl = $stack ? array_pop( $stack ) : (int) $m[2];
+			return '</h' . $lvl . '>';
+		}
+		$lvl = (int) $m[2];
+		if ( 1 !== $lvl && $lvl > $prev + 1 ) {
+			$lvl = $prev + 1; // fill the skipped level.
+		}
+		$prev    = $lvl;
+		$stack[] = $lvl;
+		return '<h' . $lvl . $m[3] . '>';
+	}, $html );
+}, 12 );
+
 /** Render a list of "Label | url" lines as <li><a>…</a></li>. */
 function ricoman_render_links( $key ) {
 	$out = '';
