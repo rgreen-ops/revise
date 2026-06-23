@@ -258,6 +258,14 @@ function ricoman_news_card( $pid, $featured = false ) {
 /** Master / listing grid — featured lead + card grid. [ricoman_news_grid count="24"] */
 add_shortcode( 'ricoman_news_grid', function ( $atts ) {
 	$atts = shortcode_atts( array( 'count' => 24, 'featured' => '1' ), $atts, 'ricoman_news_grid' );
+	// Cache the rendered grid (24 cards × image/topic lookups). Keyed to a news
+	// version bumped on any news edit; the client-side search/topic filter runs
+	// over the cached DOM, so caching is safe. 6h TTL backstop.
+	$ckey = 'rm_newsgrid_' . md5( (string) wp_json_encode( $atts ) ) . '_' . get_option( 'rm_news_ver', '1' );
+	$pre  = get_transient( $ckey );
+	if ( is_string( $pre ) && '' !== $pre ) {
+		return $pre;
+	}
 	$q    = new WP_Query( array(
 		'post_type'      => 'news',
 		'post_status'    => 'publish',
@@ -306,7 +314,19 @@ add_shortcode( 'ricoman_news_grid', function ( $atts ) {
 		$out .= '</div>';
 	}
 	$out .= '<p class="rm-newsnone" hidden>No articles match your search. <button type="button" class="rm-newsreset">Clear</button></p>';
-	return $out . '</div>';
+	$html = $out . '</div>';
+	set_transient( $ckey, $html, 6 * HOUR_IN_SECONDS );
+	return $html;
+} );
+
+/** Bump the news-grid cache version whenever a news article changes. */
+add_action( 'save_post_news', function () {
+	update_option( 'rm_news_ver', (string) time(), false );
+} );
+add_action( 'deleted_post', function ( $pid ) {
+	if ( 'news' === get_post_type( $pid ) ) {
+		update_option( 'rm_news_ver', (string) time(), false );
+	}
 } );
 
 /**

@@ -632,6 +632,14 @@ function ricoman_brochure_list() {
  * it always reflects what's actually on the server — no stale block content.
  */
 function ricoman_downloads_page_html() {
+	// The brochure lookups + bulk LDT/Revit counts scan the whole catalogue, so
+	// cache the (static, non-personalised) page HTML. Keyed to the catalogue
+	// version so it refreshes when products/files change; 12h TTL backstop.
+	$ckey = 'rm_downloads_html_' . ( function_exists( 'ricoman_products_ver' ) ? ricoman_products_ver() : '1' );
+	$pre  = get_transient( $ckey );
+	if ( is_string( $pre ) && '' !== $pre ) {
+		return $pre;
+	}
 	$cards = '';
 	foreach ( ricoman_brochure_list() as $b ) {
 		list( $title, $desc, $kw ) = $b;
@@ -679,12 +687,14 @@ function ricoman_downloads_page_html() {
 
 	// alignfull lets the theme widen this out of the narrow content column the
 	// correct way (works with the global zoom; a 100vw hack does not).
-	return '<div class="rm-dlpage alignfull"><div class="rm-dlpage-in">'
+	$html = '<div class="rm-dlpage alignfull"><div class="rm-dlpage-in">'
 		. $hero
 		. '<div class="rm-dl-head"><p class="rm-eyebrow">' . esc_html__( 'Brochures', 'ricoman' ) . '</p>'
 		. '<h2 class="rm-shead">' . esc_html__( 'Catalogues &amp; range brochures', 'ricoman' ) . '</h2></div>'
 		. '<div class="rm-dlgrid">' . $cards . '</div>'
 		. $bulk . $single . '</div></div>';
+	set_transient( $ckey, $html, 12 * HOUR_IN_SECONDS );
+	return $html;
 }
 add_shortcode( 'ricoman_downloads', 'ricoman_downloads_page_html' );
 
