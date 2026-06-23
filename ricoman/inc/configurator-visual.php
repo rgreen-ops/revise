@@ -103,7 +103,11 @@ function ricoman_pf_visual_config( $pid ) {
 	}
 
 	// Axes = labels with more than one distinct value (Type first for families).
-	$labels = array();
+	// If the product has chosen Configure columns, those columns pick the steps —
+	// so ticking/unticking a column adds/removes a configurator step.
+	$chosen  = function_exists( 'ricoman_variant_columns_for' ) ? ricoman_variant_columns_for( $pid ) : null;
+	$use_sel = is_array( $chosen ) && $chosen;
+	$labels  = array();
 	if ( $is_family && isset( $dist['Type'] ) && count( $dist['Type'] ) > 1 ) {
 		$labels[] = 'Type';
 	}
@@ -112,6 +116,9 @@ function ricoman_pf_visual_config( $pid ) {
 			continue;
 		}
 		if ( isset( $dist[ $label ] ) && count( $dist[ $label ] ) > 1 ) {
+			if ( $use_sel && ! in_array( $label, $chosen, true ) ) {
+				continue; // column not ticked -> not a configurator step.
+			}
 			$labels[] = $label;
 		}
 	}

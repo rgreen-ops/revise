@@ -850,8 +850,8 @@ function ricoman_product_editor_render() {
 				html += '<p class="ttl">Configure &amp; order codes</p><p class="hint">Choose how customers pick a variant, then which spec columns / filters show.</p>';
 				html += '<div class="rmpe-cfgmode"><label><input type="radio" name="rmpe-cfgmode" data-act="cfgmode" value="0"' + ( state.configVisual ? '' : ' checked' ) + '> Table with filters</label>'
 					+ '<label><input type="radio" name="rmpe-cfgmode" data-act="cfgmode" value="1"' + ( state.configVisual ? ' checked' : '' ) + '> Visual configurator (tap-through tiles)</label></div>';
-				html += '<p class="hint">' + ( state.configVisual ? 'Visual mode builds steps automatically from the variant data — the columns below don’t apply.' : 'Tick a column to show it; the eye toggles its filter drop-down (column data still shows). The full spec shows when a row is opened.' ) + '</p>';
-				html += '<div class="rmpe-cols"' + ( state.configVisual ? ' style="opacity:.45;pointer-events:none"' : '' ) + '>';
+				html += '<p class="hint">' + ( state.configVisual ? 'In visual mode the ticked columns below become the tap-through steps — untick one to remove that step. (The eye/filter toggles only apply to the table.)' : 'Tick a column to show it; the eye toggles its filter drop-down (column data still shows). The full spec shows when a row is opened.' ) + '</p>';
+				html += '<div class="rmpe-cols">';
 				( B.specCols || [] ).forEach( function ( c ) {
 					var esc = c.replace( /"/g, '&quot;' );
 					var on  = state.cols.indexOf( c ) > -1;

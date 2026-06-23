@@ -33,6 +33,10 @@
 			} );
 		}
 		function available( axisKey, value ) {
+			// Nothing chosen yet → every option is open (don't grey the first step).
+			var hasSel = false;
+			for ( var s in sel ) { if ( s !== axisKey ) { hasSel = true; break; } }
+			if ( ! hasSel ) { return true; }
 			// Is there a variant with this option, given the OTHER selections?
 			var pool = matches( axisKey );
 			for ( var i = 0; i < pool.length; i++ ) {
