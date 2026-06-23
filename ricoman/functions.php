@@ -38,6 +38,7 @@ require_once get_theme_file_path( 'inc/post-types.php' );    // Products, Projec
 require_once get_theme_file_path( 'inc/acf-fields.php' );     // Original ricoman.com ACF field groups (editing + repeater reads).
 require_once get_theme_file_path( 'inc/meta.php' );          // Product specs & variants.
 require_once get_theme_file_path( 'inc/performance.php' );   // Speed: fonts, bloat removal, prefetch.
+require_once get_theme_file_path( 'inc/page-cache.php' );    // Theme-level full-page cache (anonymous).
 require_once get_theme_file_path( 'inc/images.php' );        // Auto web-ready images (AVIF/WebP, alt text).
 require_once get_theme_file_path( 'inc/webp-convert.php' );   // Theme-native PNG/JPEG -> WebP converter + serving.
 require_once get_theme_file_path( 'inc/media-cleanup.php' );  // Media library de-duplication toolkit.
