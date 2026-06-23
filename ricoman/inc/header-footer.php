@@ -12,17 +12,24 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * A11y: the block templates already provide the page's <main> landmark, so a
- * Group block authored to render as <main> in PAGE CONTENT (e.g. the My Project
- * page) creates a duplicate-main violation. Demote any such block to a <div>.
+ * A11y: the block templates already provide the page's <main> landmark, so any
+ * <main> inside PAGE CONTENT (e.g. a Group block authored as <main> on the My
+ * Project page) is a duplicate-main landmark violation. Demote any <main> in the
+ * rendered content to a <div> (the template's <main> is untouched). Runs at
+ * priority 9 — before the product renderer (11), whose content is still empty
+ * then, so products are unaffected.
  */
-add_filter( 'render_block_data', function ( $block ) {
-	if ( isset( $block['blockName'], $block['attrs']['tagName'] )
-		&& 'core/group' === $block['blockName'] && 'main' === $block['attrs']['tagName'] ) {
-		$block['attrs']['tagName'] = 'div';
+add_filter( 'the_content', function ( $html ) {
+	if ( is_admin() || ! is_singular() || ! in_the_loop() || ! is_main_query() ) {
+		return $html;
 	}
-	return $block;
-} );
+	if ( ! is_string( $html ) || false === stripos( $html, '<main' ) ) {
+		return $html;
+	}
+	$html = preg_replace( '#<main(\b[^>]*)>#i', '<div$1 data-was-main="1">', $html );
+	$html = preg_replace( '#</main>#i', '</div>', $html );
+	return $html;
+}, 9 );
 
 /** Render a list of "Label | url" lines as <li><a>…</a></li>. */
 function ricoman_render_links( $key ) {
