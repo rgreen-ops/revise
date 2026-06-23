@@ -68,8 +68,11 @@
 		}
 
 		function renderResult() {
-			var pool = matches();
+			var raw = matches();
 			var chosenCount = Object.keys( sel ).length;
+			// Collapse duplicate part codes so the list shows distinct products.
+			var seenCode = {}, pool = [];
+			raw.forEach( function ( v ) { var c = v.code || ''; if ( ! seenCode[ c ] ) { seenCode[ c ] = 1; pool.push( v ); } } );
 			// Live preview image = first matching variant with an image.
 			var preview = '';
 			for ( var i = 0; i < pool.length; i++ ) { if ( pool[ i ].img ) { preview = pool[ i ].img; break; } }
@@ -93,11 +96,23 @@
 					+ '</div></div>';
 				resEl.hidden = false;
 			} else if ( pool.length < 10 ) {
-				// A handful left — list them so you can compare / grab the datasheet.
+				// A handful left — list them, summarising what DIFFERS between them
+				// (the axes that still vary and aren't chosen), so rows are distinct.
+				var varyAxes = axes.filter( function ( ax ) {
+					if ( sel[ ax.key ] ) { return false; }
+					var s = {}, c = 0;
+					pool.forEach( function ( v ) { var val = v.vals[ ax.key ] || ''; if ( ! ( val in s ) ) { s[ val ] = 1; c++; } } );
+					return c > 1;
+				} );
 				var rows = '';
 				pool.forEach( function ( v ) {
-					var keys = Object.keys( v.specs || {} ), parts = [];
-					for ( var j = 0; j < keys.length && parts.length < 6; j++ ) { if ( v.specs[ keys[ j ] ] ) { parts.push( v.specs[ keys[ j ] ] ); } }
+					var parts = [];
+					if ( varyAxes.length ) {
+						varyAxes.forEach( function ( ax ) { if ( v.vals[ ax.key ] ) { parts.push( ax.label + ': ' + v.vals[ ax.key ] ); } } );
+					} else {
+						var keys = Object.keys( v.specs || {} );
+						for ( var j = 0; j < keys.length && parts.length < 6; j++ ) { if ( v.specs[ keys[ j ] ] ) { parts.push( v.specs[ keys[ j ] ] ); } }
+					}
 					var dl = '';
 					if ( v.ldt ) { dl += '<a href="' + encodeURI( v.ldt ) + '" target="_blank" rel="noopener">LDT ↓</a>'; }
 					if ( v.ds ) { dl += '<a href="' + encodeURI( v.ds ) + '" target="_blank" rel="noopener">Datasheet ↓</a>'; }
