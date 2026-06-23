@@ -807,3 +807,36 @@ function ricoman_catalogue_build_and_store() {
 	return $out;
 }
 
+/* ---------------------------------------------------------------------------
+ * Admin: a quick "Hide drafts" toggle on the Products list.
+ *
+ * WordPress already has the Published / Drafts status tabs, but a one-click
+ * checkbox on the default "All" view is friendlier for the team (the catalogue
+ * carries 50+ draft variants). Ticking it drops drafts from the list; it has no
+ * effect on the Drafts tab itself (where you've explicitly asked for them).
+ * ------------------------------------------------------------------------- */
+add_action( 'restrict_manage_posts', function ( $post_type ) {
+	if ( 'product' !== $post_type ) {
+		return;
+	}
+	// Moot on a specific status tab (Drafts / Published / Pending …).
+	if ( ! empty( $_GET['post_status'] ) ) {
+		return;
+	}
+	$on = ! empty( $_GET['rm_hide_drafts'] );
+	echo '<label class="rm-hide-drafts" style="display:inline-flex;align-items:center;gap:5px;height:32px;vertical-align:top;margin:0 4px">'
+		. '<input type="checkbox" name="rm_hide_drafts" value="1"' . checked( $on, true, false ) . ' onchange="this.form.submit()"> '
+		. esc_html__( 'Hide drafts', 'ricoman' ) . '</label>';
+} );
+
+add_action( 'pre_get_posts', function ( $q ) {
+	if ( ! is_admin() || ! $q->is_main_query() || 'product' !== $q->get( 'post_type' ) ) {
+		return;
+	}
+	// Respect an explicit status tab; only filter the "All" view.
+	if ( empty( $_GET['rm_hide_drafts'] ) || ! empty( $_GET['post_status'] ) ) {
+		return;
+	}
+	$q->set( 'post_status', array( 'publish', 'future', 'pending', 'private' ) );
+} );
+
