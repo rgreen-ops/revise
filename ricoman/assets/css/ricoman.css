@@ -1830,3 +1830,15 @@ html,body{overflow-x:clip}
 .rm-vcfg-spec dt{color:var(--muted);margin:0}
 .rm-vcfg-spec dd{margin:0;font-weight:600;text-align:right}
 .rm-vcfg-acts{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+/* Visual configurator — short match list (2–9 results) */
+.rm-vcfg-listhead{border-top:1px solid var(--line);padding-top:18px;margin-bottom:12px;font-family:Poppins;font-size:.95rem}
+.rm-vcfg-listhead span{color:var(--muted);font-weight:400}
+.rm-vcfg-list{display:grid;gap:10px}
+.rm-vcfg-row{display:flex;align-items:center;gap:14px;border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+.rm-vcfg-rowimg{flex:0 0 auto;width:54px;height:54px;border-radius:8px;background:#e4e4e4 center/contain no-repeat}
+.rm-vcfg-rowbody{flex:1;min-width:0}
+.rm-vcfg-rowcode{font-family:Poppins;font-weight:600;margin:0;font-size:.95rem}
+.rm-vcfg-rowspec{margin:2px 0 0;color:var(--muted);font-size:.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rm-vcfg-rowdl{flex:0 0 auto;display:flex;gap:14px;font-family:Poppins;font-size:.82rem;font-weight:600}
+.rm-vcfg-rowdl a{color:var(--ink);text-decoration:none;border-bottom:1px solid currentColor;white-space:nowrap}
+@media(max-width:560px){.rm-vcfg-row{flex-wrap:wrap}.rm-vcfg-rowdl{flex-basis:100%}}

@@ -92,6 +92,24 @@
 					+ '<button type="button" class="rm-vcfg-reset">Start again</button>'
 					+ '</div></div>';
 				resEl.hidden = false;
+			} else if ( pool.length < 10 ) {
+				// A handful left — list them so you can compare / grab the datasheet.
+				var rows = '';
+				pool.forEach( function ( v ) {
+					var keys = Object.keys( v.specs || {} ), parts = [];
+					for ( var j = 0; j < keys.length && parts.length < 6; j++ ) { if ( v.specs[ keys[ j ] ] ) { parts.push( v.specs[ keys[ j ] ] ); } }
+					var dl = '';
+					if ( v.ldt ) { dl += '<a href="' + encodeURI( v.ldt ) + '" target="_blank" rel="noopener">LDT ↓</a>'; }
+					if ( v.ds ) { dl += '<a href="' + encodeURI( v.ds ) + '" target="_blank" rel="noopener">Datasheet ↓</a>'; }
+					rows += '<div class="rm-vcfg-row">'
+						+ ( ( v.img || fallback ) ? '<span class="rm-vcfg-rowimg" style="background-image:url(' + encodeURI( v.img || fallback ) + ')"></span>' : '' )
+						+ '<div class="rm-vcfg-rowbody"><p class="rm-vcfg-rowcode">' + esc( v.code ) + '</p><p class="rm-vcfg-rowspec">' + esc( parts.join( ' · ' ) ) + '</p></div>'
+						+ '<div class="rm-vcfg-rowdl">' + dl + '</div></div>';
+				} );
+				resEl.innerHTML = '<div class="rm-vcfg-listhead"><strong>' + pool.length + ' matching options</strong> <span>— keep choosing to narrow further</span>'
+					+ ( chosenCount ? ' <button type="button" class="rm-vcfg-reset">Reset</button>' : '' ) + '</div>'
+					+ '<div class="rm-vcfg-list">' + rows + '</div>';
+				resEl.hidden = false;
 			} else {
 				resEl.innerHTML = '<div class="rm-vcfg-status">'
 					+ ( preview ? '<span class="rm-vcfg-statusimg" style="background-image:url(' + encodeURI( preview ) + ')"></span>' : '' )
