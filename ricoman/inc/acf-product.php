@@ -798,8 +798,14 @@ function ricoman_variant_spec_value( $vid, $source, $key ) {
 		if ( ! taxonomy_exists( $key ) ) {
 			return '';
 		}
-		$terms = wp_get_post_terms( $vid, $key, array( 'fields' => 'names' ) );
-		return ( ! is_wp_error( $terms ) && $terms ) ? ricoman_fix_text( implode( ', ', $terms ) ) : '';
+		// get_the_terms() reads the object-term cache primed in bulk by the variant
+		// WP_Query — wp_get_post_terms() would instead hit the DB once PER variant
+		// PER taxonomy (~24 axes × 2000 variants = ~48k queries = timeout).
+		$terms = get_the_terms( $vid, $key );
+		if ( is_wp_error( $terms ) || empty( $terms ) ) {
+			return '';
+		}
+		return ricoman_fix_text( implode( ', ', wp_list_pluck( $terms, 'name' ) ) );
 	}
 	if ( 'lumens' === $key ) {
 		return ricoman_fix_text( ricoman_variant_lumens( $vid ) );
