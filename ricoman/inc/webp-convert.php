@@ -24,11 +24,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  * (or via the 'ricoman_webp_enabled' filter).
  */
 function ricoman_webp_enabled() {
-	// Default ON now the disk is healthy — twins generate on the fly (throttled,
-	// disk-guarded) + via the hourly cron. Set option 'ricoman_webp_on' = '0' to
-	// disable, or use the ricoman_webp_enabled filter.
-	$v = get_option( 'ricoman_webp_on', '1' );
-	return (bool) apply_filters( 'ricoman_webp_enabled', '0' !== (string) $v && '' !== (string) $v );
+	// OFF by default: this server's image editor silently writes 0-byte WebPs for
+	// many sources (more fail than succeed), so on-the-fly conversion isn't a safe
+	// win here — use Cloudflare Polish (edge WebP/AVIF) instead. Turn on with
+	// option 'ricoman_webp_on'='1' or the ricoman_webp_enabled filter if needed.
+	return (bool) apply_filters( 'ricoman_webp_enabled', (bool) get_option( 'ricoman_webp_on' ) );
 }
 
 /** Stored WebP URL for an attachment, or '' if not converted / serving disabled. */
