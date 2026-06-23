@@ -364,6 +364,22 @@ From Marketing's email for the new website. Status of each request:
   finalisation"** button (OPcache + permalinks + product caches + page/category
   SEO seeders + footer links). Safe/idempotent; fills empties, deletes nothing.
 
+## Yoast bridge + Estrella SEO (inc/seo-yoast-bridge.php, inc/estrella.php)
+- With Yoast active it OWNS title/description/social, suppressing the theme SEO and
+  exposing stale migrated fields. `inc/seo-yoast-bridge.php` generates
+  keyword-optimised titles per type (`ricoman_seo_post_title` / `_request_title`:
+  product → "Name | Category | Ricoman"; project/news/category/archives) and feeds
+  Yoast via `wpseo_title` / `wpseo_opengraph_title` / `wpseo_twitter_title` /
+  `wpseo_*_image` — **fill-empty only** (manual Yoast values always win), with a
+  master switch `apply_filters('ricoman_yoast_bridge', …)`. A **"Apply optimised SEO
+  to Yoast"** button on Ricoman → Page SEO writes computed title/desc into Yoast's
+  own post + `wpseo_taxonomy_meta` (product-cat) fields (empties only).
+- Estrella hub: a one-time migration fixes the stale "Linear Wall washer" SEO title
+  (writes optimised title/desc/focus to Yoast + theme meta); a runtime
+  `wpseo_title`/`pre_get_document_title` safety-net forces the hub title if the
+  stored one is empty/contains "wash". Range content emits FAQPage schema
+  ([ricoman_faq]) + internal links to Casambi / human-centric / sustainability.
+
 ## Control Center (inc/admin.php)
 - Ricoman → Control Center is the back-office hub. Top card is a **"Things to do"**
   launch checklist + progress bar (`ricoman_admin_status()` returns
