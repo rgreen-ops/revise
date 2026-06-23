@@ -1538,20 +1538,23 @@ function ricoman_pf_sections( $pid ) {
 	$acc_sec = $acc ? '<div class="rm-section" id="specification"><div class="rm-pp-wrap"><div class="rm-accs">' . $acc . '</div></div></div>' : '';
 
 	// ---- Configure Your Product ----
-	// Prefer the linked variant-product rows (migrated staging data); fall back to
-	// the RICOBOT family table when the product is linked to a RICOBOT family.
-	// Build ONLY the configurator that will actually show — each loads up to 2000
-	// variant rows, so building both (then discarding one) doubled the cost on big
-	// families like Estrella.
-	if ( function_exists( 'ricoman_pf_visual_config_enabled' ) && ricoman_pf_visual_config_enabled( $pid ) ) {
-		$vtable = ricoman_pf_visual_config( $pid );
-		if ( ! $vtable ) {
-			$vtable = ricoman_pf_variant_table( $pid ); // nothing to configure visually → table.
-		}
+	// The variant table / visual configurator can carry thousands of rows (the
+	// consolidated Estrella range), which bloats the page HTML and the browser DOM.
+	// Above a threshold we emit a light placeholder and stream the configurator in
+	// after paint from a cached AJAX endpoint, so the page itself loads in well
+	// under a second. Small products render inline as before.
+	$lazy_threshold = (int) apply_filters( 'ricoman_configure_lazy_threshold', 40 );
+	$vcount         = ricoman_pf_variant_count( $pid );
+	if ( $vcount > $lazy_threshold ) {
+		// IMPORTANT: do NOT build the inner here (that's the expensive bit we're
+		// deferring). Just a light skeleton; JS streams the real thing in.
+		$var_inner = '<div class="rm-cfg-lazy" data-product="' . (int) $pid . '" data-url="' . esc_url( admin_url( 'admin-ajax.php' ) ) . '" style="min-height:240px">'
+			. '<div class="rm-cfg-skel" aria-hidden="true" style="height:200px;border:1px solid #e7e9ee;border-radius:12px;background:#f6f7f9"></div>'
+			. '<p class="rm-cfg-loading" style="color:#8a909c;margin:12px 2px 0;font-size:.9rem">' . esc_html__( 'Loading the configurator…', 'ricoman' ) . '</p>'
+			. '<noscript><a class="btn btn-line-d" href="' . esc_url( add_query_arg( array( 'action' => 'rm_cfg_section', 'product' => (int) $pid ), admin_url( 'admin-ajax.php' ) ) ) . '">' . esc_html__( 'View all order codes', 'ricoman' ) . '</a></noscript></div>';
 	} else {
-		$vtable = ricoman_pf_variant_table( $pid );
+		$var_inner = ricoman_pf_configure_inner( $pid );
 	}
-	$var_inner = $vtable ? $vtable : ( $has_fam ? do_shortcode( '[ricoman_family]' ) : '' );
 	$var_sec   = $var_inner
 		? '<div class="rm-section" id="variants"><div class="rm-pp-wrap"><h2 class="rm-shead">Configure Your Product</h2>' . $var_inner . '</div></div>'
 		: '';
@@ -1599,6 +1602,69 @@ function ricoman_pf_sections( $pid ) {
 	}
 	return $cache[ $pid ];
 }
+
+/** Number of variant rows that would feed a product's configurator (family-aware). */
+function ricoman_pf_variant_count( $pid ) {
+	if ( ! post_type_exists( 'variant-product' ) ) {
+		return 0;
+	}
+	$fam = function_exists( 'ricoman_pf_family_products' ) ? ricoman_pf_family_products( $pid ) : array( (int) $pid );
+	$mq  = count( $fam ) > 1
+		? array( array( 'key' => 'parent_product', 'value' => array_map( 'strval', $fam ), 'compare' => 'IN' ) )
+		: array( array( 'key' => 'parent_product', 'value' => (string) $pid ) );
+	$q = new WP_Query( array(
+		'post_type'      => 'variant-product',
+		'post_status'    => 'publish',
+		'posts_per_page' => 1,
+		'fields'         => 'ids',
+		'meta_query'     => $mq,
+	) );
+	return (int) $q->found_posts;
+}
+
+/** Build the configurator inner HTML (visual XOR table, family fallback). */
+function ricoman_pf_configure_inner( $pid ) {
+	if ( function_exists( 'ricoman_pf_visual_config_enabled' ) && ricoman_pf_visual_config_enabled( $pid ) ) {
+		$html = ricoman_pf_visual_config( $pid );
+		if ( ! $html ) {
+			$html = ricoman_pf_variant_table( $pid ); // nothing to configure visually → table.
+		}
+	} else {
+		$html = ricoman_pf_variant_table( $pid );
+	}
+	if ( ! $html ) {
+		$has_fam = '' !== (string) ricoman_pf_get( $pid, '_ricoman_family' );
+		$html    = $has_fam ? do_shortcode( '[ricoman_family]' ) : '';
+	}
+	return (string) $html;
+}
+
+/** Configurator HTML with its own transient cache (keyed like the section cache). */
+function ricoman_pf_configure_cached( $pid ) {
+	$key = 'rm_cfgsec_' . (int) $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true ) . '_' . get_option( 'rm_cfgimg_ver', '0' );
+	$pre = get_transient( $key );
+	if ( is_string( $pre ) ) {
+		return $pre;
+	}
+	$html = ricoman_pf_configure_inner( $pid );
+	set_transient( $key, $html, 12 * HOUR_IN_SECONDS );
+	return $html;
+}
+
+/** AJAX: stream the (cached) configurator for a product. Public product data. */
+function ricoman_ajax_configure_section() {
+	$pid = isset( $_GET['product'] ) ? (int) $_GET['product'] : 0;
+	if ( ! $pid || 'product' !== get_post_type( $pid ) || 'publish' !== get_post_status( $pid ) ) {
+		status_header( 400 );
+		exit;
+	}
+	nocache_headers();
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo ricoman_pf_configure_cached( $pid ); // phpcs:ignore WordPress.Security.EscapeOutput
+	exit;
+}
+add_action( 'wp_ajax_rm_cfg_section', 'ricoman_ajax_configure_section' );
+add_action( 'wp_ajax_nopriv_rm_cfg_section', 'ricoman_ajax_configure_section' );
 
 /** A global version stamp for product-derived caches (catalogue, category cards,
  *  archives). Bumped whenever any product or variant changes. */

@@ -149,7 +149,45 @@
 			vtApply( vp );
 		} );
 	}
+	window.ricomanVtInit = vtInit;
 	if ( document.readyState !== 'loading' ) { vtInit(); } else { document.addEventListener( 'DOMContentLoaded', vtInit ); }
+
+	/* ---- Lazy configurator: stream the heavy variant section in after paint ---- */
+	function loadCfg( el ) {
+		var pid = el.getAttribute( 'data-product' );
+		var base = el.getAttribute( 'data-url' ) || ( window.ajaxurl || '/wp-admin/admin-ajax.php' );
+		if ( ! pid || el.getAttribute( 'data-loading' ) ) { return; }
+		el.setAttribute( 'data-loading', '1' );
+		fetch( base + '?action=rm_cfg_section&product=' + encodeURIComponent( pid ), { credentials: 'same-origin' } )
+			.then( function ( r ) { return r.text(); } )
+			.then( function ( html ) {
+				var tmp = document.createElement( 'div' );
+				tmp.innerHTML = html;
+				var frag = document.createDocumentFragment();
+				while ( tmp.firstChild ) { frag.appendChild( tmp.firstChild ); }
+				el.parentNode.replaceChild( frag, el );
+				if ( window.ricomanVcfgInit ) { window.ricomanVcfgInit(); }
+				if ( window.ricomanVtInit ) { window.ricomanVtInit(); }
+			} )
+			.catch( function () {
+				el.removeAttribute( 'data-loading' );
+				var m = el.querySelector( '.rm-cfg-loading' );
+				if ( m ) { m.textContent = 'Could not load the configurator — please refresh.'; }
+			} );
+	}
+	function cfgLazyInit() {
+		var nodes = document.querySelectorAll( '.rm-cfg-lazy' );
+		if ( ! nodes.length ) { return; }
+		if ( 'IntersectionObserver' in window ) {
+			var io = new IntersectionObserver( function ( ents ) {
+				ents.forEach( function ( en ) { if ( en.isIntersecting ) { io.unobserve( en.target ); loadCfg( en.target ); } } );
+			}, { rootMargin: '600px' } );
+			nodes.forEach( function ( n ) { io.observe( n ); } );
+		} else {
+			nodes.forEach( loadCfg );
+		}
+	}
+	if ( document.readyState !== 'loading' ) { cfgLazyInit(); } else { document.addEventListener( 'DOMContentLoaded', cfgLazyInit ); }
 	document.addEventListener( 'change', function ( e ) {
 		var s = e.target.closest( '.rm-vt-filter' ); if ( ! s ) { return; }
 		var vp = s.closest( '.rm-vp' ); if ( ! vp ) { return; }

@@ -143,6 +143,8 @@
 		render();
 	}
 
-	function init() { document.querySelectorAll( '.rm-vcfg' ).forEach( build ); }
+	function init() { document.querySelectorAll( '.rm-vcfg' ).forEach( function ( r ) { if ( ! r.getAttribute( 'data-built' ) ) { r.setAttribute( 'data-built', '1' ); build( r ); } } ); }
+	// Exposed so a lazily-injected configurator (product-gallery.js) can init it.
+	window.ricomanVcfgInit = init;
 	if ( document.readyState !== 'loading' ) { init(); } else { document.addEventListener( 'DOMContentLoaded', init ); }
 } )();

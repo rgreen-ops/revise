@@ -125,8 +125,13 @@ function ricoman_webp_make_file( $src, $dest ) {
 	if ( ! file_exists( $src ) ) {
 		return false;
 	}
-	// Disk guard — never attempt to write when space is tight.
-	$free = @disk_free_space( dirname( $dest ) ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
+	// Disk guard — never attempt to write when space is tight. Cache the reading
+	// for the whole request: on a big product this is checked once per variant
+	// image, and disk_free_space() is a real syscall (slow on a full/failing disk).
+	static $free = null;
+	if ( null === $free ) {
+		$free = @disk_free_space( dirname( $dest ) ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
+	}
 	if ( false !== $free && $free < 150 * 1024 * 1024 ) { // need >150MB headroom.
 		return false;
 	}
