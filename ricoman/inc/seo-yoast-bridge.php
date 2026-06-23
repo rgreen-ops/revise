@@ -68,6 +68,10 @@ function ricoman_seo_post_title( $post = null ) {
 /** Keyword-optimised title for the current request (incl. taxonomies/archives). */
 function ricoman_seo_request_title() {
 	$brand = ricoman_seo_brand();
+	// Master off-switch: add_filter('ricoman_yoast_bridge','__return_false') to disable.
+	if ( ! apply_filters( 'ricoman_yoast_bridge', true ) ) {
+		return '';
+	}
 	if ( is_front_page() ) {
 		return ''; // let Yoast's homepage setting stand.
 	}
