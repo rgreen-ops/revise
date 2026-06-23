@@ -160,8 +160,48 @@ function ricoman_webp_make_file( $src, $dest ) {
 	if ( is_wp_error( $saved ) ) {
 		return false;
 	}
+	// Some servers report success but write a 0-byte WebP (the image editor's
+	// WebP support silently fails on certain sources). Serving that = a BROKEN
+	// image, so verify the output and fall back to the original when it's empty.
+	$out = ( is_array( $saved ) && ! empty( $saved['path'] ) ) ? $saved['path'] : $dest;
+	clearstatcache( true, $out );
+	if ( ! file_exists( $out ) || filesize( $out ) < 1 ) {
+		if ( file_exists( $out ) ) {
+			@unlink( $out ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
+		}
+		return false;
+	}
 	$made++;
 	return true;
+}
+
+/**
+ * Sweep out any 0-byte WebP twins left by earlier silent failures, so the
+ * on-the-fly resolver retries them cleanly (and never serves a broken image).
+ * Runs in small batches on the hourly WebP cron. Resumable via an option offset.
+ */
+function ricoman_webp_purge_empty_twins( $limit = 400 ) {
+	$up   = wp_get_upload_dir();
+	$base = isset( $up['basedir'] ) ? $up['basedir'] : '';
+	if ( ! $base || ! class_exists( 'RecursiveIteratorIterator' ) ) {
+		return 0;
+	}
+	$n = 0;
+	try {
+		$it = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $base, FilesystemIterator::SKIP_DOTS ) );
+		foreach ( $it as $f ) {
+			if ( $f->isFile() && $f->getSize() < 1 && '-rmwebp.webp' === substr( $f->getFilename(), -12 ) ) {
+				@unlink( $f->getPathname() ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
+				$n++;
+				if ( $n >= $limit ) {
+					break;
+				}
+			}
+		}
+	} catch ( Exception $e ) {
+		return $n;
+	}
+	return $n;
 }
 
 /** WebP twin URL for an uploads image URL, or '' if not applicable/unavailable. */
@@ -290,6 +330,11 @@ add_action( 'init', function () {
 	}
 } );
 add_action( 'ricoman_webp_cron', function () {
+	// First clear out any 0-byte twins from earlier silent failures so they get
+	// retried cleanly (never served broken).
+	if ( function_exists( 'ricoman_webp_purge_empty_twins' ) ) {
+		ricoman_webp_purge_empty_twins( 500 );
+	}
 	$ids = get_posts( array(
 		'post_type'      => 'attachment',
 		'post_status'    => 'inherit',
