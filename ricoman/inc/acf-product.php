@@ -1329,7 +1329,12 @@ function ricoman_pf_sections( $pid ) {
 	// the live builder preview and for editors (so they always see fresh edits).
 	// Keyed by the product's modified time + a bump-able version (variant edits),
 	// so it self-invalidates; 12h TTL as a backstop.
-	$cacheable = empty( $GLOBALS['rm_pe_preview'] ) && ! ( is_user_logged_in() && current_user_can( 'edit_post', $pid ) );
+	// Cache for EVERYONE on normal views (incl. logged-in editors) — the key
+	// includes the product's modified time + _rm_secver (both bumped on any
+	// product/variant save), so an edit shows immediately on the next load. Only
+	// the live builder preview must bypass it. This matters on big families
+	// (Estrella has 1000s of variants); rebuilding per admin view was timing out.
+	$cacheable = empty( $GLOBALS['rm_pe_preview'] );
 	// 'm3' = markup version; bump to invalidate cached sections when section HTML
 	// changes. (Variant thumbnails use native loading="lazy"; the optimiser, not
 	// the theme, was the speed problem.)
@@ -1529,13 +1534,16 @@ function ricoman_pf_sections( $pid ) {
 	// ---- Configure Your Product ----
 	// Prefer the linked variant-product rows (migrated staging data); fall back to
 	// the RICOBOT family table when the product is linked to a RICOBOT family.
-	$vtable    = ricoman_pf_variant_table( $pid );
-	// Optional visual configurator (per-product toggle) replaces the table.
+	// Build ONLY the configurator that will actually show — each loads up to 2000
+	// variant rows, so building both (then discarding one) doubled the cost on big
+	// families like Estrella.
 	if ( function_exists( 'ricoman_pf_visual_config_enabled' ) && ricoman_pf_visual_config_enabled( $pid ) ) {
-		$visual = ricoman_pf_visual_config( $pid );
-		if ( $visual ) {
-			$vtable = $visual;
+		$vtable = ricoman_pf_visual_config( $pid );
+		if ( ! $vtable ) {
+			$vtable = ricoman_pf_variant_table( $pid ); // nothing to configure visually → table.
 		}
+	} else {
+		$vtable = ricoman_pf_variant_table( $pid );
 	}
 	$var_inner = $vtable ? $vtable : ( $has_fam ? do_shortcode( '[ricoman_family]' ) : '' );
 	$var_sec   = $var_inner
