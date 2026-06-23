@@ -24,7 +24,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  * (or via the 'ricoman_webp_enabled' filter).
  */
 function ricoman_webp_enabled() {
-	return (bool) apply_filters( 'ricoman_webp_enabled', (bool) get_option( 'ricoman_webp_on' ) );
+	// Default ON now the disk is healthy — twins generate on the fly (throttled,
+	// disk-guarded) + via the hourly cron. Set option 'ricoman_webp_on' = '0' to
+	// disable, or use the ricoman_webp_enabled filter.
+	$v = get_option( 'ricoman_webp_on', '1' );
+	return (bool) apply_filters( 'ricoman_webp_enabled', '0' !== (string) $v && '' !== (string) $v );
 }
 
 /** Stored WebP URL for an attachment, or '' if not converted / serving disabled. */
@@ -120,7 +124,10 @@ function ricoman_webp_stats() {
 /** Create a WebP at $dest from $src. Disk-guarded + throttled. Returns bool. */
 function ricoman_webp_make_file( $src, $dest ) {
 	if ( file_exists( $dest ) ) {
-		return true;
+		if ( filesize( $dest ) > 0 ) {
+			return true;
+		}
+		@unlink( $dest ); // 0-byte twin from a past failed/disk-full attempt — retry. // phpcs:ignore
 	}
 	if ( ! file_exists( $src ) ) {
 		return false;

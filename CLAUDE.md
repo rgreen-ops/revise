@@ -264,9 +264,10 @@ From Marketing's email for the new website. Status of each request:
   `ricoman_pf_imgurl`.
 - **WebP (URL-based):** inc/webp-convert.php now also has `ricoman_webp_for_url()` /
   `ricoman_webp_make_file()` serving a `-rmwebp.webp` twin for raw uploads PNG/JPG
-  URLs (migrated product images bypass the attachment converter). **Disk-guarded**
-  (only writes when >150MB free — the staging disk is FULL, see below), throttled,
-  cached; `the_content` swaps img src/srcset; `ricoman_pf_imgurl` prefers the twin.
+  URLs (migrated product images bypass the attachment converter). Disk-guarded
+  (only writes when >150MB free), throttled, cached; `the_content` swaps img
+  src/srcset; `ricoman_pf_imgurl` prefers the twin. Serving is gated by the
+  `ricoman_webp_on` option (`ricoman_webp_enabled()`) — must be ON to swap.
 - **Old permalinks (inc/redirects.php):** general 404 resolver `ricoman_resolve_old_path()`
   maps any old base (/product/ singular, /track-lighting/{slug}, renamed slugs) to the
   canonical product/project/news/page by slug → `_wp_old_slug` → taxonomy term, 301s,
@@ -292,9 +293,13 @@ From Marketing's email for the new website. Status of each request:
   (e.g. `rm_pfsec_m8`, `rm_cfgimg_ver`); bumping the key auto-invalidates them,
   independent of OPcache. Manual Plesk restart is only a fallback if opcache_reset
   is disabled or the flush curl can't reach staging.
-- **Disk is FULL** ("No space left on device" — backups failing). Run Ricoman →
-  Media Cleanup → Step 3b (permanent delete) to reclaim the 248GB of duplicates.
-  WebP generation stays dormant until space is freed.
+- **Disk space: RESOLVED — do NOT tell the user to run Media Cleanup again.**
+  Richard has already run Media Cleanup → Step 3b and freed the disk (he's said so
+  repeatedly). Assume the disk is healthy. If image optimisation looks off, the
+  cause is NOT disk — check the actual cause (e.g. WebP serving toggle
+  `ricoman_webp_on`, which gates `ricoman_webp_enabled()`; on the live Estrella
+  page there were 0 `-rmwebp` twins, i.e. serving was off). Verify state before
+  claiming a blocker.
 
 ## Colour finishes / variants manager (built)
 - The chips on the product image (name + swatch + main photo) are managed by a
