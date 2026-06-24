@@ -139,6 +139,11 @@ function ricoman_seo_target_fields( $resolved ) {
 		$f['body'] = wp_strip_all_tags( strip_shortcodes( $body ) );
 		$f['slug'] = (string) get_post_field( 'post_name', $id );
 		$f['faq']  = ( '' !== trim( (string) get_post_meta( $id, '_ricoman_faq', true ) ) ) || false !== stripos( $body, 'ricoman_faq' );
+		// The Estrella hub renders its FAQ (FAQPage schema) at display time, not in
+		// the stored content — so credit it rather than false-flagging "no FAQ".
+		if ( ! $f['faq'] && function_exists( 'ricoman_estrella_is_hub' ) && ricoman_estrella_is_hub( $id ) ) {
+			$f['faq'] = true;
+		}
 		$f['label'] = get_the_title( $id );
 		$f['edit']  = get_edit_post_link( $id, '' );
 	} elseif ( 'term' === $resolved['type'] ) {
@@ -844,6 +849,20 @@ function ricoman_seo_targets_page() {
 			<span class="rm-seo-pill amber"><?php echo (int) $amber; ?> <?php esc_html_e( 'partial', 'ricoman' ); ?></span>
 			<span class="rm-seo-pill red"><?php echo (int) $red; ?> <?php esc_html_e( 'gap / weak', 'ricoman' ); ?></span>
 		</div>
+
+		<details class="rm-seo-help" style="margin:14px 0;border:1px solid #dcdce0;border-radius:8px;padding:10px 16px;background:#fff">
+			<summary style="cursor:pointer;font-weight:600">❓ <?php esc_html_e( 'How to use this page (and what you actually need to do)', 'ricoman' ); ?></summary>
+			<div style="max-width:840px;font-size:13.5px;line-height:1.6">
+				<p><strong><?php esc_html_e( 'You don’t need to remember anything.', 'ricoman' ); ?></strong> <?php esc_html_e( 'This page IS your checklist — it re-checks every time you open it. Green rows are done. Work top to bottom and only act where there’s a button.', 'ricoman' ); ?></p>
+				<ol style="margin:8px 0 8px 18px">
+					<li><strong><?php esc_html_e( 'See an “Optimise” button?', 'ricoman' ); ?></strong> <?php esc_html_e( 'Click it. That writes the keyword-led SEO title + description for that term. This is the only task you repeat — it’s safe and never touches your edits.', 'ricoman' ); ?></li>
+					<li><strong><?php esc_html_e( 'See only “On the page” items (heading / URL / body / FAQ)?', 'ricoman' ); ?></strong> <?php esc_html_e( 'These are optional polish. Click “Edit page” only if you want the keyword in that page’s heading or text. On identity, category or tool pages (e.g. /about/) it’s fine to leave them — a less-than-100% score there is normal.', 'ricoman' ); ?></li>
+					<li><strong><?php esc_html_e( 'Adding an FAQ:', 'ricoman' ); ?></strong> <?php esc_html_e( 'On a normal page, add an [ricoman_faq] block in the editor. On a product, fill the “Product FAQs” box on the product’s Edit Product screen. (FAQs help you win Google’s rich results.)', 'ricoman' ); ?></li>
+					<li><strong><?php esc_html_e( 'Live rank + Opportunities (from Search Console):', 'ricoman' ); ?></strong> <?php esc_html_e( 'Your real quick wins. A term ranking on page 1 with few clicks usually just needs a better title/description — so click its Optimise button.', 'ricoman' ); ?></li>
+				</ol>
+				<p><?php esc_html_e( 'A weekly email summarises all of this for you, so you can ignore the screen until then if you like. Nothing here is urgent or breakable.', 'ricoman' ); ?></p>
+			</div>
+		</details>
 
 		<?php if ( function_exists( 'ricoman_gsc_settings_panel' ) ) { ricoman_gsc_settings_panel(); } ?>
 
