@@ -657,6 +657,77 @@ function ricoman_seo_sparkline( $term ) {
 	return '<svg width="' . $w . '" height="' . $h . '" viewBox="0 0 ' . $w . ' ' . $h . '" style="vertical-align:middle"><polyline fill="none" stroke="' . esc_attr( $color ) . '" stroke-width="1.5" points="' . esc_attr( implode( ' ', $pts ) ) . '"/></svg> <span style="color:' . esc_attr( $color ) . ';font-size:11px">' . $arrow . '</span>';
 }
 
+/** A large, dated line chart of a term's coverage score (and Google rank) over time. */
+function ricoman_seo_trend_graph( $term ) {
+	$hist = get_option( 'ricoman_seo_history', array() );
+	$key  = ricoman_seo_norm( $term );
+	$rows = isset( $hist[ $key ] ) && is_array( $hist[ $key ] ) ? $hist[ $key ] : array();
+	ksort( $rows );
+	if ( count( $rows ) < 2 ) {
+		return '<p class="description" style="margin:0">' . esc_html__( 'Not enough history yet. A snapshot of this term’s coverage (and Google rank, now that Search Console is connected) is saved each day you open this page — check back over the coming days to watch the line build.', 'ricoman' ) . '</p>';
+	}
+	$dates = array_keys( $rows );
+	$n     = count( $rows );
+	$w     = 560;
+	$h     = 150;
+	$padL  = 34;
+	$padR  = 34;
+	$padT  = 12;
+	$padB  = 22;
+	$xfor  = function ( $idx ) use ( $n, $w, $padL, $padR ) {
+		return $n > 1 ? round( $padL + $idx / ( $n - 1 ) * ( $w - $padL - $padR ), 1 ) : $padL;
+	};
+	// Score line (left axis 0–100).
+	$spts = array();
+	$rpts = array();
+	$haspos = false;
+	$maxpos = 1;
+	foreach ( array_values( $rows ) as $r ) {
+		if ( isset( $r['p'] ) && null !== $r['p'] && $r['p'] > 0 ) {
+			$haspos = true;
+			$maxpos = max( $maxpos, (float) $r['p'] );
+		}
+	}
+	$maxpos = max( 10, ceil( $maxpos / 10 ) * 10 ); // round up to a tidy axis.
+	$idx = 0;
+	foreach ( array_values( $rows ) as $r ) {
+		$s = isset( $r['s'] ) ? (int) $r['s'] : 0;
+		$y = round( $padT + ( 1 - $s / 100 ) * ( $h - $padT - $padB ), 1 );
+		$spts[] = $xfor( $idx ) . ',' . $y;
+		if ( isset( $r['p'] ) && null !== $r['p'] && $r['p'] > 0 ) {
+			// Rank: lower is better → invert (rank 1 near the top).
+			$yp = round( $padT + ( ( (float) $r['p'] - 1 ) / max( 1, $maxpos - 1 ) ) * ( $h - $padT - $padB ), 1 );
+			$rpts[] = $xfor( $idx ) . ',' . $yp;
+		}
+		$idx++;
+	}
+	$grid = '';
+	foreach ( array( 0, 25, 50, 75, 100 ) as $g ) {
+		$y    = round( $padT + ( 1 - $g / 100 ) * ( $h - $padT - $padB ), 1 );
+		$grid .= '<line x1="' . $padL . '" y1="' . $y . '" x2="' . ( $w - $padR ) . '" y2="' . $y . '" stroke="#eee" stroke-width="1"/>';
+		$grid .= '<text x="' . ( $padL - 5 ) . '" y="' . ( $y + 3 ) . '" text-anchor="end" font-size="9" fill="#999">' . $g . '</text>';
+	}
+	$svg  = '<svg width="100%" height="' . $h . '" viewBox="0 0 ' . $w . ' ' . $h . '" preserveAspectRatio="xMidYMid meet" style="max-width:' . $w . 'px">';
+	$svg .= $grid;
+	// X labels: first, middle, last date.
+	foreach ( array( 0, intdiv( $n - 1, 2 ), $n - 1 ) as $di ) {
+		$lbl  = gmdate( 'j M', strtotime( $dates[ $di ] ) );
+		$svg .= '<text x="' . $xfor( $di ) . '" y="' . ( $h - 6 ) . '" text-anchor="middle" font-size="9" fill="#999">' . esc_html( $lbl ) . '</text>';
+	}
+	if ( $haspos && count( $rpts ) >= 2 ) {
+		$svg .= '<polyline fill="none" stroke="#2271b1" stroke-width="2" stroke-dasharray="4 3" points="' . esc_attr( implode( ' ', $rpts ) ) . '"/>';
+		// Right axis labels for rank (1 at top, maxpos at bottom).
+		$svg .= '<text x="' . ( $w - $padR + 5 ) . '" y="' . ( $padT + 3 ) . '" font-size="9" fill="#2271b1">#1</text>';
+		$svg .= '<text x="' . ( $w - $padR + 5 ) . '" y="' . ( $h - $padB ) . '" font-size="9" fill="#2271b1">#' . (int) $maxpos . '</text>';
+	}
+	$svg .= '<polyline fill="none" stroke="#1a7f37" stroke-width="2.5" points="' . esc_attr( implode( ' ', $spts ) ) . '"/>';
+	$svg .= '</svg>';
+	$legend = '<div style="font-size:12px;margin-top:4px"><span style="color:#1a7f37;font-weight:700">— ' . esc_html__( 'Coverage %', 'ricoman' ) . '</span>'
+		. ( $haspos ? ' &nbsp; <span style="color:#2271b1;font-weight:700">– – ' . esc_html__( 'Google rank', 'ricoman' ) . '</span>' : '' )
+		. ' &nbsp; <span class="description">' . esc_html( sprintf( /* translators: %d: number of snapshots */ __( '%d snapshots', 'ricoman' ), $n ) ) . '</span></div>';
+	return $svg . $legend;
+}
+
 /* ----------------------------------------------------- weekly email digest */
 
 add_action( 'ricoman_seo_weekly_digest', 'ricoman_seo_send_digest' );
@@ -799,6 +870,14 @@ function ricoman_seo_targets_page() {
 	if ( ! current_user_can( 'edit_posts' ) ) {
 		return;
 	}
+	// Take one history snapshot per calendar day on visit, so the trend graphs
+	// build up daily (the weekly cron still runs too).
+	$today = gmdate( 'Y-m-d' );
+	if ( get_option( 'ricoman_seo_snap_day' ) !== $today && function_exists( 'ricoman_seo_targets_snapshot' ) ) {
+		ricoman_seo_targets_snapshot();
+		update_option( 'ricoman_seo_snap_day', $today, false );
+	}
+	wp_enqueue_script( 'jquery-ui-sortable' );
 	$targets = ricoman_seo_targets();
 	$audits  = array();
 	$green   = 0;
@@ -871,6 +950,7 @@ function ricoman_seo_targets_page() {
 			<?php wp_nonce_field( 'ricoman_seo_targets' ); ?>
 			<table class="widefat striped rm-seo-table">
 				<thead><tr>
+					<th style="width:18px"></th>
 					<th style="width:20%"><?php esc_html_e( 'Target term', 'ricoman' ); ?></th>
 					<th><?php esc_html_e( 'Intent', 'ricoman' ); ?></th>
 					<th><?php esc_html_e( 'Priority', 'ricoman' ); ?></th>
@@ -880,7 +960,7 @@ function ricoman_seo_targets_page() {
 					<?php if ( $gsc_on ) : ?><th style="width:9%"><?php esc_html_e( 'Live rank', 'ricoman' ); ?></th><?php endif; ?>
 					<th><?php esc_html_e( 'What to fix / do', 'ricoman' ); ?></th>
 				</tr></thead>
-				<tbody>
+				<tbody id="rm-seo-rows">
 				<?php foreach ( $targets as $i => $t ) :
 					$a   = $audits[ $i ];
 					$rag = $a['rag'];
@@ -888,7 +968,8 @@ function ricoman_seo_targets_page() {
 					$opt_url = wp_nonce_url( admin_url( 'admin-post.php?action=ricoman_seo_optimise&i=' . $i ), 'ricoman_seo_opt_' . $i );
 					$gap_url = wp_nonce_url( admin_url( 'admin-post.php?action=ricoman_seo_create_gap&i=' . $i ), 'ricoman_seo_gap_' . $i );
 					?>
-					<tr>
+					<tr class="rm-seo-main">
+						<td class="rm-seo-handle" title="<?php esc_attr_e( 'Drag to reorder', 'ricoman' ); ?>" style="cursor:grab;color:#aaa;text-align:center">⠿</td>
 						<td><input type="text" name="t[<?php echo (int) $i; ?>][term]" value="<?php echo esc_attr( $t['term'] ); ?>" style="width:100%"></td>
 						<td><select name="t[<?php echo (int) $i; ?>][intent]"><?php foreach ( $intents as $opt ) { echo '<option' . selected( $t['intent'], $opt, false ) . '>' . esc_html( $opt ) . '</option>'; } ?></select></td>
 						<td><select name="t[<?php echo (int) $i; ?>][priority]"><?php foreach ( $priorities as $opt ) { echo '<option' . selected( $t['priority'], $opt, false ) . '>' . esc_html( $opt ) . '</option>'; } ?></select></td>
@@ -912,7 +993,7 @@ function ricoman_seo_targets_page() {
 								</div>
 							<?php endif; ?>
 						</td>
-						<td><?php echo ricoman_seo_sparkline( $t['term'] ); // phpcs:ignore WordPress.Security.EscapeOutput — SVG built internally. ?></td>
+						<td><a href="#" class="rm-trend-toggle" data-row="rm-td-<?php echo (int) $i; ?>" title="<?php esc_attr_e( 'Show graph over time', 'ricoman' ); ?>" style="text-decoration:none"><?php echo ricoman_seo_sparkline( $t['term'] ); // phpcs:ignore WordPress.Security.EscapeOutput — SVG built internally. ?> 📈</a></td>
 						<?php if ( $gsc_on ) :
 							$g = ricoman_gsc_term_data( $t['term'] ); ?>
 							<td class="rm-seo-gsc">
@@ -1013,8 +1094,16 @@ function ricoman_seo_targets_page() {
 							?>
 						</td>
 					</tr>
+						<tr class="rm-trend-row" id="rm-td-<?php echo (int) $i; ?>" style="display:none">
+							<td></td>
+							<td colspan="<?php echo $gsc_on ? 7 : 6; ?>" style="padding:14px 16px;background:#fcfcfd">
+								<strong style="font-size:13px"><?php echo esc_html( $t['term'] ); ?> — <?php esc_html_e( 'over time', 'ricoman' ); ?></strong>
+								<div style="margin-top:6px"><?php echo ricoman_seo_trend_graph( $t['term'] ); // phpcs:ignore WordPress.Security.EscapeOutput ?></div>
+							</td>
+						</tr>
 				<?php endforeach; ?>
 					<tr class="rm-seo-add">
+						<td></td>
 						<td><input type="text" name="t[new][term]" placeholder="<?php esc_attr_e( 'add a new term…', 'ricoman' ); ?>" style="width:100%"></td>
 						<td><select name="t[new][intent]"><?php foreach ( $intents as $opt ) { echo '<option>' . esc_html( $opt ) . '</option>'; } ?></select></td>
 						<td><select name="t[new][priority]"><?php foreach ( $priorities as $opt ) { echo '<option' . selected( 'Medium', $opt, false ) . '>' . esc_html( $opt ) . '</option>'; } ?></select></td>
@@ -1024,7 +1113,8 @@ function ricoman_seo_targets_page() {
 				</tbody>
 			</table>
 			<p><?php submit_button( __( 'Save targets', 'ricoman' ), 'primary', 'submit', false ); ?>
-				<span class="description" style="margin-left:10px"><?php esc_html_e( 'A weekly snapshot powers the trend sparkline + the emailed digest.', 'ricoman' ); ?></span></p>
+				<button id="rm-seo-addbtn" class="button" style="margin-left:8px">＋ <?php esc_html_e( 'Add another term', 'ricoman' ); ?></button>
+				<span class="description" style="margin-left:10px"><?php esc_html_e( 'Drag the ⠿ handle to reorder · click a sparkline 📈 to see it over time · a snapshot is saved daily.', 'ricoman' ); ?></span></p>
 		</form>
 
 		<?php
@@ -1065,6 +1155,8 @@ function ricoman_seo_targets_page() {
 		.rm-seo-gsc strong{font-size:15px}.rm-seo-gsc-sub{font-size:11px;color:#777}
 		.rm-seo-add td{background:#f6f7f9}
 		.rm-seo-opps{display:flex;gap:22px;flex-wrap:wrap}.rm-seo-opp{flex:1;min-width:340px}
+			.rm-seo-handle:active{cursor:grabbing}
+			.rm-seo-sortph{height:46px;background:#eef4fb;outline:1px dashed #2271b1}
 		</style>
 		<script>
 		jQuery(function($){
@@ -1072,6 +1164,25 @@ function ricoman_seo_targets_page() {
 				e.preventDefault();
 				var i=$(this).data('i'), u=$(this).data('url');
 				$('input[name="t['+i+'][url]"]').val(u).css('background','#fffbcc');
+			});
+			// Click a sparkline → toggle that term's graph-over-time row.
+			$('.rm-trend-toggle').on('click',function(e){ e.preventDefault(); $('#'+$(this).data('row')).toggle(); });
+			// Drag rows by the handle to reorder; new order persists on Save.
+			if ($.fn.sortable){
+				$('#rm-seo-rows').sortable({
+					items:'> tr.rm-seo-main', handle:'.rm-seo-handle', axis:'y',
+					placeholder:'rm-seo-sortph', forcePlaceholderSize:true,
+					start:function(e,ui){ $('.rm-trend-row').hide(); ui.children().each(function(){ $(this).width($(this).width()); }); }
+				});
+			}
+			// 'Add another term' clones the blank add-row with a unique key.
+			var addN=0;
+			$('#rm-seo-addbtn').on('click',function(e){
+				e.preventDefault(); addN++;
+				var $row=$('tr.rm-seo-add:first').clone();
+				$row.find('input,select').each(function(){ var n=$(this).attr('name'); if(n){ $(this).attr('name', n.replace('[new]','[new'+addN+']')); $(this).val(''); } });
+				$row.find('td:last').text('(new term)');
+				$('tr.rm-seo-add:last').after($row);
 			});
 		});
 		</script>
