@@ -984,6 +984,30 @@ function ricoman_seo_targets_page() {
 										}
 										echo '<div class="description" style="margin-top:3px">' . esc_html__( 'Optional — these areas already include most of the keyword; matching it exactly earns the last points. Only worth it where it reads naturally.', 'ricoman' ) . '</div></div>';
 									}
+									// Step-by-step "how to" for whatever on-page items are flagged.
+									$onpage = strtolower( implode( ' ', array_merge( $content_bad, $partial ) ) );
+									if ( '' !== trim( $onpage ) ) {
+										$steps = array();
+										if ( false !== strpos( $onpage, 'h1' ) || false !== strpos( $onpage, 'page title' ) || false !== strpos( $onpage, 'heading' ) ) {
+											$steps[] = '<strong>' . esc_html__( 'Heading:', 'ricoman' ) . '</strong> ' . esc_html__( 'click “Edit page”, then click the big heading on the page and type to change the words (work the keyword in) → blue Save button.', 'ricoman' );
+										}
+										if ( false !== strpos( $onpage, 'body' ) ) {
+											$steps[] = '<strong>' . esc_html__( 'Body text:', 'ricoman' ) . '</strong> ' . esc_html__( 'click into a paragraph and type, or press the “+” button to add a new paragraph → Save.', 'ricoman' );
+										}
+										if ( false !== strpos( $onpage, 'slug' ) ) {
+											$steps[] = '<strong>' . esc_html__( 'URL slug:', 'ricoman' ) . '</strong> ' . esc_html__( 'in the right sidebar open the “Page” tab → click the “Slug” field → edit → Save. (Best left alone on pages that already exist.)', 'ricoman' );
+										}
+										if ( false !== strpos( $onpage, 'faq' ) ) {
+											$steps[] = '<strong>' . esc_html__( 'FAQ:', 'ricoman' ) . '</strong> ' . esc_html__( 'on a page press “+”, search “shortcode”, add it and type [ricoman_faq]. On a product, open its “Edit Product” screen and fill the “Product FAQs” box.', 'ricoman' );
+										}
+										if ( $steps ) {
+											echo '<details style="margin-top:5px"><summary style="cursor:pointer;color:#2271b1;font-size:12.5px">' . esc_html__( 'How do I do this?', 'ricoman' ) . '</summary><ol style="margin:6px 0 0 16px;font-size:12.5px;line-height:1.55">';
+											foreach ( $steps as $st ) {
+												echo '<li>' . wp_kses( $st, array( 'strong' => array() ) ) . '</li>';
+											}
+											echo '</ol></details>';
+										}
+									}
 								}
 							}
 							?>
