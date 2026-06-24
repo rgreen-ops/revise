@@ -229,6 +229,15 @@ function ricoman_enqueue_assets() {
 		'ph' => get_theme_file_uri( 'assets/images/ceiling.webp' ),
 	) );
 
+	// Prevent casual right-click saving / drag-and-drop of images.
+	wp_enqueue_script(
+		'ricoman-image-protect',
+		get_theme_file_uri( 'assets/js/image-protect.js' ),
+		array(),
+		ricoman_asset_ver( 'assets/js/image-protect.js' ),
+		true
+	);
+
 	// Brand web font — self-hosted Poppins (see inc/performance.php for preload).
 	wp_enqueue_style(
 		'ricoman-fonts',
