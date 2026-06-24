@@ -284,9 +284,11 @@ function ricoman_pcat_image( $term ) {
 	return '';
 }
 
-/** Recommended products + ranges for the current sector. [ricoman_sector_products] */
-add_shortcode( 'ricoman_sector_products', function () {
-	$term = get_queried_object();
+/** Recommended products + ranges for the current sector. [ricoman_sector_products sector="slug"] */
+add_shortcode( 'ricoman_sector_products', function ( $atts ) {
+	$atts = shortcode_atts( array( 'sector' => '' ), $atts, 'ricoman_sector_products' );
+	$tax  = taxonomy_exists( 'project-cat' ) ? 'project-cat' : 'application';
+	$term = $atts['sector'] ? get_term_by( 'slug', $atts['sector'], $tax ) : get_queried_object();
 	if ( ! ( $term instanceof WP_Term ) ) {
 		return '';
 	}
@@ -375,6 +377,29 @@ add_shortcode( 'ricoman_sector_leadgen', function () {
 		. '<div class="rm-secld-formwrap">' . $form . '</div>'
 		. '</div></div></div>';
 } );
+
+/**
+ * Reusable pattern so the team can drop the "products, then projects" sector
+ * block onto ANY page (＋ → Patterns → Ricoman — Page → "Sector · Products →
+ * Projects") and edit it in the editor. Set the sector slug in each Shortcode
+ * block (e.g. sector="retail-lighting"); on a sector landing page itself the
+ * shortcodes auto-detect the current sector, so the slug is only needed elsewhere.
+ */
+add_action( 'init', function () {
+	if ( ! function_exists( 'register_block_pattern' ) ) {
+		return;
+	}
+	$tax     = taxonomy_exists( 'project-cat' ) ? 'project-cat' : 'application';
+	$terms   = get_terms( array( 'taxonomy' => $tax, 'hide_empty' => true, 'number' => 1 ) );
+	$example = ( ! is_wp_error( $terms ) && $terms ) ? $terms[0]->slug : 'office-lighting';
+	register_block_pattern( 'ricoman/sector-products-projects', array(
+		'title'       => __( 'Sector · Products → Projects', 'ricoman' ),
+		'description' => __( 'Recommended products for a sector, followed by that sector’s projects. Set the sector slug in each shortcode block.', 'ricoman' ),
+		'categories'  => array( 'ricoman-page' ),
+		'content'     => '<!-- wp:shortcode -->[ricoman_sector_products sector="' . esc_attr( $example ) . '"]<!-- /wp:shortcode -->'
+			. "\n\n" . '<!-- wp:shortcode -->[ricoman_sector_projects sector="' . esc_attr( $example ) . '"]<!-- /wp:shortcode -->',
+	) );
+}, 13 );
 
 /* ------------------------------------------------------------------ FAQ */
 

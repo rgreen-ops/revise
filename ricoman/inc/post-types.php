@@ -427,8 +427,10 @@ add_shortcode( 'ricoman_projects_grid', function ( $atts ) {
 add_filter( 'get_the_archive_title_prefix', '__return_empty_string' );
 
 /** Projects within the current sector term — case-study grid for the landing. */
-add_shortcode( 'ricoman_sector_projects', function () {
-	$term = get_queried_object();
+add_shortcode( 'ricoman_sector_projects', function ( $atts ) {
+	$atts = shortcode_atts( array( 'sector' => '' ), $atts, 'ricoman_sector_projects' );
+	$tax  = taxonomy_exists( 'project-cat' ) ? 'project-cat' : 'application';
+	$term = $atts['sector'] ? get_term_by( 'slug', $atts['sector'], $tax ) : get_queried_object();
 	if ( ! ( $term instanceof WP_Term ) ) {
 		return '';
 	}
