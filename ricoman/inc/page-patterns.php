@@ -320,20 +320,27 @@ add_action( 'init', function () {
 			. '<!-- wp:shortcode -->[ricoman_faq]' . "\n" . $qa . "\n" . '[/ricoman_faq]<!-- /wp:shortcode -->'
 			. '</div><!-- /wp:group -->';
 	};
-	$feature = function ( $a ) use ( $hdr_split, $sec, $shead, $eyebrow, $para, $aud, $twocol, $image, $checklist, $buttons, $btn, $cover, $faqblock ) {
+	$feature = function ( $a ) use ( $hdr_split, $sec, $shead, $eyebrow, $para, $aud, $twocol, $image, $checklist, $buttons, $btn, $cover, $faqblock, $darkgroup ) {
 		$out  = $hdr_split( $a['eyb'], $a['title'], $a['lead'], $a['hero'], $buttons( $btn( $a['cta1'][0], $a['cta1'][1], false ) . ( isset( $a['cta2'] ) ? $btn( $a['cta2'][0], $a['cta2'][1], false ) : '' ) ) );
-		// Benefits row (3–4 cards).
+		// Benefits row (3–4 cards) — full-bleed soft band so it fills the width.
 		$cards = '';
 		foreach ( $a['benefits'] as $b ) {
 			$cards .= $aud( $b[0], $b[1], $b[2] );
 		}
-		$out .= $sec( $eyebrow( $a['ben_eyb'] ) . $shead( $a['ben_head'] ) . '<!-- wp:columns --><div class="wp-block-columns">' . $cards . '</div><!-- /wp:columns -->' );
-		// Image split + checklist.
+		$out .= $sec( $eyebrow( $a['ben_eyb'] ) . $shead( $a['ben_head'] ) . '<!-- wp:columns --><div class="wp-block-columns">' . $cards . '</div><!-- /wp:columns -->', 'rm-soft' );
+		// Image split + checklist + an inline CTA button.
 		$out .= $sec( $twocol(
 			$image( $a['split_img'], '', wp_strip_all_tags( html_entity_decode( $a['title'] ) ) ),
 			$eyebrow( $a['split_eyb'] ) . $shead( $a['split_head'] ) . $para( $a['split_body'], true ) . $checklist( $a['split_items'] )
+				. $buttons( $btn( $a['cta1'][0], $a['cta1'][1], false ) )
 		) );
-		// FAQ (schema) + CTA.
+		// Mid-page full-bleed dark CTA band (the free-design hook).
+		$out .= $darkgroup(
+			'<!-- wp:heading {"textAlign":"center","level":2,"className":"rm-shead"} --><h2 class="wp-block-heading has-text-align-center rm-shead">Free lighting design on every project</h2><!-- /wp:heading -->'
+			. '<!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">Send us your drawings or a finishes schedule and our in-house UK team returns a fully specified, costed scheme — usually within 3&ndash;5 working days.</p><!-- /wp:paragraph -->'
+			. $buttons( $btn( $a['cta1'][0], $a['cta1'][1] ) . $btn( 'Talk to the team →', '/contact/', false ), true )
+		);
+		// FAQ (schema) + closing CTA cover.
 		$out .= $faqblock( $a['faq_head'], $a['faqs'] );
 		$out .= $cover( $a['cta_img'],
 			'<!-- wp:heading {"textAlign":"center","level":2} --><h2 class="wp-block-heading has-text-align-center">' . $a['cta_head'] . '</h2><!-- /wp:heading -->'

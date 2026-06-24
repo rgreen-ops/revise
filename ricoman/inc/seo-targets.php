@@ -1070,3 +1070,38 @@ add_action( 'admin_init', function () {
 	}
 	update_option( 'ricoman_seo_optimised_v2', 1 );
 } );
+
+/**
+ * One-time: refresh the 7 sector / application pages with the richer layout
+ * (full-bleed bands + extra CTAs). Only rewrites a page that hasn't been edited
+ * by a human since it was created (post_modified ~ post_date), so it never
+ * clobbers your edits.
+ */
+add_action( 'admin_init', function () {
+	if ( get_option( 'ricoman_seo_pages_v2' ) || ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+	$map = array(
+		'office-lighting'             => 'ricoman_office_lighting_blocks',
+		'gym-sports-hall-lighting'    => 'ricoman_gym_sports_lighting_blocks',
+		'education-lighting'          => 'ricoman_education_lighting_blocks',
+		'retail-lighting'            => 'ricoman_retail_lighting_blocks',
+		'warehouse-high-bay-lighting' => 'ricoman_warehouse_highbay_blocks',
+		'feature-lighting'           => 'ricoman_feature_lighting_blocks',
+		'suspended-linear-lighting'   => 'ricoman_suspended_linear_blocks',
+	);
+	foreach ( $map as $slug => $fn ) {
+		$page = get_page_by_path( $slug );
+		if ( ! $page || ! function_exists( $fn ) ) {
+			continue;
+		}
+		// Skip if a human has edited it (modified more than ~2 min after creation).
+		$created  = strtotime( $page->post_date_gmt );
+		$modified = strtotime( $page->post_modified_gmt );
+		if ( $created && $modified && ( $modified - $created ) > 120 ) {
+			continue;
+		}
+		wp_update_post( array( 'ID' => $page->ID, 'post_content' => call_user_func( $fn ) ) );
+	}
+	update_option( 'ricoman_seo_pages_v2', 1 );
+} );
