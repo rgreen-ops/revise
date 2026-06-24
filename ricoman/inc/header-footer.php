@@ -97,9 +97,8 @@ add_shortcode( 'ricoman_header', function () {
 	}
 	if ( ! is_wp_error( $terms ) && $terms ) {
 		foreach ( $terms as $t ) {
-			$link = get_term_link( $t );
-			$sub  = $t->description ? '<span class="rm-mega-sub">' . esc_html( wp_strip_all_tags( $t->description ) ) . '</span>' : '';
-			$cats .= '<li><a href="' . esc_url( is_wp_error( $link ) ? '#' : $link ) . '"><span class="rm-mega-name">' . esc_html( $t->name ) . '</span>' . $sub . '</a></li>';
+			$link  = get_term_link( $t );
+			$cats .= '<li><a href="' . esc_url( is_wp_error( $link ) ? '#' : $link ) . '">' . esc_html( $t->name ) . '</a></li>';
 		}
 	}
 	$cols = '';
@@ -120,7 +119,7 @@ add_shortcode( 'ricoman_header', function () {
 	$mega = '<div class="rm-mega"><div class="rm-mega-inner">'
 		. '<a class="rm-mega-head" href="' . esc_url( ricoman_opt( 'mega_heading_url' ) ) . '">' . esc_html( ricoman_opt( 'mega_heading' ) ) . '</a>'
 		. '<div class="rm-mega-grid"><div class="rm-mega-cols">'
-		. '<div class="rm-mega-col"><a class="rm-mega-h rm-mega-h-link" href="' . esc_url( ricoman_opt( 'mega_heading_url' ) ) . '">Categories</a><ul class="rm-mega-coll">' . $cats . '</ul></div>'
+		. '<div class="rm-mega-col"><a class="rm-mega-h rm-mega-h-link" href="' . esc_url( ricoman_opt( 'mega_heading_url' ) ) . '">Categories</a><ul>' . $cats . '</ul></div>'
 		. '<div class="rm-mega-col"><p class="rm-mega-h">Collections</p><ul class="rm-mega-coll">' . $cols . '</ul></div>'
 		. '<div class="rm-mega-col"><p class="rm-mega-h">By Application</p><ul>' . $apps . '</ul></div>'
 		. '</div><div class="rm-mega-cards">'
