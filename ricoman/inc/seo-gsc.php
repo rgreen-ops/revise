@@ -108,6 +108,54 @@ function ricoman_gsc_rows( $force = false ) {
 }
 
 /**
+ * Daily click totals from Search Console for the last ~16 months (GSC's retention
+ * limit). Returns date => clicks, ascending. Cached 12h. Used to backfill the
+ * achievement milestones with their real historical dates.
+ */
+function ricoman_gsc_clicks_by_date( $force = false ) {
+	if ( ! ricoman_gsc_ready() ) {
+		return array();
+	}
+	if ( ! $force ) {
+		$cache = get_transient( 'ricoman_gsc_bydate' );
+		if ( is_array( $cache ) ) {
+			return $cache;
+		}
+	}
+	$tok = ricoman_gsc_token();
+	if ( '' === $tok ) {
+		return array();
+	}
+	$site = (string) get_option( 'ricoman_gsc_site', '' );
+	$url  = 'https://www.googleapis.com/webmasters/v3/sites/' . rawurlencode( $site ) . '/searchAnalytics/query';
+	$res  = wp_remote_post( $url, array(
+		'timeout' => 30,
+		'headers' => array( 'Authorization' => 'Bearer ' . $tok, 'Content-Type' => 'application/json' ),
+		'body'    => wp_json_encode( array(
+			'startDate'  => gmdate( 'Y-m-d', strtotime( '-16 months' ) ),
+			'endDate'    => gmdate( 'Y-m-d' ),
+			'dimensions' => array( 'date' ),
+			'rowLimit'   => 25000,
+		) ),
+	) );
+	if ( is_wp_error( $res ) ) {
+		return array();
+	}
+	$body = json_decode( wp_remote_retrieve_body( $res ), true );
+	$rows = isset( $body['rows'] ) && is_array( $body['rows'] ) ? $body['rows'] : array();
+	$out  = array();
+	foreach ( $rows as $r ) {
+		$d = isset( $r['keys'][0] ) ? $r['keys'][0] : '';
+		if ( '' !== $d ) {
+			$out[ $d ] = isset( $r['clicks'] ) ? (int) $r['clicks'] : 0;
+		}
+	}
+	ksort( $out );
+	set_transient( 'ricoman_gsc_bydate', $out, 12 * HOUR_IN_SECONDS );
+	return $out;
+}
+
+/**
  * Site-wide ranking overview from Search Console (last 28 days) — position
  * distribution buckets, totals and a weighted average position. Powers the
  * "Ranking overview" dashboard (the kind of panel SEOprofiler / Ahrefs show).

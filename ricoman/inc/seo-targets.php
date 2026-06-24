@@ -764,6 +764,57 @@ function ricoman_seo_record_achievements( $clicks ) {
 	return $done;
 }
 
+/**
+ * Backfill milestone dates from GSC's own click history (last ~16 months): compute
+ * a rolling 28-day click total per day and record the FIRST date each tier was
+ * crossed — so the badges show when you actually grew, not just from today.
+ */
+function ricoman_seo_backfill_achievements() {
+	if ( ! function_exists( 'ricoman_gsc_clicks_by_date' ) ) {
+		return get_option( 'ricoman_seo_achieved', array() );
+	}
+	$byd = ricoman_gsc_clicks_by_date();
+	if ( ! $byd ) {
+		return get_option( 'ricoman_seo_achieved', array() );
+	}
+	$dates  = array_keys( $byd );
+	$clicks = array_values( $byd );
+	$n      = count( $dates );
+	$tiers  = ricoman_seo_click_tiers();
+	$first  = array();
+	for ( $i = 0; $i < $n; $i++ ) {
+		$end = strtotime( $dates[ $i ] );
+		$sum = 0;
+		for ( $j = $i; $j >= 0; $j-- ) {
+			if ( ( $end - strtotime( $dates[ $j ] ) ) > 27 * DAY_IN_SECONDS ) {
+				break;
+			}
+			$sum += $clicks[ $j ];
+		}
+		foreach ( $tiers as $tk ) {
+			if ( $sum >= $tk && ! isset( $first[ $tk ] ) ) {
+				$first[ $tk ] = $dates[ $i ];
+			}
+		}
+	}
+	$done = get_option( 'ricoman_seo_achieved', array() );
+	if ( ! is_array( $done ) ) {
+		$done = array();
+	}
+	$changed = false;
+	foreach ( $first as $tk => $date ) {
+		// Prefer the earliest real historical date over any "recorded today" placeholder.
+		if ( ! isset( $done[ $tk ] ) || $done[ $tk ] > $date ) {
+			$done[ $tk ] = $date;
+			$changed     = true;
+		}
+	}
+	if ( $changed ) {
+		update_option( 'ricoman_seo_achieved', $done, false );
+	}
+	return $done;
+}
+
 /** Aggregate visibility series: per-date average coverage (+ avg Google rank) across all targets. */
 function ricoman_seo_visibility_series() {
 	$hist   = get_option( 'ricoman_seo_history', array() );
@@ -1117,6 +1168,11 @@ function ricoman_seo_targets_page() {
 			$clk    = (int) $ov['clicks'];
 			$tiers  = ricoman_seo_click_tiers();
 			$done   = ricoman_seo_record_achievements( $clk );
+			// Backfill real historical milestone dates from GSC once (then refresh weekly).
+			if ( get_option( 'ricoman_seo_ach_backfill' ) !== gmdate( 'oW' ) && function_exists( 'ricoman_seo_backfill_achievements' ) ) {
+				$done = ricoman_seo_backfill_achievements();
+				update_option( 'ricoman_seo_ach_backfill', gmdate( 'oW' ), false );
+			}
 			$next   = null;
 			$prev   = 0;
 			foreach ( $tiers as $tk ) {
@@ -1148,7 +1204,7 @@ function ricoman_seo_targets_page() {
 				}
 				echo '</div>';
 			}
-			echo '<p class="description" style="margin-top:10px">' . esc_html__( 'Milestones are reached when your 28-day Google Search clicks pass each level. Great to share with the team — and a clean way to show the new site’s impact after launch.', 'ricoman' ) . '</p>';
+			echo '<p class="description" style="margin-top:10px">' . esc_html__( 'Milestones are reached when your 28-day Google Search clicks pass each level — dates are backfilled from Google’s own history (the last ~16 months it keeps; older milestones live on in Search Console’s Achievements page). A clean way to show growth and the new site’s impact after launch.', 'ricoman' ) . '</p>';
 			echo '</div></details>';
 		}
 		?>
