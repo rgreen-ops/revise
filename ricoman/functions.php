@@ -89,6 +89,7 @@ require_once get_theme_file_path( 'inc/site-options.php' );   // Ricoman admin: 
 require_once get_theme_file_path( 'inc/header-footer.php' );  // [ricoman_header] / [ricoman_footer] renderers.
 require_once get_theme_file_path( 'inc/flow-patterns.php' );  // Flow+ page sections as editable blocks.
 require_once get_theme_file_path( 'inc/page-patterns.php' );  // Home/page sections as editable blocks.
+require_once get_theme_file_path( 'inc/home-slider.php' );   // Home hero slider (image/video slides).
 require_once get_theme_file_path( 'inc/my-project.php' );    // "My Project" specification list (Toolbox).
 require_once get_theme_file_path( 'inc/demo-setup.php' );    // One-time: create linked pages + pretty links.
 require_once get_theme_file_path( 'inc/pattern-library.php' );// 25+ ready-made section patterns.
