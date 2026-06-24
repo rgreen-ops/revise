@@ -930,22 +930,26 @@ function ricoman_seo_targets_page() {
 								echo '<strong style="color:#b32d2e">' . esc_html__( 'No page yet.', 'ricoman' ) . '</strong> ';
 								echo '<a class="button button-small" href="' . esc_url( $gap_url ) . '">' . esc_html__( 'Create page', 'ricoman' ) . '</a>';
 							} else {
-								// Split the failures into what Optimise handles (SEO title/meta) and
-								// what lives on the page itself (heading, URL, body, FAQ).
+								// Three buckets: missing SEO fields (Optimise handles), missing
+								// on-page items (edit the page), and PARTIAL matches (the page has
+								// most of the keyword's words but not the exact phrase → half marks).
 								$meta_bad    = array();
 								$content_bad = array();
+								$partial     = array();
 								foreach ( $a['checks'] as $c ) {
-									if ( false !== $c[1] ) {
-										continue;
-									}
-									if ( false !== stripos( $c[0], 'SEO title' ) || false !== stripos( $c[0], 'Meta description' ) ) {
-										$meta_bad[] = $c[0];
-									} else {
-										$content_bad[] = $c[0];
+									$base = trim( preg_replace( '/\s*(—|✓).*$/u', '', $c[0] ) );
+									if ( null === $c[1] ) {
+										$partial[] = $base; // partial word match.
+									} elseif ( false === $c[1] ) {
+										if ( false !== stripos( $c[0], 'SEO title' ) || false !== stripos( $c[0], 'Meta description' ) ) {
+											$meta_bad[] = $c[0];
+										} else {
+											$content_bad[] = $c[0];
+										}
 									}
 								}
-								if ( ! $meta_bad && ! $content_bad ) {
-									echo '<span style="color:#1a7f37">' . esc_html__( 'All on-page signals present.', 'ricoman' ) . '</span>';
+								if ( ! $meta_bad && ! $content_bad && ! $partial ) {
+									echo '<span style="color:#1a7f37">✓ ' . esc_html__( 'Fully covered — nothing to do.', 'ricoman' ) . '</span>';
 								} else {
 									if ( $meta_bad ) {
 										echo '<div><strong>' . esc_html__( 'SEO fields:', 'ricoman' ) . '</strong> ' . esc_html( implode( ' · ', $meta_bad ) )
@@ -957,6 +961,22 @@ function ricoman_seo_targets_page() {
 											echo '<a class="button button-small" href="' . esc_url( $a['edit'] ) . '" target="_blank" rel="noopener">' . esc_html__( 'Edit page →', 'ricoman' ) . '</a>';
 										}
 										echo '<div class="description" style="margin-top:3px">' . esc_html__( 'Heading, URL slug or body text — change these in the page editor (usually fine to leave on identity, category or tool pages).', 'ricoman' ) . '</div></div>';
+									}
+									if ( $partial ) {
+										// The single highest-leverage idea to close the gap to 100%.
+										echo '<div style="margin-top:' . ( $meta_bad || $content_bad ? '6px' : '0' ) . '">'
+											. ( ! $meta_bad && ! $content_bad ? '<span style="color:#1a7f37">✓ ' . esc_html__( 'Signals present.', 'ricoman' ) . '</span> ' : '' )
+											. '<strong>' . esc_html__( 'To reach 100%:', 'ricoman' ) . '</strong> '
+											. sprintf(
+												/* translators: 1: exact keyword phrase, 2: list of page areas. */
+												esc_html__( 'use the exact phrase “%1$s” in the page’s %2$s.', 'ricoman' ),
+												'<em>' . esc_html( $t['term'] ) . '</em>',
+												esc_html( strtolower( implode( ', ', $partial ) ) )
+											);
+										if ( ! empty( $a['edit'] ) ) {
+											echo ' <a class="button button-small" href="' . esc_url( $a['edit'] ) . '" target="_blank" rel="noopener">' . esc_html__( 'Edit page →', 'ricoman' ) . '</a>';
+										}
+										echo '<div class="description" style="margin-top:3px">' . esc_html__( 'Optional — these areas already include most of the keyword; matching it exactly earns the last points. Only worth it where it reads naturally.', 'ricoman' ) . '</div></div>';
 									}
 								}
 							}
