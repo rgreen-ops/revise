@@ -948,8 +948,14 @@ function ricoman_seo_targets_page() {
 										}
 									}
 								}
+								$brand = ( 'Identity' === ( isset( $t['intent'] ) ? $t['intent'] : '' ) );
 								if ( ! $meta_bad && ! $content_bad && ! $partial ) {
 									echo '<span style="color:#1a7f37">✓ ' . esc_html__( 'Fully covered — nothing to do.', 'ricoman' ) . '</span>';
+								} elseif ( $brand && ! $meta_bad ) {
+									// Brand / identity page: the term belongs in the SEO title & meta
+									// (set), not jammed into the heading or URL — so don't nag to edit it.
+									echo '<span style="color:#1a7f37">✓ ' . esc_html__( 'SEO title &amp; meta set — no change needed.', 'ricoman' ) . '</span>';
+									echo '<div class="description" style="margin-top:3px">' . esc_html__( 'On a brand/identity page the keyword lives in the SEO title & description, not the heading or URL — that’s correct, so leave the page as-is.', 'ricoman' ) . '</div>';
 								} else {
 									if ( $meta_bad ) {
 										echo '<div><strong>' . esc_html__( 'SEO fields:', 'ricoman' ) . '</strong> ' . esc_html( implode( ' · ', $meta_bad ) )
