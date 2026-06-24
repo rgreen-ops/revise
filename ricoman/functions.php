@@ -54,6 +54,7 @@ require_once get_theme_file_path( 'inc/seo-yoast-bridge.php' );// Feed optimised
 require_once get_theme_file_path( 'inc/seo-targets.php' );    // SEO Targets register + on-page coverage review.
 require_once get_theme_file_path( 'inc/seo-gsc.php' );        // Google Search Console connector (live rank/impressions).
 require_once get_theme_file_path( 'inc/seo-score.php' );     // SEO scoring + back-office dashboard.
+require_once get_theme_file_path( 'inc/cwv-tracker.php' );   // Core Web Vitals: old-vs-new speed comparison (PageSpeed).
 require_once get_theme_file_path( 'inc/seo-audit.php' );     // Site-wide SEO audit roll-up (read-only).
 require_once get_theme_file_path( 'inc/geo.php' );           // Generative SEO (AI search): FAQ, llms.txt.
 require_once get_theme_file_path( 'inc/transporter.php' );   // Content migration tool.

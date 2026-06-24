@@ -31,6 +31,7 @@ function ricoman_admin_links() {
 		'chrome'      => admin_url( 'site-editor.php?path=/wp_template_part/all' ),
 		'patterns'    => admin_url( 'site-editor.php?path=/patterns' ),
 		'speed'       => admin_url( 'tools.php?page=ricoman-speed' ),
+		'cwv'         => admin_url( 'tools.php?page=ricoman-cwv' ),
 		'seo'         => admin_url( 'options-general.php?page=ricoman-seo' ),
 		'ricobot'     => admin_url( 'options-general.php?page=ricoman-ricobot' ),
 		'leads'       => admin_url( 'edit.php?post_type=lead' ),
@@ -248,6 +249,7 @@ function ricoman_render_hub() {
 			$tile( $l['seotargets'], 'chart-line', __( 'SEO Targets', 'ricoman' ), __( 'Focus keywords + coverage review', 'ricoman' ) );
 			$tile( $l['tracking'], 'chart-area', __( 'Tracking & Scripts', 'ricoman' ), __( 'GA4, GTM, pixels, custom code', 'ricoman' ) );
 			$tile( $l['speed'], 'performance', __( 'SEO & Speed', 'ricoman' ), __( 'Scores + PageSpeed', 'ricoman' ) );
+			$tile( $l['cwv'], 'dashboard', __( 'Speed: Old vs New', 'ricoman' ), __( 'Before/after Core Web Vitals', 'ricoman' ) );
 			$tile( $l['seo'], 'search', __( 'SEO Settings', 'ricoman' ), __( 'Org, social, address, AI', 'ricoman' ) );
 			// Page SEO / Category SEO screens are hidden when an SEO plugin (Yoast)
 			// owns SEO; in that case show the Yoast-aware SEO Optimiser instead.
