@@ -99,6 +99,79 @@ add_action( 'admin_menu', function () {
 	add_submenu_page( 'ricoman-hub', __( 'Control Center', 'ricoman' ), __( 'Control Center', 'ricoman' ), 'edit_posts', 'ricoman-hub', 'ricoman_render_hub' );
 }, 9 );
 
+/**
+ * Tidy the Ricoman submenu: reorder items into labelled groups (Dashboard, SEO &
+ * Growth, Content & Design, Catalogue & Media, Launch) with non-clickable section
+ * headers. Nothing is removed — everything stays reachable. Runs after all
+ * submenu pages are registered.
+ */
+add_action( 'admin_menu', function () {
+	global $submenu;
+	$parent = 'ricoman-hub';
+	if ( empty( $submenu[ $parent ] ) ) {
+		return;
+	}
+	// group label => keywords matched against each item's visible title.
+	$groups = array(
+		'Dashboard'        => array( 'Control Center' ),
+		'SEO & Growth'     => array( 'SEO Targets', 'SEO Optimiser', 'Tracking' ),
+		'Content & Design' => array( 'Header', 'Edit layout', 'Product Templates', 'Configurator' ),
+		'Catalogue & Media'=> array( 'Reorder Categories', 'Reorder Products', 'Filter Data', 'Studio', 'Image Alt', 'Pull Missing', 'Media Cleanup', 'Image WebP', 'RICOBOT' ),
+		'Launch'           => array( 'Links', 'Redirects', 'Content Transporter', 'Go Live', 'Push to Live' ),
+	);
+	$items   = $submenu[ $parent ];
+	$used    = array();
+	$ordered = array();
+	$header  = function ( $label ) {
+		return array( '<span class="rm-subhead-lbl">' . esc_html( strtoupper( $label ) ) . '</span>', 'read', 'ricoman-grp-' . sanitize_title( $label ), '', 'rm-subhead' );
+	};
+	foreach ( $groups as $gname => $keywords ) {
+		$bucket = array();
+		foreach ( $items as $idx => $it ) {
+			if ( isset( $used[ $idx ] ) ) {
+				continue;
+			}
+			$title = wp_strip_all_tags( $it[0] );
+			foreach ( $keywords as $kw ) {
+				if ( false !== stripos( $title, $kw ) ) {
+					$bucket[]      = $it;
+					$used[ $idx ]  = true;
+					break;
+				}
+			}
+		}
+		if ( $bucket ) {
+			$ordered[] = $header( $gname );
+			foreach ( $bucket as $b ) {
+				$ordered[] = $b;
+			}
+		}
+	}
+	// Anything unmatched keeps working under a "More" header.
+	$left = array();
+	foreach ( $items as $idx => $it ) {
+		if ( ! isset( $used[ $idx ] ) ) {
+			$left[] = $it;
+		}
+	}
+	if ( $left ) {
+		$ordered[] = $header( 'More' );
+		foreach ( $left as $b ) {
+			$ordered[] = $b;
+		}
+	}
+	$submenu[ $parent ] = $ordered;
+}, 9999 );
+
+/** Style the submenu section headers (non-clickable group labels). */
+add_action( 'admin_head', function () {
+	echo '<style>'
+		. '#adminmenu .rm-subhead{margin-top:6px}'
+		. '#adminmenu .rm-subhead a{pointer-events:none;cursor:default;color:#8c8f94 !important;text-transform:uppercase;font-size:10px;letter-spacing:.06em;font-weight:700;padding:6px 12px 2px;opacity:.85}'
+		. '#adminmenu .rm-subhead a:hover{color:#8c8f94 !important;background:transparent !important}'
+		. '</style>';
+} );
+
 function ricoman_render_hub() {
 	$l      = ricoman_admin_links();
 	$status = ricoman_admin_status();
