@@ -146,74 +146,62 @@ function ricoman_home_slider_render() {
 		<?php endif; ?>
 	</div>
 	<?php
-	ricoman_home_slider_assets();
 	return ob_get_clean();
 }
 add_shortcode( 'ricoman_home_slider', 'ricoman_home_slider_render' );
 
-/** Inline CSS + JS for the slider (printed once). */
+/** Front-end slider styles + script (loaded once, works for the shortcode AND the block pattern). */
+add_action( 'wp_enqueue_scripts', 'ricoman_home_slider_assets' );
 function ricoman_home_slider_assets() {
-	static $done = false;
-	if ( $done ) {
-		return;
-	}
-	$done = true;
-	?>
-	<style>
-	.rm-hslider{position:relative;width:100%;min-height:82vh;overflow:hidden;background:#16161a}
-	.rm-hslider-track{position:relative;width:100%;height:100%;min-height:82vh}
-	.rm-hslide{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .8s ease;display:flex;align-items:flex-end}
-	.rm-hslide.is-active{opacity:1;visibility:visible;position:relative}
-	.rm-hslide-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-	.rm-hslide-dim{position:absolute;inset:0;background:#16161a}
-	.rm-hslide-inner{position:relative;z-index:2;max-width:1180px;margin:0 auto;width:100%;padding:0 24px 8vh;color:#fff}
-	.rm-hslide .rm-eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:.8rem;font-weight:700;opacity:.85;margin:0 0 .6em}
-	.rm-hslide-h{font-size:clamp(2.6rem,7vw,6rem);font-weight:500;line-height:.98;margin:0 0 .3em;color:#fff}
-	.rm-hslide-text{font-size:1.1rem;line-height:1.55;max-width:60ch;opacity:.92;margin:0 0 1.4em}
-	.rm-hslide-btns{display:flex;gap:12px;flex-wrap:wrap}
-	.rm-hslide-btns .btn{display:inline-block;padding:13px 26px;border:1.5px solid rgba(255,255,255,.8);border-radius:6px;color:#fff;font-weight:600;text-decoration:none;transition:.2s}
-	.rm-hslide-btns .btn:hover{background:#fff;color:#16161a}
-	.rm-hslider-arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:3;width:46px;height:46px;border:0;border-radius:50%;background:rgba(0,0,0,.35);color:#fff;font-size:26px;line-height:1;cursor:pointer;transition:.2s}
-	.rm-hslider-arrow:hover{background:rgba(0,0,0,.6)}
-	.rm-hslider-prev{left:18px}.rm-hslider-next{right:18px}
-	.rm-hslider-dots{position:absolute;left:0;right:0;bottom:22px;z-index:3;display:flex;justify-content:center;gap:10px}
-	.rm-hsdot{width:11px;height:11px;border-radius:50%;border:0;background:rgba(255,255,255,.45);cursor:pointer;padding:0;transition:.2s}
-	.rm-hsdot.is-active{background:#fff;transform:scale(1.15)}
-	@media(max-width:782px){.rm-hslider,.rm-hslider-track{min-height:68vh}.rm-hslide-inner{padding-bottom:10vh}.rm-hslider-arrow{display:none}}
-	</style>
-	<script>
-	(function(){
-		function init(s){
-			var slides=[].slice.call(s.querySelectorAll('.rm-hslide'));
-			if(slides.length<2)return;
-			var dots=[].slice.call(s.querySelectorAll('.rm-hsdot')),cur=0,timer=null,
-			    delay=parseInt(s.getAttribute('data-autoplay'),10)||6000;
-			function show(n){
-				n=(n+slides.length)%slides.length;
-				slides[cur].classList.remove('is-active');if(dots[cur])dots[cur].classList.remove('is-active');
-				slides[cur].setAttribute('aria-hidden','true');
-				cur=n;
-				slides[cur].classList.add('is-active');if(dots[cur])dots[cur].classList.add('is-active');
-				slides[cur].removeAttribute('aria-hidden');
-			}
-			function next(){show(cur+1);}function prev(){show(cur-1);}
-			function play(){stop();timer=setInterval(next,delay);}function stop(){if(timer)clearInterval(timer);}
-			var pn=s.querySelector('.rm-hslider-next'),pp=s.querySelector('.rm-hslider-prev');
-			if(pn)pn.addEventListener('click',function(){next();play();});
-			if(pp)pp.addEventListener('click',function(){prev();play();});
-			dots.forEach(function(d){d.addEventListener('click',function(){show(parseInt(d.getAttribute('data-i'),10));play();});});
-			s.addEventListener('mouseenter',stop);s.addEventListener('mouseleave',play);
-			// swipe
-			var x0=null;
-			s.addEventListener('touchstart',function(e){x0=e.touches[0].clientX;},{passive:true});
-			s.addEventListener('touchend',function(e){if(x0===null)return;var dx=e.changedTouches[0].clientX-x0;if(Math.abs(dx)>40){dx<0?next():prev();play();}x0=null;});
-			play();
-		}
-		function boot(){document.querySelectorAll('.rm-hslider--multi').forEach(init);}
-		if(document.readyState!=='loading')boot();else document.addEventListener('DOMContentLoaded',boot);
-	})();
-	</script>
-	<?php
+	$css = '.rm-hslider{position:relative;overflow:hidden;background:#16161a}'
+		. '.rm-hslider>.rm-hslide,.rm-hslider>.wp-block-cover{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .8s ease}'
+		. '.rm-hslider>.rm-hslide.is-active,.rm-hslider>.wp-block-cover.is-active{position:relative;opacity:1;visibility:visible}'
+		. '.rm-hslide{min-height:82vh;display:flex;align-items:flex-end}'
+		. '.rm-hslide-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}'
+		. '.rm-hslide-dim{position:absolute;inset:0;background:#16161a}'
+		. '.rm-hslide-inner{position:relative;z-index:2;max-width:1180px;margin:0 auto;width:100%;padding:0 24px 8vh;color:#fff}'
+		. '.rm-hslide .rm-eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:.8rem;font-weight:700;opacity:.85;margin:0 0 .6em}'
+		. '.rm-hslide-h{font-size:clamp(2.6rem,7vw,6rem);font-weight:500;line-height:.98;margin:0 0 .3em;color:#fff}'
+		. '.rm-hslide-text{font-size:1.1rem;line-height:1.55;max-width:60ch;opacity:.92;margin:0 0 1.4em}'
+		. '.rm-hslide-btns{display:flex;gap:12px;flex-wrap:wrap}'
+		. '.rm-hslide-btns .btn{display:inline-block;padding:13px 26px;border:1.5px solid rgba(255,255,255,.8);border-radius:6px;color:#fff;font-weight:600;text-decoration:none;transition:.2s}'
+		. '.rm-hslide-btns .btn:hover{background:#fff;color:#16161a}'
+		. '.rm-hslider-arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:4;width:46px;height:46px;border:0;border-radius:50%;background:rgba(0,0,0,.35);color:#fff;font-size:26px;line-height:1;cursor:pointer;transition:.2s}'
+		. '.rm-hslider-arrow:hover{background:rgba(0,0,0,.6)}.rm-hslider-prev{left:18px}.rm-hslider-next{right:18px}'
+		. '.rm-hslider-dots{position:absolute;left:0;right:0;bottom:22px;z-index:4;display:flex;justify-content:center;gap:10px}'
+		. '.rm-hsdot{width:11px;height:11px;border-radius:50%;border:0;background:rgba(255,255,255,.45);cursor:pointer;padding:0;transition:.2s}'
+		. '.rm-hsdot.is-active{background:#fff;transform:scale(1.15)}'
+		. '@media(max-width:782px){.rm-hslide{min-height:68vh}.rm-hslider-arrow{display:none}}';
+	$js = '(function(){'
+		. 'function build(s){'
+		. 'var k=[].slice.call(s.children).filter(function(c){return c.matches&&c.matches(".rm-hslide,.wp-block-cover");});'
+		. 'if(k.length<2)return;'
+		. 'k.forEach(function(x,i){x.classList.add("rm-hslide");if(i===0){x.classList.add("is-active");}else{x.setAttribute("aria-hidden","true");}});'
+		. 'function mk(c,h,l){var b=document.createElement("button");b.type="button";b.className=c;b.setAttribute("aria-label",l);b.innerHTML=h;return b;}'
+		. 'var prev=mk("rm-hslider-arrow rm-hslider-prev","&lsaquo;","Previous slide");'
+		. 'var next=mk("rm-hslider-arrow rm-hslider-next","&rsaquo;","Next slide");'
+		. 'var dots=document.createElement("div");dots.className="rm-hslider-dots";'
+		. 'k.forEach(function(x,i){var d=mk("rm-hsdot"+(i===0?" is-active":""),"","Go to slide "+(i+1));d.setAttribute("data-i",i);dots.appendChild(d);});'
+		. 's.appendChild(prev);s.appendChild(next);s.appendChild(dots);'
+		. 'var de=[].slice.call(dots.children),cur=0,t=null,delay=parseInt(s.getAttribute("data-autoplay"),10)||6000;'
+		. 'function show(n){n=(n+k.length)%k.length;k[cur].classList.remove("is-active");k[cur].setAttribute("aria-hidden","true");de[cur].classList.remove("is-active");cur=n;k[cur].classList.add("is-active");k[cur].removeAttribute("aria-hidden");de[cur].classList.add("is-active");}'
+		. 'function nx(){show(cur+1);}function pv(){show(cur-1);}'
+		. 'function play(){stop();t=setInterval(nx,delay);}function stop(){if(t)clearInterval(t);}'
+		. 'next.onclick=function(){nx();play();};prev.onclick=function(){pv();play();};'
+		. 'de.forEach(function(d){d.onclick=function(){show(parseInt(d.getAttribute("data-i"),10));play();};});'
+		. 's.addEventListener("mouseenter",stop);s.addEventListener("mouseleave",play);'
+		. 'var x0=null;s.addEventListener("touchstart",function(e){x0=e.touches[0].clientX;},{passive:true});'
+		. 's.addEventListener("touchend",function(e){if(x0===null)return;var dx=e.changedTouches[0].clientX-x0;if(Math.abs(dx)>40){dx<0?nx():pv();play();}x0=null;});'
+		. 'play();}'
+		. 'function boot(){[].slice.call(document.querySelectorAll(".rm-hslider")).forEach(build);}'
+		. 'if(document.readyState!=="loading"){boot();}else{document.addEventListener("DOMContentLoaded",boot);}'
+		. '})();';
+	wp_register_style( 'ricoman-hslider', false );
+	wp_enqueue_style( 'ricoman-hslider' );
+	wp_add_inline_style( 'ricoman-hslider', $css );
+	wp_register_script( 'ricoman-hslider', false, array(), null, true );
+	wp_enqueue_script( 'ricoman-hslider' );
+	wp_add_inline_script( 'ricoman-hslider', $js );
 }
 
 /* --------------------------------------------------------------- admin UI */
@@ -388,11 +376,36 @@ function ricoman_home_slider_row( $i, $s ) {
 
 /** Register a "Home · Hero slider" pattern so it can be dropped onto the homepage. */
 add_action( 'init', function () {
-	if ( function_exists( 'register_block_pattern' ) ) {
-		register_block_pattern( 'ricoman/home-hero-slider', array(
-			'title'      => __( 'Home · Hero slider', 'ricoman' ),
-			'categories' => array( 'ricoman-page' ),
-			'content'    => '<!-- wp:shortcode -->[ricoman_home_slider]<!-- /wp:shortcode -->',
-		) );
+	if ( ! function_exists( 'register_block_pattern' ) ) {
+		return;
 	}
+	// Each slide is an editable Cover block (background = image OR video, swappable
+	// in the editor). Duplicate a Cover to add a slide; delete one to remove it.
+	$slide = function ( $img, $eyebrow, $heading, $text, $b1l, $b1u, $b2l, $b2u ) {
+		$btns = '<!-- wp:buttons --><div class="wp-block-buttons">'
+			. '<!-- wp:button {"className":"is-style-outline-light"} --><div class="wp-block-button is-style-outline-light"><a class="wp-block-button__link wp-element-button" href="' . $b1u . '">' . $b1l . '</a></div><!-- /wp:button -->'
+			. ( $b2l ? '<!-- wp:button {"className":"is-style-outline-light"} --><div class="wp-block-button is-style-outline-light"><a class="wp-block-button__link wp-element-button" href="' . $b2u . '">' . $b2l . '</a></div><!-- /wp:button -->' : '' )
+			. '</div><!-- /wp:buttons -->';
+		return '<!-- wp:cover {"url":"' . esc_url( $img ) . '","dimRatio":50,"overlayColor":"ink","minHeight":80,"minHeightUnit":"vh","contentPosition":"bottom left","align":"full"} -->'
+			. '<div class="wp-block-cover alignfull has-custom-content-position is-position-bottom-left" style="min-height:80vh">'
+			. '<span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-50 has-background-dim"></span>'
+			. '<img class="wp-block-cover__image-background" alt="" src="' . esc_url( $img ) . '" data-object-fit="cover"/>'
+			. '<div class="wp-block-cover__inner-container">'
+			. '<!-- wp:paragraph {"className":"rm-eyebrow","textColor":"base"} --><p class="rm-eyebrow has-base-color has-text-color">' . $eyebrow . '</p><!-- /wp:paragraph -->'
+			. '<!-- wp:heading {"level":1,"className":"rm-hslide-h","textColor":"base","style":{"typography":{"fontWeight":"500","fontSize":"clamp(2.6rem,7vw,6rem)","lineHeight":"0.98"}}} --><h1 class="wp-block-heading rm-hslide-h has-base-color has-text-color" style="font-size:clamp(2.6rem,7vw,6rem);font-weight:500;line-height:0.98">' . $heading . '</h1><!-- /wp:heading -->'
+			. '<!-- wp:paragraph {"className":"rm-hslide-text","textColor":"base"} --><p class="rm-hslide-text has-base-color has-text-color">' . $text . '</p><!-- /wp:paragraph -->'
+			. $btns
+			. '</div></div><!-- /wp:cover -->';
+	};
+	$u       = function ( $f ) { return get_theme_file_uri( 'assets/images/' . $f ); };
+	$content = '<!-- wp:group {"align":"full","className":"rm-hslider rm-hslider--multi"} --><div class="wp-block-group alignfull rm-hslider rm-hslider--multi" data-autoplay="6000">'
+		. $slide( $u( 'warm-int.webp' ), 'Commercial Interior Lighting · Made in Britain', 'Light that transforms how a space feels.', 'We&rsquo;re a British manufacturer obsessed with getting light right &mdash; designing and making commercial luminaires in Manchester.', 'Explore Products', '/products/', 'Free Scheme Design', '/lighting-design/' )
+		. $slide( $u( 'rico-betfred-flow.webp' ), 'Bespoke &amp; Curved Linear', 'Transforming spaces with lighting that inspires.', 'Seamless curved runs, statement features and made-to-order luminaires &mdash; designed with you and built in Britain.', 'See our work', '/projects/', '', '' )
+		. $slide( $u( 'warehouse.webp' ), 'UK Stock &middot; ~6-Day Lead', 'Lighting that performs, and endures.', 'High-efficacy, long-life luminaires backed by free design, fast UK lead times and a 5-year warranty.', 'Browse products', '/products/', 'Talk to the team', '/contact/' )
+		. '</div><!-- /wp:group -->';
+	register_block_pattern( 'ricoman/home-hero-slider', array(
+		'title'      => __( 'Home · Hero slider', 'ricoman' ),
+		'categories' => array( 'ricoman-page' ),
+		'content'    => $content,
+	) );
 }, 13 );
