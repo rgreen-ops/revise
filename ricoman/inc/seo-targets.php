@@ -728,6 +728,42 @@ function ricoman_seo_trend_graph( $term ) {
 	return $svg . $legend;
 }
 
+/* ----------------------------------------------- search-click achievements */
+
+/** Milestone tiers (28-day Google Search clicks). */
+function ricoman_seo_click_tiers() {
+	return apply_filters( 'ricoman_seo_click_tiers', array( 100, 250, 500, 1000, 1500, 2000, 2500, 5000, 7500, 10000, 25000, 50000, 100000 ) );
+}
+
+/** Short label for a tier: 2500 → "2.5K". */
+function ricoman_seo_tier_label( $n ) {
+	if ( $n >= 1000 ) {
+		$k = $n / 1000;
+		return ( floor( $k ) === (float) $k ? (int) $k : rtrim( rtrim( number_format( $k, 1 ), '0' ), '.' ) ) . 'K';
+	}
+	return (string) (int) $n;
+}
+
+/** Record any newly-reached click milestones with today's date. Returns the achieved map (tier => date). */
+function ricoman_seo_record_achievements( $clicks ) {
+	$done = get_option( 'ricoman_seo_achieved', array() );
+	if ( ! is_array( $done ) ) {
+		$done = array();
+	}
+	$today   = gmdate( 'Y-m-d' );
+	$changed = false;
+	foreach ( ricoman_seo_click_tiers() as $tk ) {
+		if ( $clicks >= $tk && ! isset( $done[ $tk ] ) ) {
+			$done[ $tk ] = $today;
+			$changed     = true;
+		}
+	}
+	if ( $changed ) {
+		update_option( 'ricoman_seo_achieved', $done, false );
+	}
+	return $done;
+}
+
 /** Aggregate visibility series: per-date average coverage (+ avg Google rank) across all targets. */
 function ricoman_seo_visibility_series() {
 	$hist   = get_option( 'ricoman_seo_history', array() );
@@ -1077,6 +1113,44 @@ function ricoman_seo_targets_page() {
 				. '.rm-ov-dist{flex:1;min-width:300px;border-left:1px solid #eee;padding-left:20px}.rm-ov-disth{font-weight:600;font-size:12.5px;margin-bottom:6px}'
 				. '.rm-ovbar{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:12px}.rm-ovbar-lbl{width:96px;color:#555}.rm-ovbar-track{flex:1;background:#f0f1f4;border-radius:4px;height:14px;overflow:hidden}.rm-ovbar-fill{display:block;height:100%}.rm-ovbar-num{width:30px;text-align:right;font-weight:700}'
 				. '</style>';
+
+			// Search-click achievements (gamified milestones, GSC-style).
+			$clk    = (int) $ov['clicks'];
+			$tiers  = ricoman_seo_click_tiers();
+			$done   = ricoman_seo_record_achievements( $clk );
+			$next   = null;
+			$prev   = 0;
+			foreach ( $tiers as $tk ) {
+				if ( $clk >= $tk ) {
+					$prev = $tk;
+				} elseif ( null === $next ) {
+					$next = $tk;
+				}
+			}
+			echo '<details class="rm-seo-ach" style="margin:14px 0;border:1px solid #dcdce0;border-radius:8px;padding:10px 16px;background:#fff" open>';
+			echo '<summary style="cursor:pointer;font-weight:600">🏆 ' . esc_html__( 'Search achievements', 'ricoman' ) . ' <span class="description">' . esc_html( sprintf( /* translators: %s clicks */ __( '— %s clicks from Google in the last 28 days', 'ricoman' ), number_format_i18n( $clk ) ) ) . '</span></summary>';
+			echo '<div style="margin-top:8px">';
+			if ( $next ) {
+				$span = max( 1, $next - $prev );
+				$pct  = max( 0, min( 100, round( ( $clk - $prev ) / $span * 100 ) ) );
+				echo '<p style="margin:0 0 4px;font-size:13px"><strong>' . esc_html( number_format_i18n( $clk ) ) . '</strong> / ' . esc_html( ricoman_seo_tier_label( $next ) ) . ' ' . esc_html__( 'clicks — next milestone', 'ricoman' ) . '</p>';
+				echo '<div style="background:#f0f1f4;border-radius:999px;height:12px;max-width:420px;overflow:hidden"><div style="width:' . (int) $pct . '%;height:100%;background:#e0a106"></div></div>';
+			} else {
+				echo '<p style="margin:0;font-size:13px;color:#1a7f37">🎉 ' . esc_html__( 'Top milestone reached — outstanding!', 'ricoman' ) . '</p>';
+			}
+			// Earned badges, newest first.
+			if ( $done ) {
+				krsort( $done );
+				echo '<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px">';
+				foreach ( $done as $tk => $date ) {
+					echo '<div title="' . esc_attr( sprintf( /* translators: %s date */ __( 'Reached on %s', 'ricoman' ), $date ) ) . '" style="text-align:center;min-width:64px">'
+						. '<div style="width:48px;height:48px;margin:0 auto;border-radius:50%;background:#fbe6a8;display:flex;align-items:center;justify-content:center;font-weight:700;color:#8a6d10;border:2px solid #e0a106">' . esc_html( ricoman_seo_tier_label( $tk ) ) . '</div>'
+						. '<div style="font-size:10px;color:#888;margin-top:2px">' . esc_html( gmdate( 'M Y', strtotime( $date ) ) ) . '</div></div>';
+				}
+				echo '</div>';
+			}
+			echo '<p class="description" style="margin-top:10px">' . esc_html__( 'Milestones are reached when your 28-day Google Search clicks pass each level. Great to share with the team — and a clean way to show the new site’s impact after launch.', 'ricoman' ) . '</p>';
+			echo '</div></details>';
 		}
 		?>
 
