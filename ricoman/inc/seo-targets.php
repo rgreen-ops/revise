@@ -953,6 +953,7 @@ add_action( 'admin_post_ricoman_seo_targets_save', function () {
 			'intent'   => isset( $r['intent'] ) ? sanitize_text_field( $r['intent'] ) : '',
 			'priority' => isset( $r['priority'] ) ? sanitize_text_field( $r['priority'] ) : 'Medium',
 			'url'      => isset( $r['url'] ) ? esc_url_raw( trim( $r['url'] ), array( 'http', 'https' ) ) : '',
+			'notes'    => isset( $r['notes'] ) ? sanitize_textarea_field( $r['notes'] ) : '',
 		);
 	}
 	update_option( 'ricoman_seo_targets', $out, false );
@@ -1104,7 +1105,10 @@ function ricoman_seo_targets_page() {
 					?>
 					<tr class="rm-seo-main">
 						<td class="rm-seo-handle" title="<?php esc_attr_e( 'Drag to reorder', 'ricoman' ); ?>" style="cursor:grab;color:#aaa;text-align:center">⠿</td>
-						<td><input type="text" name="t[<?php echo (int) $i; ?>][term]" value="<?php echo esc_attr( $t['term'] ); ?>" style="width:100%"></td>
+						<td><input type="text" name="t[<?php echo (int) $i; ?>][term]" value="<?php echo esc_attr( $t['term'] ); ?>" style="width:100%">
+							<div style="margin-top:3px"><a href="#" class="rm-trend-toggle" data-row="rm-td-<?php echo (int) $i; ?>" style="font-size:11.5px;color:#2271b1;text-decoration:none">🔍 <?php esc_html_e( 'Details &amp; notes', 'ricoman' ); ?></a>
+								<?php if ( ! empty( $t['notes'] ) ) : ?> <span title="<?php esc_attr_e( 'has notes', 'ricoman' ); ?>">📝</span><?php endif; ?>
+							</div></td>
 						<td><select name="t[<?php echo (int) $i; ?>][intent]"><?php foreach ( $intents as $opt ) { echo '<option' . selected( $t['intent'], $opt, false ) . '>' . esc_html( $opt ) . '</option>'; } ?></select></td>
 						<td><select name="t[<?php echo (int) $i; ?>][priority]"><?php foreach ( $priorities as $opt ) { echo '<option' . selected( $t['priority'], $opt, false ) . '>' . esc_html( $opt ) . '</option>'; } ?></select></td>
 						<td><input type="text" name="t[<?php echo (int) $i; ?>][url]" value="<?php echo esc_attr( $t['url'] ); ?>" placeholder="/page-slug/" style="width:80%">
@@ -1230,9 +1234,40 @@ function ricoman_seo_targets_page() {
 					</tr>
 						<tr class="rm-trend-row" id="rm-td-<?php echo (int) $i; ?>" style="display:none">
 							<td></td>
-							<td colspan="<?php echo $gsc_on ? 7 : 6; ?>" style="padding:14px 16px;background:#fcfcfd">
-								<strong style="font-size:13px"><?php echo esc_html( $t['term'] ); ?> — <?php esc_html_e( 'over time', 'ricoman' ); ?></strong>
-								<div style="margin-top:6px"><?php echo ricoman_seo_trend_graph( $t['term'] ); // phpcs:ignore WordPress.Security.EscapeOutput ?></div>
+							<td colspan="<?php echo $gsc_on ? 7 : 6; ?>" style="padding:16px 18px;background:#fcfcfd">
+								<div style="display:flex;gap:24px;flex-wrap:wrap">
+									<div style="flex:2;min-width:340px">
+										<strong style="font-size:14px"><?php echo esc_html( $t['term'] ); ?></strong>
+										<div style="margin-top:8px"><?php echo ricoman_seo_trend_graph( $t['term'] ); // phpcs:ignore WordPress.Security.EscapeOutput ?></div>
+									</div>
+									<div style="flex:1;min-width:260px">
+									<?php
+									echo '<h4 style="margin:0 0 4px;font-size:12.5px">' . esc_html__( 'Coverage breakdown', 'ricoman' ) . '</h4><ul style="margin:0 0 10px;list-style:none;padding:0;font-size:12px">';
+									if ( ! empty( $a['gap'] ) ) {
+										echo '<li style="color:#b32d2e">' . esc_html__( 'No target page set yet.', 'ricoman' ) . '</li>';
+									} else {
+										foreach ( $a['checks'] as $c ) {
+											$col = ( true === $c[1] ) ? '#1a7f37' : ( ( null === $c[1] ) ? '#b8860b' : '#b32d2e' );
+											$ico = ( true === $c[1] ) ? '✓' : ( ( null === $c[1] ) ? '◐' : '✕' );
+											echo '<li style="color:' . esc_attr( $col ) . '">' . esc_html( $ico . ' ' . $c[0] ) . '</li>';
+										}
+										echo '<li style="margin-top:4px;color:#555">' . sprintf( esc_html__( 'Internal links: %1$d · Schema: %2$s', 'ricoman' ), (int) ( isset( $a['internal_links'] ) ? $a['internal_links'] : 0 ), esc_html( ! empty( $a['schema'] ) ? implode( ', ', $a['schema'] ) : '—' ) ) . '</li>';
+									}
+									echo '</ul>';
+									if ( $gsc_on ) {
+										$gd = ricoman_gsc_term_data( $t['term'] );
+										echo '<h4 style="margin:0 0 4px;font-size:12.5px">' . esc_html__( 'Google (last 28 days)', 'ricoman' ) . '</h4>';
+										if ( $gd ) {
+											echo '<p style="margin:0 0 10px;font-size:12px">' . sprintf( esc_html__( 'Position %1$s · %2$d impressions · %3$d clicks', 'ricoman' ), esc_html( $gd['position'] ), (int) $gd['impressions'], (int) $gd['clicks'] ) . '<br><span class="description">' . esc_html__( 'matched query:', 'ricoman' ) . ' “' . esc_html( $gd['query'] ) . '”</span></p>';
+										} else {
+											echo '<p style="margin:0 0 10px;font-size:12px;color:#999">' . esc_html__( 'No Google impressions yet for this term.', 'ricoman' ) . '</p>';
+										}
+									}
+									echo '<h4 style="margin:0 0 4px;font-size:12.5px">' . esc_html__( 'Notes', 'ricoman' ) . '</h4>';
+									echo '<textarea name="t[' . (int) $i . '][notes]" rows="3" style="width:100%;font-size:12px" placeholder="' . esc_attr__( 'Your notes / plan for this term — saved with “Save targets”.', 'ricoman' ) . '">' . esc_textarea( isset( $t['notes'] ) ? $t['notes'] : '' ) . '</textarea>';
+									?>
+									</div>
+								</div>
 							</td>
 						</tr>
 				<?php endforeach; ?>
