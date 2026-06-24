@@ -100,26 +100,81 @@ add_action( 'admin_menu', function () {
 }, 9 );
 
 /**
- * Slim the Ricoman left submenu so it isn't a duplicate of the Control Center
- * hub. The hub (with grouped, described tiles) is the full launcher; the left nav
- * keeps only the day-to-day items. Rarely-used / setup tools are removed from the
- * nav but stay fully reachable from Control Center (and by direct URL). Runs after
- * all submenu pages are registered.
+ * Tidy the Ricoman left submenu so it mirrors the Control Center hub: the rare
+ * setup tools are hidden from the nav (still reachable from the hub + by URL), and
+ * the rest are grouped under the SAME section names the Control Center page uses
+ * (Design · Growth & marketing · Catalogue & media · Launch). Section headers are
+ * non-clickable and point at Control Center, so they can never 404. Runs after all
+ * submenu pages are registered.
  */
 add_action( 'admin_menu', function () {
-	// These all have a Control Center tile, so hiding them from the nav loses nothing.
-	$hide = apply_filters( 'ricoman_menu_hide', array(
-		'ricoman-config-images',
-		'ricoman-cat-order',
-		'ricoman-product-order',
-		'ricoman-image-alt',
-		'ricoman-pull-images',
-		'ricoman-media-cleanup',
-	) );
-	foreach ( $hide as $slug ) {
-		remove_submenu_page( 'ricoman-hub', $slug );
+	global $submenu;
+	$parent = 'ricoman-hub';
+	// 1) Hide rare / setup tools (each has a Control Center tile).
+	foreach ( apply_filters( 'ricoman_menu_hide', array(
+		'ricoman-config-images', 'ricoman-cat-order', 'ricoman-product-order',
+		'ricoman-image-alt', 'ricoman-pull-images', 'ricoman-media-cleanup',
+	) ) as $slug ) {
+		remove_submenu_page( $parent, $slug );
 	}
+	if ( empty( $submenu[ $parent ] ) ) {
+		return;
+	}
+	// 2) Group what's left under the Control Center section names (exact match).
+	$groups = array(
+		'Design'             => array( 'Header', 'Edit layout' ),
+		'Growth & marketing' => array( 'SEO Targets', 'SEO Optimiser', 'Tracking' ),
+		'Catalogue & media'  => array( 'Product Templates', 'Filter Data', 'Studio', 'Image WebP', 'RICOBOT' ),
+		'Launch'             => array( 'Links', 'Redirects', 'Go Live', 'Push to Live' ),
+	);
+	$items   = $submenu[ $parent ];
+	$used    = array();
+	$ordered = array();
+	// Control Center stays at the very top, ungrouped.
+	foreach ( $items as $idx => $it ) {
+		if ( 'ricoman-hub' === $it[2] ) {
+			$ordered[]    = $it;
+			$used[ $idx ] = true;
+		}
+	}
+	$header = function ( $label ) {
+		// Slug = ricoman-hub so a click just opens Control Center (never a 404).
+		return array( '<span class="rm-subhead-lbl">' . esc_html( strtoupper( $label ) ) . '</span>', 'edit_posts', 'ricoman-hub', '', 'rm-subhead' );
+	};
+	foreach ( $groups as $gname => $keywords ) {
+		$bucket = array();
+		foreach ( $items as $idx => $it ) {
+			if ( isset( $used[ $idx ] ) ) {
+				continue;
+			}
+			$title = wp_strip_all_tags( $it[0] );
+			foreach ( $keywords as $kw ) {
+				if ( false !== stripos( $title, $kw ) ) {
+					$bucket[]     = $it;
+					$used[ $idx ] = true;
+					break;
+				}
+			}
+		}
+		if ( $bucket ) {
+			$ordered[] = $header( $gname );
+			foreach ( $bucket as $b ) {
+				$ordered[] = $b;
+			}
+		}
+	}
+	foreach ( $items as $idx => $it ) {
+		if ( ! isset( $used[ $idx ] ) ) {
+			$ordered[] = $it; // anything unmatched stays visible (ungrouped) so nothing is lost.
+		}
+	}
+	$submenu[ $parent ] = $ordered;
 }, 9999 );
+
+/** Style the non-clickable submenu section headers. */
+add_action( 'admin_head', function () {
+	echo '<style>#adminmenu .rm-subhead a{pointer-events:none;cursor:default;color:#8c8f94 !important;text-transform:uppercase;font-size:10px;letter-spacing:.06em;font-weight:700;padding:8px 12px 2px;opacity:.85}#adminmenu .rm-subhead a:hover{background:transparent !important;color:#8c8f94 !important}</style>';
+} );
 
 function ricoman_render_hub() {
 	$l      = ricoman_admin_links();
