@@ -1076,7 +1076,7 @@ function ricoman_seo_targets_page() {
 											$steps[] = '<strong>' . esc_html__( 'Body text:', 'ricoman' ) . '</strong> ' . esc_html__( 'click into a paragraph and type, or press the “+” button to add a new paragraph → Save.', 'ricoman' );
 										}
 										if ( false !== strpos( $onpage, 'slug' ) ) {
-											$steps[] = '<strong>' . esc_html__( 'URL slug:', 'ricoman' ) . '</strong> ' . esc_html__( 'in the right sidebar open the “Page” tab → click the “Slug” field → edit → Save. (Best left alone on pages that already exist.)', 'ricoman' );
+											$steps[] = '<strong>' . esc_html__( 'URL slug:', 'ricoman' ) . '</strong> ' . esc_html__( 'on a page: right sidebar → “Page” tab → “Slug”. On a product: go to Products, hover the product, click “Quick Edit” → “Slug” (the product builder has no slug field). Best left alone on anything already published — changing a live URL breaks existing links.', 'ricoman' );
 										}
 										if ( false !== strpos( $onpage, 'faq' ) ) {
 											$steps[] = '<strong>' . esc_html__( 'FAQ:', 'ricoman' ) . '</strong> ' . esc_html__( 'on a page press “+”, search “shortcode”, add it and type [ricoman_faq]. On a product, open its “Edit Product” screen and fill the “Product FAQs” box.', 'ricoman' );
