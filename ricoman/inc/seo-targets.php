@@ -1008,7 +1008,6 @@ function ricoman_seo_targets_page() {
 		ricoman_seo_targets_snapshot();
 		update_option( 'ricoman_seo_snap_day', $today, false );
 	}
-	wp_enqueue_script( 'jquery-ui-sortable' );
 	$targets = ricoman_seo_targets();
 	$audits  = array();
 	$green   = 0;
@@ -1178,7 +1177,10 @@ function ricoman_seo_targets_page() {
 					$gap_url = wp_nonce_url( admin_url( 'admin-post.php?action=ricoman_seo_create_gap&i=' . $i ), 'ricoman_seo_gap_' . $i );
 					?>
 					<tr class="rm-seo-main">
-						<td class="rm-seo-handle" title="<?php esc_attr_e( 'Drag to reorder', 'ricoman' ); ?>" style="cursor:grab;color:#aaa;text-align:center">⠿</td>
+						<td class="rm-seo-move" style="text-align:center;white-space:nowrap;padding:2px 4px;line-height:1">
+							<button type="button" class="rm-mv-up" title="<?php esc_attr_e( 'Move up', 'ricoman' ); ?>">▲</button>
+							<button type="button" class="rm-mv-dn" title="<?php esc_attr_e( 'Move down', 'ricoman' ); ?>">▼</button>
+						</td>
 						<td><input type="text" name="t[<?php echo (int) $i; ?>][term]" value="<?php echo esc_attr( $t['term'] ); ?>" style="width:100%">
 							<div style="margin-top:3px"><a href="#" class="rm-trend-toggle" data-row="rm-td-<?php echo (int) $i; ?>" style="font-size:11.5px;color:#2271b1;text-decoration:none">🔍 <?php esc_html_e( 'Details &amp; notes', 'ricoman' ); ?></a>
 								<?php if ( ! empty( $t['notes'] ) ) : ?> <span title="<?php esc_attr_e( 'has notes', 'ricoman' ); ?>">📝</span><?php endif; ?>
@@ -1357,7 +1359,7 @@ function ricoman_seo_targets_page() {
 			</table>
 			<p><?php submit_button( __( 'Save targets', 'ricoman' ), 'primary', 'submit', false ); ?>
 				<button id="rm-seo-addbtn" class="button" style="margin-left:8px">＋ <?php esc_html_e( 'Add another term', 'ricoman' ); ?></button>
-				<span class="description" style="margin-left:10px"><?php esc_html_e( 'Drag the ⠿ handle to reorder · click a sparkline 📈 to see it over time · a snapshot is saved daily.', 'ricoman' ); ?></span></p>
+				<span class="description" style="margin-left:10px"><?php esc_html_e( 'Use the ▲▼ arrows to reorder (then Save) · open “Details & notes” on any term · a snapshot is saved daily.', 'ricoman' ); ?></span></p>
 		</form>
 
 		<?php
@@ -1398,8 +1400,8 @@ function ricoman_seo_targets_page() {
 		.rm-seo-gsc strong{font-size:15px}.rm-seo-gsc-sub{font-size:11px;color:#777}
 		.rm-seo-add td{background:#f6f7f9}
 		.rm-seo-opps{display:flex;gap:22px;flex-wrap:wrap}.rm-seo-opp{flex:1;min-width:340px}
-			.rm-seo-handle:active{cursor:grabbing}
-			.rm-seo-sortph{height:46px;background:#eef4fb;outline:1px dashed #2271b1}
+			.rm-seo-move button{display:block;width:22px;border:1px solid #ccd0d4;background:#fff;color:#555;border-radius:4px;cursor:pointer;font-size:10px;line-height:16px;padding:0;margin:1px auto}
+			.rm-seo-move button:hover{background:#f0f6fc;border-color:#2271b1;color:#2271b1}
 		</style>
 		<script>
 		jQuery(function($){
@@ -1410,14 +1412,24 @@ function ricoman_seo_targets_page() {
 			});
 			// Click a sparkline → toggle that term's graph-over-time row.
 			$('.rm-trend-toggle').on('click',function(e){ e.preventDefault(); $('#'+$(this).data('row')).toggle(); });
-			// Drag rows by the handle to reorder; new order persists on Save.
-			if ($.fn.sortable){
-				$('#rm-seo-rows').sortable({
-					items:'> tr.rm-seo-main', handle:'.rm-seo-handle', axis:'y',
-					placeholder:'rm-seo-sortph', forcePlaceholderSize:true,
-					start:function(e,ui){ $('.rm-trend-row').hide(); ui.children().each(function(){ $(this).width($(this).width()); }); }
-				});
-			}
+			// Up / down arrows reorder a term (moves the row + its detail row together);
+			// the new order persists when you click Save targets.
+			$('#rm-seo-rows').on('click','.rm-mv-up,.rm-mv-dn',function(e){
+				e.preventDefault();
+				var $main=$(this).closest('tr.rm-seo-main'), $trend=$main.next('tr.rm-trend-row');
+				if ($(this).hasClass('rm-mv-up')){
+					var $p=$main.prevAll('tr.rm-seo-main').first();
+					if(!$p.length) return;
+					$main.insertBefore($p);
+				} else {
+					var $nm=$main.nextAll('tr.rm-seo-main').first();
+					if(!$nm.length) return;
+					var $nt=$nm.next('tr.rm-trend-row');
+					$main.insertAfter($nt.length?$nt:$nm);
+				}
+				if ($trend.length) $trend.insertAfter($main);
+				$main.find('input,select').first().css('background','#fffbcc');
+			});
 			// 'Add another term' clones the blank add-row with a unique key.
 			var addN=0;
 			$('#rm-seo-addbtn').on('click',function(e){
