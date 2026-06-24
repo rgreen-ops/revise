@@ -146,7 +146,7 @@
 					"background": "ink",
 					"text": "base"
 				},
-				"border": { "radius": "6px" },
+				"border": { "radius": "0px" },
 				"typography": {
 					"fontFamily": "var(--wp--preset--font-family--heading)",
 					"fontWeight": "600",

@@ -334,12 +334,9 @@ add_action( 'init', function () {
 			$eyebrow( $a['split_eyb'] ) . $shead( $a['split_head'] ) . $para( $a['split_body'], true ) . $checklist( $a['split_items'] )
 				. $buttons( $btn( $a['cta1'][0], $a['cta1'][1], false ) )
 		) );
-		// Mid-page full-bleed dark CTA band (the free-design hook).
-		$out .= $darkgroup(
-			'<!-- wp:heading {"textAlign":"center","level":2,"className":"rm-shead"} --><h2 class="wp-block-heading has-text-align-center rm-shead">Free lighting design on every project</h2><!-- /wp:heading -->'
-			. '<!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">Send us your drawings or a finishes schedule and our in-house UK team returns a fully specified, costed scheme — usually within 3&ndash;5 working days.</p><!-- /wp:paragraph -->'
-			. $buttons( $btn( $a['cta1'][0], $a['cta1'][1] ) . $btn( 'Talk to the team →', '/contact/', false ), true )
-		);
+		// Mid-page full-bleed dark CTA band — the one canonical "free design" banner,
+		// identical on every page (see inc/cta.php).
+		$out .= ricoman_design_cta();
 		// FAQ (schema) + closing CTA cover.
 		$out .= $faqblock( $a['faq_head'], $a['faqs'] );
 		$out .= $cover( $a['cta_img'],

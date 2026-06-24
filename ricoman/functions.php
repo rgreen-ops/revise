@@ -88,6 +88,7 @@ require_once get_theme_file_path( 'inc/family.php' );         // Family filter p
 require_once get_theme_file_path( 'inc/specs-live.php' );     // Configurator-aware Specification + Accessories blocks.
 require_once get_theme_file_path( 'inc/site-options.php' );   // Ricoman admin: mega menu, footer, tracking code.
 require_once get_theme_file_path( 'inc/header-footer.php' );  // [ricoman_header] / [ricoman_footer] renderers.
+require_once get_theme_file_path( 'inc/cta.php' );           // Canonical "free lighting design" CTA banner (one design everywhere).
 require_once get_theme_file_path( 'inc/flow-patterns.php' );  // Flow+ page sections as editable blocks.
 require_once get_theme_file_path( 'inc/page-patterns.php' );  // Home/page sections as editable blocks.
 require_once get_theme_file_path( 'inc/home-slider.php' );   // Home hero slider (image/video slides).

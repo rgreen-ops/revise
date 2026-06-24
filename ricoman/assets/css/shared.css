@@ -23,21 +23,51 @@
 	border-left-width: 4px;
 }
 
-/* ---- Pill button style ---------------------------------------------- */
+/* ---- Buttons: one design site-wide ----------------------------------
+ * Every button (block buttons in patterns/banners + the themed .btn) shares the
+ * same look as the "Browse the product range" button: uppercase, letter-spaced,
+ * square, 1px outline, arrow-friendly. Base typography (uppercase/letter-spacing/
+ * weight/size) comes from theme.json's button element; here we square the
+ * corners, align the arrow, and define the outline variants used on light + dark.
+ */
+.wp-block-button__link {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.55em;
+	line-height: 1;
+	border-radius: 0;
+	border: 1px solid transparent;
+	transition: 0.3s ease;
+}
+
 .wp-block-button.is-style-pill .wp-block-button__link {
 	border-radius: 999px;
 }
 
-/* ---- Outline (light) button: for use on dark sections --------------- */
+/* Outline (light): for dark sections — the "Browse the product range" look. */
 .wp-block-button.is-style-outline-light .wp-block-button__link {
 	background: transparent;
-	color: var(--wp--preset--color--base);
-	border: 2px solid rgba(255, 255, 255, 0.35);
+	color: #fff;
+	border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
 .wp-block-button.is-style-outline-light .wp-block-button__link:hover {
-	background: rgba(255, 255, 255, 0.08);
-	border-color: var(--wp--preset--color--base);
+	background: #fff;
+	color: var(--wp--preset--color--ink, #16161a);
+	border-color: #fff;
+}
+
+/* Outline (default): same shape on light sections — dark border, inverts on hover. */
+.wp-block-button.is-style-outline .wp-block-button__link {
+	background: transparent;
+	color: var(--wp--preset--color--ink, #16161a);
+	border: 1px solid #d2cfc9;
+}
+
+.wp-block-button.is-style-outline .wp-block-button__link:hover {
+	background: var(--wp--preset--color--ink, #16161a);
+	color: #fff;
+	border-color: var(--wp--preset--color--ink, #16161a);
 }
 
 /* ---- Eyebrow / kicker text ------------------------------------------ */
