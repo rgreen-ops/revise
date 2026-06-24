@@ -774,16 +774,22 @@ function ricoman_seo_backfill_achievements() {
 		return get_option( 'ricoman_seo_achieved', array() );
 	}
 	$byd = ricoman_gsc_clicks_by_date();
-	if ( ! $byd ) {
+	if ( count( $byd ) < 30 ) {
 		return get_option( 'ricoman_seo_achieved', array() );
 	}
-	$dates  = array_keys( $byd );
-	$clicks = array_values( $byd );
-	$n      = count( $dates );
-	$tiers  = ricoman_seo_click_tiers();
-	$first  = array();
+	$dates   = array_keys( $byd );
+	$clicks  = array_values( $byd );
+	$n       = count( $dates );
+	$firstTs = strtotime( $dates[0] );
+	$tiers   = ricoman_seo_click_tiers();
+	$result  = array();   // tier => 'Y-m-d' (real crossing) or 'earlier' (already met before our data).
+	$prevSum = null;      // previous full-window day's rolling 28-day total.
 	for ( $i = 0; $i < $n; $i++ ) {
 		$end = strtotime( $dates[ $i ] );
+		// Skip the ramp-up: only trust days with a full 28-day lookback inside the data.
+		if ( ( $end - $firstTs ) < 27 * DAY_IN_SECONDS ) {
+			continue;
+		}
 		$sum = 0;
 		for ( $j = $i; $j >= 0; $j-- ) {
 			if ( ( $end - strtotime( $dates[ $j ] ) ) > 27 * DAY_IN_SECONDS ) {
@@ -792,27 +798,75 @@ function ricoman_seo_backfill_achievements() {
 			$sum += $clicks[ $j ];
 		}
 		foreach ( $tiers as $tk ) {
-			if ( $sum >= $tk && ! isset( $first[ $tk ] ) ) {
-				$first[ $tk ] = $dates[ $i ];
+			if ( isset( $result[ $tk ] ) ) {
+				continue;
+			}
+			if ( null === $prevSum ) {
+				// First trustworthy day: if already above, it was reached before our data.
+				if ( $sum >= $tk ) {
+					$result[ $tk ] = 'earlier';
+				}
+			} elseif ( $prevSum < $tk && $sum >= $tk ) {
+				// Genuine upward crossing within the data — a real, dateable milestone.
+				$result[ $tk ] = $dates[ $i ];
 			}
 		}
+		$prevSum = $sum;
 	}
+	// GSC is authoritative for the tracked window; keep any forward-recorded tier
+	// it doesn't cover (shouldn't happen while connected).
 	$done = get_option( 'ricoman_seo_achieved', array() );
 	if ( ! is_array( $done ) ) {
 		$done = array();
 	}
-	$changed = false;
-	foreach ( $first as $tk => $date ) {
-		// Prefer the earliest real historical date over any "recorded today" placeholder.
-		if ( ! isset( $done[ $tk ] ) || $done[ $tk ] > $date ) {
-			$done[ $tk ] = $date;
-			$changed     = true;
-		}
-	}
-	if ( $changed ) {
-		update_option( 'ricoman_seo_achieved', $done, false );
-	}
+	$done = array_replace( $done, $result );
+	update_option( 'ricoman_seo_achieved', $done, false );
 	return $done;
+}
+
+/** A compact clicks-over-time chart (last ~16 months, by week) — the accurate growth view. */
+function ricoman_seo_clicks_chart() {
+	$byd = function_exists( 'ricoman_gsc_clicks_by_date' ) ? ricoman_gsc_clicks_by_date() : array();
+	if ( count( $byd ) < 14 ) {
+		return '';
+	}
+	// Aggregate to ISO weeks for a clean line.
+	$weeks = array();
+	foreach ( $byd as $date => $c ) {
+		$wk = gmdate( 'oW', strtotime( $date ) );
+		if ( ! isset( $weeks[ $wk ] ) ) {
+			$weeks[ $wk ] = array( 'c' => 0, 'd' => $date );
+		}
+		$weeks[ $wk ]['c'] += (int) $c;
+	}
+	$vals = array_values( $weeks );
+	$n    = count( $vals );
+	if ( $n < 3 ) {
+		return '';
+	}
+	$w    = 760;
+	$h    = 120;
+	$padT = 8;
+	$padB = 18;
+	$padL = 36;
+	$max  = 1;
+	foreach ( $vals as $v ) {
+		$max = max( $max, $v['c'] );
+	}
+	$pts = array();
+	foreach ( $vals as $idx => $v ) {
+		$x     = round( $padL + ( $n > 1 ? $idx / ( $n - 1 ) : 0 ) * ( $w - $padL - 6 ), 1 );
+		$y     = round( $padT + ( 1 - $v['c'] / $max ) * ( $h - $padT - $padB ), 1 );
+		$pts[] = $x . ',' . $y;
+	}
+	$svg  = '<svg width="100%" height="' . $h . '" viewBox="0 0 ' . $w . ' ' . $h . '" preserveAspectRatio="xMidYMid meet" style="max-width:' . $w . 'px">';
+	$svg .= '<text x="' . ( $padL - 5 ) . '" y="' . ( $padT + 8 ) . '" text-anchor="end" font-size="9" fill="#999">' . esc_html( number_format_i18n( $max ) ) . '</text>';
+	$svg .= '<text x="' . ( $padL - 5 ) . '" y="' . ( $h - $padB + 3 ) . '" text-anchor="end" font-size="9" fill="#999">0</text>';
+	foreach ( array( 0, intdiv( $n - 1, 2 ), $n - 1 ) as $di ) {
+		$svg .= '<text x="' . round( $padL + ( $n > 1 ? $di / ( $n - 1 ) : 0 ) * ( $w - $padL - 6 ), 1 ) . '" y="' . ( $h - 5 ) . '" text-anchor="middle" font-size="9" fill="#999">' . esc_html( gmdate( 'M Y', strtotime( $vals[ $di ]['d'] ) ) ) . '</text>';
+	}
+	$svg .= '<polyline fill="none" stroke="#2271b1" stroke-width="2" points="' . esc_attr( implode( ' ', $pts ) ) . '"/></svg>';
+	return '<div style="margin-top:10px"><strong style="font-size:12.5px">' . esc_html__( 'Weekly Google clicks (last ~16 months)', 'ricoman' ) . '</strong>' . $svg . '<p class="description" style="margin-top:2px">' . esc_html__( 'This is the true growth view — when traffic rose or fell. (Milestone badges can only be dated for genuine increases within this window.)', 'ricoman' ) . '</p></div>';
 }
 
 /** Aggregate visibility series: per-date average coverage (+ avg Google rank) across all targets. */
@@ -1169,9 +1223,13 @@ function ricoman_seo_targets_page() {
 			$tiers  = ricoman_seo_click_tiers();
 			$done   = ricoman_seo_record_achievements( $clk );
 			// Backfill real historical milestone dates from GSC once (then refresh weekly).
-			if ( get_option( 'ricoman_seo_ach_backfill' ) !== gmdate( 'oW' ) && function_exists( 'ricoman_seo_backfill_achievements' ) ) {
+			if ( get_option( 'ricoman_seo_ach_backfill_v2' ) !== gmdate( 'oW' ) && function_exists( 'ricoman_seo_backfill_achievements' ) ) {
+				if ( ! get_option( 'ricoman_seo_ach_reset_v2' ) ) {
+					delete_option( 'ricoman_seo_achieved' ); // clear the earlier buggy dates once.
+					update_option( 'ricoman_seo_ach_reset_v2', 1, false );
+				}
 				$done = ricoman_seo_backfill_achievements();
-				update_option( 'ricoman_seo_ach_backfill', gmdate( 'oW' ), false );
+				update_option( 'ricoman_seo_ach_backfill_v2', gmdate( 'oW' ), false );
 			}
 			$next   = null;
 			$prev   = 0;
@@ -1198,13 +1256,15 @@ function ricoman_seo_targets_page() {
 				krsort( $done );
 				echo '<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px">';
 				foreach ( $done as $tk => $date ) {
-					echo '<div title="' . esc_attr( sprintf( /* translators: %s date */ __( 'Reached on %s', 'ricoman' ), $date ) ) . '" style="text-align:center;min-width:64px">'
+					$lbl = ( 'earlier' === $date ) ? __( 'earlier', 'ricoman' ) : gmdate( 'M Y', strtotime( $date ) );
+					echo '<div title="' . esc_attr( 'earlier' === $date ? __( 'Reached before our 16-month data window', 'ricoman' ) : sprintf( /* translators: %s date */ __( 'Reached on %s', 'ricoman' ), $date ) ) . '" style="text-align:center;min-width:64px">'
 						. '<div style="width:48px;height:48px;margin:0 auto;border-radius:50%;background:#fbe6a8;display:flex;align-items:center;justify-content:center;font-weight:700;color:#8a6d10;border:2px solid #e0a106">' . esc_html( ricoman_seo_tier_label( $tk ) ) . '</div>'
-						. '<div style="font-size:10px;color:#888;margin-top:2px">' . esc_html( gmdate( 'M Y', strtotime( $date ) ) ) . '</div></div>';
+						. '<div style="font-size:10px;color:#888;margin-top:2px">' . esc_html( $lbl ) . '</div></div>';
 				}
 				echo '</div>';
 			}
-			echo '<p class="description" style="margin-top:10px">' . esc_html__( 'Milestones are reached when your 28-day Google Search clicks pass each level — dates are backfilled from Google’s own history (the last ~16 months it keeps; older milestones live on in Search Console’s Achievements page). A clean way to show growth and the new site’s impact after launch.', 'ricoman' ) . '</p>';
+			echo ricoman_seo_clicks_chart(); // phpcs:ignore WordPress.Security.EscapeOutput — SVG built internally.
+			echo '<p class="description" style="margin-top:10px">' . esc_html__( 'A badge shows a date only for a genuine increase within Google’s 16-month data window; milestones reached before that show “earlier” (their exact dates live on in Search Console’s own Achievements page). The chart above is the true growth picture.', 'ricoman' ) . '</p>';
 			echo '</div></details>';
 		}
 		?>
