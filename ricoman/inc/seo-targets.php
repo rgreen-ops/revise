@@ -911,17 +911,34 @@ function ricoman_seo_targets_page() {
 								echo '<strong style="color:#b32d2e">' . esc_html__( 'No page yet.', 'ricoman' ) . '</strong> ';
 								echo '<a class="button button-small" href="' . esc_url( $gap_url ) . '">' . esc_html__( 'Create page', 'ricoman' ) . '</a>';
 							} else {
-								$bad = array();
+								// Split the failures into what Optimise handles (SEO title/meta) and
+								// what lives on the page itself (heading, URL, body, FAQ).
+								$meta_bad    = array();
+								$content_bad = array();
 								foreach ( $a['checks'] as $c ) {
-									if ( false === $c[1] ) {
-										$bad[] = $c[0];
+									if ( false !== $c[1] ) {
+										continue;
+									}
+									if ( false !== stripos( $c[0], 'SEO title' ) || false !== stripos( $c[0], 'Meta description' ) ) {
+										$meta_bad[] = $c[0];
+									} else {
+										$content_bad[] = $c[0];
 									}
 								}
-								if ( $bad ) {
-									echo esc_html( implode( ' · ', $bad ) );
-									echo '<div style="margin-top:5px"><a class="button button-small" href="' . esc_url( $opt_url ) . '">' . esc_html__( 'Optimise SEO title & meta', 'ricoman' ) . '</a></div>';
-								} else {
+								if ( ! $meta_bad && ! $content_bad ) {
 									echo '<span style="color:#1a7f37">' . esc_html__( 'All on-page signals present.', 'ricoman' ) . '</span>';
+								} else {
+									if ( $meta_bad ) {
+										echo '<div><strong>' . esc_html__( 'SEO fields:', 'ricoman' ) . '</strong> ' . esc_html( implode( ' · ', $meta_bad ) )
+											. ' <a class="button button-small button-primary" href="' . esc_url( $opt_url ) . '">' . esc_html__( 'Optimise', 'ricoman' ) . '</a></div>';
+									}
+									if ( $content_bad ) {
+										echo '<div style="margin-top:' . ( $meta_bad ? '6px' : '0' ) . '"><strong>' . esc_html__( 'On the page:', 'ricoman' ) . '</strong> ' . esc_html( implode( ' · ', $content_bad ) ) . ' ';
+										if ( ! empty( $a['edit'] ) ) {
+											echo '<a class="button button-small" href="' . esc_url( $a['edit'] ) . '" target="_blank" rel="noopener">' . esc_html__( 'Edit page →', 'ricoman' ) . '</a>';
+										}
+										echo '<div class="description" style="margin-top:3px">' . esc_html__( 'Heading, URL slug or body text — change these in the page editor (usually fine to leave on identity, category or tool pages).', 'ricoman' ) . '</div></div>';
+									}
 								}
 							}
 							?>
