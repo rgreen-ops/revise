@@ -728,6 +728,100 @@ function ricoman_seo_trend_graph( $term ) {
 	return $svg . $legend;
 }
 
+/** Aggregate visibility series: per-date average coverage (+ avg Google rank) across all targets. */
+function ricoman_seo_visibility_series() {
+	$hist   = get_option( 'ricoman_seo_history', array() );
+	$bydate = array();
+	foreach ( (array) $hist as $rows ) {
+		if ( ! is_array( $rows ) ) {
+			continue;
+		}
+		foreach ( $rows as $date => $r ) {
+			if ( ! isset( $bydate[ $date ] ) ) {
+				$bydate[ $date ] = array( 's' => 0, 'n' => 0, 'p' => 0, 'pn' => 0 );
+			}
+			$bydate[ $date ]['s'] += isset( $r['s'] ) ? (int) $r['s'] : 0;
+			$bydate[ $date ]['n']++;
+			if ( isset( $r['p'] ) && null !== $r['p'] && $r['p'] > 0 ) {
+				$bydate[ $date ]['p'] += (float) $r['p'];
+				$bydate[ $date ]['pn']++;
+			}
+		}
+	}
+	ksort( $bydate );
+	$out = array();
+	foreach ( $bydate as $date => $d ) {
+		$out[ $date ] = array(
+			'score' => $d['n'] ? round( $d['s'] / $d['n'] ) : 0,
+			'pos'   => $d['pn'] ? round( $d['p'] / $d['pn'], 1 ) : null,
+		);
+	}
+	return $out;
+}
+
+/** Site-wide "are we more or less visible?" chart over time (avg coverage + avg rank). */
+function ricoman_seo_visibility_graph() {
+	$series = ricoman_seo_visibility_series();
+	if ( count( $series ) < 2 ) {
+		return '<p class="description" style="margin:0">' . esc_html__( 'Building up — your overall visibility line appears once there are a couple of days of snapshots (one is saved automatically each day you open this page).', 'ricoman' ) . '</p>';
+	}
+	$dates = array_keys( $series );
+	$n     = count( $series );
+	$w     = 760;
+	$h     = 170;
+	$padL  = 34;
+	$padR  = 34;
+	$padT  = 12;
+	$padB  = 22;
+	$xfor  = function ( $idx ) use ( $n, $w, $padL, $padR ) {
+		return $n > 1 ? round( $padL + $idx / ( $n - 1 ) * ( $w - $padL - $padR ), 1 ) : $padL;
+	};
+	$haspos = false;
+	$maxpos = 1;
+	foreach ( $series as $s ) {
+		if ( null !== $s['pos'] ) {
+			$haspos = true;
+			$maxpos = max( $maxpos, (float) $s['pos'] );
+		}
+	}
+	$maxpos = max( 10, ceil( $maxpos / 10 ) * 10 );
+	$spts   = array();
+	$rpts   = array();
+	$idx    = 0;
+	foreach ( $series as $s ) {
+		$y      = round( $padT + ( 1 - $s['score'] / 100 ) * ( $h - $padT - $padB ), 1 );
+		$spts[] = $xfor( $idx ) . ',' . $y;
+		if ( null !== $s['pos'] ) {
+			$yp     = round( $padT + ( ( (float) $s['pos'] - 1 ) / max( 1, $maxpos - 1 ) ) * ( $h - $padT - $padB ), 1 );
+			$rpts[] = $xfor( $idx ) . ',' . $yp;
+		}
+		$idx++;
+	}
+	$svg = '<svg width="100%" height="' . $h . '" viewBox="0 0 ' . $w . ' ' . $h . '" preserveAspectRatio="xMidYMid meet" style="max-width:' . $w . 'px">';
+	foreach ( array( 0, 25, 50, 75, 100 ) as $g ) {
+		$y    = round( $padT + ( 1 - $g / 100 ) * ( $h - $padT - $padB ), 1 );
+		$svg .= '<line x1="' . $padL . '" y1="' . $y . '" x2="' . ( $w - $padR ) . '" y2="' . $y . '" stroke="#eee"/>';
+		$svg .= '<text x="' . ( $padL - 5 ) . '" y="' . ( $y + 3 ) . '" text-anchor="end" font-size="9" fill="#999">' . $g . '</text>';
+	}
+	foreach ( array( 0, intdiv( $n - 1, 2 ), $n - 1 ) as $di ) {
+		$svg .= '<text x="' . $xfor( $di ) . '" y="' . ( $h - 6 ) . '" text-anchor="middle" font-size="9" fill="#999">' . esc_html( gmdate( 'j M', strtotime( $dates[ $di ] ) ) ) . '</text>';
+	}
+	if ( $haspos && count( $rpts ) >= 2 ) {
+		$svg .= '<polyline fill="none" stroke="#2271b1" stroke-width="2" stroke-dasharray="4 3" points="' . esc_attr( implode( ' ', $rpts ) ) . '"/>';
+		$svg .= '<text x="' . ( $w - $padR + 5 ) . '" y="' . ( $padT + 3 ) . '" font-size="9" fill="#2271b1">#1</text>';
+		$svg .= '<text x="' . ( $w - $padR + 5 ) . '" y="' . ( $h - $padB ) . '" font-size="9" fill="#2271b1">#' . (int) $maxpos . '</text>';
+	}
+	$svg .= '<polyline fill="none" stroke="#1a7f37" stroke-width="2.5" points="' . esc_attr( implode( ' ', $spts ) ) . '"/></svg>';
+	$first = reset( $series );
+	$last  = end( $series );
+	$delta = $last['score'] - $first['score'];
+	$dtxt  = $delta > 0 ? '<span style="color:#1a7f37">▲ ' . (int) $delta . '</span>' : ( $delta < 0 ? '<span style="color:#b32d2e">▼ ' . (int) abs( $delta ) . '</span>' : '▬' );
+	$legend = '<div style="font-size:12px;margin-top:4px"><span style="color:#1a7f37;font-weight:700">— ' . esc_html__( 'Avg coverage across all targets', 'ricoman' ) . '</span>'
+		. ( $haspos ? ' &nbsp; <span style="color:#2271b1;font-weight:700">– – ' . esc_html__( 'Avg Google rank', 'ricoman' ) . '</span>' : '' )
+		. ' &nbsp; ' . esc_html__( 'Change since first snapshot:', 'ricoman' ) . ' ' . $dtxt . '</div>';
+	return $svg . $legend;
+}
+
 /* ----------------------------------------------------- weekly email digest */
 
 add_action( 'ricoman_seo_weekly_digest', 'ricoman_seo_send_digest' );
@@ -941,6 +1035,11 @@ function ricoman_seo_targets_page() {
 				</ol>
 				<p><?php esc_html_e( 'A weekly email summarises all of this for you, so you can ignore the screen until then if you like. Nothing here is urgent or breakable.', 'ricoman' ); ?></p>
 			</div>
+		</details>
+
+		<details class="rm-seo-vis" style="margin:14px 0;border:1px solid #dcdce0;border-radius:8px;padding:10px 16px;background:#fff" open>
+			<summary style="cursor:pointer;font-weight:600">📈 <?php esc_html_e( 'Overall visibility over time — are we more or less visible?', 'ricoman' ); ?></summary>
+			<div style="margin-top:8px"><?php echo ricoman_seo_visibility_graph(); // phpcs:ignore WordPress.Security.EscapeOutput — SVG built internally. ?></div>
 		</details>
 
 		<?php if ( function_exists( 'ricoman_gsc_settings_panel' ) ) { ricoman_gsc_settings_panel(); } ?>
