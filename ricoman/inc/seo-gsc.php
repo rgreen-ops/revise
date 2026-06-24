@@ -107,6 +107,52 @@ function ricoman_gsc_rows( $force = false ) {
 	return $rows;
 }
 
+/**
+ * Site-wide ranking overview from Search Console (last 28 days) — position
+ * distribution buckets, totals and a weighted average position. Powers the
+ * "Ranking overview" dashboard (the kind of panel SEOprofiler / Ahrefs show).
+ */
+function ricoman_gsc_overview() {
+	if ( ! ricoman_gsc_ready() ) {
+		return null;
+	}
+	$rows = ricoman_gsc_rows();
+	if ( ! $rows ) {
+		return null;
+	}
+	$b      = array( 'top3' => 0, 'p1' => 0, 'p2' => 0, 'rest' => 0 );
+	$clicks = 0;
+	$impr   = 0;
+	$wpos   = 0.0; // impression-weighted position sum.
+	foreach ( $rows as $r ) {
+		$pos = isset( $r['position'] ) ? (float) $r['position'] : 0;
+		$ci  = isset( $r['impressions'] ) ? (int) $r['impressions'] : 0;
+		$clicks += isset( $r['clicks'] ) ? (int) $r['clicks'] : 0;
+		$impr   += $ci;
+		$wpos   += $pos * $ci;
+		if ( $pos <= 0 ) {
+			continue;
+		}
+		if ( $pos <= 3 ) {
+			$b['top3']++;
+		} elseif ( $pos <= 10 ) {
+			$b['p1']++;
+		} elseif ( $pos <= 20 ) {
+			$b['p2']++;
+		} else {
+			$b['rest']++;
+		}
+	}
+	return array(
+		'buckets'     => $b,
+		'queries'     => count( $rows ),
+		'clicks'      => $clicks,
+		'impressions' => $impr,
+		'avg_pos'     => $impr > 0 ? round( $wpos / $impr, 1 ) : 0,
+		'page1'       => $b['top3'] + $b['p1'],
+	);
+}
+
 /** GSC metrics for a target term: best-matching query's position/clicks/impressions. */
 function ricoman_gsc_term_data( $term ) {
 	if ( ! ricoman_gsc_ready() ) {

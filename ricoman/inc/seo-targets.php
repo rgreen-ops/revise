@@ -945,6 +945,41 @@ function ricoman_seo_targets_page() {
 
 		<?php if ( function_exists( 'ricoman_gsc_settings_panel' ) ) { ricoman_gsc_settings_panel(); } ?>
 
+		<?php
+		$ov = function_exists( 'ricoman_gsc_overview' ) ? ricoman_gsc_overview() : null;
+		if ( $ov ) {
+			$b   = $ov['buckets'];
+			$max = max( 1, $b['top3'], $b['p1'], $b['p2'], $b['rest'] );
+			$bar = function ( $label, $count, $color ) use ( $max ) {
+				$pct = round( $count / $max * 100 );
+				return '<div class="rm-ovbar"><span class="rm-ovbar-lbl">' . esc_html( $label ) . '</span>'
+					. '<span class="rm-ovbar-track"><span class="rm-ovbar-fill" style="width:' . $pct . '%;background:' . esc_attr( $color ) . '"></span></span>'
+					. '<span class="rm-ovbar-num">' . (int) $count . '</span></div>';
+			};
+			echo '<div class="rm-ov">';
+			echo '<div class="rm-ov-stats">';
+			echo '<div class="rm-ov-stat"><div class="rm-ov-n">' . (int) $ov['page1'] . '</div><div class="rm-ov-l">' . esc_html__( 'on page 1', 'ricoman' ) . '</div></div>';
+			echo '<div class="rm-ov-stat"><div class="rm-ov-n">' . esc_html( $ov['avg_pos'] ) . '</div><div class="rm-ov-l">' . esc_html__( 'avg. position', 'ricoman' ) . '</div></div>';
+			echo '<div class="rm-ov-stat"><div class="rm-ov-n">' . number_format_i18n( $ov['impressions'] ) . '</div><div class="rm-ov-l">' . esc_html__( 'impressions (28d)', 'ricoman' ) . '</div></div>';
+			echo '<div class="rm-ov-stat"><div class="rm-ov-n">' . number_format_i18n( $ov['clicks'] ) . '</div><div class="rm-ov-l">' . esc_html__( 'clicks (28d)', 'ricoman' ) . '</div></div>';
+			echo '<div class="rm-ov-stat"><div class="rm-ov-n">' . number_format_i18n( $ov['queries'] ) . '</div><div class="rm-ov-l">' . esc_html__( 'queries ranking', 'ricoman' ) . '</div></div>';
+			echo '</div>';
+			echo '<div class="rm-ov-dist"><div class="rm-ov-disth">' . esc_html__( 'Where you rank on Google', 'ricoman' ) . '</div>';
+			echo $bar( __( 'Top 3', 'ricoman' ), $b['top3'], '#1a7f37' ); // phpcs:ignore WordPress.Security.EscapeOutput
+			echo $bar( __( 'Page 1 (4–10)', 'ricoman' ), $b['p1'], '#5fae46' ); // phpcs:ignore WordPress.Security.EscapeOutput
+			echo $bar( __( 'Page 2 (11–20)', 'ricoman' ), $b['p2'], '#b8860b' ); // phpcs:ignore WordPress.Security.EscapeOutput
+			echo $bar( __( 'Page 3+ (21+)', 'ricoman' ), $b['rest'], '#b32d2e' ); // phpcs:ignore WordPress.Security.EscapeOutput
+			echo '</div></div>';
+			echo '<style>'
+				. '.rm-ov{display:flex;gap:20px;flex-wrap:wrap;align-items:stretch;margin:14px 0;border:1px solid #dcdce0;border-radius:8px;padding:16px;background:#fff}'
+				. '.rm-ov-stats{display:flex;gap:26px;flex-wrap:wrap;align-items:center}'
+				. '.rm-ov-stat{text-align:center;min-width:78px}.rm-ov-n{font-size:1.7rem;font-weight:700;color:#16161a;line-height:1}.rm-ov-l{font-size:11px;color:#777;margin-top:3px}'
+				. '.rm-ov-dist{flex:1;min-width:300px;border-left:1px solid #eee;padding-left:20px}.rm-ov-disth{font-weight:600;font-size:12.5px;margin-bottom:6px}'
+				. '.rm-ovbar{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:12px}.rm-ovbar-lbl{width:96px;color:#555}.rm-ovbar-track{flex:1;background:#f0f1f4;border-radius:4px;height:14px;overflow:hidden}.rm-ovbar-fill{display:block;height:100%}.rm-ovbar-num{width:30px;text-align:right;font-weight:700}'
+				. '</style>';
+		}
+		?>
+
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 			<input type="hidden" name="action" value="ricoman_seo_targets_save">
 			<?php wp_nonce_field( 'ricoman_seo_targets' ); ?>
