@@ -457,12 +457,15 @@ function ricoman_seo_desc_for_term( $term, $fallback = '' ) {
  * Optimise one target's page for its term. Writes the hand-written (or generated)
  * SEO title / meta / focus keyphrase.
  *
- * Always fill-empty. When $force is true it ALSO upgrades values that were
- * previously written by the generic auto-optimiser (i.e. still exactly equal to
- * the old generated string) — but it never touches anything a human has edited.
+ * Modes:
+ *  - default: fill empty fields only.
+ *  - $force:  also upgrade values still equal to the old generic auto-fill.
+ *  - $overwrite: replace the SEO title & meta with the keyword-led version even
+ *    if already set (the explicit per-row "Optimise" button) — still skips a
+ *    field that already equals the target value, and never edits page content.
  * Returns the number of fields written.
  */
-function ricoman_seo_optimise_target( $target, $force = false ) {
+function ricoman_seo_optimise_target( $target, $force = false, $overwrite = false ) {
 	$resolved = ricoman_seo_target_resolve( isset( $target['url'] ) ? $target['url'] : '' );
 	$term     = isset( $target['term'] ) ? $target['term'] : '';
 	$written  = 0;
@@ -473,10 +476,17 @@ function ricoman_seo_optimise_target( $target, $force = false ) {
 	$desc_new  = ricoman_seo_target_desc( $term );
 	$title_gen = ricoman_seo_title_for_term( $term );   // what the generic optimiser wrote.
 	$desc_gen  = ricoman_seo_desc_for_term( $term );
-	// A field is writable if it's empty, or (in force mode) still equals the old generated value.
-	$writable  = function ( $current ) use ( $force, $title_gen, $desc_gen ) {
+	// Writable if empty; or (overwrite) anything that isn't already the target value;
+	// or (force) still equal to the old generated value. Never re-writes an identical value.
+	$writable  = function ( $current, $new ) use ( $force, $overwrite, $title_gen, $desc_gen ) {
 		$current = trim( (string) $current );
 		if ( '' === $current ) {
+			return true;
+		}
+		if ( $current === $new ) {
+			return false; // already optimal — nothing to do.
+		}
+		if ( $overwrite ) {
 			return true;
 		}
 		return $force && ( $current === $title_gen || $current === $desc_gen );
@@ -484,13 +494,13 @@ function ricoman_seo_optimise_target( $target, $force = false ) {
 	if ( 'post' === $resolved['type'] ) {
 		$id = $resolved['id'];
 		foreach ( array( '_yoast_wpseo_title', '_ricoman_seo_title' ) as $mk ) {
-			if ( $writable( get_post_meta( $id, $mk, true ) ) ) {
+			if ( $writable( get_post_meta( $id, $mk, true ), $title_new ) ) {
 				update_post_meta( $id, $mk, $title_new );
 				$written++;
 			}
 		}
 		foreach ( array( '_yoast_wpseo_metadesc', '_ricoman_seo_desc' ) as $mk ) {
-			if ( $writable( get_post_meta( $id, $mk, true ) ) ) {
+			if ( $writable( get_post_meta( $id, $mk, true ), $desc_new ) ) {
 				update_post_meta( $id, $mk, $desc_new );
 				$written++;
 			}
@@ -506,11 +516,11 @@ function ricoman_seo_optimise_target( $target, $force = false ) {
 			$all[ $t->taxonomy ] = array();
 		}
 		$meta = isset( $all[ $t->taxonomy ][ $t->term_id ] ) ? $all[ $t->taxonomy ][ $t->term_id ] : array();
-		if ( $writable( isset( $meta['wpseo_title'] ) ? $meta['wpseo_title'] : '' ) ) {
+		if ( $writable( isset( $meta['wpseo_title'] ) ? $meta['wpseo_title'] : '', $title_new ) ) {
 			$meta['wpseo_title'] = $title_new;
 			$written++;
 		}
-		if ( $writable( isset( $meta['wpseo_desc'] ) ? $meta['wpseo_desc'] : '' ) ) {
+		if ( $writable( isset( $meta['wpseo_desc'] ) ? $meta['wpseo_desc'] : '', $desc_new ) ) {
 			$meta['wpseo_desc'] = $desc_new;
 			$written++;
 		}
@@ -530,8 +540,9 @@ add_action( 'admin_post_ricoman_seo_optimise', function () {
 		wp_die( esc_html__( 'Not allowed.', 'ricoman' ) );
 	}
 	$targets = ricoman_seo_targets();
-	// Force so a re-click also upgrades any earlier generic auto-fill (never human edits).
-	$n       = isset( $targets[ $i ] ) ? ricoman_seo_optimise_target( $targets[ $i ], true ) : 0;
+	// Explicit click → overwrite the SEO title & meta with the keyword-led version
+	// (page heading, URL and body are never touched — edit those on the page itself).
+	$n       = isset( $targets[ $i ] ) ? ricoman_seo_optimise_target( $targets[ $i ], true, true ) : 0;
 	wp_safe_redirect( add_query_arg( array( 'page' => 'ricoman-seo-targets', 'optimised' => $n ), admin_url( 'admin.php' ) ) );
 	exit;
 } );
@@ -814,7 +825,9 @@ function ricoman_seo_targets_page() {
 		}
 		if ( isset( $_GET['optimised'] ) ) {
 			$n = (int) $_GET['optimised'];
-			echo '<div class="notice notice-success is-dismissible"><p>' . sprintf( esc_html__( 'Optimised — %d SEO field(s) filled (empty fields only; your edits are untouched).', 'ricoman' ), $n ) . '</p></div>';
+			echo '<div class="notice notice-success is-dismissible"><p>' . ( $n > 0
+				? sprintf( esc_html__( 'Optimised — set the SEO title & meta for this term across %d field(s). (Page heading, URL and body aren’t changed — edit those on the page itself.)', 'ricoman' ), $n )
+				: esc_html__( 'Already optimised — the SEO title & meta already match this term. Anything still red is the page’s heading, URL slug or body, which you edit on the page itself (not here).', 'ricoman' ) ) . '</p></div>';
 		}
 		if ( isset( $_GET['gapmade'] ) ) {
 			$pid = (int) $_GET['gapmade'];
@@ -824,7 +837,7 @@ function ricoman_seo_targets_page() {
 			echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Could not create the page.', 'ricoman' ) . '</p></div>';
 		}
 		?>
-		<p class="description" style="max-width:860px"><?php esc_html_e( 'Your focus search terms and how well each target page covers them on-page (title, meta, H1, body, URL, FAQ schema). Use Optimise to fill empty SEO fields for a term, Suggest to find the best existing page for a gap, or Create page to spin up a draft. Connect Search Console (below) to add live position, clicks & impressions plus a quick-win finder. Coverage re-checks each time you open this page.', 'ricoman' ); ?></p>
+		<p class="description" style="max-width:860px"><?php esc_html_e( 'Your focus search terms and how well each target page covers them on-page (title, meta, H1, body, URL, FAQ schema). Optimise writes the keyword-led SEO title & meta description for a term; Suggest finds the best existing page for a gap; Create page spins up a draft. Optimise never changes a page’s heading, URL or body text — those are edited on the page itself, which is why an identity page (e.g. /about/) can still show H1/slug as “missing”. Connect Search Console (below) for live position, clicks & impressions plus a quick-win finder. Coverage re-checks each time you open this page.', 'ricoman' ); ?></p>
 
 		<div class="rm-seo-sum">
 			<span class="rm-seo-pill green"><?php echo (int) $green; ?> <?php esc_html_e( 'well covered', 'ricoman' ); ?></span>
@@ -906,7 +919,7 @@ function ricoman_seo_targets_page() {
 								}
 								if ( $bad ) {
 									echo esc_html( implode( ' · ', $bad ) );
-									echo '<div style="margin-top:5px"><a class="button button-small" href="' . esc_url( $opt_url ) . '">' . esc_html__( 'Optimise (fill empty SEO fields)', 'ricoman' ) . '</a></div>';
+									echo '<div style="margin-top:5px"><a class="button button-small" href="' . esc_url( $opt_url ) . '">' . esc_html__( 'Optimise SEO title & meta', 'ricoman' ) . '</a></div>';
 								} else {
 									echo '<span style="color:#1a7f37">' . esc_html__( 'All on-page signals present.', 'ricoman' ) . '</span>';
 								}
