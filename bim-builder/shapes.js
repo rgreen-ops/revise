@@ -220,10 +220,10 @@ function sweepInto(path, profile, closed, vertices, uvs, body, diff, caps, width
   if (!closed) {
     const dS = norm(sub(path[1], path[0]));            // run direction at the start
     const dE = norm(sub(path[n - 1], path[n - 2]));    // run direction at the end
-    // The two caps face opposite ways: the end cap comes out mirrored, so flip its
-    // logo horizontally; the start cap already reads correctly.
-    cap(profile.capOutline, rings[0], vertices, uvs, body, caps, [-dS[0], -dS[1]], width, height, false);
-    cap(profile.capOutline, rings[n - 1], vertices, uvs, body, caps, [dE[0], dE[1]], width, height, true);
+    // The two caps face opposite ways: the start cap comes out mirrored, so flip
+    // its logo horizontally; the end cap already reads correctly.
+    cap(profile.capOutline, rings[0], vertices, uvs, body, caps, [-dS[0], -dS[1]], width, height, true);
+    cap(profile.capOutline, rings[n - 1], vertices, uvs, body, caps, [dE[0], dE[1]], width, height, false);
   }
 }
 
