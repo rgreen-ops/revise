@@ -70,8 +70,7 @@
 		var product  = productTypes.filter(function(t){ return types.indexOf(t) !== -1; });
 		var needsProd = product.length > 0;
 
-		productGrp.style.display = needsProd ? '' : 'none';
-		if (!needsProd) productSel.value = '';
+		// Product dropdown always visible.
 
 		if (!types.length) {
 			results.innerHTML = '<p class="rm-dl-empty">Select a filter above to browse files.</p>';

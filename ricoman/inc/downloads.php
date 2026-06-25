@@ -227,7 +227,7 @@ function ricoman_downloads_shortcode() {
 				</ul>
 			</div>
 
-			<div class="rm-dl-filter-group rm-dl-filter-product" id="rm-dl-product-group" style="display:none">
+			<div class="rm-dl-filter-group rm-dl-filter-product" id="rm-dl-product-group">
 				<h3 class="rm-dl-filter-heading">Product</h3>
 				<select class="rm-dl-product-select" id="rm-dl-product-select">
 					<option value="">— All products —</option>
