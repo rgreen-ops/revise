@@ -51,6 +51,10 @@ export function initFlow(root) {
           <option value="satin">Satin</option>
           <option value="gloss">Gloss</option>
         </select></div>
+        <div><label>Preview background</label><select id="fc-bg">
+          <option value="dark">Black</option>
+          <option value="light">Light grey</option>
+        </select></div>
       </div>
 
       <div class="metrics" id="fc-summary" style="margin-top:16px"></div>
@@ -73,8 +77,8 @@ export function initFlow(root) {
     root.querySelector('#fc-lpm').value = spec.lumensPerMetre;
     root.querySelector('#fc-wpm').value = spec.wattsPerMetre;
     root.querySelector('#fc-cri').value = spec.cri;
-    root.querySelector('#fc-pw').value = spec.profileWidth;
-    root.querySelector('#fc-ph').value = spec.profileHeight;
+    root.querySelector('#fc-pw').value = 35;   // default the Flow profile to 35 × 35 mm
+    root.querySelector('#fc-ph').value = 35;
     const cctSel = root.querySelector('#fc-cct');
     cctSel.innerHTML = '';
     spec.ccts.forEach((c) => cctSel.add(new Option(c + ' K', c)));
@@ -87,7 +91,7 @@ export function initFlow(root) {
     .forEach((el) => el.addEventListener('input', () => { update(root); refreshPreview(root); }));
   // Appearance controls only affect the render, so re-skin the live preview
   // (if open) without recomputing photometry.
-  root.querySelectorAll('#fc-body,#fc-diff,#fc-fin')
+  root.querySelectorAll('#fc-body,#fc-diff,#fc-fin,#fc-bg')
     .forEach((el) => el.addEventListener('change', () => refreshPreview(root)));
   root.querySelector('#fc-generate').addEventListener('click', () => generate(root));
   root.querySelector('#fc-preview').addEventListener('click', () => doPreview(root));
@@ -203,7 +207,8 @@ async function doPreview(root) {
   root.querySelector('#fc-preview-card').hidden = false;
   try {
     if (!modelMod) modelMod = await import('./model.js');
-    modelMod.preview(modelMod.meshToObject(mesh, readAppearance(root)), root.querySelector('#fc-canvas'));
+    const bg = root.querySelector('#fc-bg').value === 'light' ? '#e9ebee' : '#0b0e16';
+    modelMod.preview(modelMod.meshToObject(mesh, readAppearance(root)), root.querySelector('#fc-canvas'), { background: bg });
   } catch (err) {
     root.querySelector('#fc-preview-card').hidden = true;
     hint.textContent = 'Preview unavailable (needs internet for the 3D engine) — the BIM file still generates fine.';
