@@ -4,7 +4,7 @@ name: Deploy Bim Builder to Pages
 # from a public URL. Serves the bim-builder folder as the site root.
 on:
   push:
-    branches: ["claude/bim-builder-revit-lighting-nanocl"]
+    branches: ["main"]
     paths: ["bim-builder/**", ".github/workflows/pages.yml"]
   workflow_dispatch:
 
