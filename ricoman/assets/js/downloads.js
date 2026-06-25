@@ -75,16 +75,19 @@
 	}
 
 	function update() {
-		var types   = selectedTypes();
-		var manual  = manualTypes.filter(function(t){ return types.indexOf(t) !== -1; });
-		var product = productTypes.filter(function(t){ return types.indexOf(t) !== -1; });
+		var types      = selectedTypes();
+		var manual     = manualTypes.filter(function(t){ return types.indexOf(t) !== -1; });
+		var product    = productTypes.filter(function(t){ return types.indexOf(t) !== -1; });
+		var productId  = productSel ? productSel.value : '';
+		var hasProduct = productId !== '';
 
 		if (!types.length) {
 			results.innerHTML = '<p class="rm-dl-empty">Select a filter above to browse files.</p>';
 			return;
 		}
 
-		var manHtml = manualHtml(manual);
+		// If a product is selected, hide manual files and show only product files.
+		var manHtml = hasProduct ? '' : manualHtml(manual);
 
 		if (!product.length) {
 			results.innerHTML = manHtml || '<p class="rm-dl-empty">No files found for the selected filters.</p>';
@@ -93,7 +96,7 @@
 
 		results.innerHTML = manHtml + '<div class="rm-dl-loading">Loading&hellip;</div>';
 
-		fetchProductFiles(product, productSel ? productSel.value : '', function(html) {
+		fetchProductFiles(product, productId, function(html) {
 			var loader = results.querySelector('.rm-dl-loading');
 			if (loader) loader.remove();
 			if (html) results.insertAdjacentHTML('beforeend', html);
