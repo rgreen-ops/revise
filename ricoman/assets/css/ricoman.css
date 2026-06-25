@@ -61,7 +61,7 @@ body.rm-hero header.site,body.rm-hero .ricoman-site-header{background:linear-gra
 .brand{font-family:Poppins;font-weight:700;letter-spacing:.3em;font-size:1.1rem;color:#fff}
 .brand sup{font-size:.5em;top:-1em}
 .nav ul{display:flex;gap:42px;list-style:none;margin:0;padding:0;font-family:Poppins;font-size:.72rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase}
-.nav ul a,.nav ul a:hover,.nav ul a:focus,.nav ul a.on{color:rgba(255,255,255,.82);text-decoration:none!important}.nav ul a:hover,.nav ul a.on{color:#fff}
+.nav ul a,.nav ul a:hover,.nav ul a:focus,.nav ul a:active,.nav ul a.on,.nav li.current-menu-item>a,.nav li.current-menu-ancestor>a{text-decoration:none!important}.nav ul a{color:rgba(255,255,255,.82)}.nav ul a:hover,.nav ul a.on,.nav li.current-menu-item>a,.nav li.current-menu-ancestor>a{color:#fff}
 .tbox{font-family:Poppins;font-weight:600;font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;border:1px solid rgba(255,255,255,.35);padding:.85em 1.5em;border-radius:999px;color:#fff}
 /* mobile menu */
 .rm-navtoggle,.rm-burger,.rm-nav-cta{display:none}
