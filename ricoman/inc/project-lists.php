@@ -696,7 +696,7 @@ function ricoman_downloads_page_html() {
 	set_transient( $ckey, $html, 12 * HOUR_IN_SECONDS );
 	return $html;
 }
-add_shortcode( 'ricoman_downloads', 'ricoman_downloads_page_html' );
+// Shortcode moved to inc/downloads.php (new filtered downloads page).
 
 /* --------------------------------------------------- bulk technical-file zip */
 
