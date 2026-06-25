@@ -169,6 +169,10 @@ export function preview(object, canvas, opts = {}) {
   controls.enableDamping = true;
   controls.autoRotate = true;
   controls.autoRotateSpeed = 0.8;
+  // Clamp zoom so you can't dive into the surface (which fills the frame with the
+  // bright reflective metal and blows out to white) or fly off into the distance.
+  controls.minDistance = maxDim * 0.8;
+  controls.maxDistance = maxDim * 6;
 
   const resize = () => {
     const w = canvas.clientWidth || 480, h = canvas.clientHeight || 320;
