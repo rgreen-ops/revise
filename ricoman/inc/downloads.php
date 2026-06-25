@@ -213,7 +213,7 @@ function ricoman_downloads_shortcode() {
 		<aside class="rm-dl-filters" aria-label="Filter downloads">
 
 			<div class="rm-dl-filter-search-wrap">
-				<input type="search" id="rm-dl-search" class="rm-dl-search" placeholder="Search downloads&hellip;" autocomplete="off" aria-label="Search downloads">
+				<input type="search" id="rm-dl-search" class="rm-dl-search" placeholder="Search&hellip;" autocomplete="off" aria-label="Search downloads">
 			</div>
 
 			<div class="rm-dl-filter-group">
