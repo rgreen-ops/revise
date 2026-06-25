@@ -1,0 +1,13 @@
+{
+  "name": "Bim Builder — Lighting BIM",
+  "short_name": "Bim Builder",
+  "description": "Turn luminaire datasheets, 3D models and LDT photometric files into IFC BIM files for Revit and other BIM tools.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#0a0e1a",
+  "theme_color": "#0a0e1a",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

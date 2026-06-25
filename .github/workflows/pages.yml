@@ -1,0 +1,33 @@
+name: Deploy Bim Builder to Pages
+
+# Publishes the /bim-builder static app to GitHub Pages so it can be tested
+# from a public URL. Serves the bim-builder folder as the site root.
+on:
+  push:
+    branches: ["main"]
+    paths: ["bim-builder/**", ".github/workflows/pages.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: bim-builder
+      - id: deployment
+        uses: actions/deploy-pages@v4
