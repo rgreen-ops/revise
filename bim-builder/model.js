@@ -49,7 +49,7 @@ function getPowder() {
   if (!powderTex) {
     powderTex = new THREE.TextureLoader().load('assets/powdercoat.png');
     powderTex.wrapS = powderTex.wrapT = THREE.RepeatWrapping;
-    powderTex.repeat.set(3, 3);
+    powderTex.repeat.set(6, 6);
   }
   return powderTex;
 }
@@ -156,7 +156,7 @@ export function meshToObject(mesh, opts = {}) {
     color: bodyColor, roughness: bodyRough, metalness,
     clearcoat: fin.clearcoat, clearcoatRoughness: fin.ccRough, envMapIntensity: envI,
     // metal = directional brushed grain; paint = fine isotropic powder-coat grain
-    bumpMap: isMetal ? getBrushed() : getPowder(), bumpScale: isMetal ? 0.6 : 0.5,
+    bumpMap: isMetal ? getBrushed() : getPowder(), bumpScale: isMetal ? 0.6 : 1.4,
     side: THREE.DoubleSide,   // keep end caps solid regardless of triangle winding
   });
   // Opal lens: bright, soft and self-illuminated, with a thin glassy clearcoat
