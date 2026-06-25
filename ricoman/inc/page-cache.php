@@ -64,7 +64,7 @@ function ricoman_pagecache_eligible() {
 	}
 	// Dynamic / per-user pages never cache.
 	$exclude = apply_filters( 'ricoman_pagecache_exclude_slugs', array(
-		'my-project', 'create-project', 'dashboard', 'thank-you', 'registration', 'login', 'checkout', 'cart',
+		'my-project', 'create-project', 'dashboard', 'thank-you', 'registration', 'login', 'checkout', 'cart', 'downloads',
 	) );
 	if ( is_singular() ) {
 		$slug = get_post_field( 'post_name', get_queried_object_id() );
