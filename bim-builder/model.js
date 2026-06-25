@@ -8,6 +8,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 let viewer = null;
 
@@ -67,37 +68,71 @@ function extractMesh(object) {
   return { vertices, indices };
 }
 
-/* Build a three.js object from a raw {vertices, indices} mesh (e.g. a generated
-   preset shape) so it can go through the same preview path. */
-export function meshToObject(mesh) {
+/* Surface finishes map to PBR roughness/metalness. Gloss reads as a polished
+   painted/anodised housing; satin is a soft sheen; matte is flat. */
+const FINISHES = {
+  matte: { roughness: 0.65, metalness: 0.25 },
+  satin: { roughness: 0.38, metalness: 0.45 },
+  gloss: { roughness: 0.12, metalness: 0.7 },
+};
+
+/* Build a three.js object from a raw {vertices, indices, groups} mesh (a
+   generated preset/Flow shape). When the mesh carries body/diffuser groups we
+   give it two materials: a finished housing and a softly self-illuminated lens
+   so it actually reads as a light. opts: {bodyColor, diffuserColor, finish}. */
+export function meshToObject(mesh, opts = {}) {
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute(mesh.vertices, 3));
   geo.setIndex(mesh.indices.slice());
   geo.computeVertexNormals();
-  const mat = new THREE.MeshStandardMaterial({ color: 0xcfd6f0, metalness: 0.15, roughness: 0.45 });
-  return new THREE.Mesh(geo, mat);
+
+  const fin = FINISHES[opts.finish] || FINISHES.matte;
+  const bodyColor = new THREE.Color(opts.bodyColor || '#15161a');
+  const diffColor = new THREE.Color(opts.diffuserColor || '#f4f3ee');
+
+  const bodyMat = new THREE.MeshStandardMaterial({
+    color: bodyColor, roughness: fin.roughness, metalness: fin.metalness,
+  });
+  const diffMat = new THREE.MeshStandardMaterial({
+    color: diffColor, roughness: 0.5, metalness: 0,
+    emissive: diffColor, emissiveIntensity: opts.lit === false ? 0 : 0.9,
+  });
+
+  if (mesh.groups && mesh.groups.length) {
+    mesh.groups.forEach((g) => geo.addGroup(g.start, g.count, g.kind === 'diffuser' ? 1 : 0));
+    return new THREE.Mesh(geo, [bodyMat, diffMat]);
+  }
+  return new THREE.Mesh(geo, bodyMat);
 }
 
-/* Render the loaded object into a canvas with orbit controls. */
+/* Render the loaded object into a canvas with orbit controls, using image-based
+   lighting + filmic tone mapping for a studio-quality, photoreal-ish look. */
 export function preview(object, canvas) {
   if (viewer) viewer.dispose();
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  const resize = () => {
-    const w = canvas.clientWidth || 480, h = canvas.clientHeight || 320;
-    renderer.setSize(w, h, false);
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
-  };
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(45, 1.5, 0.01, 100000);
+  const camera = new THREE.PerspectiveCamera(40, 1.5, 0.01, 100000);
 
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x33405e, 1.1));
-  const key = new THREE.DirectionalLight(0xffffff, 1.4);
+  // Image-based lighting: a soft studio environment gives realistic reflections
+  // on the housing (essential for gloss/metallic finishes to read correctly).
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const envTex = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+  scene.environment = envTex;
+
+  // Three-point-ish lighting on top of the IBL for crisp highlights.
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x20283a, 0.6));
+  const key = new THREE.DirectionalLight(0xffffff, 1.8);
   key.position.set(1, 2, 1.5);
   scene.add(key);
+  const rim = new THREE.DirectionalLight(0x99b8ff, 0.7);
+  rim.position.set(-1.6, 0.6, -1.2);
+  scene.add(rim);
 
   // Frame the object.
   const box = new THREE.Box3().setFromObject(object);
@@ -107,11 +142,20 @@ export function preview(object, canvas) {
   object.position.sub(center);
   scene.add(object);
 
-  camera.position.set(maxDim * 1.4, maxDim * 1.1, maxDim * 1.8);
+  camera.position.set(maxDim * 1.3, maxDim * 1.0, maxDim * 1.9);
   camera.lookAt(0, 0, 0);
 
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
+  controls.autoRotate = true;
+  controls.autoRotateSpeed = 0.8;
+
+  const resize = () => {
+    const w = canvas.clientWidth || 480, h = canvas.clientHeight || 320;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  };
 
   let running = true;
   const tick = () => {
@@ -129,6 +173,8 @@ export function preview(object, canvas) {
       running = false;
       window.removeEventListener('resize', resize);
       controls.dispose();
+      envTex.dispose();
+      pmrem.dispose();
       renderer.dispose();
     },
   };
