@@ -4,8 +4,10 @@
 
 import { parseLdt, polarSamples } from './ldt.js';
 import { buildIfc } from './ifc.js';
-import { FAMILIES, buildMesh, meshBounds } from './shapes.js';
+import { FAMILIES, buildMesh, meshBounds, pathLength } from './shapes.js';
 import { extractFromFile } from './datasheet.js';
+import { autoPhotometry, lengthFromMesh } from './photometry.js';
+import { makeZip } from './zip.js';
 
 // three.js preview is optional (needs network for the CDN). Loaded lazily so the
 // core LDT -> IFC pipeline works even offline / if the CDN is blocked.
@@ -18,6 +20,8 @@ const state = {
   modelObject: null,
   datasheetName: '',
   shapeInfo: null,   // { family, shape, dims } when built from a preset
+  runLengthMm: 0,    // lit run length of the current geometry
+  autoPhoto: null,   // { derived, makeLdt } when photometry is derived from length
 };
 
 const $ = (sel) => document.querySelector(sel);
@@ -53,6 +57,8 @@ async function handleLdt(file) {
     populateFromLdt(state.ldt);
     drawPolar(state.ldt);
     $('#review').hidden = false;
+    state.autoPhoto = null; // a real LDT always wins over derived photometry
+    $('#ap-hint').textContent = 'Using the uploaded LDT — auto-photometry is ignored.';
     refreshExport();
   } catch (err) {
     setStatus(statusEl, false, 'Could not parse LDT: ' + err.message);
@@ -70,7 +76,10 @@ async function handleModel(file) {
     const tris = mesh.indices.length / 3;
     setStatus(statusEl, true, `${file.name} · ${tris.toLocaleString()} triangles`);
     $('#model-card').hidden = false;
+    $('#review').hidden = false;
     modelMod.preview(object, $('#model-canvas'));
+    state.runLengthMm = lengthFromMesh(mesh);
+    maybeAutoPhoto();
     refreshExport();
   } catch (err) {
     setStatus(statusEl, false, err.message);
@@ -167,6 +176,36 @@ function drawPolar(ldt) {
   $('#polar-max').textContent = Math.round(maxI) + ' cd/klm';
 }
 
+// ---- auto-photometry from run length ---------------------------------
+function maybeAutoPhoto() {
+  const hintEl = $('#ap-hint');
+  if (state.ldt) { state.autoPhoto = null; return; }
+  const lpm = parseFloat($('#ap-lpm').value) || 0;
+  const wpm = parseFloat($('#ap-wpm').value) || 0;
+  const cri = parseFloat($('#ap-cri').value) || 0;
+  const cct = 0; // CCT comes from the datasheet/LDT, not a single-mode auto-photometry field
+
+  if (!state.runLengthMm) {
+    state.autoPhoto = null;
+    hintEl.textContent = 'Add geometry (a preset shape or a 3D model) and a lumens-per-metre figure to auto-create photometry.';
+    return;
+  }
+  if (lpm <= 0) {
+    state.autoPhoto = null;
+    hintEl.textContent = `Run length ${(state.runLengthMm / 1000).toFixed(2)} m detected — enter lumens per metre to generate photometry.`;
+    return;
+  }
+  const ap = autoPhotometry({ lengthMm: state.runLengthMm, lumensPerMetre: lpm, wattsPerMetre: wpm, cri, cct });
+  state.autoPhoto = ap;
+  const d = ap.derived;
+  $('#m-flux').textContent = d.luminousFlux.toLocaleString() + ' lm';
+  $('#m-watt').textContent = d.wattage + ' W';
+  $('#m-eff').textContent = (d.efficacy ? d.efficacy.toFixed(1) : '–') + ' lm/W';
+  if (cri) $('#m-cri').textContent = 'Ra ' + cri;
+  hintEl.textContent = `${(state.runLengthMm / 1000).toFixed(2)} m × ${lpm} lm/m = ${d.luminousFlux.toLocaleString()} lm` +
+    (wpm ? ` · ${d.wattage} W` : '') + ' — an LDT will be bundled with the IFC.';
+}
+
 // ---- export -----------------------------------------------------------
 function refreshExport() {
   const ready = !!state.ldt || !!state.mesh;
@@ -175,7 +214,8 @@ function refreshExport() {
   let hint;
   if (!ready) hint = 'Build a preset shape or load a 3D model / LDT to enable export.';
   else if (state.ldt && state.mesh) hint = 'Ready — IFC embeds the geometry + photometric data.';
-  else if (state.mesh) hint = 'Ready — geometry only. Add an LDT to include photometric/electrical data.';
+  else if (state.mesh && state.autoPhoto) hint = 'Ready — exports a ZIP: IFC (geometry + derived data) + an auto-generated LDT.';
+  else if (state.mesh) hint = 'Ready — geometry only. Add an LDT or lumens-per-metre to include photometric data.';
   else hint = 'Ready — photometry only. IFC will use a dimensioned box (add a model or shape for geometry).';
   $('#export-hint').textContent = hint;
 }
@@ -196,9 +236,32 @@ function collectMeta() {
 }
 
 function doExport() {
-  if (!state.ldt) return;
-  const ifc = buildIfc({ ldt: state.ldt, meta: collectMeta(), mesh: state.mesh });
-  const name = ($('#meta-model').value.trim() || 'luminaire').replace(/[^\w.-]+/g, '_');
+  if (!state.ldt && !state.mesh) return;
+  const meta = collectMeta();
+  const name = (meta.reference || meta.model || 'luminaire').replace(/[^\w.-]+/g, '_').replace(/^_+|_+$/g, '') || 'luminaire';
+
+  // Geometry + auto-derived photometry: synthesise an LDT and bundle both.
+  if (!state.ldt && state.autoPhoto) {
+    const dims = state.mesh ? meshBounds(state.mesh) : { length: 0, width: 0, height: 0 };
+    const synthLdt = {
+      company: meta.manufacturer, luminaireName: meta.model, luminaireNumber: meta.reference,
+      fileName: name + '.ldt', Isym: 1, dff: 100, lorl: 100,
+      dimensions: { length: dims.length, width: dims.width, height: dims.height },
+      lampSets: [{ count: '1', type: 'LED', flux: state.autoPhoto.derived.luminousFlux, wattage: state.autoPhoto.derived.wattage }],
+      derived: state.autoPhoto.derived,
+    };
+    const ifc = buildIfc({ ldt: synthLdt, meta, mesh: state.mesh });
+    const ldt = state.autoPhoto.makeLdt(dims, meta);
+    const blob = makeZip([{ name: name + '.ifc', text: ifc }, { name: name + '.ldt', text: ldt }]);
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name + '.zip';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+    return;
+  }
+
+  const ifc = buildIfc({ ldt: state.ldt, meta, mesh: state.mesh });
   download(ifc, name + '.ifc', 'application/x-step');
 }
 
@@ -265,8 +328,9 @@ async function generateShape() {
     state.mesh = mesh;
     const dims = meshBounds(mesh);
     state.shapeInfo = { family, shape, dims };
+    state.runLengthMm = pathLength(family, shape, params);
     const tris = mesh.indices.length / 3;
-    hint.textContent = `Generated ${FAMILIES[family].label.split(' —')[0]} ${FAMILIES[family].shapes[shape].label} · ${dims.length}×${dims.width}×${dims.height} mm · ${tris.toLocaleString()} triangles`;
+    hint.textContent = `Generated ${FAMILIES[family].label.split(' —')[0]} ${FAMILIES[family].shapes[shape].label} · ${dims.length}×${dims.width}×${dims.height} mm · ${(state.runLengthMm / 1000).toFixed(2)} m run · ${tris.toLocaleString()} triangles`;
     hint.className = 'hint';
 
     // default product metadata from the preset (don't clobber user edits)
@@ -277,6 +341,7 @@ async function generateShape() {
 
     $('#review').hidden = false;
     $('#model-card').hidden = false;
+    maybeAutoPhoto();
     if (!modelMod) modelMod = await import('./model.js');
     modelMod.preview(modelMod.meshToObject(mesh), $('#model-canvas'));
     refreshExport();
@@ -310,6 +375,7 @@ wireDropZone('datasheet-dz', 'datasheet-input', handleDatasheet);
 wireDropZone('model-dz', 'model-input', handleModel);
 wireDropZone('ldt-dz', 'ldt-input', handleLdt);
 $('#export-btn').addEventListener('click', doExport);
+['ap-lpm', 'ap-wpm', 'ap-cri'].forEach((id) => $('#' + id).addEventListener('input', maybeAutoPhoto));
 $('#tab-single').addEventListener('click', () => showTab('single'));
 $('#tab-batch').addEventListener('click', () => showTab('batch'));
 $('#tab-flow').addEventListener('click', () => showTab('flow'));

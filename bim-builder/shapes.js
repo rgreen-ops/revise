@@ -178,6 +178,19 @@ function sweepInto(path, width, height, closed, vertices, indices) {
   return baseV;
 }
 
+/* Total centreline length (mm) of a preset — i.e. how much lit profile the run
+   uses. This is what drives auto-photometry (length × lumens/metre). */
+export function pathLength(family, shape, params) {
+  const { paths } = buildPaths(family, shape, params);
+  let total = 0;
+  for (const path of paths) {
+    for (let i = 1; i < path.length; i++) {
+      total += Math.hypot(path[i][0] - path[i - 1][0], path[i][1] - path[i - 1][1]);
+    }
+  }
+  return total;
+}
+
 /* Bounding-box dimensions (mm) of a generated mesh, for the IFC product data. */
 export function meshBounds(mesh) {
   let minX = Infinity, minY = Infinity, minZ = Infinity, maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;

@@ -5,7 +5,7 @@
 var CACHE = 'bimbuilder-v3';
 var ASSETS = ['./', './index.html', './app.js', './ldt.js', './ifc.js', './model.js',
   './shapes.js', './datasheet.js', './batch.js', './zip.js', './products.js',
-  './ldt-write.js', './flow-custom.js', './manifest.json', './icon.svg'];
+  './ldt-write.js', './flow-custom.js', './photometry.js', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', function (e) {
   e.waitUntil(

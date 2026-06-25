@@ -224,6 +224,17 @@ code{background:var(--surface2);border:1px solid var(--line);border-radius:5px;p
       <div class="faint" style="font-size:12px;margin-top:8px">Drag to orbit · scroll to zoom. This mesh is embedded in the IFC.</div>
     </div>
 
+    <div class="card section" id="autophoto-card">
+      <h2>Auto-photometry <span class="faint" style="font-weight:400;font-size:13px">— optional · creates an LDT from the run length when you don't upload one</span></h2>
+      <p class="muted" style="margin:0 0 12px;font-size:13.5px">For linear LED products you don't need a per-size LDT. Enter the per-metre figures and Bim Builder works out the lit length from the geometry, computes the output and generates a matching LDT alongside the IFC. Ignored if you load your own LDT above.</p>
+      <div class="fields">
+        <div><label>Lumens per metre</label><input id="ap-lpm" type="number" min="0" step="10" placeholder="e.g. 800"></div>
+        <div><label>Watts per metre</label><input id="ap-wpm" type="number" min="0" step="0.5" placeholder="e.g. 9"></div>
+        <div><label>CRI (Ra)</label><input id="ap-cri" type="number" min="0" max="100" placeholder="90"></div>
+      </div>
+      <div class="hint" id="ap-hint" style="margin-top:10px">Add geometry (a preset shape or a 3D model) and a lumens-per-metre figure to auto-create photometry.</div>
+    </div>
+
     <div class="card section">
       <h2>Product metadata <span class="faint" style="font-weight:400;font-size:13px">— written into the IFC property sets</span></h2>
       <div class="fields">

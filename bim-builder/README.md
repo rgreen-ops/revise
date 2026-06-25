@@ -37,6 +37,36 @@ The generated geometry exports to IFC on its own (drop it into a space to check
 fit) or combined with an LDT for the full photometric/electrical data. See
 `shapes.js`.
 
+## Auto-photometry from length (no per-size LDT)
+
+Linear LED products don't need a measured LDT for every size. Enter **lumens per
+metre** (and optionally W/m, CRI); Bim Builder works out the lit run length from
+the geometry — exact for presets, estimated from the longest extent for uploaded
+models — multiplies it out, and **generates a matching LDT** that's bundled with
+the IFC as a ZIP. The Flow custom tab does the same from size + arc angle. See
+`photometry.js` / `ldt-write.js`.
+
+## Photometry & curved products (important)
+
+A photometric file (LDT/IES) describes light from a **single reference point with
+one orientation** — it cannot, by itself, represent light emitted *along a curve*.
+So for a Flow **arc**:
+
+- The **geometry** is always a correct arc (it's the real mesh) — it never looks
+  wrong in the model.
+- A **single** LDT attached to it would calculate as if all the light came from
+  one point in one direction — fine for total lumens / load / visual fit, but
+  **not** an accurate simulation of light following the curve.
+- The correct fix for accurate curved-light simulation is **segmenting**:
+  distribute several short emitters along the path, each carrying a slice of the
+  output oriented to the local tangent. That's on the roadmap (segmented
+  `IfcLightSourceGoniometric` / per-segment photometry) — note most BIM authoring
+  tools read geometry + data from IFC and run the actual lighting calc from the
+  linked LDT/IES, so segmenting matters most for the calc tools.
+
+In short: shape is always right; for **accurate curved photometric calcs**, use
+segmenting (roadmap) rather than one LDT.
+
 ## How it works
 
 1. **Choose geometry** — either *Build from a preset shape* above, or **drop files**:
