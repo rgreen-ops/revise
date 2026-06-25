@@ -88,15 +88,17 @@ function extractMesh(object) {
   return { vertices, indices };
 }
 
-/* Surface finishes map to PBR roughness/metalness + a clearcoat lacquer. Gloss
-   reads as a polished anodised/painted housing; satin a soft sheen; matte flat.
-   The high base metalness lets metallic colours (gold/silver/bronze) read as
-   real metal while painted colours still look right under the clearcoat. */
+/* Finishes set roughness + a clearcoat lacquer; metalness comes from the colour
+   (paint is dielectric, metals are not — see METALLIC_COLOURS). matte = flat
+   powder-coat, satin = soft sheen, gloss = polished. */
 const FINISHES = {
-  matte: { roughness: 0.55, metalness: 0.5, clearcoat: 0.15, ccRough: 0.5 },
-  satin: { roughness: 0.3, metalness: 0.65, clearcoat: 0.45, ccRough: 0.2 },
-  gloss: { roughness: 0.1, metalness: 0.8, clearcoat: 1.0, ccRough: 0.05 },
+  matte: { roughness: 0.72, clearcoat: 0.2, ccRough: 0.55 },
+  satin: { roughness: 0.45, clearcoat: 0.5, ccRough: 0.3 },
+  gloss: { roughness: 0.16, clearcoat: 1.0, ccRough: 0.06 },
 };
+// Body colours that are real metal (anodised / brushed aluminium, brass, bronze)
+// rather than paint / powder coat.
+const METALLIC_COLOURS = new Set(['#c7ccd4', '#c8a24b', '#8a6a3f']);
 
 /* Build a three.js object from a raw {vertices, indices, groups} mesh (a
    generated preset/Flow shape). When the mesh carries body/diffuser groups we
@@ -118,13 +120,19 @@ export function meshToObject(mesh, opts = {}) {
   const fin = FINISHES[opts.finish] || FINISHES.matte;
   const bodyColor = new THREE.Color(opts.bodyColor || '#15161a');
   const diffColor = new THREE.Color(opts.diffuserColor || '#f4f3ee');
+  // Paint is a dielectric (metalness 0) with a clearcoat for its sheen; only the
+  // metal colours get high metalness. This stops black/white reading as chrome.
+  const isMetal = METALLIC_COLOURS.has((opts.bodyColor || '').toLowerCase());
+  const metalness = isMetal ? 0.95 : 0.0;
+  const bodyRough = isMetal ? Math.max(0.12, fin.roughness * 0.55) : fin.roughness;
+  const envI = isMetal ? 1.0 : 0.4;
   // The emitted light is tinted by the colour temperature (warm 2700K -> cool 5000K+),
   // so the lens glows the right colour; falls back to the diffuser colour.
   const emitColor = new THREE.Color(opts.emissiveColor || opts.diffuserColor || '#f4f3ee');
 
   const bodyMat = new THREE.MeshPhysicalMaterial({
-    color: bodyColor, roughness: fin.roughness, metalness: fin.metalness,
-    clearcoat: fin.clearcoat, clearcoatRoughness: fin.ccRough, envMapIntensity: 0.85,
+    color: bodyColor, roughness: bodyRough, metalness,
+    clearcoat: fin.clearcoat, clearcoatRoughness: fin.ccRough, envMapIntensity: envI,
     side: THREE.DoubleSide,   // keep end caps solid regardless of triangle winding
   });
   // Opal lens: bright, soft and self-illuminated, with a thin glassy clearcoat
@@ -139,10 +147,10 @@ export function meshToObject(mesh, opts = {}) {
   // End caps: same metal as the housing, with the RICOMAN wordmark engraved via a
   // subtle emissive map (white logo glows faintly on the metal plate).
   const capMat = new THREE.MeshPhysicalMaterial({
-    color: bodyColor, roughness: fin.roughness, metalness: fin.metalness,
-    clearcoat: fin.clearcoat, clearcoatRoughness: fin.ccRough, envMapIntensity: 0.85,
+    color: bodyColor, roughness: bodyRough, metalness,
+    clearcoat: fin.clearcoat, clearcoatRoughness: fin.ccRough, envMapIntensity: envI,
     emissive: new THREE.Color(0xffffff), emissiveMap: getCapLogo(), emissiveIntensity: 0.5,
-    bumpMap: getCapBump(), bumpScale: 1.5,   // seam groove + countersunk corner screws
+    bumpMap: getCapBump(), bumpScale: 3,   // seam groove + countersunk corner screws
     side: THREE.DoubleSide,
   });
   if (mesh.groups && mesh.groups.length) {
