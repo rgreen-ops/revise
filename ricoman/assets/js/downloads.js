@@ -3,20 +3,33 @@
 	if (!page) return;
 
 	var results   = document.getElementById('rm-dl-results');
-	var productGrp= document.getElementById('rm-dl-product-group');
 	var productSel= document.getElementById('rm-dl-product-select');
 	var typeCbs   = Array.from(page.querySelectorAll('.rm-dl-type-cb'));
 
-	var manualTypes    = ['catalogue','brochure','education','3d','revit','bim'];
-	var productTypes   = ['datasheet','installation','ldt'];
-	var ajaxPending    = null;
+	var manualTypes  = ['catalogue','brochure','education','3d','revit','bim'];
+	var productTypes = ['datasheet','installation','ldt'];
+	var imageTypes   = ['catalogue','brochure','education']; // show cover image if available
+	var ajaxPending  = null;
+
+	// Type label map (mirrors PHP ricoman_dl_types()).
+	var typeLabels = {
+		catalogue:'Catalogue', brochure:'Product Literature', education:'Education Guides',
+		'3d':'3D Models', revit:'Revit Files', bim:'BIM Files',
+		installation:'Installation Instructions', ldt:'LDT Files', datasheet:'Datasheet'
+	};
 
 	function selectedTypes() {
 		return typeCbs.filter(function(cb){ return cb.checked; }).map(function(cb){ return cb.value; });
 	}
 
-	function hasProductType(types) {
-		return types.some(function(t){ return productTypes.indexOf(t) !== -1; });
+	function cardThumb(e) {
+		var ext = (e.url.split('.').pop() || '').toUpperCase();
+		if (imageTypes.indexOf(e.type) !== -1 && e.thumb) {
+			return '<div class="rm-dl-card-thumb"><img src="'+e.thumb+'" alt="'+e.title+'" loading="lazy"></div>';
+		}
+		// Icon placeholder — PHP will have rendered the real SVG server-side for
+		// server-rendered cards; for JS-rendered manual cards use a simple fallback.
+		return '<div class="rm-dl-card-thumb rm-dl-card-thumb--icon rm-dl-card-thumb--'+e.type+'"></div>';
 	}
 
 	function manualHtml(types) {
@@ -26,15 +39,13 @@
 		if (!entries.length) return '';
 		var html = '<div class="rm-dl-grid">';
 		entries.forEach(function(e) {
-			var ext = (e.url.split('.').pop() || '').toUpperCase();
-			var thumb = e.thumb
-				? '<div class="rm-dl-card-thumb"><img src="'+e.thumb+'" alt="'+e.title+'" loading="lazy"></div>'
-				: '<div class="rm-dl-card-thumb rm-dl-card-thumb--icon"><span class="rm-dl-ext">'+ext+'</span></div>';
+			var ext   = (e.url.split('.').pop() || '').toUpperCase();
+			var label = typeLabels[e.type] || e.type;
 			html += '<a class="rm-dl-card" href="'+e.url+'" download rel="noopener" data-type="'+e.type+'">'
-				+ thumb
+				+ cardThumb(e)
 				+ '<div class="rm-dl-card-body">'
 				+ '<span class="rm-dl-card-title">'+e.title+'</span>'
-				+ '<span class="rm-dl-card-meta">'+e.type+(ext?' · '+ext:'')+'</span>'
+				+ '<span class="rm-dl-card-meta">'+label+(ext?' · '+ext:'')+'</span>'
 				+ '</div>'
 				+ '<span class="rm-dl-card-dl">&darr; Download</span>'
 				+ '</a>';
@@ -50,7 +61,6 @@
 		data.append('nonce',  window.rmDlAjax.nonce);
 		data.append('product', productId || '');
 		types.forEach(function(t){ data.append('types[]', t); });
-
 		var xhr = new XMLHttpRequest();
 		xhr.open('POST', window.rmDlAjax.url);
 		xhr.onload = function() {
@@ -65,12 +75,9 @@
 	}
 
 	function update() {
-		var types    = selectedTypes();
-		var manual   = manualTypes.filter(function(t){ return types.indexOf(t) !== -1; });
-		var product  = productTypes.filter(function(t){ return types.indexOf(t) !== -1; });
-		var needsProd = product.length > 0;
-
-		// Product dropdown always visible.
+		var types   = selectedTypes();
+		var manual  = manualTypes.filter(function(t){ return types.indexOf(t) !== -1; });
+		var product = productTypes.filter(function(t){ return types.indexOf(t) !== -1; });
 
 		if (!types.length) {
 			results.innerHTML = '<p class="rm-dl-empty">Select a filter above to browse files.</p>';
@@ -79,15 +86,14 @@
 
 		var manHtml = manualHtml(manual);
 
-		if (!needsProd) {
+		if (!product.length) {
 			results.innerHTML = manHtml || '<p class="rm-dl-empty">No files found for the selected filters.</p>';
 			return;
 		}
 
-		// Show manual immediately, then append product files.
 		results.innerHTML = manHtml + '<div class="rm-dl-loading">Loading&hellip;</div>';
 
-		fetchProductFiles(product, productSel.value, function(html) {
+		fetchProductFiles(product, productSel ? productSel.value : '', function(html) {
 			var loader = results.querySelector('.rm-dl-loading');
 			if (loader) loader.remove();
 			if (html) results.insertAdjacentHTML('beforeend', html);
@@ -98,5 +104,8 @@
 	}
 
 	typeCbs.forEach(function(cb){ cb.addEventListener('change', update); });
-	productSel.addEventListener('change', update);
+	if (productSel) productSel.addEventListener('change', update);
+
+	// Run on load to respect the default checked state.
+	update();
 })();

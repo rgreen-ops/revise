@@ -342,8 +342,9 @@ function ricoman_dl_render_manual( $entries, $type_filter = array() ) {
 	foreach ( $filtered as $e ) {
 		$ext   = strtoupper( pathinfo( wp_parse_url( $e['url'], PHP_URL_PATH ), PATHINFO_EXTENSION ) );
 		$thumb = ! empty( $e['thumb'] ) ? $e['thumb'] : '';
+		$use_image = in_array( $e['type'], array( 'catalogue', 'brochure', 'education' ), true );
 		$html .= '<a class="rm-dl-card" href="' . esc_url( $e['url'] ) . '" download rel="noopener" data-type="' . esc_attr( $e['type'] ) . '">';
-		if ( $thumb ) {
+		if ( $use_image && $thumb ) {
 			$html .= '<div class="rm-dl-card-thumb"><img src="' . esc_url( $thumb ) . '" alt="' . esc_attr( $e['title'] ) . '" loading="lazy"></div>';
 		} else {
 			$html .= ricoman_dl_type_icon( $e['type'] );
