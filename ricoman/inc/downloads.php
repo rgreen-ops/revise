@@ -210,12 +210,6 @@ function ricoman_downloads_shortcode() {
 	?>
 	<div class="rm-dl-wrap alignfull">
 
-	<div class="rm-dl-hero">
-		<p class="rm-eyebrow">Downloads &amp; Resources</p>
-		<h1 class="rm-dl-title">Catalogues, datasheets &amp; BIM.</h1>
-		<p class="rm-dl-lead">Everything you need to specify Ricoman — product catalogue, technical datasheets, photometric (IES/LDT) files, BIM objects and installation guides.</p>
-	</div>
-
 	<div class="rm-dl-page" id="rm-dl-page">
 
 		<aside class="rm-dl-filters" aria-label="Filter downloads">
