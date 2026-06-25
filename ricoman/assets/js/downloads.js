@@ -86,8 +86,8 @@
 			return;
 		}
 
-		// If a product is selected, hide manual files and show only product files.
-		var manHtml = hasProduct ? '' : manualHtml(manual);
+		// Hide manual files when a product is selected OR when any product-type filter is active.
+		var manHtml = (hasProduct || product.length > 0) ? '' : manualHtml(manual);
 
 		if (!product.length) {
 			results.innerHTML = manHtml || '<p class="rm-dl-empty">No files found for the selected filters.</p>';
