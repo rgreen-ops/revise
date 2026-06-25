@@ -217,8 +217,10 @@ function sweepInto(path, profile, closed, vertices, uvs, body, diff, caps, width
   if (!closed) {
     const dS = norm(sub(path[1], path[0]));            // run direction at the start
     const dE = norm(sub(path[n - 1], path[n - 2]));    // run direction at the end
-    cap(profile.capOutline, rings[0], vertices, uvs, body, caps, [-dS[0], -dS[1]], width, height);
-    cap(profile.capOutline, rings[n - 1], vertices, uvs, body, caps, [dE[0], dE[1]], width, height);
+    // The two caps face opposite ways, so flip one cap's logo UVs 180° to stop it
+    // reading mirrored/upside-down.
+    cap(profile.capOutline, rings[0], vertices, uvs, body, caps, [-dS[0], -dS[1]], width, height, true);
+    cap(profile.capOutline, rings[n - 1], vertices, uvs, body, caps, [dE[0], dE[1]], width, height, false);
   }
 }
 
@@ -229,12 +231,12 @@ function sweepInto(path, profile, closed, vertices, uvs, body, diff, caps, width
    thickness) are plain metal ('body' group). `outward` is the unit run direction
    the plate stands proud along (in the X/Y plane). */
 const CAP_THICKNESS = 3;   // mm
-function cap(outline, ringBase, vertices, uvs, body, caps, outward, width, height) {
+function cap(outline, ringBase, vertices, uvs, body, caps, outward, width, height, flip) {
   const base = vertices.length / 3;
   const ox = outward[0] * CAP_THICKNESS, oy = outward[1] * CAP_THICKNESS;
   const CORNER_UV = [[0, 1], [1, 1], [1, 0], [0, 0]];   // outline order: TL, TR, BR, BL
   // Inner corners (base+0..3) at the body end — plain; outer corners (base+4..7)
-  // proud by the thickness — carry the texture UVs.
+  // proud by the thickness — carry the texture UVs (flipped 180° on one cap).
   for (let c = 0; c < 4; c++) {
     const k = (ringBase + outline[c]) * 3;
     vertices.push(vertices[k], vertices[k + 1], vertices[k + 2]);
@@ -243,7 +245,9 @@ function cap(outline, ringBase, vertices, uvs, body, caps, outward, width, heigh
   for (let c = 0; c < 4; c++) {
     const k = (ringBase + outline[c]) * 3;
     vertices.push(vertices[k] + ox, vertices[k + 1] + oy, vertices[k + 2]);
-    uvs.push(CORNER_UV[c][0], CORNER_UV[c][1]);
+    const cu = flip ? 1 - CORNER_UV[c][0] : CORNER_UV[c][0];
+    const cv = flip ? 1 - CORNER_UV[c][1] : CORNER_UV[c][1];
+    uvs.push(cu, cv);
   }
   const I = (c) => base + c, O = (c) => base + 4 + c;
   caps.push(O(0), O(1), O(2), O(0), O(2), O(3));        // outer engraved face
