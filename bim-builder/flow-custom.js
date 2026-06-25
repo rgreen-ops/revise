@@ -41,7 +41,7 @@ export function initFlow(root) {
         <div><label>Lens side lip (mm) <span class="faint">smaller = wider lens</span></label>
           <input id="fc-lip" type="number" value="2" min="0" step="0.5"></div>
         <div><label>Body colour</label><select id="fc-body">
-          <option value="#15161a">Black</option>
+          <option value="#121212">Black (RAL 9005)</option>
           <option value="#2b2d31">Anthracite</option>
           <option value="#f1f1ea">White (RAL 9016)</option>
           <option value="#c7ccd4">Silver</option>

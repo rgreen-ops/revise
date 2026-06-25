@@ -43,6 +43,17 @@ function getBrushed() {
   return brushedTex;
 }
 
+// Fine isotropic orange-peel grain for powder-coated (painted) finishes.
+let powderTex = null;
+function getPowder() {
+  if (!powderTex) {
+    powderTex = new THREE.TextureLoader().load('assets/powdercoat.png');
+    powderTex.wrapS = powderTex.wrapT = THREE.RepeatWrapping;
+    powderTex.repeat.set(3, 3);
+  }
+  return powderTex;
+}
+
 export async function loadModel(file) {
   const ext = file.name.split('.').pop().toLowerCase();
   const buf = await file.arrayBuffer();
@@ -103,7 +114,7 @@ function extractMesh(object) {
    (paint is dielectric, metals are not — see METALLIC_COLOURS). matte = flat
    powder-coat, satin = soft sheen, gloss = polished. */
 const FINISHES = {
-  matte: { roughness: 0.72, clearcoat: 0.2, ccRough: 0.55 },
+  matte: { roughness: 0.82, clearcoat: 0.08, ccRough: 0.6 },
   satin: { roughness: 0.45, clearcoat: 0.5, ccRough: 0.3 },
   gloss: { roughness: 0.16, clearcoat: 1.0, ccRough: 0.06 },
 };
@@ -144,7 +155,8 @@ export function meshToObject(mesh, opts = {}) {
   const bodyMat = new THREE.MeshPhysicalMaterial({
     color: bodyColor, roughness: bodyRough, metalness,
     clearcoat: fin.clearcoat, clearcoatRoughness: fin.ccRough, envMapIntensity: envI,
-    bumpMap: getBrushed(), bumpScale: isMetal ? 0.6 : 0.3,   // surface grain so it isn't flat
+    // metal = directional brushed grain; paint = fine isotropic powder-coat grain
+    bumpMap: isMetal ? getBrushed() : getPowder(), bumpScale: isMetal ? 0.6 : 0.5,
     side: THREE.DoubleSide,   // keep end caps solid regardless of triangle winding
   });
   // Opal lens: bright, soft and self-illuminated, with a thin glassy clearcoat
