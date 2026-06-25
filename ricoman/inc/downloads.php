@@ -254,6 +254,17 @@ function ricoman_downloads_shortcode() {
 
 	</div><!-- .rm-dl-wrap -->
 
+	<div class="rm-dl-cta alignfull">
+		<div class="rm-dl-cta-inner">
+			<h2 class="rm-dl-cta-head">Can&rsquo;t find a document?</h2>
+			<p class="rm-dl-cta-sub">Tell us the product or project and our team will send the exact files you need.</p>
+			<div class="rm-dl-cta-btns">
+				<a class="wp-block-button__link is-style-outline-light wp-element-button" href="/contact/">Request files</a>
+				<a class="wp-block-button__link is-style-outline-light wp-element-button" href="/about/">Talk to the team &rarr;</a>
+			</div>
+		</div>
+	</div>
+
 	<script>
 	window.rmDlManual = <?php echo wp_json_encode( $manual ); ?>;
 	window.rmDlAjax  = <?php echo wp_json_encode( array( 'url' => admin_url( 'admin-ajax.php' ), 'nonce' => wp_create_nonce( 'rm_dl_product' ) ) ); ?>;
