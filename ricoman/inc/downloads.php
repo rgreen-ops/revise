@@ -200,7 +200,7 @@ function ricoman_downloads_shortcode() {
 
 	ob_start();
 	?>
-	<div class="rm-dl-wrap">
+	<div class="rm-dl-wrap alignfull">
 
 	<div class="rm-dl-hero">
 		<p class="rm-eyebrow">Downloads &amp; Resources</p>
