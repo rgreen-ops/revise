@@ -79,6 +79,17 @@ function ricoman_downloads_admin_page() {
 			);
 		}
 		update_option( 'ricoman_downloads', $entries );
+
+		// Save CTA settings.
+		update_option( 'ricoman_dl_cta', array(
+			'heading'  => sanitize_text_field( $_POST['rm_dl_cta_heading'] ?? '' ),
+			'sub'      => sanitize_text_field( $_POST['rm_dl_cta_sub'] ?? '' ),
+			'btn1_label' => sanitize_text_field( $_POST['rm_dl_cta_btn1_label'] ?? '' ),
+			'btn1_url'   => esc_url_raw( $_POST['rm_dl_cta_btn1_url'] ?? '' ),
+			'btn2_label' => sanitize_text_field( $_POST['rm_dl_cta_btn2_label'] ?? '' ),
+			'btn2_url'   => esc_url_raw( $_POST['rm_dl_cta_btn2_url'] ?? '' ),
+		) );
+
 		echo '<div class="notice notice-success is-dismissible"><p>Downloads saved.</p></div>';
 	}
 
@@ -130,6 +141,36 @@ function ricoman_downloads_admin_page() {
 				<button type="button" class="button" id="rm-dl-add">+ Add file</button>
 				<?php submit_button( 'Save Downloads', 'primary', 'submit', false ); ?>
 			</p>
+
+			<hr>
+			<h2>Can't find a document? — CTA Section</h2>
+			<p>Edit the banner that appears at the bottom of the downloads page.</p>
+			<?php $cta = get_option( 'ricoman_dl_cta', array() ); ?>
+			<table class="form-table">
+				<tr>
+					<th><label for="rm_dl_cta_heading">Heading</label></th>
+					<td><input type="text" id="rm_dl_cta_heading" name="rm_dl_cta_heading" value="<?php echo esc_attr( $cta['heading'] ?? "Can\u{2019}t find a document?" ); ?>" class="regular-text"></td>
+				</tr>
+				<tr>
+					<th><label for="rm_dl_cta_sub">Subtext</label></th>
+					<td><input type="text" id="rm_dl_cta_sub" name="rm_dl_cta_sub" value="<?php echo esc_attr( $cta['sub'] ?? 'Tell us the product or project and our team will send the exact files you need.' ); ?>" class="large-text"></td>
+				</tr>
+				<tr>
+					<th>Button 1</th>
+					<td>
+						<input type="text" name="rm_dl_cta_btn1_label" value="<?php echo esc_attr( $cta['btn1_label'] ?? 'Request files' ); ?>" placeholder="Label" style="width:160px">
+						<input type="url" name="rm_dl_cta_btn1_url" value="<?php echo esc_attr( $cta['btn1_url'] ?? '/contact/' ); ?>" placeholder="URL" class="regular-text">
+					</td>
+				</tr>
+				<tr>
+					<th>Button 2</th>
+					<td>
+						<input type="text" name="rm_dl_cta_btn2_label" value="<?php echo esc_attr( $cta['btn2_label'] ?? 'Talk to the team →' ); ?>" placeholder="Label" style="width:160px">
+						<input type="url" name="rm_dl_cta_btn2_url" value="<?php echo esc_attr( $cta['btn2_url'] ?? '/about/' ); ?>" placeholder="URL" class="regular-text">
+					</td>
+				</tr>
+			</table>
+			<?php submit_button( 'Save All', 'primary' ); ?>
 		</form>
 	</div>
 
@@ -254,13 +295,26 @@ function ricoman_downloads_shortcode() {
 
 	</div><!-- .rm-dl-wrap -->
 
+	<?php
+	$cta = get_option( 'ricoman_dl_cta', array() );
+	$cta_heading  = esc_html( $cta['heading']    ?? 'Can’t find a document?' );
+	$cta_sub      = esc_html( $cta['sub']        ?? 'Tell us the product or project and our team will send the exact files you need.' );
+	$cta_b1_label = esc_html( $cta['btn1_label'] ?? 'Request files' );
+	$cta_b1_url   = esc_url(  $cta['btn1_url']   ?? '/contact/' );
+	$cta_b2_label = esc_html( $cta['btn2_label'] ?? 'Talk to the team &rarr;' );
+	$cta_b2_url   = esc_url(  $cta['btn2_url']   ?? '/about/' );
+	?>
 	<div class="rm-dl-cta alignfull">
 		<div class="rm-dl-cta-inner">
-			<h2 class="rm-dl-cta-head">Can&rsquo;t find a document?</h2>
-			<p class="rm-dl-cta-sub">Tell us the product or project and our team will send the exact files you need.</p>
+			<h2 class="rm-dl-cta-head"><?php echo $cta_heading; ?></h2>
+			<p class="rm-dl-cta-sub"><?php echo $cta_sub; ?></p>
 			<div class="rm-dl-cta-btns">
-				<a class="wp-block-button__link is-style-outline-light wp-element-button" href="/contact/">Request files</a>
-				<a class="wp-block-button__link is-style-outline-light wp-element-button" href="/about/">Talk to the team &rarr;</a>
+				<?php if ( $cta_b1_label && $cta_b1_url ) : ?>
+				<a class="wp-block-button__link is-style-outline-light wp-element-button" href="<?php echo $cta_b1_url; ?>"><?php echo $cta_b1_label; ?></a>
+				<?php endif; ?>
+				<?php if ( $cta_b2_label && $cta_b2_url ) : ?>
+				<a class="wp-block-button__link is-style-outline-light wp-element-button" href="<?php echo $cta_b2_url; ?>"><?php echo $cta_b2_label; ?></a>
+				<?php endif; ?>
 			</div>
 		</div>
 	</div>
