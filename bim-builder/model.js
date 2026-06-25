@@ -32,6 +32,17 @@ function getCapBump() {
   return capBumpTex;
 }
 
+// Brushed-aluminium grain for the body, tiled along the run via the body UVs so
+// the surface reads as real extruded metal instead of a flat shade.
+let brushedTex = null;
+function getBrushed() {
+  if (!brushedTex) {
+    brushedTex = new THREE.TextureLoader().load('assets/brushed.png');
+    brushedTex.wrapS = brushedTex.wrapT = THREE.RepeatWrapping;
+  }
+  return brushedTex;
+}
+
 export async function loadModel(file) {
   const ext = file.name.split('.').pop().toLowerCase();
   const buf = await file.arrayBuffer();
@@ -133,6 +144,7 @@ export function meshToObject(mesh, opts = {}) {
   const bodyMat = new THREE.MeshPhysicalMaterial({
     color: bodyColor, roughness: bodyRough, metalness,
     clearcoat: fin.clearcoat, clearcoatRoughness: fin.ccRough, envMapIntensity: envI,
+    bumpMap: getBrushed(), bumpScale: isMetal ? 0.6 : 0.3,   // surface grain so it isn't flat
     side: THREE.DoubleSide,   // keep end caps solid regardless of triangle winding
   });
   // Opal lens: bright, soft and self-illuminated, with a thin glassy clearcoat

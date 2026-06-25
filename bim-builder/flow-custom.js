@@ -43,15 +43,10 @@ export function initFlow(root) {
         <div><label>Body colour</label><select id="fc-body">
           <option value="#15161a">Black</option>
           <option value="#2b2d31">Anthracite</option>
-          <option value="#f4f4f6">White</option>
+          <option value="#f1f1ea">White (RAL 9016)</option>
           <option value="#c7ccd4">Silver</option>
           <option value="#c8a24b">Gold</option>
           <option value="#8a6a3f">Bronze</option>
-        </select></div>
-        <div><label>Diffuser</label><select id="fc-diff">
-          <option value="#f4f3ee">Opal white</option>
-          <option value="#e9edf4">Frosted</option>
-          <option value="#6c6f76">Smoked</option>
         </select></div>
         <div><label>Finish</label><select id="fc-fin">
           <option value="matte">Matte</option>
@@ -93,7 +88,7 @@ export function initFlow(root) {
     .forEach((el) => el.addEventListener('input', () => { update(root); refreshPreview(root); }));
   // Appearance controls only affect the render, so re-skin the live preview
   // (if open) without recomputing photometry.
-  root.querySelectorAll('#fc-body,#fc-diff,#fc-fin')
+  root.querySelectorAll('#fc-body,#fc-fin')
     .forEach((el) => el.addEventListener('change', () => refreshPreview(root)));
   const bgBtn = root.querySelector('#fc-bg-toggle');
   bgBtn.addEventListener('click', () => {
@@ -111,7 +106,7 @@ function readAppearance(root) {
   const cct = parseInt(root.querySelector('#fc-cct').value, 10) || 3000;
   return {
     bodyColor: root.querySelector('#fc-body').value,
-    diffuserColor: root.querySelector('#fc-diff').value,
+    diffuserColor: '#f4f3ee',   // single silicone opal diffuser
     finish: root.querySelector('#fc-fin').value,
     emissiveColor: cctToHex(cct),
   };

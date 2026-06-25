@@ -186,7 +186,9 @@ function sweepInto(path, profile, closed, vertices, uvs, body, diff, caps, width
   const norm = (v) => { const d = Math.hypot(v[0], v[1]) || 1; return [v[0] / d, v[1] / d]; };
 
   const rings = [];
+  let cum = 0;   // distance along the run, for the brushed-grain U coordinate
   for (let i = 0; i < n; i++) {
+    if (i > 0) cum += Math.hypot(path[i][0] - path[i - 1][0], path[i][1] - path[i - 1][1]);
     const prev = path[i - 1] ?? (closed ? path[n - 2] : null);
     const nextP = path[i + 1] ?? (closed ? path[1] : null);
     const dIn = prev ? norm(sub(path[i], prev)) : null;
@@ -197,11 +199,12 @@ function sweepInto(path, profile, closed, vertices, uvs, body, diff, caps, width
     const cos = Math.max(0.35, Math.abs(normal[0] * segN[0] + normal[1] * segN[1]));
     const miter = 1 / cos;                                  // keep width constant at corners
     const [x, y] = path[i];
+    const ru = cum / 40;                                   // brushed grain repeats every 40mm along the run
     const baseK = vertices.length / 3;
     for (let j = 0; j < m; j++) {
       const u = P[j].u * miter;
       vertices.push(x + normal[0] * u, y + normal[1] * u, P[j].v);
-      uvs.push(0, 0);                                       // housing/lens UVs unused
+      uvs.push(ru, j / (m - 1));                            // U along the run, V around the profile
     }
     rings.push(baseK);
   }
@@ -217,10 +220,10 @@ function sweepInto(path, profile, closed, vertices, uvs, body, diff, caps, width
   if (!closed) {
     const dS = norm(sub(path[1], path[0]));            // run direction at the start
     const dE = norm(sub(path[n - 1], path[n - 2]));    // run direction at the end
-    // The two caps face opposite ways, so flip one cap's logo UVs 180° to stop it
-    // reading mirrored/upside-down.
-    cap(profile.capOutline, rings[0], vertices, uvs, body, caps, [-dS[0], -dS[1]], width, height, true);
-    cap(profile.capOutline, rings[n - 1], vertices, uvs, body, caps, [dE[0], dE[1]], width, height, false);
+    // The two caps face opposite ways: the end cap comes out mirrored, so flip its
+    // logo horizontally; the start cap already reads correctly.
+    cap(profile.capOutline, rings[0], vertices, uvs, body, caps, [-dS[0], -dS[1]], width, height, false);
+    cap(profile.capOutline, rings[n - 1], vertices, uvs, body, caps, [dE[0], dE[1]], width, height, true);
   }
 }
 
@@ -245,9 +248,8 @@ function cap(outline, ringBase, vertices, uvs, body, caps, outward, width, heigh
   for (let c = 0; c < 4; c++) {
     const k = (ringBase + outline[c]) * 3;
     vertices.push(vertices[k] + ox, vertices[k + 1] + oy, vertices[k + 2]);
-    const cu = flip ? 1 - CORNER_UV[c][0] : CORNER_UV[c][0];
-    const cv = flip ? 1 - CORNER_UV[c][1] : CORNER_UV[c][1];
-    uvs.push(cu, cv);
+    const cu = flip ? 1 - CORNER_UV[c][0] : CORNER_UV[c][0];   // horizontal mirror only
+    uvs.push(cu, CORNER_UV[c][1]);
   }
   const I = (c) => base + c, O = (c) => base + 4 + c;
   caps.push(O(0), O(1), O(2), O(0), O(2), O(3));        // outer engraved face
