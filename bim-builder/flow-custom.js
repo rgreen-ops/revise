@@ -31,6 +31,24 @@ export function initFlow(root) {
         <div><label>Profile W × H (mm)</label>
           <div style="display:flex;gap:8px"><input id="fc-pw" type="number" min="1" step="1" style="flex:1">
           <input id="fc-ph" type="number" min="1" step="1" style="flex:1"></div></div>
+        <div><label>Body colour</label><select id="fc-body">
+          <option value="#15161a">Black</option>
+          <option value="#2b2d31">Anthracite</option>
+          <option value="#f4f4f6">White</option>
+          <option value="#c7ccd4">Silver</option>
+          <option value="#c8a24b">Gold</option>
+          <option value="#8a6a3f">Bronze</option>
+        </select></div>
+        <div><label>Diffuser</label><select id="fc-diff">
+          <option value="#f4f3ee">Opal white</option>
+          <option value="#e9edf4">Frosted</option>
+          <option value="#6c6f76">Smoked</option>
+        </select></div>
+        <div><label>Finish</label><select id="fc-fin">
+          <option value="matte">Matte</option>
+          <option value="satin">Satin</option>
+          <option value="gloss">Gloss</option>
+        </select></div>
       </div>
 
       <div class="metrics" id="fc-summary" style="margin-top:16px"></div>
@@ -64,11 +82,28 @@ export function initFlow(root) {
 
   varSel.addEventListener('change', applyVariant);
   root.querySelectorAll('#fc-cct,#fc-mode,#fc-size,#fc-sweep,#fc-lpm,#fc-wpm,#fc-cri,#fc-pw,#fc-ph,#fc-code')
-    .forEach((el) => el.addEventListener('input', () => update(root)));
+    .forEach((el) => el.addEventListener('input', () => { update(root); refreshPreview(root); }));
+  // Appearance controls only affect the render, so re-skin the live preview
+  // (if open) without recomputing photometry.
+  root.querySelectorAll('#fc-body,#fc-diff,#fc-fin')
+    .forEach((el) => el.addEventListener('change', () => refreshPreview(root)));
   root.querySelector('#fc-generate').addEventListener('click', () => generate(root));
   root.querySelector('#fc-preview').addEventListener('click', () => doPreview(root));
 
   applyVariant();
+}
+
+function readAppearance(root) {
+  return {
+    bodyColor: root.querySelector('#fc-body').value,
+    diffuserColor: root.querySelector('#fc-diff').value,
+    finish: root.querySelector('#fc-fin').value,
+  };
+}
+
+// Re-render the preview only if it is already on screen.
+function refreshPreview(root) {
+  if (!root.querySelector('#fc-preview-card').hidden) doPreview(root);
 }
 
 function readState(root) {
@@ -155,13 +190,18 @@ function generate(root) {
 }
 
 async function doPreview(root) {
-  const { d } = readState(root);
-  const { spec, params } = readState(root);
+  const hint = root.querySelector('#fc-hint');
+  const { spec, params, d } = readState(root);
   const mesh = buildMesh('flow', 'arc', {
     radius: d.radiusMm, sweep: params.sweep,
     profileWidth: spec.profileWidth, profileHeight: spec.profileHeight,
   });
   root.querySelector('#fc-preview-card').hidden = false;
-  if (!modelMod) modelMod = await import('./model.js');
-  modelMod.preview(modelMod.meshToObject(mesh), root.querySelector('#fc-canvas'));
+  try {
+    if (!modelMod) modelMod = await import('./model.js');
+    modelMod.preview(modelMod.meshToObject(mesh, readAppearance(root)), root.querySelector('#fc-canvas'));
+  } catch (err) {
+    root.querySelector('#fc-preview-card').hidden = true;
+    hint.textContent = 'Preview unavailable (needs internet for the 3D engine) — the BIM file still generates fine.';
+  }
 }

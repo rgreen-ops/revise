@@ -36,7 +36,7 @@ export const FAMILIES = {
   },
 };
 
-const ARC_STEP_DEG = 6; // arc tessellation
+const ARC_STEP_DEG = 3; // arc tessellation (smaller = smoother curves)
 
 // ---- path generators (return { paths:[[ [x,y], ... ] ...], closed:bool }) ----
 export function buildPaths(family, shape, p) {
@@ -121,15 +121,24 @@ export function buildMesh(family, shape, params) {
   const { paths, closed } = buildPaths(family, shape, params);
 
   const vertices = [];
-  const indices = [];
-  for (const path of paths) sweepInto(path, prof.width, prof.height, closed, vertices, indices);
-  return { vertices, indices, profile: prof, closed };
+  const body = [];
+  const diffuser = [];
+  for (const path of paths) sweepInto(path, prof.width, prof.height, closed, vertices, body, diffuser);
+  // Body (housing) triangles first, then the down-facing lit lens (diffuser), so
+  // the preview can assign a separate material to each via geometry groups. The
+  // IFC exporter just uses the full `indices` list and is unaffected.
+  const indices = body.concat(diffuser);
+  const groups = [
+    { start: 0, count: body.length, kind: 'body' },
+    { start: body.length, count: diffuser.length, kind: 'diffuser' },
+  ];
+  return { vertices, indices, groups, profile: prof, closed };
 }
 
 /* Sweep one path. For each path point we build a 4-vertex ring (top/bottom ×
    left/right) offset along the in-plane normal, mitred at corners so width stays
    constant, then stitch quads between consecutive rings and cap open ends. */
-function sweepInto(path, width, height, closed, vertices, indices) {
+function sweepInto(path, width, height, closed, vertices, body, diff) {
   const n = path.length;
   if (n < 2) return;
   const hw = width / 2;
@@ -159,21 +168,21 @@ function sweepInto(path, width, height, closed, vertices, indices) {
     rings.push(k);
   }
 
-  const quad = (a, b, c, d) => { indices.push(a, b, c, a, c, d); };
-  const segCount = closed ? n - 1 : n - 1;
+  const quad = (arr, a, b, c, d) => { arr.push(a, b, c, a, c, d); };
+  const segCount = n - 1;
   for (let i = 0; i < segCount; i++) {
     const A = rings[i], B = rings[i + 1];
     const [aTL, aTR, aBL, aBR] = [A, A + 1, A + 2, A + 3];
     const [bTL, bTR, bBL, bBR] = [B, B + 1, B + 2, B + 3];
-    quad(aTL, aTR, bTR, bTL);   // top
-    quad(aBR, aBL, bBL, bBR);   // bottom
-    quad(aBL, aTL, bTL, bBL);   // left side
-    quad(aTR, aBR, bBR, bTR);   // right side
+    quad(body, aTL, aTR, bTR, bTL);   // top (housing)
+    quad(diff, aBR, aBL, bBL, bBR);   // bottom — the lit lens / diffuser
+    quad(body, aBL, aTL, bTL, bBL);   // left side (housing)
+    quad(body, aTR, aBR, bBR, bTR);   // right side (housing)
   }
   if (!closed) {
     const S = rings[0], E = rings[n - 1];
-    quad(S + 2, S + 3, S + 1, S);            // start cap
-    quad(E, E + 1, E + 3, E + 2);            // end cap
+    quad(body, S + 2, S + 3, S + 1, S);      // start cap (housing)
+    quad(body, E, E + 1, E + 3, E + 2);      // end cap (housing)
   }
   return baseV;
 }
