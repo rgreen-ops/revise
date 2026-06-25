@@ -119,14 +119,19 @@ export function buildMesh(family, shape, params) {
   if (params.profileWidth) base.width = params.profileWidth;
   if (params.profileHeight) base.height = params.profileHeight;
   const profile = housingProfile(base.width, base.height, params.lip);
-  const capTris = triangulate(profile.points);   // flat end-cap triangulation (handles the concave channel)
+  // The end cap is a SOLID outer rectangle — the real product has a flat end
+  // plate, so it ignores the mounting-channel notch. Fan the outline to triangles.
+  const outline = profile.capOutline;
+  const capTris = [];
+  for (let i = 1; i < outline.length - 1; i++) capTris.push([outline[0], outline[i], outline[i + 1]]);
   const { paths, closed } = buildPaths(family, shape, params);
 
   const vertices = [];
+  const uvs = [];
   const body = [];
   const diffuser = [];
   const caps = [];
-  for (const path of paths) sweepInto(path, profile, capTris, closed, vertices, body, diffuser, caps);
+  for (const path of paths) sweepInto(path, profile, capTris, closed, vertices, uvs, body, diffuser, caps, base.width, base.height);
   // Group order: body (housing), diffuser (lit lens), cap (flat end plates — own
   // group so they can carry the engraved logo). The IFC exporter uses the full
   // `indices` list and is unaffected.
@@ -136,7 +141,7 @@ export function buildMesh(family, shape, params) {
     { start: body.length, count: diffuser.length, kind: 'diffuser' },
     { start: body.length + diffuser.length, count: caps.length, kind: 'cap' },
   ];
-  return { vertices, indices, groups, profile: base, closed };
+  return { vertices, uvs, indices, groups, profile: base, closed };
 }
 
 /* The Flow aluminium extrusion cross-section: a square body with a recessed
@@ -166,57 +171,16 @@ function housingProfile(width, height, lip) {
 
   const kinds = new Array(pts.length).fill('body');
   kinds[lensStart] = 'diffuser';      // the wide bottom-centre edge is the lens
-  return { points: pts.map(([u, v]) => ({ u, v })), kinds };
-}
-
-/* Ear-clipping triangulation of the (possibly concave, due to the channel)
-   cross-section, used to fill the flat end caps. Returns triangles as index
-   triples into `points`. */
-function triangulate(points) {
-  const n = points.length;
-  const V = [...Array(n).keys()];
-  let area = 0;
-  for (let i = 0; i < n; i++) {
-    const a = points[i], b = points[(i + 1) % n];
-    area += a.u * b.v - b.u * a.v;
-  }
-  if (area < 0) V.reverse();                       // normalise to CCW
-  const cross = (o, a, b) => (a.u - o.u) * (b.v - o.v) - (a.v - o.v) * (b.u - o.u);
-  const inside = (p, a, b, c) => {
-    const d1 = cross(a, b, p), d2 = cross(b, c, p), d3 = cross(c, a, p);
-    return !((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0));
-  };
-  const tris = [];
-  let guard = n * n + 10;
-  while (V.length > 3 && guard-- > 0) {
-    let clipped = false;
-    for (let i = 0; i < V.length; i++) {
-      const i0 = V[(i - 1 + V.length) % V.length], i1 = V[i], i2 = V[(i + 1) % V.length];
-      const a = points[i0], b = points[i1], c = points[i2];
-      if (cross(a, b, c) <= 0) continue;           // reflex/collinear — not an ear
-      let ear = true;
-      for (let j = 0; j < V.length; j++) {
-        const vj = V[j];
-        if (vj === i0 || vj === i1 || vj === i2) continue;
-        if (inside(points[vj], a, b, c)) { ear = false; break; }
-      }
-      if (!ear) continue;
-      tris.push([i0, i1, i2]);
-      V.splice(i, 1);
-      clipped = true;
-      break;
-    }
-    if (!clipped) break;
-  }
-  if (V.length === 3) tris.push([V[0], V[1], V[2]]);
-  return tris;
+  // capOutline = the four outer corners (top-left, top-right, bottom-right,
+  // bottom-left) used to fill the flat end plate as a solid square.
+  return { points: pts.map(([u, v]) => ({ u, v })), kinds, capOutline: [0, 5, 6, 9] };
 }
 
 /* Sweep the profile along one path: at each path point lay down a ring of profile
    vertices, offset along the in-plane normal and mitred at corners so the width
    stays constant, then stitch a quad strip per profile edge between consecutive
    rings (routing the lens edge to the diffuser group) and fan-cap open ends. */
-function sweepInto(path, profile, capTris, closed, vertices, body, diff, caps) {
+function sweepInto(path, profile, capTris, closed, vertices, uvs, body, diff, caps, width, height) {
   const n = path.length;
   if (n < 2) return;
   const P = profile.points;
@@ -242,6 +206,7 @@ function sweepInto(path, profile, capTris, closed, vertices, body, diff, caps) {
     for (let j = 0; j < m; j++) {
       const u = P[j].u * miter;
       vertices.push(x + normal[0] * u, y + normal[1] * u, P[j].v);
+      uvs.push(0, 0);                                       // housing/lens UVs unused
     }
     rings.push(baseK);
   }
@@ -255,8 +220,8 @@ function sweepInto(path, profile, capTris, closed, vertices, body, diff, caps) {
     }
   }
   if (!closed) {
-    cap(m, capTris, rings[0], vertices, caps);
-    cap(m, capTris, rings[n - 1], vertices, caps);
+    cap(P, capTris, rings[0], vertices, uvs, caps, width, height);
+    cap(P, capTris, rings[n - 1], vertices, uvs, caps, width, height);
   }
 }
 
@@ -264,11 +229,15 @@ function sweepInto(path, profile, capTris, closed, vertices, body, diff, caps) {
    single flat normal rather than smearing into the side walls and looking domed),
    then emit the precomputed cross-section triangulation. Double-sided materials
    make the winding irrelevant. */
-function cap(m, capTris, ringBase, vertices, caps) {
+function cap(P, capTris, ringBase, vertices, uvs, caps, width, height) {
+  const m = P.length;
+  const hw = width / 2;
   const base = vertices.length / 3;
   for (let j = 0; j < m; j++) {
     const k = (ringBase + j) * 3;
     vertices.push(vertices[k], vertices[k + 1], vertices[k + 2]);
+    // UV across the square face so the engraved logo maps onto the cap.
+    uvs.push((P[j].u + hw) / width, (P[j].v + height) / height);
   }
   for (const t of capTris) caps.push(base + t[0], base + t[1], base + t[2]);
 }
