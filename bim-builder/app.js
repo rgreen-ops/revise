@@ -286,17 +286,21 @@ async function generateShape() {
   }
 }
 
-// ---- tab switching (single / batch) ----------------------------------
-let batchReady = false;
+// ---- tab switching (single / batch / flow) ---------------------------
+const tabReady = {};
 function showTab(which) {
-  const single = which === 'single';
-  $('#single-mode').hidden = !single;
-  $('#batch-mode').hidden = single;
-  $('#tab-single').classList.toggle('active', single);
-  $('#tab-batch').classList.toggle('active', !single);
-  if (!single && !batchReady) {
-    batchReady = true;
+  const modes = { single: '#single-mode', batch: '#batch-mode', flow: '#flow-mode' };
+  for (const [name, sel] of Object.entries(modes)) {
+    $(sel).hidden = name !== which;
+    $('#tab-' + name).classList.toggle('active', name === which);
+  }
+  if (which === 'batch' && !tabReady.batch) {
+    tabReady.batch = true;
     import('./batch.js').then((m) => m.initBatch($('#batch-root')));
+  }
+  if (which === 'flow' && !tabReady.flow) {
+    tabReady.flow = true;
+    import('./flow-custom.js').then((m) => m.initFlow($('#flow-root')));
   }
 }
 
@@ -308,6 +312,7 @@ wireDropZone('ldt-dz', 'ldt-input', handleLdt);
 $('#export-btn').addEventListener('click', doExport);
 $('#tab-single').addEventListener('click', () => showTab('single'));
 $('#tab-batch').addEventListener('click', () => showTab('batch'));
+$('#tab-flow').addEventListener('click', () => showTab('flow'));
 refreshExport();
 
 // register service worker for offline / installable PWA

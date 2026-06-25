@@ -1,0 +1,167 @@
+/* Flow Custom: made-to-order arc configurator. Give a size and an arc angle and
+   it derives the whole luminaire (length, lumens, wattage, photometry) from the
+   per-metre spec and produces the BIM file — geometry (IFC) plus a length-matched
+   LDT — in one click, no uploads. The per-metre figures pre-fill from the variant
+   but stay editable so output is correct even before the specs are confirmed. */
+
+import { FLOW_VARIANTS, deriveFlow } from './products.js';
+import { buildMesh, meshBounds } from './shapes.js';
+import { buildIfc } from './ifc.js';
+import { writeEulumdat } from './ldt-write.js';
+import { makeZip } from './zip.js';
+
+let modelMod = null;
+let lastMesh = null;
+
+export function initFlow(root) {
+  root.innerHTML = `
+    <div class="card">
+      <h2>Flow custom arc <span class="faint" style="font-weight:400;font-size:13px">— parameters in, BIM file out</span></h2>
+      <p class="muted" style="margin:0 0 14px;font-size:13.5px">Pick the variant, set the size and arc angle, and Bim Builder derives the length, output and photometry and generates the IFC + a matching LDT. No datasheet, model or LDT needed.</p>
+      <div class="fields">
+        <div><label>Variant</label><select id="fc-variant"></select></div>
+        <div><label>Colour temperature</label><select id="fc-cct"></select></div>
+        <div><label>Size mode</label><select id="fc-mode"><option value="diameter">Diameter</option><option value="radius">Radius</option></select></div>
+        <div><label>Size (mm)</label><input id="fc-size" type="number" value="800" min="50" step="10"></div>
+        <div><label>Arc angle (°)</label><input id="fc-sweep" type="number" value="45" min="1" max="360" step="1"></div>
+        <div><label>Order code <span class="faint">(auto if blank)</span></label><input id="fc-code" placeholder="FLW-800-45-3000"></div>
+        <div><label>Lumens per metre</label><input id="fc-lpm" type="number" min="1" step="10"></div>
+        <div><label>Watts per metre</label><input id="fc-wpm" type="number" min="0" step="0.5"></div>
+        <div><label>CRI (Ra)</label><input id="fc-cri" type="number" min="0" max="100" step="1"></div>
+        <div><label>Profile W × H (mm)</label>
+          <div style="display:flex;gap:8px"><input id="fc-pw" type="number" min="1" step="1" style="flex:1">
+          <input id="fc-ph" type="number" min="1" step="1" style="flex:1"></div></div>
+      </div>
+
+      <div class="metrics" id="fc-summary" style="margin-top:16px"></div>
+
+      <div class="export-bar">
+        <button class="btn" id="fc-generate">⬇ Generate BIM file (IFC + LDT)</button>
+        <button class="btn ghost" id="fc-preview">Preview 3D</button>
+        <span class="hint" id="fc-hint"></span>
+      </div>
+    </div>
+    <div class="card section" id="fc-preview-card" hidden>
+      <canvas id="fc-canvas" style="width:100%;height:300px;border-radius:10px;background:#0c1120"></canvas>
+    </div>`;
+
+  const varSel = root.querySelector('#fc-variant');
+  Object.entries(FLOW_VARIANTS).forEach(([k, v]) => varSel.add(new Option(v.label, k)));
+
+  const applyVariant = () => {
+    const spec = FLOW_VARIANTS[varSel.value];
+    root.querySelector('#fc-lpm').value = spec.lumensPerMetre;
+    root.querySelector('#fc-wpm').value = spec.wattsPerMetre;
+    root.querySelector('#fc-cri').value = spec.cri;
+    root.querySelector('#fc-pw').value = spec.profileWidth;
+    root.querySelector('#fc-ph').value = spec.profileHeight;
+    const cctSel = root.querySelector('#fc-cct');
+    cctSel.innerHTML = '';
+    spec.ccts.forEach((c) => cctSel.add(new Option(c + ' K', c)));
+    cctSel.value = spec.defaultCct;
+    update(root);
+  };
+
+  varSel.addEventListener('change', applyVariant);
+  root.querySelectorAll('#fc-cct,#fc-mode,#fc-size,#fc-sweep,#fc-lpm,#fc-wpm,#fc-cri,#fc-pw,#fc-ph,#fc-code')
+    .forEach((el) => el.addEventListener('input', () => update(root)));
+  root.querySelector('#fc-generate').addEventListener('click', () => generate(root));
+  root.querySelector('#fc-preview').addEventListener('click', () => doPreview(root));
+
+  applyVariant();
+}
+
+function readState(root) {
+  const val = (id) => root.querySelector('#' + id).value;
+  const numv = (id) => parseFloat(val(id)) || 0;
+  const spec = {
+    lumensPerMetre: numv('fc-lpm'), wattsPerMetre: numv('fc-wpm'), cri: numv('fc-cri'),
+    profileWidth: numv('fc-pw'), profileHeight: numv('fc-ph'),
+  };
+  const params = {
+    dimensionMode: val('fc-mode'), dimension: numv('fc-size'),
+    sweep: numv('fc-sweep'), cct: parseInt(val('fc-cct'), 10) || 3000,
+    code: val('fc-code').trim(),
+  };
+  const d = deriveFlow(spec, params);
+  return { spec, params, d };
+}
+
+function update(root) {
+  const { spec, params, d } = readState(root);
+  const m = (k, v) => `<div class="metric"><div class="k">${k}</div><div class="v" style="font-size:16px">${v}</div></div>`;
+  root.querySelector('#fc-summary').innerHTML =
+    m('Order code', d.code) +
+    m('Arc length', d.arcLenMm.toFixed(0) + ' mm') +
+    m('Total output', d.luminousFlux.toLocaleString() + ' lm') +
+    m('Wattage', d.wattage + ' W') +
+    m('Efficacy', (d.efficacy || 0).toFixed(0) + ' lm/W') +
+    m('Profile', `${spec.profileWidth} × ${spec.profileHeight} mm`);
+  return { spec, params, d };
+}
+
+function buildArtifacts(root) {
+  const { spec, params, d } = readState(root);
+  const mesh = buildMesh('flow', 'arc', {
+    radius: d.radiusMm, sweep: params.sweep,
+    profileWidth: spec.profileWidth, profileHeight: spec.profileHeight,
+  });
+  lastMesh = mesh;
+  const dims = meshBounds(mesh);
+  const manufacturer = 'Ricoman';
+  const model = `Flow ${FLOW_VARIANTS[root.querySelector('#fc-variant').value].label.replace(/^Flow\s*/, '')} arc`;
+
+  const synthLdt = {
+    company: manufacturer, luminaireName: model, luminaireNumber: d.code,
+    fileName: d.code + '.ldt', Isym: 1, dff: 100, lorl: 100,
+    dimensions: { length: dims.length, width: dims.width, height: dims.height, circular: false },
+    lampSets: [{ count: '1', type: 'LED', flux: d.luminousFlux, wattage: d.wattage }],
+    derived: {
+      luminousFlux: d.luminousFlux, wattage: d.wattage, efficacy: d.efficacy,
+      colorTemp: d.cct, cri: d.cri, lampType: 'LED',
+    },
+  };
+  const meta = {
+    manufacturer, model, reference: d.code, mounting: 'Suspended',
+    ldtFileName: d.code + '.ldt', now: new Date(),
+  };
+
+  const ifc = buildIfc({ ldt: synthLdt, mesh, meta });
+  const ldt = writeEulumdat({
+    company: manufacturer, name: model, number: d.code, fileName: d.code + '.ldt',
+    lengthMm: dims.length, widthMm: dims.width, heightMm: dims.height,
+    flux: d.luminousFlux, wattage: d.wattage, cct: d.cct, cri: d.cri,
+  });
+  return { d, ifc, ldt };
+}
+
+function generate(root) {
+  const hint = root.querySelector('#fc-hint');
+  try {
+    const { d, ifc, ldt } = buildArtifacts(root);
+    const blob = makeZip([
+      { name: d.code + '.ifc', text: ifc },
+      { name: d.code + '.ldt', text: ldt },
+    ]);
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = d.code + '.zip';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+    hint.textContent = `Generated ${d.code} — IFC + LDT (${d.luminousFlux.toLocaleString()} lm, ${d.wattage} W).`;
+  } catch (err) {
+    hint.textContent = 'Failed: ' + err.message;
+  }
+}
+
+async function doPreview(root) {
+  const { d } = readState(root);
+  const { spec, params } = readState(root);
+  const mesh = buildMesh('flow', 'arc', {
+    radius: d.radiusMm, sweep: params.sweep,
+    profileWidth: spec.profileWidth, profileHeight: spec.profileHeight,
+  });
+  root.querySelector('#fc-preview-card').hidden = false;
+  if (!modelMod) modelMod = await import('./model.js');
+  modelMod.preview(modelMod.meshToObject(mesh), root.querySelector('#fc-canvas'));
+}

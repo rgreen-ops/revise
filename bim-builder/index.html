@@ -138,6 +138,7 @@ code{background:var(--surface2);border:1px solid var(--line);border-radius:5px;p
   <div class="tabs" role="tablist">
     <button class="tab active" id="tab-single">Single product</button>
     <button class="tab" id="tab-batch">Batch — many at once</button>
+    <button class="tab" id="tab-flow">Flow custom</button>
   </div>
 
   <div id="single-mode">
@@ -266,6 +267,11 @@ code{background:var(--surface2);border:1px solid var(--line);border-radius:5px;p
     datasheet + 3D model + LDT, then move straight on to the next — the part code and description are read
     from the datasheet automatically. When you're done, export every IFC in one ZIP.</p>
     <div id="batch-root"></div>
+  </div>
+
+  <!-- flow custom mode -->
+  <div id="flow-mode" hidden>
+    <div id="flow-root"></div>
   </div>
 </main>
 
