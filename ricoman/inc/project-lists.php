@@ -697,6 +697,14 @@ function ricoman_downloads_page_html() {
 	return $html;
 }
 // Shortcode moved to inc/downloads.php (new filtered downloads page).
+// One-time: clear the old cached downloads HTML transient.
+add_action( 'init', function () {
+	if ( ! get_option( 'rm_dl_old_cache_cleared' ) ) {
+		global $wpdb;
+		$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_rm_downloads_html_%' OR option_name LIKE '_transient_timeout_rm_downloads_html_%'" );
+		update_option( 'rm_dl_old_cache_cleared', 1 );
+	}
+} );
 
 /* --------------------------------------------------- bulk technical-file zip */
 
