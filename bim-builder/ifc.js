@@ -8,7 +8,8 @@
    extruded from the LDT luminaire dimensions. */
 
 export function buildIfc(opts) {
-  const { ldt, meta, mesh } = opts;
+  const { meta, mesh } = opts;
+  const ldt = normalizeLdt(opts.ldt);
   const lines = [];
   let id = 0;
   const ref = (n) => '#' + n;
@@ -100,6 +101,24 @@ export function buildIfc(opts) {
   ].join('\n');
 
   return header + '\n' + lines.join('\n') + '\nENDSEC;\nEND-ISO-10303-21;\n';
+}
+
+/* Fill in safe defaults so the exporter also works for geometry-only exports
+   (a preset shape dropped in to check fit, with no LDT loaded yet). */
+function normalizeLdt(ldt) {
+  ldt = ldt || {};
+  return {
+    company: ldt.company || '',
+    luminaireName: ldt.luminaireName || '',
+    luminaireNumber: ldt.luminaireNumber || '',
+    fileName: ldt.fileName || '',
+    Isym: ldt.Isym || 0,
+    dff: ldt.dff || 0,
+    lorl: ldt.lorl || 0,
+    dimensions: ldt.dimensions || {},
+    lampSets: ldt.lampSets || [],
+    derived: ldt.derived || { luminousFlux: 0, wattage: 0, efficacy: 0, colorTemp: 0, cri: 0, lampType: '' },
+  };
 }
 
 function localPlacement(add, ref, worldCS, $, relTo) {

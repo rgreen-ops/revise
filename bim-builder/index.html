@@ -82,6 +82,10 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
 .steps li{font-size:12.5px;color:var(--faint);background:var(--surface);border:1px solid var(--line);
   border-radius:999px;padding:5px 12px}
 .steps li b{color:var(--accent)}
+.or-divider{display:flex;align-items:center;gap:14px;color:var(--faint);font-size:12.5px;
+  text-transform:uppercase;letter-spacing:.6px;margin:24px 0 16px}
+.or-divider::before,.or-divider::after{content:"";flex:1;height:1px;background:var(--line)}
+code{background:var(--surface2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:.9em}
 </style>
 <script type="importmap">
 {
@@ -111,7 +115,24 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     <li><b>3</b> Export IFC</li>
   </ol>
 
-  <!-- step 1: uploads -->
+  <!-- step 1a: preset shapes (Estrella / Flow) -->
+  <div class="card" id="preset-card">
+    <h2>Build from a preset shape <span class="faint" style="font-weight:400;font-size:13px">— Estrella &amp; Flow · no 3D upload needed</span></h2>
+    <p class="muted" style="margin:0 0 14px;font-size:13.5px">Pick a product family and a shape, size it in millimetres, and Bim Builder generates the geometry for you — drop the IFC into a space to check the fit. Add an LDT below to include the photometric &amp; electrical data.</p>
+    <div class="fields">
+      <div><label>Product family</label><select id="preset-family"></select></div>
+      <div><label>Shape</label><select id="preset-shape"></select></div>
+    </div>
+    <div class="fields" id="preset-params" style="margin-top:12px"></div>
+    <div class="export-bar">
+      <button class="btn" id="preset-generate">✦ Generate shape</button>
+      <span class="hint" id="preset-hint">Pick a shape and size it (mm).</span>
+    </div>
+  </div>
+
+  <div class="or-divider"><span>or upload product files</span></div>
+
+  <!-- step 1b: uploads -->
   <div class="grid3">
     <div class="card">
       <div class="dz" id="datasheet-dz">

@@ -4,6 +4,7 @@
 
 import { parseLdt, polarSamples } from './ldt.js';
 import { buildIfc } from './ifc.js';
+import { FAMILIES, buildMesh, meshBounds } from './shapes.js';
 
 // three.js preview is optional (needs network for the CDN). Loaded lazily so the
 // core LDT -> IFC pipeline works even offline / if the CDN is blocked.
@@ -15,6 +16,7 @@ const state = {
   mesh: null,
   modelObject: null,
   datasheetName: '',
+  shapeInfo: null,   // { family, shape, dims } when built from a preset
 };
 
 const $ = (sel) => document.querySelector(sel);
@@ -152,13 +154,15 @@ function drawPolar(ldt) {
 
 // ---- export -----------------------------------------------------------
 function refreshExport() {
-  const ready = !!state.ldt;
+  const ready = !!state.ldt || !!state.mesh;
   const btn = $('#export-btn');
   btn.disabled = !ready;
-  $('#export-hint').textContent = ready
-    ? (state.mesh ? 'Ready — IFC will embed your 3D mesh + photometric data.'
-                  : 'Ready — no 3D model loaded, IFC will use a dimensioned box.')
-    : 'Load an LDT photometric file to enable export.';
+  let hint;
+  if (!ready) hint = 'Build a preset shape or load a 3D model / LDT to enable export.';
+  else if (state.ldt && state.mesh) hint = 'Ready — IFC embeds the geometry + photometric data.';
+  else if (state.mesh) hint = 'Ready — geometry only. Add an LDT to include photometric/electrical data.';
+  else hint = 'Ready — photometry only. IFC will use a dimensioned box (add a model or shape for geometry).';
+  $('#export-hint').textContent = hint;
 }
 
 function collectMeta() {
@@ -194,7 +198,81 @@ function download(text, filename, mime) {
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
+// ---- preset shape configurator ---------------------------------------
+const PARAM_META = {
+  length: ['Length', 'mm'], armA: ['Arm A', 'mm'], armB: ['Arm B', 'mm'],
+  width: ['Width', 'mm'], depth: ['Depth', 'mm'], armX: ['Arm X (horizontal)', 'mm'],
+  armY: ['Arm Y (vertical)', 'mm'], radius: ['Radius', 'mm'], sweep: ['Sweep angle', '°'],
+  repeats: ['Repeats', ''], profileWidth: ['Profile width', 'mm'], profileHeight: ['Profile height', 'mm'],
+};
+
+function buildPresetUI() {
+  const famSel = $('#preset-family');
+  const shapeSel = $('#preset-shape');
+  Object.entries(FAMILIES).forEach(([key, f]) => famSel.add(new Option(f.label, key)));
+
+  const fillShapes = () => {
+    shapeSel.innerHTML = '';
+    const shapes = FAMILIES[famSel.value].shapes;
+    Object.entries(shapes).forEach(([key, s]) => shapeSel.add(new Option(s.label, key)));
+    fillParams();
+  };
+  const fillParams = () => {
+    const fam = FAMILIES[famSel.value];
+    const shape = fam.shapes[shapeSel.value];
+    const params = { ...shape.params, profileWidth: fam.profile.width, profileHeight: fam.profile.height };
+    $('#preset-params').innerHTML = Object.entries(params).map(([k, v]) => {
+      const [label, unit] = PARAM_META[k] || [k, ''];
+      return `<div><label>${label}${unit ? ' (' + unit + ')' : ''}</label>
+        <input type="number" data-param="${k}" value="${v}" min="1" step="${k === 'sweep' || k === 'repeats' ? 1 : 10}"></div>`;
+    }).join('');
+  };
+
+  famSel.addEventListener('change', fillShapes);
+  shapeSel.addEventListener('change', fillParams);
+  $('#preset-generate').addEventListener('click', generateShape);
+  fillShapes();
+}
+
+function collectParams() {
+  const p = {};
+  $$('#preset-params input[data-param]').forEach((el) => { p[el.dataset.param] = parseFloat(el.value) || 0; });
+  return p;
+}
+
+async function generateShape() {
+  const family = $('#preset-family').value;
+  const shape = $('#preset-shape').value;
+  const params = collectParams();
+  const hint = $('#preset-hint');
+  try {
+    const mesh = buildMesh(family, shape, params);
+    state.mesh = mesh;
+    const dims = meshBounds(mesh);
+    state.shapeInfo = { family, shape, dims };
+    const tris = mesh.indices.length / 3;
+    hint.textContent = `Generated ${FAMILIES[family].label.split(' —')[0]} ${FAMILIES[family].shapes[shape].label} · ${dims.length}×${dims.width}×${dims.height} mm · ${tris.toLocaleString()} triangles`;
+    hint.className = 'hint';
+
+    // default product metadata from the preset (don't clobber user edits)
+    const famName = FAMILIES[family].label.split(' —')[0];
+    if (!$('#meta-model').value) $('#meta-model').value = `${famName} ${FAMILIES[family].shapes[shape].label}`;
+    if (!$('#meta-manufacturer').value) $('#meta-manufacturer').value = famName;
+    $('#m-dim').textContent = `${dims.length} × ${dims.width} × ${dims.height} mm`;
+
+    $('#review').hidden = false;
+    $('#model-card').hidden = false;
+    if (!modelMod) modelMod = await import('./model.js');
+    modelMod.preview(modelMod.meshToObject(mesh), $('#model-canvas'));
+    refreshExport();
+  } catch (err) {
+    hint.textContent = 'Could not generate: ' + err.message;
+    hint.className = 'hint';
+  }
+}
+
 // ---- init -------------------------------------------------------------
+buildPresetUI();
 wireDropZone('datasheet-dz', 'datasheet-input', handleDatasheet);
 wireDropZone('model-dz', 'model-input', handleModel);
 wireDropZone('ldt-dz', 'ldt-input', handleLdt);

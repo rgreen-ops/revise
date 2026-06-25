@@ -24,10 +24,24 @@ In Revit, import with **Insert → Link IFC** or **Open → IFC**.
 > script that builds the family *inside* Revit. The web app produces the portable
 > IFC; a Revit-side step is the only way to emit native `.rfa`.
 
+## Build from a preset shape (no 3D upload)
+
+For product families that are a constant cross-section run along a path, you don't
+need to upload a model at all — pick a **preset shape**, size it in millimetres and
+Bim Builder generates the geometry:
+
+- **Estrella (linear)** — single line, L-shape, U-shape, rectangle/square, cross.
+- **Flow (arcs)** — single arc, semicircle, circle/ring, S-curve, wave.
+
+The generated geometry exports to IFC on its own (drop it into a space to check
+fit) or combined with an LDT for the full photometric/electrical data. See
+`shapes.js`.
+
 ## How it works
 
-1. **Drop files** — a datasheet (optional), a 3D model (optional: glTF/GLB/OBJ/STL)
-   and an **LDT** Eulumdat photometric file (required).
+1. **Choose geometry** — either *Build from a preset shape* above, or **drop files**:
+   a datasheet (optional), a 3D model (optional: glTF/GLB/OBJ/STL) and an **LDT**
+   Eulumdat photometric file (for the lighting data).
 2. **Review** — the app parses the LDT and shows luminous flux, wattage, efficacy,
    colour temperature, CRI, dimensions and a polar intensity diagram, plus an
    interactive 3D preview of the model.
@@ -46,6 +60,7 @@ In Revit, import with **Insert → Link IFC** or **Open → IFC**.
 |------|---------|
 | `index.html` | App shell, styling, drop zones, review UI |
 | `app.js` | Orchestration — wires drop zones to parser/preview/export |
+| `shapes.js` | Parametric preset geometry (Estrella linear, Flow arcs) |
 | `ldt.js` | Eulumdat `.ldt` parser → photometric + electrical data |
 | `model.js` | 3D model loading + preview (three.js via CDN) |
 | `ifc.js` | IFC4 STEP-file exporter |
@@ -64,11 +79,23 @@ In Revit, import with **Insert → Link IFC** or **Open → IFC**.
   in the review step.
 - LDT lamp data uses the **first** standard lamp set as the rated values.
 
-## Roadmap ideas
+## Roadmap
+
+**Product types** — the exporter is structured so new product categories just
+register additional property sets; geometry/export is shared:
+
+- **Acoustic lighting** — add a `Pset_..._Acoustic` set: sound absorption
+  coefficient per octave band (125 Hz–4 kHz), NRC / αw, absorption Class A–E,
+  backing/material. This is what acousticians read, carried alongside the lighting.
+- **Biophilic lighting** — add a circadian/wellbeing set: melanopic ratio / EML,
+  spectral notes, material/finish.
+
+**Other**
 
 - PDF datasheet text extraction to auto-fill metadata.
 - Embed the IES/LDT photometric web into the IFC as an `IfcLightSource` /
   light-distribution definition so lighting calcs survive the round-trip.
+- More preset shapes / a freehand path editor for bespoke runs.
 - A companion Dynamo/Revit add-in that consumes the package and builds a native
   `.rfa` family.
 - Multi-luminaire / schedule export.

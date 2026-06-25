@@ -67,6 +67,17 @@ function extractMesh(object) {
   return { vertices, indices };
 }
 
+/* Build a three.js object from a raw {vertices, indices} mesh (e.g. a generated
+   preset shape) so it can go through the same preview path. */
+export function meshToObject(mesh) {
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(mesh.vertices, 3));
+  geo.setIndex(mesh.indices.slice());
+  geo.computeVertexNormals();
+  const mat = new THREE.MeshStandardMaterial({ color: 0xcfd6f0, metalness: 0.15, roughness: 0.45 });
+  return new THREE.Mesh(geo, mat);
+}
+
 /* Render the loaded object into a canvas with orbit controls. */
 export function preview(object, canvas) {
   if (viewer) viewer.dispose();
