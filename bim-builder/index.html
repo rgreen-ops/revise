@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bim Builder — Lighting BIM</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a0e1a">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>
+:root{
+  --bg:#0a0e1a; --bg2:#0f1525; --surface:#161d31; --surface2:#1c2440;
+  --line:#283251; --line2:#384469;
+  --ink:#eef2fb; --muted:#aeb9d6; --faint:#8b97ba;
+  --accent:#7c83ff; --accent2:#22d3ee; --violet:#a855f7;
+  --gold:#f7c948; --green:#34d399; --red:#fb7185;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:
+  radial-gradient(1200px 600px at 80% -10%, rgba(124,131,255,.12), transparent 60%),
+  radial-gradient(1000px 500px at -10% 10%, rgba(34,211,238,.08), transparent 55%),
+  var(--bg);
+  color:var(--ink);line-height:1.5;min-height:100vh}
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;
+  background:rgba(10,14,26,.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:12px 18px}
+.brand{font-weight:800;font-size:17px;letter-spacing:.3px;display:flex;align-items:center;gap:9px}
+.brand .dot{width:12px;height:12px;border-radius:4px;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.brand small{font-weight:600;color:var(--faint);font-size:12px}
+main{max-width:960px;margin:0 auto;padding:22px 18px 90px}
+h1{font-size:27px;margin:4px 0 4px;letter-spacing:-.3px}
+.sub{color:var(--muted);margin:0 0 22px;max-width:680px}
+h2{font-size:16px;margin:0 0 12px;letter-spacing:.2px}
+.muted{color:var(--muted)} .faint{color:var(--faint)}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:760px){.grid3{grid-template-columns:1fr}}
+.card{background:linear-gradient(180deg,var(--surface),var(--bg2));border:1px solid var(--line);
+  border-radius:16px;padding:18px}
+.section{margin-top:26px}
+/* drop zones */
+.dz{border:1.5px dashed var(--line2);border-radius:14px;padding:18px 14px;text-align:center;cursor:pointer;
+  transition:.15s;background:var(--surface)}
+.dz:hover,.dz.drag{border-color:var(--accent);background:var(--surface2)}
+.dz .ic{font-size:26px}
+.dz .ti{font-weight:700;margin-top:6px}
+.dz .ds{font-size:12.5px;color:var(--faint);margin-top:3px}
+.dz-status{margin-top:10px;font-size:12.5px;min-height:16px;word-break:break-word}
+.dz-status.ok{color:var(--green)} .dz-status.err{color:var(--red)}
+.req{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.5px;padding:2px 7px;border-radius:999px;
+  background:rgba(124,131,255,.16);color:var(--accent);margin-left:6px;vertical-align:middle}
+.opt{background:rgba(139,151,186,.16);color:var(--faint)}
+/* review */
+.review-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:760px){.review-grid{grid-template-columns:1fr}}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.metric{background:var(--surface2);border:1px solid var(--line);border-radius:11px;padding:11px 13px}
+.metric .k{font-size:11.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.4px}
+.metric .v{font-size:18px;font-weight:800;margin-top:2px}
+canvas{display:block;max-width:100%}
+.polar-wrap{display:flex;flex-direction:column;align-items:center;gap:6px}
+.canvas-frame{background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:8px}
+#model-canvas{width:100%;height:300px;border-radius:10px;background:#0c1120}
+/* form */
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.fields{grid-template-columns:1fr}}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:600}
+input,select{width:100%;padding:9px 11px;border-radius:9px;border:1px solid var(--line2);
+  background:var(--bg2);color:var(--ink);font-family:inherit;font-size:14px}
+input:focus,select:focus{outline:none;border-color:var(--accent)}
+/* export */
+.export-bar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:16px}
+.btn{appearance:none;border:none;cursor:pointer;font-family:inherit;font-weight:800;font-size:15px;
+  padding:13px 22px;border-radius:12px;color:#0a0e1a;
+  background:linear-gradient(135deg,var(--accent2),var(--accent))}
+.btn:disabled{opacity:.45;cursor:not-allowed;filter:grayscale(.3)}
+.hint{color:var(--faint);font-size:13px}
+.note{background:rgba(247,201,72,.08);border:1px solid rgba(247,201,72,.28);border-radius:12px;
+  padding:12px 14px;font-size:13px;color:var(--muted);margin-top:18px}
+.note b{color:var(--gold)}
+.steps{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 18px;padding:0;list-style:none}
+.steps li{font-size:12.5px;color:var(--faint);background:var(--surface);border:1px solid var(--line);
+  border-radius:999px;padding:5px 12px}
+.steps li b{color:var(--accent)}
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand"><span class="dot"></span> Bim Builder <small>· lighting BIM</small></div>
+  <div class="faint" style="font-size:12.5px">IFC4 export</div>
+</div>
+
+<main>
+  <h1>Turn luminaire data into a BIM file</h1>
+  <p class="sub">Drop in a product <b>datasheet</b>, a <b>3D model</b> and an <b>LDT</b> photometric file.
+  Bim Builder reads the photometry, previews the geometry and exports an <b>IFC</b> file an architect or
+  interior designer can import straight into Revit, ArchiCAD or any BIM tool — geometry plus full
+  electrical &amp; lighting data.</p>
+
+  <ol class="steps">
+    <li><b>1</b> Drop files</li>
+    <li><b>2</b> Check the photometry &amp; geometry</li>
+    <li><b>3</b> Export IFC</li>
+  </ol>
+
+  <!-- step 1: uploads -->
+  <div class="grid3">
+    <div class="card">
+      <div class="dz" id="datasheet-dz">
+        <div class="ic">📄</div>
+        <div class="ti">Datasheet <span class="req opt">optional</span></div>
+        <div class="ds">PDF or any product spec</div>
+      </div>
+      <input id="datasheet-input" type="file" accept=".pdf,.doc,.docx,.txt,image/*" hidden>
+      <div class="dz-status" id="datasheet-status"></div>
+    </div>
+    <div class="card">
+      <div class="dz" id="model-dz">
+        <div class="ic">🧊</div>
+        <div class="ti">3D model <span class="req opt">optional</span></div>
+        <div class="ds">glTF, GLB, OBJ or STL</div>
+      </div>
+      <input id="model-input" type="file" accept=".gltf,.glb,.obj,.stl" hidden>
+      <div class="dz-status" id="model-status"></div>
+    </div>
+    <div class="card">
+      <div class="dz" id="ldt-dz">
+        <div class="ic">💡</div>
+        <div class="ti">LDT photometry <span class="req">required</span></div>
+        <div class="ds">Eulumdat .ldt file</div>
+      </div>
+      <input id="ldt-input" type="file" accept=".ldt" hidden>
+      <div class="dz-status" id="ldt-status"></div>
+    </div>
+  </div>
+
+  <!-- step 2: review -->
+  <section class="section" id="review" hidden>
+    <h2>Photometric &amp; product data</h2>
+    <div class="review-grid">
+      <div class="card">
+        <div class="metrics">
+          <div class="metric"><div class="k">Luminous flux</div><div class="v" id="m-flux">–</div></div>
+          <div class="metric"><div class="k">Wattage</div><div class="v" id="m-watt">–</div></div>
+          <div class="metric"><div class="k">Efficacy</div><div class="v" id="m-eff">–</div></div>
+          <div class="metric"><div class="k">Colour temp</div><div class="v" id="m-cct">–</div></div>
+          <div class="metric"><div class="k">CRI</div><div class="v" id="m-cri">–</div></div>
+          <div class="metric"><div class="k">Symmetry</div><div class="v" id="m-sym" style="font-size:14px">–</div></div>
+          <div class="metric" style="grid-column:1/-1"><div class="k">Dimensions (L×W×H)</div><div class="v" id="m-dim" style="font-size:15px">–</div></div>
+        </div>
+      </div>
+      <div class="card polar-wrap">
+        <div class="k faint" style="font-size:12px;align-self:flex-start;text-transform:uppercase;letter-spacing:.4px">Polar intensity (C0 / C180)</div>
+        <div class="canvas-frame"><canvas id="polar-canvas"></canvas></div>
+        <div class="faint" style="font-size:12px">peak <span id="polar-max">–</span></div>
+      </div>
+    </div>
+
+    <div class="card section" id="model-card" hidden>
+      <h2>3D preview</h2>
+      <canvas id="model-canvas"></canvas>
+      <div class="faint" style="font-size:12px;margin-top:8px">Drag to orbit · scroll to zoom. This mesh is embedded in the IFC.</div>
+    </div>
+
+    <div class="card section">
+      <h2>Product metadata <span class="faint" style="font-weight:400;font-size:13px">— written into the IFC property sets</span></h2>
+      <div class="fields">
+        <div><label>Manufacturer</label><input id="meta-manufacturer" placeholder="e.g. Acme Lighting"></div>
+        <div><label>Model / name</label><input id="meta-model" placeholder="e.g. Aurora 600 LED Panel"></div>
+        <div><label>Reference / catalogue no.</label><input id="meta-reference" placeholder="e.g. AUR-600-840"></div>
+        <div><label>Mounting</label>
+          <select id="meta-mounting">
+            <option>Recessed</option><option>Surface</option><option>Suspended</option>
+            <option>Track</option><option>Wall</option><option>Pole top</option>
+          </select>
+        </div>
+        <div><label>Production year</label><input id="meta-year" placeholder="2026"></div>
+        <div><label>Type mark / tag</label><input id="meta-tag" placeholder="e.g. L1"></div>
+        <div style="grid-column:1/-1"><label>Datasheet reference</label><input id="meta-datasheet" placeholder="(filename of attached datasheet)"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- step 3: export -->
+  <section class="section">
+    <h2>Export</h2>
+    <div class="card">
+      <div class="export-bar">
+        <button class="btn" id="export-btn" disabled>⬇ Export IFC file</button>
+        <span class="hint" id="export-hint">Load an LDT photometric file to enable export.</span>
+      </div>
+      <div class="note">
+        <b>Why IFC?</b> Native Revit <code>.rvt/.rfa</code> is a closed binary format that can only be written
+        by Revit itself. IFC is the open BIM standard every major tool — including Revit — imports, and it
+        carries the geometry plus electrical/lighting property sets. In Revit: <i>Insert → Link IFC</i> (or
+        <i>Open → IFC</i>).
+      </div>
+    </div>
+  </section>
+</main>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
