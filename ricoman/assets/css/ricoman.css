@@ -92,7 +92,7 @@ body.rm-hero header.site,body.rm-hero .ricoman-site-header{background:linear-gra
 .hero .inner{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;justify-content:flex-end}
 .hero .top{position:absolute;top:104px;left:0;right:0}
 .hero .top .wrap{display:flex;justify-content:space-between}
-.hero .btm{padding-bottom:clamp(64px,7vw,120px)}
+.hero .btm{padding-bottom:clamp(64px,7vw,120px);padding-left:var(--pad);padding-right:var(--pad)}
 .hero h1{font-weight:500;font-size:clamp(2.8rem,7vw,6.4rem);letter-spacing:-.04em;line-height:.96;margin:0;max-width:18ch}
 .hero .row{display:flex;justify-content:space-between;align-items:flex-end;gap:34px;flex-wrap:wrap;margin-top:clamp(28px,3.5vw,52px)}
 .hero p.lede{font-size:1.15rem;color:rgba(255,255,255,.86);max-width:40ch;margin:0;font-weight:400}
