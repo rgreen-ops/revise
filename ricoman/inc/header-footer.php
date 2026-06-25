@@ -136,7 +136,7 @@ add_shortcode( 'ricoman_header', function () {
 			continue;
 		}
 		if ( '#products' === $url ) {
-			$items .= '<li class="rm-has-mega"><a href="' . esc_url( ricoman_opt( 'mega_heading_url' ) ) . '">' . esc_html( $label ) . ' <span class="rm-caret" aria-hidden="true">&#9662;</span></a>' . $mega . '</li>';
+			$items .= '<li class="rm-has-mega"><a href="' . esc_url( ricoman_opt( 'mega_heading_url' ) ) . '">' . esc_html( $label ) . '</a>' . $mega . '</li>';
 		} else {
 			$items .= '<li><a href="' . esc_url( $url ) . '">' . esc_html( $label ) . '</a></li>';
 		}
