@@ -119,11 +119,6 @@ export function buildMesh(family, shape, params) {
   if (params.profileWidth) base.width = params.profileWidth;
   if (params.profileHeight) base.height = params.profileHeight;
   const profile = housingProfile(base.width, base.height, params.lip);
-  // The end cap is a SOLID outer rectangle — the real product has a flat end
-  // plate, so it ignores the mounting-channel notch. Fan the outline to triangles.
-  const outline = profile.capOutline;
-  const capTris = [];
-  for (let i = 1; i < outline.length - 1; i++) capTris.push([outline[0], outline[i], outline[i + 1]]);
   const { paths, closed } = buildPaths(family, shape, params);
 
   const vertices = [];
@@ -131,7 +126,7 @@ export function buildMesh(family, shape, params) {
   const body = [];
   const diffuser = [];
   const caps = [];
-  for (const path of paths) sweepInto(path, profile, capTris, closed, vertices, uvs, body, diffuser, caps, base.width, base.height);
+  for (const path of paths) sweepInto(path, profile, closed, vertices, uvs, body, diffuser, caps, base.width, base.height);
   // Group order: body (housing), diffuser (lit lens), cap (flat end plates — own
   // group so they can carry the engraved logo). The IFC exporter uses the full
   // `indices` list and is unaffected.
@@ -180,7 +175,7 @@ function housingProfile(width, height, lip) {
    vertices, offset along the in-plane normal and mitred at corners so the width
    stays constant, then stitch a quad strip per profile edge between consecutive
    rings (routing the lens edge to the diffuser group) and fan-cap open ends. */
-function sweepInto(path, profile, capTris, closed, vertices, uvs, body, diff, caps, width, height) {
+function sweepInto(path, profile, closed, vertices, uvs, body, diff, caps, width, height) {
   const n = path.length;
   if (n < 2) return;
   const P = profile.points;
@@ -220,26 +215,43 @@ function sweepInto(path, profile, capTris, closed, vertices, uvs, body, diff, ca
     }
   }
   if (!closed) {
-    cap(P, capTris, rings[0], vertices, uvs, caps, width, height);
-    cap(P, capTris, rings[n - 1], vertices, uvs, caps, width, height);
+    const dS = norm(sub(path[1], path[0]));            // run direction at the start
+    const dE = norm(sub(path[n - 1], path[n - 2]));    // run direction at the end
+    cap(profile.capOutline, rings[0], vertices, uvs, body, caps, [-dS[0], -dS[1]], width, height);
+    cap(profile.capOutline, rings[n - 1], vertices, uvs, body, caps, [dE[0], dE[1]], width, height);
   }
 }
 
-/* Flat end plate: duplicate the ring into its own vertices (so the cap gets a
-   single flat normal rather than smearing into the side walls and looking domed),
-   then emit the precomputed cross-section triangulation. Double-sided materials
-   make the winding irrelevant. */
-function cap(P, capTris, ringBase, vertices, uvs, caps, width, height) {
-  const m = P.length;
-  const hw = width / 2;
+/* Solid 3 mm end plate: a separate rectangular cap that covers the open end of
+   the extrusion and stands proud by its thickness, so it reads as a real
+   bolted-on plate. The OUTER face carries the engraved logo + countersunk screws
+   (textured, 'cap' group); the inner face and the four edge walls (the visible
+   thickness) are plain metal ('body' group). `outward` is the unit run direction
+   the plate stands proud along (in the X/Y plane). */
+const CAP_THICKNESS = 3;   // mm
+function cap(outline, ringBase, vertices, uvs, body, caps, outward, width, height) {
   const base = vertices.length / 3;
-  for (let j = 0; j < m; j++) {
-    const k = (ringBase + j) * 3;
+  const ox = outward[0] * CAP_THICKNESS, oy = outward[1] * CAP_THICKNESS;
+  const CORNER_UV = [[0, 1], [1, 1], [1, 0], [0, 0]];   // outline order: TL, TR, BR, BL
+  // Inner corners (base+0..3) at the body end — plain; outer corners (base+4..7)
+  // proud by the thickness — carry the texture UVs.
+  for (let c = 0; c < 4; c++) {
+    const k = (ringBase + outline[c]) * 3;
     vertices.push(vertices[k], vertices[k + 1], vertices[k + 2]);
-    // UV across the square face so the engraved logo maps onto the cap.
-    uvs.push((P[j].u + hw) / width, (P[j].v + height) / height);
+    uvs.push(0, 0);
   }
-  for (const t of capTris) caps.push(base + t[0], base + t[1], base + t[2]);
+  for (let c = 0; c < 4; c++) {
+    const k = (ringBase + outline[c]) * 3;
+    vertices.push(vertices[k] + ox, vertices[k + 1] + oy, vertices[k + 2]);
+    uvs.push(CORNER_UV[c][0], CORNER_UV[c][1]);
+  }
+  const I = (c) => base + c, O = (c) => base + 4 + c;
+  caps.push(O(0), O(1), O(2), O(0), O(2), O(3));        // outer engraved face
+  body.push(I(0), I(2), I(1), I(0), I(3), I(2));        // inner face (seals the end)
+  for (let c = 0; c < 4; c++) {                          // four edge walls = the 3 mm thickness
+    const d = (c + 1) % 4;
+    body.push(I(c), I(d), O(d), I(c), O(d), O(c));
+  }
 }
 
 /* Total centreline length (mm) of a preset — i.e. how much lit profile the run
