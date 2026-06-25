@@ -906,6 +906,32 @@ add_action( 'init', function () {
 	foreach ( $p as $slug => $data ) {
 		register_block_pattern( 'ricoman/' . $slug, array( 'title' => $data[0], 'categories' => array( 'ricoman-page' ), 'content' => $data[1] ) );
 	}
+
+	// Downloads CTA banner — insert after the [ricoman_downloads] shortcode on the Downloads page.
+	register_block_pattern( 'ricoman/downloads-cta', array(
+		'title'      => 'Downloads — CTA banner',
+		'categories' => array( 'ricoman-page' ),
+		'content'    => '<!-- wp:group {"style":{"color":{"background":"#0a0a0b"},"spacing":{"padding":{"top":"clamp(40px,5vw,72px)","bottom":"clamp(40px,5vw,72px)"}}},"layout":{"type":"constrained"}} -->
+<div class="wp-block-group has-background" style="background-color:#0a0a0b;padding-top:clamp(40px,5vw,72px);padding-bottom:clamp(40px,5vw,72px)">
+<!-- wp:heading {"textAlign":"center","style":{"typography":{"fontWeight":"500","letterSpacing":"-0.02em"},"color":{"text":"#ffffff"}}} -->
+<h2 class="wp-block-heading has-text-align-center" style="color:#ffffff;font-weight:500;letter-spacing:-0.02em">Can\'t find a document?</h2>
+<!-- /wp:heading -->
+<!-- wp:paragraph {"align":"center","style":{"color":{"text":"rgba(255,255,255,0.75)"},"typography":{"fontSize":"1rem"}}} -->
+<p class="has-text-align-center" style="color:rgba(255,255,255,0.75);font-size:1rem">Tell us the product or project and our team will send the exact files you need.</p>
+<!-- /wp:paragraph -->
+<!-- wp:buttons {"layout":{"type":"flex","justifyContent":"center"}} -->
+<div class="wp-block-buttons">
+<!-- wp:button {"className":"is-style-outline-light"} -->
+<div class="wp-block-button is-style-outline-light"><a class="wp-block-button__link wp-element-button" href="/contact/">Request files</a></div>
+<!-- /wp:button -->
+<!-- wp:button {"className":"is-style-outline-light"} -->
+<div class="wp-block-button is-style-outline-light"><a class="wp-block-button__link wp-element-button" href="/about/">Talk to the team</a></div>
+<!-- /wp:button -->
+</div>
+<!-- /wp:buttons -->
+</div>
+<!-- /wp:group -->',
+	) );
 }, 12 );
 
 /** Editable block stacks for the content pages. */

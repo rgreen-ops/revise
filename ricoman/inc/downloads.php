@@ -303,29 +303,6 @@ function ricoman_downloads_shortcode() {
 
 	</div><!-- .rm-dl-wrap -->
 
-	<?php
-	$_cta  = get_option( 'ricoman_dl_cta', array() );
-	$_ch   = esc_html( isset( $_cta['heading'] )    ? $_cta['heading']    : "Can't find a document?" );
-	$_cs   = esc_html( isset( $_cta['sub'] )        ? $_cta['sub']        : 'Tell us the product or project and our team will send the exact files you need.' );
-	$_cb1l = esc_html( isset( $_cta['btn1_label'] ) ? $_cta['btn1_label'] : 'Request files' );
-	$_cb1u = esc_url(  isset( $_cta['btn1_url'] )   ? $_cta['btn1_url']   : '/contact/' );
-	$_cb2l = esc_html( isset( $_cta['btn2_label'] ) ? $_cta['btn2_label'] : 'Talk to the team' );
-	$_cb2u = esc_url(  isset( $_cta['btn2_url'] )   ? $_cta['btn2_url']   : '/about/' );
-	?>
-	<div class="rm-dl-cta alignfull">
-		<div class="rm-dl-cta-inner">
-			<h2 class="rm-dl-cta-head"><?php echo $_ch; ?></h2>
-			<p class="rm-dl-cta-sub"><?php echo $_cs; ?></p>
-			<div class="rm-dl-cta-btns">
-				<?php if ( $_cb1l ) : ?>
-				<a class="wp-block-button__link is-style-outline-light wp-element-button" href="<?php echo $_cb1u; ?>"><?php echo $_cb1l; ?></a>
-				<?php endif; ?>
-				<?php if ( $_cb2l ) : ?>
-				<a class="wp-block-button__link is-style-outline-light wp-element-button" href="<?php echo $_cb2u; ?>"><?php echo $_cb2l; ?></a>
-				<?php endif; ?>
-			</div>
-		</div>
-	</div>
 
 	<script>
 	window.rmDlManual = <?php echo wp_json_encode( $manual ); ?>;
