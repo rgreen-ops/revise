@@ -79,6 +79,16 @@ function ricoman_downloads_admin_page() {
 			);
 		}
 		update_option( 'ricoman_downloads', $entries );
+
+		update_option( 'ricoman_dl_cta', array(
+			'heading'    => sanitize_text_field( isset( $_POST['rm_dl_cta_heading'] )    ? $_POST['rm_dl_cta_heading']    : '' ),
+			'sub'        => sanitize_text_field( isset( $_POST['rm_dl_cta_sub'] )        ? $_POST['rm_dl_cta_sub']        : '' ),
+			'btn1_label' => sanitize_text_field( isset( $_POST['rm_dl_cta_btn1_label'] ) ? $_POST['rm_dl_cta_btn1_label'] : '' ),
+			'btn1_url'   => esc_url_raw(         isset( $_POST['rm_dl_cta_btn1_url'] )   ? $_POST['rm_dl_cta_btn1_url']   : '' ),
+			'btn2_label' => sanitize_text_field( isset( $_POST['rm_dl_cta_btn2_label'] ) ? $_POST['rm_dl_cta_btn2_label'] : '' ),
+			'btn2_url'   => esc_url_raw(         isset( $_POST['rm_dl_cta_btn2_url'] )   ? $_POST['rm_dl_cta_btn2_url']   : '' ),
+		) );
+
 		echo '<div class="notice notice-success is-dismissible"><p>Downloads saved.</p></div>';
 	}
 
@@ -128,8 +138,47 @@ function ricoman_downloads_admin_page() {
 			</table>
 			<p>
 				<button type="button" class="button" id="rm-dl-add">+ Add file</button>
-				<?php submit_button( 'Save Downloads', 'primary', 'submit', false ); ?>
 			</p>
+
+			<hr style="margin:30px 0">
+			<h2>Bottom CTA banner</h2>
+			<p>Edit the "Can't find a document?" banner shown at the bottom of the downloads page.</p>
+			<?php
+			$cta = get_option( 'ricoman_dl_cta', array() );
+			$cta_h  = isset( $cta['heading'] )    ? $cta['heading']    : "Can't find a document?";
+			$cta_s  = isset( $cta['sub'] )        ? $cta['sub']        : 'Tell us the product or project and our team will send the exact files you need.';
+			$cta_b1l = isset( $cta['btn1_label'] ) ? $cta['btn1_label'] : 'Request files';
+			$cta_b1u = isset( $cta['btn1_url'] )   ? $cta['btn1_url']   : '/contact/';
+			$cta_b2l = isset( $cta['btn2_label'] ) ? $cta['btn2_label'] : 'Talk to the team';
+			$cta_b2u = isset( $cta['btn2_url'] )   ? $cta['btn2_url']   : '/about/';
+			?>
+			<table class="form-table">
+				<tr>
+					<th>Heading</th>
+					<td><input type="text" name="rm_dl_cta_heading" value="<?php echo esc_attr( $cta_h ); ?>" class="large-text"></td>
+				</tr>
+				<tr>
+					<th>Subtext</th>
+					<td><input type="text" name="rm_dl_cta_sub" value="<?php echo esc_attr( $cta_s ); ?>" class="large-text"></td>
+				</tr>
+				<tr>
+					<th>Button 1 label</th>
+					<td><input type="text" name="rm_dl_cta_btn1_label" value="<?php echo esc_attr( $cta_b1l ); ?>" class="regular-text"></td>
+				</tr>
+				<tr>
+					<th>Button 1 URL</th>
+					<td><input type="text" name="rm_dl_cta_btn1_url" value="<?php echo esc_attr( $cta_b1u ); ?>" class="regular-text"></td>
+				</tr>
+				<tr>
+					<th>Button 2 label</th>
+					<td><input type="text" name="rm_dl_cta_btn2_label" value="<?php echo esc_attr( $cta_b2l ); ?>" class="regular-text"></td>
+				</tr>
+				<tr>
+					<th>Button 2 URL</th>
+					<td><input type="text" name="rm_dl_cta_btn2_url" value="<?php echo esc_attr( $cta_b2u ); ?>" class="regular-text"></td>
+				</tr>
+			</table>
+			<?php submit_button( 'Save all', 'primary' ); ?>
 		</form>
 	</div>
 
@@ -254,13 +303,26 @@ function ricoman_downloads_shortcode() {
 
 	</div><!-- .rm-dl-wrap -->
 
+	<?php
+	$_cta  = get_option( 'ricoman_dl_cta', array() );
+	$_ch   = esc_html( isset( $_cta['heading'] )    ? $_cta['heading']    : "Can't find a document?" );
+	$_cs   = esc_html( isset( $_cta['sub'] )        ? $_cta['sub']        : 'Tell us the product or project and our team will send the exact files you need.' );
+	$_cb1l = esc_html( isset( $_cta['btn1_label'] ) ? $_cta['btn1_label'] : 'Request files' );
+	$_cb1u = esc_url(  isset( $_cta['btn1_url'] )   ? $_cta['btn1_url']   : '/contact/' );
+	$_cb2l = esc_html( isset( $_cta['btn2_label'] ) ? $_cta['btn2_label'] : 'Talk to the team' );
+	$_cb2u = esc_url(  isset( $_cta['btn2_url'] )   ? $_cta['btn2_url']   : '/about/' );
+	?>
 	<div class="rm-dl-cta alignfull">
 		<div class="rm-dl-cta-inner">
-			<h2 class="rm-dl-cta-head">Can&rsquo;t find a document?</h2>
-			<p class="rm-dl-cta-sub">Tell us the product or project and our team will send the exact files you need.</p>
+			<h2 class="rm-dl-cta-head"><?php echo $_ch; ?></h2>
+			<p class="rm-dl-cta-sub"><?php echo $_cs; ?></p>
 			<div class="rm-dl-cta-btns">
-				<a class="wp-block-button__link is-style-outline-light wp-element-button" href="/contact/">Request files</a>
-				<a class="wp-block-button__link is-style-outline-light wp-element-button" href="/about/">Talk to the team &rarr;</a>
+				<?php if ( $_cb1l ) : ?>
+				<a class="wp-block-button__link is-style-outline-light wp-element-button" href="<?php echo $_cb1u; ?>"><?php echo $_cb1l; ?></a>
+				<?php endif; ?>
+				<?php if ( $_cb2l ) : ?>
+				<a class="wp-block-button__link is-style-outline-light wp-element-button" href="<?php echo $_cb2u; ?>"><?php echo $_cb2l; ?></a>
+				<?php endif; ?>
 			</div>
 		</div>
 	</div>
