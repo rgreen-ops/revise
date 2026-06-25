@@ -2,8 +2,9 @@
    land immediately when online; falls back to cache offline. CDN-loaded three.js
    is cross-origin and not pre-cached, so 3D preview needs a connection.
    Bump CACHE on each deploy to purge old files. */
-var CACHE = 'bimbuilder-v1';
-var ASSETS = ['./', './index.html', './app.js', './ldt.js', './ifc.js', './model.js', './manifest.json', './icon.svg'];
+var CACHE = 'bimbuilder-v2';
+var ASSETS = ['./', './index.html', './app.js', './ldt.js', './ifc.js', './model.js',
+  './shapes.js', './datasheet.js', './batch.js', './zip.js', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', function (e) {
   e.waitUntil(

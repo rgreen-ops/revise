@@ -5,6 +5,7 @@
 import { parseLdt, polarSamples } from './ldt.js';
 import { buildIfc } from './ifc.js';
 import { FAMILIES, buildMesh, meshBounds } from './shapes.js';
+import { extractFromFile } from './datasheet.js';
 
 // three.js preview is optional (needs network for the CDN). Loaded lazily so the
 // core LDT -> IFC pipeline works even offline / if the CDN is blocked.
@@ -76,10 +77,24 @@ async function handleModel(file) {
   }
 }
 
-function handleDatasheet(file) {
+async function handleDatasheet(file) {
   state.datasheetName = file.name;
-  setStatus($('#datasheet-status'), true, file.name);
   $('#meta-datasheet').value = file.name;
+  const statusEl = $('#datasheet-status');
+  setStatus(statusEl, true, 'Reading ' + file.name + '…');
+  try {
+    const { fields, note } = await extractFromFile(file);
+    const fillIf = (id, v) => { const el = $('#' + id); if (el && v && !el.value) el.value = v; };
+    fillIf('meta-reference', fields.reference);
+    fillIf('meta-model', fields.model);
+    fillIf('meta-manufacturer', fields.manufacturer);
+    fillIf('meta-year', fields.year);
+    const got = Object.keys(fields).length;
+    setStatus(statusEl, true, note || (got ? `${file.name} · read ${got} field${got === 1 ? '' : 's'}` : `${file.name} · no fields auto-detected, fill manually`));
+    $('#review').hidden = false;
+  } catch (err) {
+    setStatus(statusEl, false, 'Read failed: ' + err.message + ' — fill fields manually');
+  }
 }
 
 // ---- populate the metadata form from the LDT -------------------------
@@ -271,12 +286,28 @@ async function generateShape() {
   }
 }
 
+// ---- tab switching (single / batch) ----------------------------------
+let batchReady = false;
+function showTab(which) {
+  const single = which === 'single';
+  $('#single-mode').hidden = !single;
+  $('#batch-mode').hidden = single;
+  $('#tab-single').classList.toggle('active', single);
+  $('#tab-batch').classList.toggle('active', !single);
+  if (!single && !batchReady) {
+    batchReady = true;
+    import('./batch.js').then((m) => m.initBatch($('#batch-root')));
+  }
+}
+
 // ---- init -------------------------------------------------------------
 buildPresetUI();
 wireDropZone('datasheet-dz', 'datasheet-input', handleDatasheet);
 wireDropZone('model-dz', 'model-input', handleModel);
 wireDropZone('ldt-dz', 'ldt-input', handleLdt);
 $('#export-btn').addEventListener('click', doExport);
+$('#tab-single').addEventListener('click', () => showTab('single'));
+$('#tab-batch').addEventListener('click', () => showTab('batch'));
 refreshExport();
 
 // register service worker for offline / installable PWA
