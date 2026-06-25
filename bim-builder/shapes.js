@@ -220,10 +220,11 @@ function sweepInto(path, profile, closed, vertices, uvs, body, diff, caps, width
   if (!closed) {
     const dS = norm(sub(path[1], path[0]));            // run direction at the start
     const dE = norm(sub(path[n - 1], path[n - 2]));    // run direction at the end
-    // The two caps face opposite ways: the start cap comes out mirrored, so flip
-    // its logo horizontally; the end cap already reads correctly.
-    cap(profile.capOutline, rings[0], vertices, uvs, body, caps, [-dS[0], -dS[1]], width, height, true);
-    cap(profile.capOutline, rings[n - 1], vertices, uvs, body, caps, [dE[0], dE[1]], width, height, false);
+    // The two caps face opposite ways, so they need opposite outer-face winding
+    // (so each shows from outside under single-sided material) and one gets its
+    // logo mirrored. Verified by rendering both caps head-on.
+    cap(profile.capOutline, rings[0], vertices, uvs, body, caps, [-dS[0], -dS[1]], width, height, true, false);
+    cap(profile.capOutline, rings[n - 1], vertices, uvs, body, caps, [dE[0], dE[1]], width, height, false, true);
   }
 }
 
@@ -234,7 +235,7 @@ function sweepInto(path, profile, closed, vertices, uvs, body, diff, caps, width
    thickness) are plain metal ('body' group). `outward` is the unit run direction
    the plate stands proud along (in the X/Y plane). */
 const CAP_THICKNESS = 3;   // mm
-function cap(outline, ringBase, vertices, uvs, body, caps, outward, width, height, flip) {
+function cap(outline, ringBase, vertices, uvs, body, caps, outward, width, height, flip, wind) {
   const base = vertices.length / 3;
   const ox = outward[0] * CAP_THICKNESS, oy = outward[1] * CAP_THICKNESS;
   const CORNER_UV = [[0, 1], [1, 1], [1, 0], [0, 0]];   // outline order: TL, TR, BR, BL
@@ -252,7 +253,8 @@ function cap(outline, ringBase, vertices, uvs, body, caps, outward, width, heigh
     uvs.push(cu, CORNER_UV[c][1]);
   }
   const I = (c) => base + c, O = (c) => base + 4 + c;
-  caps.push(O(0), O(1), O(2), O(0), O(2), O(3));        // outer engraved face
+  if (wind) caps.push(O(0), O(2), O(1), O(0), O(3), O(2));   // reversed so it faces outward
+  else caps.push(O(0), O(1), O(2), O(0), O(2), O(3));        // outer engraved face
   body.push(I(0), I(2), I(1), I(0), I(3), I(2));        // inner face (seals the end)
   for (let c = 0; c < 4; c++) {                          // four edge walls = the 3 mm thickness
     const d = (c + 1) % 4;
