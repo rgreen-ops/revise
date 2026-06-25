@@ -147,8 +147,8 @@ export function buildMesh(family, shape, params) {
 function housingProfile(width, height, lip) {
   const hw = width / 2;
   const sideLip = Math.min(Math.max(lip == null ? 2 : lip, 0), hw - 1);   // lip each side of the lens
-  const chHalf = Math.min(width * 0.22, hw - 1);          // mounting-channel half width
-  const chDepth = Math.min(height * 0.28, height - 1);    // mounting-channel depth
+  const chHalf = Math.min(width * 0.065, hw - 1);         // mounting-channel half width (slim)
+  const chDepth = Math.min(height * 0.085, height - 1);   // mounting-channel depth (shallow)
   const pts = [];
   // Top face, left -> right, dipping into the central mounting channel.
   pts.push([-hw, 0]);                 // 0 top-left
