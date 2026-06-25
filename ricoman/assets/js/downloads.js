@@ -2,11 +2,10 @@
 	var page      = document.getElementById('rm-dl-page');
 	if (!page) return;
 
-	var results    = document.getElementById('rm-dl-results');
-	var productSel = document.getElementById('rm-dl-product-select'); // hidden input
-	var productSearch = document.getElementById('rm-dl-product-search');
-	var productList   = document.getElementById('rm-dl-product-list');
-	var typeCbs    = Array.from(page.querySelectorAll('.rm-dl-type-cb'));
+	var results   = document.getElementById('rm-dl-results');
+	var productSel= document.getElementById('rm-dl-product-select');
+	var searchBox = document.getElementById('rm-dl-search');
+	var typeCbs   = Array.from(page.querySelectorAll('.rm-dl-type-cb'));
 
 	var manualTypes  = ['catalogue','brochure','education','3d','revit','bim'];
 	var productTypes = ['datasheet','installation','ldt'];
@@ -19,60 +18,30 @@
 		installation:'Installation Instructions', ldt:'LDT Files', datasheet:'Datasheet'
 	};
 
-	// Product search — filter list items as user types.
-	function filterProductList() {
-		var q = productSearch ? productSearch.value.toLowerCase().trim() : '';
-		var items = productList ? Array.from(productList.querySelectorAll('.rm-dl-product-opt')) : [];
-		items.forEach(function(li) {
-			if (li.classList.contains('rm-dl-product-opt--all')) {
-				li.style.display = '';
-				return;
+	function applySearch() {
+		if (!searchBox) return;
+		var q = searchBox.value.toLowerCase().trim();
+		var cards = Array.from(results.querySelectorAll('.rm-dl-card'));
+		cards.forEach(function(card) {
+			var text = card.textContent.toLowerCase();
+			card.style.display = (!q || text.indexOf(q) !== -1) ? '' : 'none';
+		});
+		// Show empty message if all cards hidden.
+		var visible = cards.filter(function(c){ return c.style.display !== 'none'; });
+		var empty = results.querySelector('.rm-dl-search-empty');
+		if (!visible.length && cards.length) {
+			if (!empty) {
+				var p = document.createElement('p');
+				p.className = 'rm-dl-empty rm-dl-search-empty';
+				p.textContent = 'No results for "' + searchBox.value + '".';
+				results.appendChild(p);
 			}
-			li.style.display = (!q || li.textContent.toLowerCase().indexOf(q) !== -1) ? '' : 'none';
-		});
+		} else if (empty) {
+			empty.remove();
+		}
 	}
 
-	function selectProduct(li) {
-		var items = productList ? Array.from(productList.querySelectorAll('.rm-dl-product-opt')) : [];
-		items.forEach(function(i){ i.classList.remove('is-active'); });
-		li.classList.add('is-active');
-		var val = li.dataset.value;
-		if (productSel) productSel.value = val;
-		if (productSearch) productSearch.value = val ? li.textContent : '';
-		update();
-	}
-
-	if (productList) {
-		productList.addEventListener('click', function(e) {
-			var li = e.target.closest('.rm-dl-product-opt');
-			if (li) selectProduct(li);
-		});
-		productList.addEventListener('keydown', function(e) {
-			var li = e.target.closest('.rm-dl-product-opt');
-			if (!li) return;
-			if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectProduct(li); }
-		});
-	}
-
-	if (productSearch) {
-		productSearch.addEventListener('input', filterProductList);
-		productSearch.addEventListener('focus', function() {
-			if (productList) productList.style.display = '';
-		});
-		productSearch.addEventListener('keydown', function(e) {
-			if (e.key === 'Escape') {
-				if (productList) productList.style.display = 'none';
-				productSearch.blur();
-			}
-		});
-	}
-
-	// Close list when clicking outside.
-	document.addEventListener('click', function(e) {
-		if (!productList) return;
-		var wrap = document.querySelector('.rm-dl-product-search-wrap');
-		if (wrap && !wrap.contains(e.target)) productList.style.display = 'none';
-	});
+	if (searchBox) searchBox.addEventListener('input', applySearch);
 
 	function selectedTypes() {
 		return typeCbs.filter(function(cb){ return cb.checked; }).map(function(cb){ return cb.value; });
@@ -144,6 +113,7 @@
 
 		if (!product.length) {
 			results.innerHTML = manHtml || '<p class="rm-dl-empty">No files found for the selected filters.</p>';
+			applySearch();
 			return;
 		}
 
@@ -156,11 +126,12 @@
 			if (!results.querySelector('.rm-dl-card')) {
 				results.innerHTML = '<p class="rm-dl-empty">No files found for the selected filters.</p>';
 			}
+			applySearch();
 		});
 	}
 
 	typeCbs.forEach(function(cb){ cb.addEventListener('change', update); });
+	if (productSel) productSel.addEventListener('change', update);
 
-	// Run on load to respect the default checked state.
 	update();
 })();

@@ -212,6 +212,10 @@ function ricoman_downloads_shortcode() {
 
 		<aside class="rm-dl-filters" aria-label="Filter downloads">
 
+			<div class="rm-dl-filter-search-wrap">
+				<input type="search" id="rm-dl-search" class="rm-dl-search" placeholder="Search downloads&hellip;" autocomplete="off" aria-label="Search downloads">
+			</div>
+
 			<div class="rm-dl-filter-group">
 				<h3 class="rm-dl-filter-heading">Type</h3>
 				<ul class="rm-dl-type-list">
@@ -229,17 +233,13 @@ function ricoman_downloads_shortcode() {
 
 			<div class="rm-dl-filter-group rm-dl-filter-product" id="rm-dl-product-group">
 				<h3 class="rm-dl-filter-heading">Product</h3>
-				<div class="rm-dl-product-search-wrap">
-					<input type="search" id="rm-dl-product-search" class="rm-dl-product-search" placeholder="Search products&hellip;" autocomplete="off" aria-label="Search products">
-					<ul class="rm-dl-product-list" id="rm-dl-product-list" role="listbox">
-						<li class="rm-dl-product-opt rm-dl-product-opt--all is-active" data-value="" role="option" tabindex="0">— All products —</li>
-						<?php foreach ( $products as $pid => $pname ) : ?>
-						<li class="rm-dl-product-opt" data-value="<?php echo esc_attr( $pid ); ?>" role="option" tabindex="0"><?php echo esc_html( $pname ); ?></li>
-						<?php endforeach; ?>
-						<li class="rm-dl-product-opt" data-value="accessories" role="option" tabindex="0">Accessories</li>
-					</ul>
-					<input type="hidden" id="rm-dl-product-select" value="">
-				</div>
+				<select class="rm-dl-product-select" id="rm-dl-product-select">
+					<option value="">— All products —</option>
+					<?php foreach ( $products as $pid => $pname ) : ?>
+					<option value="<?php echo esc_attr( $pid ); ?>"><?php echo esc_html( $pname ); ?></option>
+					<?php endforeach; ?>
+					<option value="accessories">Accessories</option>
+				</select>
 			</div>
 
 		</aside>
