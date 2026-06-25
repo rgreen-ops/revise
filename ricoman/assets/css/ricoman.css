@@ -834,7 +834,7 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .wp-block-cover{position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;background-size:cover;background-position:center}
 .wp-block-cover img.wp-block-cover__image-background{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;margin:0;max-width:none;padding:0}
 .wp-block-cover > .wp-block-cover__background{position:absolute;inset:0;z-index:1}
-.wp-block-cover > .wp-block-cover__inner-container{position:relative;z-index:2;width:100%;flex:1 1 100%;min-width:0;padding:clamp(22px,4vw,44px)}
+.wp-block-cover > .wp-block-cover__inner-container{position:relative;z-index:2;width:100%;flex:1 1 100%;min-width:0;padding:var(--pad)}
 /* In a flex cover the text container can otherwise collapse to min-content and
    wrap headings letter-by-letter ("Alli an z" on the project tiles). Force it
    full-width and keep word wrapping normal. */
