@@ -125,12 +125,12 @@ function ricoman_downloads_admin_page() {
 	(function(){
 		var types = <?php echo wp_json_encode( array_map( null, $manual_types, array_map( function($k) use ($types){ return $types[$k]; }, $manual_types ) ) ); ?>;
 		var typeOpts = <?php
-			$opts = '';
+			$opts_arr = array();
 			foreach ( $manual_types as $k ) {
-				$opts .= '<option value="' . esc_attr( $k ) . '">' . esc_html( $types[ $k ] ) . '<\/option>';
+				$opts_arr[] = array( 'value' => $k, 'label' => $types[ $k ] );
 			}
-			echo wp_json_encode( $opts );
-		?>;
+			echo wp_json_encode( $opts_arr );
+		?>.map(function(o){ return '<option value="'+o.value+'">'+o.label+'</option>'; }).join('');
 
 		document.getElementById('rm-dl-add').addEventListener('click', function(){
 			var tr = document.createElement('tr');
