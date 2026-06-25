@@ -164,6 +164,12 @@ export function preview(object, canvas, opts = {}) {
 
   camera.position.set(maxDim * 1.3, maxDim * 1.0, maxDim * 1.9);
   camera.lookAt(0, 0, 0);
+  // Tighten the depth range to the object's scale — the default 0.01..100000 has
+  // far too little z-buffer precision for a few-hundred-mm part and causes
+  // coincident faces to z-fight (flicker).
+  camera.near = maxDim * 0.1;
+  camera.far = maxDim * 60;
+  camera.updateProjectionMatrix();
 
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
