@@ -342,9 +342,15 @@ async function generateShape() {
     $('#review').hidden = false;
     $('#model-card').hidden = false;
     maybeAutoPhoto();
-    if (!modelMod) modelMod = await import('./model.js');
-    modelMod.preview(modelMod.meshToObject(mesh), $('#model-canvas'));
     refreshExport();
+    // 3D preview is a best-effort enhancement (needs three.js from the CDN);
+    // never let it block generation/export.
+    try {
+      if (!modelMod) modelMod = await import('./model.js');
+      modelMod.preview(modelMod.meshToObject(mesh), $('#model-canvas'));
+    } catch (e) {
+      $('#model-card').hidden = true;
+    }
   } catch (err) {
     hint.textContent = 'Could not generate: ' + err.message;
     hint.className = 'hint';
