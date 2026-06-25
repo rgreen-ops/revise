@@ -31,6 +31,8 @@ export function initFlow(root) {
         <div><label>Profile W × H (mm)</label>
           <div style="display:flex;gap:8px"><input id="fc-pw" type="number" min="1" step="1" style="flex:1">
           <input id="fc-ph" type="number" min="1" step="1" style="flex:1"></div></div>
+        <div><label>Lens side lip (mm) <span class="faint">smaller = wider lens</span></label>
+          <input id="fc-lip" type="number" value="2" min="0" step="0.5"></div>
         <div><label>Body colour</label><select id="fc-body">
           <option value="#15161a">Black</option>
           <option value="#2b2d31">Anthracite</option>
@@ -81,7 +83,7 @@ export function initFlow(root) {
   };
 
   varSel.addEventListener('change', applyVariant);
-  root.querySelectorAll('#fc-cct,#fc-mode,#fc-size,#fc-sweep,#fc-lpm,#fc-wpm,#fc-cri,#fc-pw,#fc-ph,#fc-code')
+  root.querySelectorAll('#fc-cct,#fc-mode,#fc-size,#fc-sweep,#fc-lpm,#fc-wpm,#fc-cri,#fc-pw,#fc-ph,#fc-lip,#fc-code')
     .forEach((el) => el.addEventListener('input', () => { update(root); refreshPreview(root); }));
   // Appearance controls only affect the render, so re-skin the live preview
   // (if open) without recomputing photometry.
@@ -140,6 +142,7 @@ function buildArtifacts(root) {
   const mesh = buildMesh('flow', 'arc', {
     radius: d.radiusMm, sweep: params.sweep,
     profileWidth: spec.profileWidth, profileHeight: spec.profileHeight,
+    lip: parseFloat(root.querySelector('#fc-lip').value) || 0,
   });
   lastMesh = mesh;
   const dims = meshBounds(mesh);
@@ -195,6 +198,7 @@ async function doPreview(root) {
   const mesh = buildMesh('flow', 'arc', {
     radius: d.radiusMm, sweep: params.sweep,
     profileWidth: spec.profileWidth, profileHeight: spec.profileHeight,
+    lip: parseFloat(root.querySelector('#fc-lip').value) || 0,
   });
   root.querySelector('#fc-preview-card').hidden = false;
   try {
