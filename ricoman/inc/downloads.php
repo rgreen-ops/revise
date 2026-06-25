@@ -36,6 +36,12 @@ function ricoman_dl_types() {
 
 /* ------------------------------------------------------------------ admin */
 
+add_action( 'admin_enqueue_scripts', function( $hook ) {
+	if ( 'ricoman_page_ricoman-downloads' === $hook ) {
+		wp_enqueue_media();
+	}
+} );
+
 add_action( 'admin_menu', function () {
 	add_submenu_page(
 		'ricoman-hub',
@@ -91,8 +97,8 @@ function ricoman_downloads_admin_page() {
 					<tr>
 						<th>Title</th>
 						<th>Type</th>
-						<th>File URL</th>
-						<th>Thumbnail URL <small>(optional)</small></th>
+						<th>File</th>
+						<th>Thumbnail <small>(optional)</small></th>
 						<th></th>
 					</tr>
 				</thead>
@@ -107,8 +113,14 @@ function ricoman_downloads_admin_page() {
 								<?php endforeach; ?>
 							</select>
 						</td>
-						<td><input type="url" name="rm_dl_url[]" value="<?php echo esc_attr( $e['url'] ); ?>" class="regular-text" required></td>
-						<td><input type="url" name="rm_dl_thumb[]" value="<?php echo esc_attr( $e['thumb'] ?? '' ); ?>" class="regular-text"></td>
+						<td class="rm-dl-file-cell">
+							<input type="url" name="rm_dl_url[]" value="<?php echo esc_attr( $e['url'] ); ?>" class="regular-text rm-dl-url-input" required>
+							<button type="button" class="button rm-dl-pick" data-target="url">&#128206; Upload / Choose</button>
+						</td>
+						<td class="rm-dl-file-cell">
+							<input type="url" name="rm_dl_thumb[]" value="<?php echo esc_attr( $e['thumb'] ?? '' ); ?>" class="regular-text rm-dl-thumb-input">
+							<button type="button" class="button rm-dl-pick" data-target="thumb">&#128247; Upload / Choose</button>
+						</td>
 						<td><button type="button" class="button rm-dl-remove">Remove</button></td>
 					</tr>
 					<?php endforeach; ?>
@@ -136,8 +148,8 @@ function ricoman_downloads_admin_page() {
 			var tr = document.createElement('tr');
 			tr.innerHTML = '<td><input type="text" name="rm_dl_title[]" class="regular-text" required></td>'
 				+ '<td><select name="rm_dl_type[]">' + typeOpts + '</select></td>'
-				+ '<td><input type="url" name="rm_dl_url[]" class="regular-text" required></td>'
-				+ '<td><input type="url" name="rm_dl_thumb[]" class="regular-text"></td>'
+				+ '<td class="rm-dl-file-cell"><input type="url" name="rm_dl_url[]" class="regular-text rm-dl-url-input" required><button type="button" class="button rm-dl-pick" data-target="url">&#128206; Upload / Choose</button></td>'
+				+ '<td class="rm-dl-file-cell"><input type="url" name="rm_dl_thumb[]" class="regular-text rm-dl-thumb-input"><button type="button" class="button rm-dl-pick" data-target="thumb">&#128247; Upload / Choose</button></td>'
 				+ '<td><button type="button" class="button rm-dl-remove">Remove</button></td>';
 			document.querySelector('#rm-dl-rows tbody').appendChild(tr);
 		});
@@ -147,8 +159,33 @@ function ricoman_downloads_admin_page() {
 				e.target.closest('tr').remove();
 			}
 		});
+
+		// WP media picker.
+		document.addEventListener('click', function(e){
+			if ( ! e.target.classList.contains('rm-dl-pick') ) return;
+			var btn    = e.target;
+			var row    = btn.closest('tr');
+			var target = btn.getAttribute('data-target');
+			var input  = target === 'thumb' ? row.querySelector('.rm-dl-thumb-input') : row.querySelector('.rm-dl-url-input');
+			var isImg  = target === 'thumb';
+			var frame  = wp.media({
+				title:    isImg ? 'Choose thumbnail image' : 'Choose file',
+				button:   { text: 'Use this file' },
+				multiple: false,
+				library:  isImg ? { type: 'image' } : {},
+			});
+			frame.on('select', function(){
+				var att = frame.state().get('selection').first().toJSON();
+				input.value = att.url;
+			});
+			frame.open();
+		});
 	})();
 	</script>
+	<style>
+	.rm-dl-file-cell{display:flex;flex-direction:column;gap:4px}
+	.rm-dl-file-cell input{margin-bottom:0!important}
+	</style>
 	<?php
 }
 
