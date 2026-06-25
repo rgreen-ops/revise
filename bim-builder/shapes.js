@@ -119,65 +119,104 @@ export function buildMesh(family, shape, params) {
   if (params.profileWidth) base.width = params.profileWidth;
   if (params.profileHeight) base.height = params.profileHeight;
   const profile = housingProfile(base.width, base.height, params.lip);
+  const capTris = triangulate(profile.points);   // flat end-cap triangulation (handles the concave channel)
   const { paths, closed } = buildPaths(family, shape, params);
 
   const vertices = [];
   const body = [];
   const diffuser = [];
-  for (const path of paths) sweepInto(path, profile, closed, vertices, body, diffuser);
-  // Body (housing) triangles first, then the down-facing lit lens (diffuser), so
-  // the preview can give each its own material via geometry groups. The IFC
-  // exporter just uses the full `indices` list and is unaffected.
-  const indices = body.concat(diffuser);
+  const caps = [];
+  for (const path of paths) sweepInto(path, profile, capTris, closed, vertices, body, diffuser, caps);
+  // Group order: body (housing), diffuser (lit lens), cap (flat end plates — own
+  // group so they can carry the engraved logo). The IFC exporter uses the full
+  // `indices` list and is unaffected.
+  const indices = body.concat(diffuser, caps);
   const groups = [
     { start: 0, count: body.length, kind: 'body' },
     { start: body.length, count: diffuser.length, kind: 'diffuser' },
+    { start: body.length + diffuser.length, count: caps.length, kind: 'cap' },
   ];
   return { vertices, indices, groups, profile: base, closed };
 }
 
-/* A realistic extruded-aluminium cross-section: a rounded-rectangle housing with
-   a central lens band across the bottom. Returns ordered 2D points (u across the
-   width, v vertical with 0 at the ceiling face and -height at the bottom) plus
-   the material kind of the edge leaving each point — the single bottom-centre
-   edge is the lit lens ('diffuser'), everything else is housing ('body'). */
+/* The Flow aluminium extrusion cross-section: a square body with a recessed
+   mounting channel along the TOP (ceiling) face — where the suspension wires /
+   mounting accessories clip in — and a wide lit lens across the BOTTOM face.
+   Returns ordered 2D points (u across the width, v vertical: 0 = top/ceiling
+   face, -height = bottom) plus the material kind of the edge leaving each point. */
 function housingProfile(width, height, lip) {
   const hw = width / 2;
-  const rt = Math.min(hw, height) * 0.28;        // top corner radius (aluminium housing)
-  const sideLip = Math.min(Math.max(lip == null ? 2 : lip, 0), hw - 1); // body lip each side of the lens
-  const seg = 4;                                 // points per rounded corner
+  const sideLip = Math.min(Math.max(lip == null ? 2 : lip, 0), hw - 1);   // lip each side of the lens
+  const chHalf = Math.min(width * 0.22, hw - 1);          // mounting-channel half width
+  const chDepth = Math.min(height * 0.28, height - 1);    // mounting-channel depth
   const pts = [];
-  const arc = (cu, cv, a0, a1, skipFirst) => {
-    for (let i = 0; i <= seg; i++) {
-      if (skipFirst && i === 0) continue;
-      const a = (a0 + (a1 - a0) * (i / seg)) * Math.PI / 180;
-      pts.push([cu + Math.cos(a) * rt, cv + Math.sin(a) * rt]);
-    }
-  };
-  // Rounded aluminium top, near-square bottom so the lens spans almost the full
-  // width with only a small lip each side (the lip is presettable).
-  pts.push([-hw, -rt]);                           // left wall, top (below corner)
-  pts.push([-hw, -height]);                       // left wall down to bottom-left
-  pts.push([-hw + sideLip, -height]);             // left lip; the lens starts here
+  // Top face, left -> right, dipping into the central mounting channel.
+  pts.push([-hw, 0]);                 // 0 top-left
+  pts.push([-chHalf, 0]);             // 1 channel mouth (left)
+  pts.push([-chHalf, -chDepth]);      // 2 channel floor (left)
+  pts.push([chHalf, -chDepth]);       // 3 channel floor (right)
+  pts.push([chHalf, 0]);              // 4 channel mouth (right)
+  pts.push([hw, 0]);                  // 5 top-right
+  pts.push([hw, -height]);            // 6 bottom-right
+  // Bottom face, right -> left: lip, lens, lip.
+  pts.push([hw - sideLip, -height]);  // 7 right lip — the lens starts here
   const lensStart = pts.length - 1;
-  pts.push([hw - sideLip, -height]);              // lens span ends
-  pts.push([hw, -height]);                        // right lip / bottom-right
-  pts.push([hw, -rt]);                            // right wall, top
-  arc(hw - rt, -rt, 0, 90, true);                 // top-right corner -> (hw-rt,0)
-  pts.push([-hw + rt, 0]);                        // top edge
-  arc(-hw + rt, -rt, 90, 180, true);              // top-left corner -> (-hw,-rt) (== pts[0])
-  pts.pop();                                      // drop the duplicate closing point
+  pts.push([-hw + sideLip, -height]); // 8 lens end (left)
+  pts.push([-hw, -height]);           // 9 bottom-left (left wall closes back to 0)
 
   const kinds = new Array(pts.length).fill('body');
-  kinds[lensStart] = 'diffuser';                  // the wide bottom edge is the lens
+  kinds[lensStart] = 'diffuser';      // the wide bottom-centre edge is the lens
   return { points: pts.map(([u, v]) => ({ u, v })), kinds };
+}
+
+/* Ear-clipping triangulation of the (possibly concave, due to the channel)
+   cross-section, used to fill the flat end caps. Returns triangles as index
+   triples into `points`. */
+function triangulate(points) {
+  const n = points.length;
+  const V = [...Array(n).keys()];
+  let area = 0;
+  for (let i = 0; i < n; i++) {
+    const a = points[i], b = points[(i + 1) % n];
+    area += a.u * b.v - b.u * a.v;
+  }
+  if (area < 0) V.reverse();                       // normalise to CCW
+  const cross = (o, a, b) => (a.u - o.u) * (b.v - o.v) - (a.v - o.v) * (b.u - o.u);
+  const inside = (p, a, b, c) => {
+    const d1 = cross(a, b, p), d2 = cross(b, c, p), d3 = cross(c, a, p);
+    return !((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0));
+  };
+  const tris = [];
+  let guard = n * n + 10;
+  while (V.length > 3 && guard-- > 0) {
+    let clipped = false;
+    for (let i = 0; i < V.length; i++) {
+      const i0 = V[(i - 1 + V.length) % V.length], i1 = V[i], i2 = V[(i + 1) % V.length];
+      const a = points[i0], b = points[i1], c = points[i2];
+      if (cross(a, b, c) <= 0) continue;           // reflex/collinear — not an ear
+      let ear = true;
+      for (let j = 0; j < V.length; j++) {
+        const vj = V[j];
+        if (vj === i0 || vj === i1 || vj === i2) continue;
+        if (inside(points[vj], a, b, c)) { ear = false; break; }
+      }
+      if (!ear) continue;
+      tris.push([i0, i1, i2]);
+      V.splice(i, 1);
+      clipped = true;
+      break;
+    }
+    if (!clipped) break;
+  }
+  if (V.length === 3) tris.push([V[0], V[1], V[2]]);
+  return tris;
 }
 
 /* Sweep the profile along one path: at each path point lay down a ring of profile
    vertices, offset along the in-plane normal and mitred at corners so the width
    stays constant, then stitch a quad strip per profile edge between consecutive
    rings (routing the lens edge to the diffuser group) and fan-cap open ends. */
-function sweepInto(path, profile, closed, vertices, body, diff) {
+function sweepInto(path, profile, capTris, closed, vertices, body, diff, caps) {
   const n = path.length;
   if (n < 2) return;
   const P = profile.points;
@@ -207,7 +246,6 @@ function sweepInto(path, profile, closed, vertices, body, diff) {
     rings.push(baseK);
   }
 
-  const tri = (arr, a, b, c) => arr.push(a, b, c);
   const quad = (arr, a, b, c, d) => { arr.push(a, b, c, a, c, d); };
   for (let i = 0; i < n - 1; i++) {
     const A = rings[i], B = rings[i + 1];
@@ -217,27 +255,22 @@ function sweepInto(path, profile, closed, vertices, body, diff) {
     }
   }
   if (!closed) {
-    cap(P, rings[0], vertices, body, true, tri);
-    cap(P, rings[n - 1], vertices, body, false, tri);
+    cap(m, capTris, rings[0], vertices, caps);
+    cap(m, capTris, rings[n - 1], vertices, caps);
   }
 }
 
-/* Triangulate one end of the sweep as a fan from the ring centroid (the profile
-   is convex, so the fan is watertight). */
-function cap(P, ringBase, vertices, body, flip, tri) {
-  const m = P.length;
-  let cx = 0, cy = 0, cz = 0;
+/* Flat end plate: duplicate the ring into its own vertices (so the cap gets a
+   single flat normal rather than smearing into the side walls and looking domed),
+   then emit the precomputed cross-section triangulation. Double-sided materials
+   make the winding irrelevant. */
+function cap(m, capTris, ringBase, vertices, caps) {
+  const base = vertices.length / 3;
   for (let j = 0; j < m; j++) {
     const k = (ringBase + j) * 3;
-    cx += vertices[k]; cy += vertices[k + 1]; cz += vertices[k + 2];
+    vertices.push(vertices[k], vertices[k + 1], vertices[k + 2]);
   }
-  const c = vertices.length / 3;
-  vertices.push(cx / m, cy / m, cz / m);
-  for (let j = 0; j < m; j++) {
-    const j2 = (j + 1) % m;
-    if (flip) tri(body, c, ringBase + j2, ringBase + j);
-    else tri(body, c, ringBase + j, ringBase + j2);
-  }
+  for (const t of capTris) caps.push(base + t[0], base + t[1], base + t[2]);
 }
 
 /* Total centreline length (mm) of a preset — i.e. how much lit profile the run

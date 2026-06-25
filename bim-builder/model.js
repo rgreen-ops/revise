@@ -85,11 +85,12 @@ const FINISHES = {
    smoothed by angle so the rounded extrusion stays soft but the housing edges
    stay crisp. opts: {bodyColor, diffuserColor, finish}. */
 export function meshToObject(mesh, opts = {}) {
+  const MAT_INDEX = { body: 0, diffuser: 1, cap: 2 };
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute(mesh.vertices, 3));
   geo.setIndex(mesh.indices.slice());
   if (mesh.groups && mesh.groups.length) {
-    mesh.groups.forEach((g) => geo.addGroup(g.start, g.count, g.kind === 'diffuser' ? 1 : 0));
+    mesh.groups.forEach((g) => geo.addGroup(g.start, g.count, MAT_INDEX[g.kind] ?? 0));
   }
   geo.computeVertexNormals();
 
@@ -111,15 +112,18 @@ export function meshToObject(mesh, opts = {}) {
     side: THREE.DoubleSide,
   });
 
+  // End caps use the same metal as the housing (a separate slot so an engraved
+  // logo can be added to the caps later).
+  const capMat = bodyMat;
   if (mesh.groups && mesh.groups.length) {
-    return new THREE.Mesh(geo, [bodyMat, diffMat]);
+    return new THREE.Mesh(geo, [bodyMat, diffMat, capMat]);
   }
   return new THREE.Mesh(geo, bodyMat);
 }
 
 /* Render the loaded object into a canvas with orbit controls, using image-based
    lighting + filmic tone mapping for a studio-quality, photoreal-ish look. */
-export function preview(object, canvas) {
+export function preview(object, canvas, opts = {}) {
   if (viewer) viewer.dispose();
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
@@ -129,6 +133,7 @@ export function preview(object, canvas) {
   renderer.toneMappingExposure = 1.05;
 
   const scene = new THREE.Scene();
+  if (opts.background) scene.background = new THREE.Color(opts.background);
   const camera = new THREE.PerspectiveCamera(40, 1.5, 0.01, 100000);
 
   // Image-based lighting: a soft studio environment gives realistic reflections
