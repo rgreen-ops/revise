@@ -68,38 +68,48 @@ function extractMesh(object) {
   return { vertices, indices };
 }
 
-/* Surface finishes map to PBR roughness/metalness. Gloss reads as a polished
-   painted/anodised housing; satin is a soft sheen; matte is flat. */
+/* Surface finishes map to PBR roughness/metalness + a clearcoat lacquer. Gloss
+   reads as a polished anodised/painted housing; satin a soft sheen; matte flat.
+   The high base metalness lets metallic colours (gold/silver/bronze) read as
+   real metal while painted colours still look right under the clearcoat. */
 const FINISHES = {
-  matte: { roughness: 0.65, metalness: 0.25 },
-  satin: { roughness: 0.38, metalness: 0.45 },
-  gloss: { roughness: 0.12, metalness: 0.7 },
+  matte: { roughness: 0.55, metalness: 0.5, clearcoat: 0.15, ccRough: 0.5 },
+  satin: { roughness: 0.3, metalness: 0.65, clearcoat: 0.45, ccRough: 0.2 },
+  gloss: { roughness: 0.1, metalness: 0.8, clearcoat: 1.0, ccRough: 0.05 },
 };
 
 /* Build a three.js object from a raw {vertices, indices, groups} mesh (a
    generated preset/Flow shape). When the mesh carries body/diffuser groups we
-   give it two materials: a finished housing and a softly self-illuminated lens
-   so it actually reads as a light. opts: {bodyColor, diffuserColor, finish}. */
+   give it two physically-based materials: a finished metal housing and a glassy,
+   self-illuminated opal lens so it actually reads as a light. Normals are
+   smoothed by angle so the rounded extrusion stays soft but the housing edges
+   stay crisp. opts: {bodyColor, diffuserColor, finish}. */
 export function meshToObject(mesh, opts = {}) {
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute(mesh.vertices, 3));
   geo.setIndex(mesh.indices.slice());
+  if (mesh.groups && mesh.groups.length) {
+    mesh.groups.forEach((g) => geo.addGroup(g.start, g.count, g.kind === 'diffuser' ? 1 : 0));
+  }
   geo.computeVertexNormals();
 
   const fin = FINISHES[opts.finish] || FINISHES.matte;
   const bodyColor = new THREE.Color(opts.bodyColor || '#15161a');
   const diffColor = new THREE.Color(opts.diffuserColor || '#f4f3ee');
 
-  const bodyMat = new THREE.MeshStandardMaterial({
+  const bodyMat = new THREE.MeshPhysicalMaterial({
     color: bodyColor, roughness: fin.roughness, metalness: fin.metalness,
+    clearcoat: fin.clearcoat, clearcoatRoughness: fin.ccRough, envMapIntensity: 1.2,
   });
-  const diffMat = new THREE.MeshStandardMaterial({
+  // Opal lens: bright, soft and self-illuminated, with a thin glassy clearcoat
+  // so it catches highlights like real frosted acrylic.
+  const diffMat = new THREE.MeshPhysicalMaterial({
     color: diffColor, roughness: 0.5, metalness: 0,
-    emissive: diffColor, emissiveIntensity: opts.lit === false ? 0 : 0.9,
+    emissive: diffColor, emissiveIntensity: opts.lit === false ? 0 : 1.0,
+    clearcoat: 0.6, clearcoatRoughness: 0.3, envMapIntensity: 0.6,
   });
 
   if (mesh.groups && mesh.groups.length) {
-    mesh.groups.forEach((g) => geo.addGroup(g.start, g.count, g.kind === 'diffuser' ? 1 : 0));
     return new THREE.Mesh(geo, [bodyMat, diffMat]);
   }
   return new THREE.Mesh(geo, bodyMat);

@@ -115,76 +115,129 @@ function arc(cx, cy, r, deg0, deg1) {
 
 // ---- sweep a rectangular profile along the path(s) -> triangle mesh ----
 export function buildMesh(family, shape, params) {
-  const prof = { ...FAMILIES[family].profile };
-  if (params.profileWidth) prof.width = params.profileWidth;
-  if (params.profileHeight) prof.height = params.profileHeight;
+  const base = { ...FAMILIES[family].profile };
+  if (params.profileWidth) base.width = params.profileWidth;
+  if (params.profileHeight) base.height = params.profileHeight;
+  const profile = housingProfile(base.width, base.height);
   const { paths, closed } = buildPaths(family, shape, params);
 
   const vertices = [];
   const body = [];
   const diffuser = [];
-  for (const path of paths) sweepInto(path, prof.width, prof.height, closed, vertices, body, diffuser);
+  for (const path of paths) sweepInto(path, profile, closed, vertices, body, diffuser);
   // Body (housing) triangles first, then the down-facing lit lens (diffuser), so
-  // the preview can assign a separate material to each via geometry groups. The
-  // IFC exporter just uses the full `indices` list and is unaffected.
+  // the preview can give each its own material via geometry groups. The IFC
+  // exporter just uses the full `indices` list and is unaffected.
   const indices = body.concat(diffuser);
   const groups = [
     { start: 0, count: body.length, kind: 'body' },
     { start: body.length, count: diffuser.length, kind: 'diffuser' },
   ];
-  return { vertices, indices, groups, profile: prof, closed };
+  return { vertices, indices, groups, profile: base, closed };
 }
 
-/* Sweep one path. For each path point we build a 4-vertex ring (top/bottom ×
-   left/right) offset along the in-plane normal, mitred at corners so width stays
-   constant, then stitch quads between consecutive rings and cap open ends. */
-function sweepInto(path, width, height, closed, vertices, body, diff) {
+/* A realistic extruded-aluminium cross-section: a rounded-rectangle housing with
+   a central lens band across the bottom. Returns ordered 2D points (u across the
+   width, v vertical with 0 at the ceiling face and -height at the bottom) plus
+   the material kind of the edge leaving each point — the single bottom-centre
+   edge is the lit lens ('diffuser'), everything else is housing ('body'). */
+function housingProfile(width, height) {
+  const hw = width / 2;
+  const r = Math.min(hw, height) * 0.3;          // corner radius
+  const lip = Math.max(2, (hw - r) * 0.35);      // housing lip beside the lens
+  const seg = 4;                                 // points per rounded corner
+  const pts = [];
+  const arc = (cu, cv, a0, a1, skipFirst) => {
+    for (let i = 0; i <= seg; i++) {
+      if (skipFirst && i === 0) continue;
+      const a = (a0 + (a1 - a0) * (i / seg)) * Math.PI / 180;
+      pts.push([cu + Math.cos(a) * r, cv + Math.sin(a) * r]);
+    }
+  };
+  pts.push([-hw, -r]);                            // left wall, top
+  pts.push([-hw, -(height - r)]);                 // left wall, bottom
+  arc(-hw + r, -(height - r), 180, 270, true);    // bottom-left corner -> (-hw+r,-height)
+  pts.push([-hw + r + lip, -height]);             // lip; the lens starts at this point
+  const lensStart = pts.length - 1;
+  pts.push([hw - r - lip, -height]);              // lens span ends
+  pts.push([hw - r, -height]);                    // right lip
+  arc(hw - r, -(height - r), 270, 360, true);     // bottom-right corner -> (hw,-(height-r))
+  pts.push([hw, -r]);                             // right wall, top
+  arc(hw - r, -r, 0, 90, true);                   // top-right corner -> (hw-r,0)
+  pts.push([-hw + r, 0]);                         // top edge
+  arc(-hw + r, -r, 90, 180, true);                // top-left corner -> (-hw,-r) (== pts[0])
+  pts.pop();                                      // drop the duplicate closing point
+
+  const kinds = new Array(pts.length).fill('body');
+  kinds[lensStart] = 'diffuser';                  // the central bottom edge is the lens
+  return { points: pts.map(([u, v]) => ({ u, v })), kinds };
+}
+
+/* Sweep the profile along one path: at each path point lay down a ring of profile
+   vertices, offset along the in-plane normal and mitred at corners so the width
+   stays constant, then stitch a quad strip per profile edge between consecutive
+   rings (routing the lens edge to the diffuser group) and fan-cap open ends. */
+function sweepInto(path, profile, closed, vertices, body, diff) {
   const n = path.length;
   if (n < 2) return;
-  const hw = width / 2;
-  const baseV = vertices.length / 3;
+  const P = profile.points;
+  const K = profile.kinds;
+  const m = P.length;
 
   const sub = (a, b) => [a[0] - b[0], a[1] - b[1]];
-  const norm = (v) => { const m = Math.hypot(v[0], v[1]) || 1; return [v[0] / m, v[1] / m]; };
+  const norm = (v) => { const d = Math.hypot(v[0], v[1]) || 1; return [v[0] / d, v[1] / d]; };
 
   const rings = [];
   for (let i = 0; i < n; i++) {
     const prev = path[i - 1] ?? (closed ? path[n - 2] : null);
     const nextP = path[i + 1] ?? (closed ? path[1] : null);
-    let dIn = prev ? norm(sub(path[i], prev)) : null;
-    let dOut = nextP ? norm(sub(nextP, path[i])) : null;
+    const dIn = prev ? norm(sub(path[i], prev)) : null;
+    const dOut = nextP ? norm(sub(nextP, path[i])) : null;
     const dir = dIn && dOut ? norm([dIn[0] + dOut[0], dIn[1] + dOut[1]]) : (dOut || dIn);
-    const normal = [-dir[1], dir[0]];               // in-plane left normal
-    // miter scale so offset edges stay parallel to the segments
+    const normal = [-dir[1], dir[0]];                       // in-plane left normal
     const segN = dOut ? [-dOut[1], dOut[0]] : [-dIn[1], dIn[0]];
     const cos = Math.max(0.35, Math.abs(normal[0] * segN[0] + normal[1] * segN[1]));
-    const off = hw / cos;
+    const miter = 1 / cos;                                  // keep width constant at corners
     const [x, y] = path[i];
-    const lx = x + normal[0] * off, ly = y + normal[1] * off;   // left edge
-    const rx = x - normal[0] * off, ry = y - normal[1] * off;   // right edge
-    // 4 verts: topLeft, topRight, bottomLeft, bottomRight (z down = -height)
-    const k = vertices.length / 3;
-    vertices.push(lx, ly, 0, rx, ry, 0, lx, ly, -height, rx, ry, -height);
-    rings.push(k);
+    const baseK = vertices.length / 3;
+    for (let j = 0; j < m; j++) {
+      const u = P[j].u * miter;
+      vertices.push(x + normal[0] * u, y + normal[1] * u, P[j].v);
+    }
+    rings.push(baseK);
   }
 
+  const tri = (arr, a, b, c) => arr.push(a, b, c);
   const quad = (arr, a, b, c, d) => { arr.push(a, b, c, a, c, d); };
-  const segCount = n - 1;
-  for (let i = 0; i < segCount; i++) {
+  for (let i = 0; i < n - 1; i++) {
     const A = rings[i], B = rings[i + 1];
-    const [aTL, aTR, aBL, aBR] = [A, A + 1, A + 2, A + 3];
-    const [bTL, bTR, bBL, bBR] = [B, B + 1, B + 2, B + 3];
-    quad(body, aTL, aTR, bTR, bTL);   // top (housing)
-    quad(diff, aBR, aBL, bBL, bBR);   // bottom — the lit lens / diffuser
-    quad(body, aBL, aTL, bTL, bBL);   // left side (housing)
-    quad(body, aTR, aBR, bBR, bTR);   // right side (housing)
+    for (let j = 0; j < m; j++) {
+      const j2 = (j + 1) % m;
+      quad(K[j] === 'diffuser' ? diff : body, A + j, A + j2, B + j2, B + j);
+    }
   }
   if (!closed) {
-    const S = rings[0], E = rings[n - 1];
-    quad(body, S + 2, S + 3, S + 1, S);      // start cap (housing)
-    quad(body, E, E + 1, E + 3, E + 2);      // end cap (housing)
+    cap(P, rings[0], vertices, body, true, tri);
+    cap(P, rings[n - 1], vertices, body, false, tri);
   }
-  return baseV;
+}
+
+/* Triangulate one end of the sweep as a fan from the ring centroid (the profile
+   is convex, so the fan is watertight). */
+function cap(P, ringBase, vertices, body, flip, tri) {
+  const m = P.length;
+  let cx = 0, cy = 0, cz = 0;
+  for (let j = 0; j < m; j++) {
+    const k = (ringBase + j) * 3;
+    cx += vertices[k]; cy += vertices[k + 1]; cz += vertices[k + 2];
+  }
+  const c = vertices.length / 3;
+  vertices.push(cx / m, cy / m, cz / m);
+  for (let j = 0; j < m; j++) {
+    const j2 = (j + 1) % m;
+    if (flip) tri(body, c, ringBase + j2, ringBase + j);
+    else tri(body, c, ringBase + j, ringBase + j2);
+  }
 }
 
 /* Total centreline length (mm) of a preset — i.e. how much lit profile the run
