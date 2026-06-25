@@ -38,7 +38,7 @@ function ricoman_dl_types() {
 
 add_action( 'admin_menu', function () {
 	add_submenu_page(
-		'ricoman-admin',
+		'ricoman-hub',
 		'Downloads',
 		'Downloads',
 		'edit_posts',
