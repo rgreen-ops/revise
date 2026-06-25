@@ -12,6 +12,17 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 let viewer = null;
 
+// RICOMAN wordmark (white on black) used as an emissive map to "engrave" the logo
+// onto the flat end caps. Loaded once; same-origin asset, no CDN needed.
+let capLogoTex = null;
+function getCapLogo() {
+  if (!capLogoTex) {
+    capLogoTex = new THREE.TextureLoader().load('assets/ricoman-cap.png');
+    capLogoTex.colorSpace = THREE.SRGBColorSpace;
+  }
+  return capLogoTex;
+}
+
 export async function loadModel(file) {
   const ext = file.name.split('.').pop().toLowerCase();
   const buf = await file.arrayBuffer();
@@ -88,6 +99,7 @@ export function meshToObject(mesh, opts = {}) {
   const MAT_INDEX = { body: 0, diffuser: 1, cap: 2 };
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute(mesh.vertices, 3));
+  if (mesh.uvs) geo.setAttribute('uv', new THREE.Float32BufferAttribute(mesh.uvs, 2));
   geo.setIndex(mesh.indices.slice());
   if (mesh.groups && mesh.groups.length) {
     mesh.groups.forEach((g) => geo.addGroup(g.start, g.count, MAT_INDEX[g.kind] ?? 0));
@@ -103,7 +115,7 @@ export function meshToObject(mesh, opts = {}) {
 
   const bodyMat = new THREE.MeshPhysicalMaterial({
     color: bodyColor, roughness: fin.roughness, metalness: fin.metalness,
-    clearcoat: fin.clearcoat, clearcoatRoughness: fin.ccRough, envMapIntensity: 1.2,
+    clearcoat: fin.clearcoat, clearcoatRoughness: fin.ccRough, envMapIntensity: 0.85,
     side: THREE.DoubleSide,   // keep end caps solid regardless of triangle winding
   });
   // Opal lens: bright, soft and self-illuminated, with a thin glassy clearcoat
@@ -115,9 +127,14 @@ export function meshToObject(mesh, opts = {}) {
     side: THREE.DoubleSide,
   });
 
-  // End caps use the same metal as the housing (a separate slot so an engraved
-  // logo can be added to the caps later).
-  const capMat = bodyMat;
+  // End caps: same metal as the housing, with the RICOMAN wordmark engraved via a
+  // subtle emissive map (white logo glows faintly on the metal plate).
+  const capMat = new THREE.MeshPhysicalMaterial({
+    color: bodyColor, roughness: fin.roughness, metalness: fin.metalness,
+    clearcoat: fin.clearcoat, clearcoatRoughness: fin.ccRough, envMapIntensity: 0.85,
+    emissive: new THREE.Color(0xffffff), emissiveMap: getCapLogo(), emissiveIntensity: 0.5,
+    side: THREE.DoubleSide,
+  });
   if (mesh.groups && mesh.groups.length) {
     return new THREE.Mesh(geo, [bodyMat, diffMat, capMat]);
   }
@@ -133,7 +150,7 @@ export function preview(object, canvas, opts = {}) {
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.05;
+  renderer.toneMappingExposure = 0.92;   // a touch darker so bright reflections don't blow out to white
 
   const scene = new THREE.Scene();
   if (opts.background) scene.background = new THREE.Color(opts.background);
@@ -162,7 +179,9 @@ export function preview(object, canvas, opts = {}) {
   object.position.sub(center);
   scene.add(object);
 
-  camera.position.set(maxDim * 1.3, maxDim * 1.0, maxDim * 1.9);
+  // Default to a 3/4 view: the lit lens (mesh -Z face) toward the viewer, raised
+  // and offset along the run so an engraved end cap is in shot.
+  camera.position.set(maxDim * 0.7, maxDim * 0.55, -maxDim * 1.7);
   camera.lookAt(0, 0, 0);
   // Tighten the depth range to the object's scale — the default 0.01..100000 has
   // far too little z-buffer precision for a few-hundred-mm part and causes
@@ -173,8 +192,7 @@ export function preview(object, canvas, opts = {}) {
 
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
-  controls.autoRotate = true;
-  controls.autoRotateSpeed = 0.8;
+  controls.autoRotate = false;   // hold the default 3/4 angle; user can drag to orbit
   // Clamp zoom so you can't dive into the surface (which fills the frame with the
   // bright reflective metal and blows out to white) or fly off into the distance.
   controls.minDistance = maxDim * 0.8;
