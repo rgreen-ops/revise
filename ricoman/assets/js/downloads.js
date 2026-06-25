@@ -2,33 +2,86 @@
 	var page      = document.getElementById('rm-dl-page');
 	if (!page) return;
 
-	var results   = document.getElementById('rm-dl-results');
-	var productSel= document.getElementById('rm-dl-product-select');
-	var typeCbs   = Array.from(page.querySelectorAll('.rm-dl-type-cb'));
+	var results    = document.getElementById('rm-dl-results');
+	var productSel = document.getElementById('rm-dl-product-select'); // hidden input
+	var productSearch = document.getElementById('rm-dl-product-search');
+	var productList   = document.getElementById('rm-dl-product-list');
+	var typeCbs    = Array.from(page.querySelectorAll('.rm-dl-type-cb'));
 
 	var manualTypes  = ['catalogue','brochure','education','3d','revit','bim'];
 	var productTypes = ['datasheet','installation','ldt'];
-	var imageTypes   = ['catalogue','brochure','education']; // show cover image if available
+	var imageTypes   = ['catalogue','brochure','education'];
 	var ajaxPending  = null;
 
-	// Type label map (mirrors PHP ricoman_dl_types()).
 	var typeLabels = {
 		catalogue:'Catalogue', brochure:'Product Literature', education:'Education Guides',
 		'3d':'3D Models', revit:'Revit Files', bim:'BIM Files',
 		installation:'Installation Instructions', ldt:'LDT Files', datasheet:'Datasheet'
 	};
 
+	// Product search — filter list items as user types.
+	function filterProductList() {
+		var q = productSearch ? productSearch.value.toLowerCase().trim() : '';
+		var items = productList ? Array.from(productList.querySelectorAll('.rm-dl-product-opt')) : [];
+		items.forEach(function(li) {
+			if (li.classList.contains('rm-dl-product-opt--all')) {
+				li.style.display = '';
+				return;
+			}
+			li.style.display = (!q || li.textContent.toLowerCase().indexOf(q) !== -1) ? '' : 'none';
+		});
+	}
+
+	function selectProduct(li) {
+		var items = productList ? Array.from(productList.querySelectorAll('.rm-dl-product-opt')) : [];
+		items.forEach(function(i){ i.classList.remove('is-active'); });
+		li.classList.add('is-active');
+		var val = li.dataset.value;
+		if (productSel) productSel.value = val;
+		if (productSearch) productSearch.value = val ? li.textContent : '';
+		update();
+	}
+
+	if (productList) {
+		productList.addEventListener('click', function(e) {
+			var li = e.target.closest('.rm-dl-product-opt');
+			if (li) selectProduct(li);
+		});
+		productList.addEventListener('keydown', function(e) {
+			var li = e.target.closest('.rm-dl-product-opt');
+			if (!li) return;
+			if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectProduct(li); }
+		});
+	}
+
+	if (productSearch) {
+		productSearch.addEventListener('input', filterProductList);
+		productSearch.addEventListener('focus', function() {
+			if (productList) productList.style.display = '';
+		});
+		productSearch.addEventListener('keydown', function(e) {
+			if (e.key === 'Escape') {
+				if (productList) productList.style.display = 'none';
+				productSearch.blur();
+			}
+		});
+	}
+
+	// Close list when clicking outside.
+	document.addEventListener('click', function(e) {
+		if (!productList) return;
+		var wrap = document.querySelector('.rm-dl-product-search-wrap');
+		if (wrap && !wrap.contains(e.target)) productList.style.display = 'none';
+	});
+
 	function selectedTypes() {
 		return typeCbs.filter(function(cb){ return cb.checked; }).map(function(cb){ return cb.value; });
 	}
 
 	function cardThumb(e) {
-		var ext = (e.url.split('.').pop() || '').toUpperCase();
 		if (imageTypes.indexOf(e.type) !== -1 && e.thumb) {
 			return '<div class="rm-dl-card-thumb"><img src="'+e.thumb+'" alt="'+e.title+'" loading="lazy"></div>';
 		}
-		// Icon placeholder — PHP will have rendered the real SVG server-side for
-		// server-rendered cards; for JS-rendered manual cards use a simple fallback.
 		return '<div class="rm-dl-card-thumb rm-dl-card-thumb--icon rm-dl-card-thumb--'+e.type+'"></div>';
 	}
 
@@ -107,7 +160,6 @@
 	}
 
 	typeCbs.forEach(function(cb){ cb.addEventListener('change', update); });
-	if (productSel) productSel.addEventListener('change', update);
 
 	// Run on load to respect the default checked state.
 	update();
