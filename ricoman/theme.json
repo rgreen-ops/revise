@@ -230,6 +230,11 @@
 			"postTypes": ["page"]
 		},
 		{
+			"name": "page-downloads",
+			"title": "Page, Downloads",
+			"postTypes": ["page"]
+		},
+		{
 			"name": "page-landing",
 			"title": "Page, Landing (hero + CTA)",
 			"postTypes": ["page"]
