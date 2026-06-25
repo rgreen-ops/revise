@@ -149,7 +149,7 @@ function ricoman_downloads_admin_page() {
 			<table class="form-table">
 				<tr>
 					<th><label for="rm_dl_cta_heading">Heading</label></th>
-					<td><input type="text" id="rm_dl_cta_heading" name="rm_dl_cta_heading" value="<?php echo esc_attr( $cta['heading'] ?? "Can\u{2019}t find a document?" ); ?>" class="regular-text" style="width:100%;max-width:400px"></td>
+					<td><input type="text" id="rm_dl_cta_heading" name="rm_dl_cta_heading" value="<?php echo esc_attr( $cta['heading'] ?? "Can't find a document?" ); ?>" class="regular-text" style="width:100%;max-width:400px"></td>
 				</tr>
 				<tr>
 					<th><label for="rm_dl_cta_sub">Subtext</label></th>
@@ -297,7 +297,7 @@ function ricoman_downloads_shortcode() {
 
 	<?php
 	$cta = get_option( 'ricoman_dl_cta', array() );
-	$cta_heading  = esc_html( $cta[‘heading’]    ?? "Can\u{2019}t find a document?" );
+	$cta_heading  = esc_html( $cta[‘heading’]    ?? ‘Can&#8217;t find a document?’ );
 	$cta_sub      = esc_html( $cta[‘sub’]        ?? ‘Tell us the product or project and our team will send the exact files you need.’ );
 	$cta_b1_label = esc_html( $cta[‘btn1_label’] ?? ‘Request files’ );
 	$cta_b1_url   = esc_url(  $cta[‘btn1_url’]   ?? ‘/contact/’ );
