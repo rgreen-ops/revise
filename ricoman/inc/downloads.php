@@ -254,7 +254,7 @@ function ricoman_downloads_shortcode() {
 
 	</div><!-- .rm-dl-wrap -->
 
-	<div class="rm-dl-cta">
+	<div class="rm-dl-cta alignfull">
 		<div class="rm-dl-cta-inner">
 			<h2 class="rm-dl-cta-head">Can&rsquo;t find a document?</h2>
 			<p class="rm-dl-cta-sub">Tell us the product or project and our team will send the exact files you need.</p>

@@ -889,11 +889,13 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 @media(max-width:480px){.rm-dlgrid{grid-template-columns:1fr 1fr;gap:14px}}
 
 /* Downloads filter page */
-.rm-dl-wrap{max-width:var(--wide);margin-left:auto;margin-right:auto;padding:0 var(--pad);box-sizing:border-box}
+.rm-dl-wrap{width:100%;padding:0 var(--pad);box-sizing:border-box}
+.wp-block-post-content .rm-dl-wrap.alignfull{margin-left:calc(-1 * var(--pad));margin-right:calc(-1 * var(--pad));width:calc(100% + 2 * var(--pad));padding:0 var(--pad)}
 .rm-dl-hero{padding:clamp(32px,5vw,64px) 0 clamp(24px,3vw,40px);border-bottom:1px solid var(--line);margin-bottom:clamp(24px,3vw,48px)}
 .rm-dl-title{font-size:clamp(2rem,4vw,3rem);font-weight:500;line-height:1.08;margin:.2em 0 .4em;letter-spacing:-.02em}
 .rm-dl-lead{color:var(--muted);font-size:clamp(.95rem,1.3vw,1.1rem);max-width:60ch;margin:0}
 .rm-dl-cta{background:var(--ink);margin-top:clamp(48px,6vw,80px)}
+.wp-block-post-content .rm-dl-cta.alignfull{margin-left:calc(-1 * var(--pad));margin-right:calc(-1 * var(--pad));width:calc(100% + 2 * var(--pad))}
 .rm-dl-cta-inner{max-width:var(--wp--style--global--content-size,1200px);margin:0 auto;padding:clamp(40px,5vw,72px) clamp(20px,4vw,56px);text-align:center}
 .rm-dl-cta-head{color:#fff;font-size:clamp(1.5rem,3vw,2.2rem);font-weight:500;margin:0 0 .5em;letter-spacing:-.02em}
 .rm-dl-cta-sub{color:rgba(255,255,255,.75);font-size:clamp(.9rem,1.2vw,1rem);margin:0 0 1.8em;max-width:52ch;margin-left:auto;margin-right:auto}
