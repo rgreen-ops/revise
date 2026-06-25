@@ -49,9 +49,20 @@ function getPowder() {
   if (!powderTex) {
     powderTex = new THREE.TextureLoader().load('assets/powdercoat.png');
     powderTex.wrapS = powderTex.wrapT = THREE.RepeatWrapping;
-    powderTex.repeat.set(6, 6);
+    powderTex.repeat.set(8, 8);
   }
   return powderTex;
+}
+
+// Soft brightness variation along the lit diffuser (it isn't perfectly even).
+let gradTex = null;
+function getDiffuserGrad() {
+  if (!gradTex) {
+    gradTex = new THREE.TextureLoader().load('assets/diffuser-grad.png');
+    gradTex.colorSpace = THREE.SRGBColorSpace;
+    gradTex.wrapS = gradTex.wrapT = THREE.RepeatWrapping;
+  }
+  return gradTex;
 }
 
 export async function loadModel(file) {
@@ -156,7 +167,7 @@ export function meshToObject(mesh, opts = {}) {
     color: bodyColor, roughness: bodyRough, metalness,
     clearcoat: fin.clearcoat, clearcoatRoughness: fin.ccRough, envMapIntensity: envI,
     // metal = directional brushed grain; paint = fine isotropic powder-coat grain
-    bumpMap: isMetal ? getBrushed() : getPowder(), bumpScale: isMetal ? 0.6 : 1.4,
+    bumpMap: isMetal ? getBrushed() : getPowder(), bumpScale: isMetal ? 0.6 : 2.2,
     side: THREE.DoubleSide,   // keep end caps solid regardless of triangle winding
   });
   // Opal lens: bright, soft and self-illuminated, with a thin glassy clearcoat
@@ -164,6 +175,7 @@ export function meshToObject(mesh, opts = {}) {
   const diffMat = new THREE.MeshPhysicalMaterial({
     color: diffColor, roughness: 0.5, metalness: 0,
     emissive: emitColor, emissiveIntensity: opts.lit === false ? 0 : 1.0,
+    emissiveMap: getDiffuserGrad(),   // gentle brightness gradient along the length
     clearcoat: 0.6, clearcoatRoughness: 0.3, envMapIntensity: 0.6,
     side: THREE.DoubleSide,
   });
