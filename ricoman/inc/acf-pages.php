@@ -27,9 +27,7 @@ add_filter( 'the_content', function ( $content ) {
 	// Downloads is rendered dynamically from the real files on the server, so it
 	// always reflects what's actually downloadable — overriding any stale block
 	// content left from an earlier build.
-	if ( 'downloads' === $slug && function_exists( 'ricoman_downloads_page_html' ) ) {
-		return ricoman_downloads_page_html();
-	}
+	// Downloads now uses the [ricoman_downloads] shortcode in the page content.
 	if ( '' !== trim( wp_strip_all_tags( (string) $content ) ) ) {
 		return $content; // has real (block/classic) content already.
 	}
