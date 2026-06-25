@@ -4,11 +4,18 @@
    LDT — in one click, no uploads. The per-metre figures pre-fill from the variant
    but stay editable so output is correct even before the specs are confirmed. */
 
-import { FLOW_VARIANTS, deriveFlow } from './products.js';
+import { deriveFlow } from './products.js';
 import { buildMesh, meshBounds } from './shapes.js';
 import { buildIfc } from './ifc.js';
 import { writeEulumdat } from './ldt-write.js';
 import { makeZip } from './zip.js';
+
+// Single Flow product — one standard silicone diffuser on all of them, so there's
+// no variant to choose. Per-metre figures stay editable in the UI.
+const FLOW_SPEC = {
+  lumensPerMetre: 800, wattsPerMetre: 9, cri: 90,
+  ccts: [2700, 3000, 4000, 5000], defaultCct: 3000,
+};
 
 let modelMod = null;
 let lastMesh = null;
@@ -20,7 +27,6 @@ export function initFlow(root) {
       <h2>Flow custom arc <span class="faint" style="font-weight:400;font-size:13px">— parameters in, BIM file out</span></h2>
       <p class="muted" style="margin:0 0 14px;font-size:13.5px">Pick the variant, set the size and arc angle, and Bim Builder derives the length, output and photometry and generates the IFC + a matching LDT. No datasheet, model or LDT needed.</p>
       <div class="fields">
-        <div><label>Variant</label><select id="fc-variant"></select></div>
         <div><label>Colour temperature</label><select id="fc-cct"></select></div>
         <div><label>Size mode</label><select id="fc-mode"><option value="diameter">Diameter</option><option value="radius">Radius</option></select></div>
         <div><label>Size (mm)</label><input id="fc-size" type="number" value="800" min="50" step="10"></div>
@@ -70,24 +76,19 @@ export function initFlow(root) {
       <canvas id="fc-canvas" style="width:100%;height:300px;border-radius:10px;background:#0c1120"></canvas>
     </div>`;
 
-  const varSel = root.querySelector('#fc-variant');
-  Object.entries(FLOW_VARIANTS).forEach(([k, v]) => varSel.add(new Option(v.label, k)));
-
-  const applyVariant = () => {
-    const spec = FLOW_VARIANTS[varSel.value];
-    root.querySelector('#fc-lpm').value = spec.lumensPerMetre;
-    root.querySelector('#fc-wpm').value = spec.wattsPerMetre;
-    root.querySelector('#fc-cri').value = spec.cri;
+  const applyDefaults = () => {
+    root.querySelector('#fc-lpm').value = FLOW_SPEC.lumensPerMetre;
+    root.querySelector('#fc-wpm').value = FLOW_SPEC.wattsPerMetre;
+    root.querySelector('#fc-cri').value = FLOW_SPEC.cri;
     root.querySelector('#fc-pw').value = 35;   // default the Flow profile to 35 × 35 mm
     root.querySelector('#fc-ph').value = 35;
     const cctSel = root.querySelector('#fc-cct');
     cctSel.innerHTML = '';
-    spec.ccts.forEach((c) => cctSel.add(new Option(c + ' K', c)));
-    cctSel.value = spec.defaultCct;
+    FLOW_SPEC.ccts.forEach((c) => cctSel.add(new Option(c + ' K', c)));
+    cctSel.value = FLOW_SPEC.defaultCct;
     update(root);
   };
 
-  varSel.addEventListener('change', applyVariant);
   root.querySelectorAll('#fc-cct,#fc-mode,#fc-size,#fc-sweep,#fc-lpm,#fc-wpm,#fc-cri,#fc-pw,#fc-ph,#fc-lip,#fc-code')
     .forEach((el) => el.addEventListener('input', () => { update(root); refreshPreview(root); }));
   // Appearance controls only affect the render, so re-skin the live preview
@@ -103,7 +104,7 @@ export function initFlow(root) {
   root.querySelector('#fc-generate').addEventListener('click', () => generate(root));
   root.querySelector('#fc-preview').addEventListener('click', () => doPreview(root));
 
-  applyVariant();
+  applyDefaults();
 }
 
 function readAppearance(root) {
@@ -180,7 +181,7 @@ function buildArtifacts(root) {
   lastMesh = mesh;
   const dims = meshBounds(mesh);
   const manufacturer = 'Ricoman';
-  const model = `Flow ${FLOW_VARIANTS[root.querySelector('#fc-variant').value].label.replace(/^Flow\s*/, '')} arc`;
+  const model = 'Flow arc';
 
   const synthLdt = {
     company: manufacturer, luminaireName: model, luminaireNumber: d.code,
