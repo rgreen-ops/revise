@@ -118,7 +118,7 @@ export function buildMesh(family, shape, params) {
   const base = { ...FAMILIES[family].profile };
   if (params.profileWidth) base.width = params.profileWidth;
   if (params.profileHeight) base.height = params.profileHeight;
-  const profile = housingProfile(base.width, base.height);
+  const profile = housingProfile(base.width, base.height, params.lip);
   const { paths, closed } = buildPaths(family, shape, params);
 
   const vertices = [];
@@ -141,35 +141,35 @@ export function buildMesh(family, shape, params) {
    width, v vertical with 0 at the ceiling face and -height at the bottom) plus
    the material kind of the edge leaving each point — the single bottom-centre
    edge is the lit lens ('diffuser'), everything else is housing ('body'). */
-function housingProfile(width, height) {
+function housingProfile(width, height, lip) {
   const hw = width / 2;
-  const r = Math.min(hw, height) * 0.3;          // corner radius
-  const lip = Math.max(2, (hw - r) * 0.35);      // housing lip beside the lens
+  const rt = Math.min(hw, height) * 0.28;        // top corner radius (aluminium housing)
+  const sideLip = Math.min(Math.max(lip == null ? 2 : lip, 0), hw - 1); // body lip each side of the lens
   const seg = 4;                                 // points per rounded corner
   const pts = [];
   const arc = (cu, cv, a0, a1, skipFirst) => {
     for (let i = 0; i <= seg; i++) {
       if (skipFirst && i === 0) continue;
       const a = (a0 + (a1 - a0) * (i / seg)) * Math.PI / 180;
-      pts.push([cu + Math.cos(a) * r, cv + Math.sin(a) * r]);
+      pts.push([cu + Math.cos(a) * rt, cv + Math.sin(a) * rt]);
     }
   };
-  pts.push([-hw, -r]);                            // left wall, top
-  pts.push([-hw, -(height - r)]);                 // left wall, bottom
-  arc(-hw + r, -(height - r), 180, 270, true);    // bottom-left corner -> (-hw+r,-height)
-  pts.push([-hw + r + lip, -height]);             // lip; the lens starts at this point
+  // Rounded aluminium top, near-square bottom so the lens spans almost the full
+  // width with only a small lip each side (the lip is presettable).
+  pts.push([-hw, -rt]);                           // left wall, top (below corner)
+  pts.push([-hw, -height]);                       // left wall down to bottom-left
+  pts.push([-hw + sideLip, -height]);             // left lip; the lens starts here
   const lensStart = pts.length - 1;
-  pts.push([hw - r - lip, -height]);              // lens span ends
-  pts.push([hw - r, -height]);                    // right lip
-  arc(hw - r, -(height - r), 270, 360, true);     // bottom-right corner -> (hw,-(height-r))
-  pts.push([hw, -r]);                             // right wall, top
-  arc(hw - r, -r, 0, 90, true);                   // top-right corner -> (hw-r,0)
-  pts.push([-hw + r, 0]);                         // top edge
-  arc(-hw + r, -r, 90, 180, true);                // top-left corner -> (-hw,-r) (== pts[0])
+  pts.push([hw - sideLip, -height]);              // lens span ends
+  pts.push([hw, -height]);                        // right lip / bottom-right
+  pts.push([hw, -rt]);                            // right wall, top
+  arc(hw - rt, -rt, 0, 90, true);                 // top-right corner -> (hw-rt,0)
+  pts.push([-hw + rt, 0]);                        // top edge
+  arc(-hw + rt, -rt, 90, 180, true);              // top-left corner -> (-hw,-rt) (== pts[0])
   pts.pop();                                      // drop the duplicate closing point
 
   const kinds = new Array(pts.length).fill('body');
-  kinds[lensStart] = 'diffuser';                  // the central bottom edge is the lens
+  kinds[lensStart] = 'diffuser';                  // the wide bottom edge is the lens
   return { points: pts.map(([u, v]) => ({ u, v })), kinds };
 }
 

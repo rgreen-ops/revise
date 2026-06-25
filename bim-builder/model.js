@@ -100,6 +100,7 @@ export function meshToObject(mesh, opts = {}) {
   const bodyMat = new THREE.MeshPhysicalMaterial({
     color: bodyColor, roughness: fin.roughness, metalness: fin.metalness,
     clearcoat: fin.clearcoat, clearcoatRoughness: fin.ccRough, envMapIntensity: 1.2,
+    side: THREE.DoubleSide,   // keep end caps solid regardless of triangle winding
   });
   // Opal lens: bright, soft and self-illuminated, with a thin glassy clearcoat
   // so it catches highlights like real frosted acrylic.
@@ -107,6 +108,7 @@ export function meshToObject(mesh, opts = {}) {
     color: diffColor, roughness: 0.5, metalness: 0,
     emissive: diffColor, emissiveIntensity: opts.lit === false ? 0 : 1.0,
     clearcoat: 0.6, clearcoatRoughness: 0.3, envMapIntensity: 0.6,
+    side: THREE.DoubleSide,
   });
 
   if (mesh.groups && mesh.groups.length) {
