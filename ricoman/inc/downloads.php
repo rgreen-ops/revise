@@ -268,6 +268,33 @@ function ricoman_downloads_shortcode() {
 }
 
 /**
+ * Return an SVG icon for a given download type.
+ */
+function ricoman_dl_type_icon( $type ) {
+	$icons = array(
+		'catalogue' => '<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="6" width="36" height="46" rx="3" stroke="currentColor" stroke-width="2.5"/><rect x="18" y="6" width="28" height="46" rx="3" fill="white" stroke="currentColor" stroke-width="2.5"/><line x1="24" y1="20" x2="40" y2="20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="24" y1="27" x2="40" y2="27" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="24" y1="34" x2="34" y2="34" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+
+		'brochure' => '<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="8" width="44" height="48" rx="3" stroke="currentColor" stroke-width="2.5"/><rect x="10" y="8" width="44" height="20" rx="3" fill="currentColor" fill-opacity=".1" stroke="currentColor" stroke-width="2.5"/><line x1="18" y1="36" x2="46" y2="36" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="18" y1="43" x2="46" y2="43" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="18" y1="50" x2="34" y2="50" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+
+		'education' => '<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M32 10L56 22L32 34L8 22L32 10Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><path d="M20 28V42C20 42 24 48 32 48C40 48 44 42 44 42V28" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><line x1="56" y1="22" x2="56" y2="36" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>',
+
+		'3d' => '<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M32 8L54 20V44L32 56L10 44V20L32 8Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><line x1="32" y1="8" x2="32" y2="56" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="10" y1="20" x2="54" y2="20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="10" y1="44" x2="54" y2="44" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="10" y1="20" x2="32" y2="32" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="54" y1="20" x2="32" y2="32" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+
+		'revit' => '<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="8" width="44" height="48" rx="3" stroke="currentColor" stroke-width="2.5"/><path d="M20 20H32C35.3 20 38 22.7 38 26C38 29.3 35.3 32 32 32H20V20Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><line x1="20" y1="32" x2="38" y2="44" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="20" y1="26" x2="44" y2="26" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+
+		'bim' => '<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="24" width="48" height="28" rx="3" stroke="currentColor" stroke-width="2.5"/><path d="M16 24V16C16 14.9 16.9 14 18 14H32L48 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><line x1="24" y1="34" x2="24" y2="42" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><line x1="32" y1="34" x2="32" y2="42" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><line x1="40" y1="34" x2="40" y2="42" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><line x1="20" y1="38" x2="44" y2="38" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>',
+
+		'installation' => '<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="12" y="6" width="40" height="52" rx="3" stroke="currentColor" stroke-width="2.5"/><line x1="20" y1="18" x2="44" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="20" y1="26" x2="44" y2="26" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="22" cy="36" r="2" fill="currentColor"/><line x1="28" y1="36" x2="44" y2="36" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="22" cy="44" r="2" fill="currentColor"/><line x1="28" y1="44" x2="44" y2="44" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+
+		'ldt' => '<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="32" cy="28" r="14" stroke="currentColor" stroke-width="2.5"/><path d="M32 14C32 14 24 20 24 28C24 36 32 42 32 42C32 42 40 36 40 28C40 20 32 14 32 14Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M18 28H46" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M20 48L32 42L44 48" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><line x1="32" y1="48" x2="32" y2="56" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>',
+
+		'datasheet' => '<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="12" y="6" width="40" height="52" rx="3" stroke="currentColor" stroke-width="2.5"/><line x1="20" y1="18" x2="44" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="20" y="24" width="10" height="8" rx="1" stroke="currentColor" stroke-width="1.8"/><rect x="34" y="24" width="10" height="8" rx="1" stroke="currentColor" stroke-width="1.8"/><rect x="20" y="36" width="10" height="8" rx="1" stroke="currentColor" stroke-width="1.8"/><rect x="34" y="36" width="10" height="8" rx="1" stroke="currentColor" stroke-width="1.8"/></svg>',
+	);
+	$svg = isset( $icons[ $type ] ) ? $icons[ $type ] : $icons['datasheet'];
+	return '<div class="rm-dl-card-thumb rm-dl-card-thumb--icon"><span class="rm-dl-type-icon">' . $svg . '</span></div>';
+}
+
+/**
  * Return all non-accessory products + a grouped accessories entry.
  */
 function ricoman_dl_get_products() {
@@ -319,7 +346,7 @@ function ricoman_dl_render_manual( $entries, $type_filter = array() ) {
 		if ( $thumb ) {
 			$html .= '<div class="rm-dl-card-thumb"><img src="' . esc_url( $thumb ) . '" alt="' . esc_attr( $e['title'] ) . '" loading="lazy"></div>';
 		} else {
-			$html .= '<div class="rm-dl-card-thumb rm-dl-card-thumb--icon"><span class="rm-dl-ext">' . esc_html( $ext ?: 'FILE' ) . '</span></div>';
+			$html .= ricoman_dl_type_icon( $e['type'] );
 		}
 		$html .= '<div class="rm-dl-card-body">';
 		$html .= '<span class="rm-dl-card-title">' . esc_html( $e['title'] ) . '</span>';
@@ -449,14 +476,9 @@ function ricoman_dl_ajax_product() {
 
 function ricoman_dl_product_card( $title, $type, $url, $pid ) {
 	$ext   = strtoupper( pathinfo( wp_parse_url( $url, PHP_URL_PATH ), PATHINFO_EXTENSION ) );
-	$thumb = get_the_post_thumbnail_url( $pid, 'thumbnail' );
 	$types = ricoman_dl_types();
 	$html  = '<a class="rm-dl-card" href="' . esc_url( $url ) . '" download rel="noopener" data-type="' . esc_attr( $type ) . '">';
-	if ( $thumb ) {
-		$html .= '<div class="rm-dl-card-thumb"><img src="' . esc_url( $thumb ) . '" alt="' . esc_attr( $title ) . '" loading="lazy"></div>';
-	} else {
-		$html .= '<div class="rm-dl-card-thumb rm-dl-card-thumb--icon"><span class="rm-dl-ext">' . esc_html( $ext ?: 'FILE' ) . '</span></div>';
-	}
+	$html .= ricoman_dl_type_icon( $type );
 	$html .= '<div class="rm-dl-card-body">';
 	$html .= '<span class="rm-dl-card-title">' . esc_html( $title ) . '</span>';
 	$html .= '<span class="rm-dl-card-meta">' . esc_html( $types[ $type ] ?? $type ) . ( $ext ? ' · ' . $ext : '' ) . '</span>';

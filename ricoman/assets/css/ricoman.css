@@ -913,8 +913,9 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-dl-card:hover{border-color:#bbb;box-shadow:0 10px 28px rgba(0,0,0,.08);transform:translateY(-2px)}
 .rm-dl-card-thumb{aspect-ratio:3/4;background:var(--soft,#f4f3f1);overflow:hidden;display:flex;align-items:center;justify-content:center}
 .rm-dl-card-thumb img{width:100%;height:100%;object-fit:cover;display:block}
-.rm-dl-card-thumb--icon{background:var(--ink)}
-.rm-dl-ext{font-family:Poppins;font-weight:700;font-size:1.1rem;letter-spacing:.06em;color:#fff}
+.rm-dl-card-thumb--icon{background:#f4f3f1;display:flex;align-items:center;justify-content:center}
+.rm-dl-type-icon{display:flex;align-items:center;justify-content:center;width:64px;height:64px;color:var(--ink)}
+.rm-dl-type-icon svg{width:100%;height:100%}
 .rm-dl-card-body{flex:1;padding:14px 16px 8px;display:flex;flex-direction:column;gap:4px}
 .rm-dl-card-title{font-family:Poppins;font-weight:600;font-size:.92rem;line-height:1.25;color:var(--ink)}
 .rm-dl-card-meta{font-size:.76rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
