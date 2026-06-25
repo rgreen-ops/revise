@@ -88,7 +88,8 @@ require_once get_theme_file_path( 'inc/family.php' );         // Family filter p
 require_once get_theme_file_path( 'inc/specs-live.php' );     // Configurator-aware Specification + Accessories blocks.
 require_once get_theme_file_path( 'inc/site-options.php' );   // Ricoman admin: mega menu, footer, tracking code.
 require_once get_theme_file_path( 'inc/header-footer.php' );  // [ricoman_header] / [ricoman_footer] renderers.
-require_once get_theme_file_path( 'inc/cta.php' );           // Canonical "free lighting design" CTA banner (one design everywhere).
+require_once get_theme_file_path( 'inc/cta.php' );           // Canonical "free lighting design" CTA banner (one design everywhere)
+require_once get_theme_file_path( 'inc/downloads.php' );     // Downloads & Resources page (filtered, with admin upload manager)..
 require_once get_theme_file_path( 'inc/flow-patterns.php' );  // Flow+ page sections as editable blocks.
 require_once get_theme_file_path( 'inc/page-patterns.php' );  // Home/page sections as editable blocks.
 require_once get_theme_file_path( 'inc/home-slider.php' );   // Home hero slider (image/video slides).
@@ -228,6 +229,15 @@ function ricoman_enqueue_assets() {
 	wp_localize_script( 'ricoman-product-gallery', 'rmGallery', array(
 		'ph' => get_theme_file_uri( 'assets/images/ceiling.webp' ),
 	) );
+
+	// Downloads page filter interactions.
+	wp_enqueue_script(
+		'ricoman-downloads',
+		get_theme_file_uri( 'assets/js/downloads.js' ),
+		array(),
+		ricoman_asset_ver( 'assets/js/downloads.js' ),
+		true
+	);
 
 	// Prevent casual right-click saving / drag-and-drop of images.
 	wp_enqueue_script(

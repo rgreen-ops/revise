@@ -888,6 +888,34 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 @media(max-width:820px){.rm-dlgrid{grid-template-columns:repeat(2,1fr)}.rm-dlbulk{grid-template-columns:1fr}}
 @media(max-width:480px){.rm-dlgrid{grid-template-columns:1fr 1fr;gap:14px}}
 
+/* Downloads filter page */
+.rm-dl-page{display:grid;grid-template-columns:220px 1fr;gap:clamp(24px,3vw,56px);align-items:start;padding:clamp(24px,4vw,56px) 0 72px}
+.rm-dl-filters{position:sticky;top:100px;border:1px solid var(--line);border-radius:14px;padding:24px 20px}
+.rm-dl-filter-heading{font-family:Poppins;font-weight:700;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+.rm-dl-filter-group{margin-bottom:28px}
+.rm-dl-filter-group:last-child{margin-bottom:0}
+.rm-dl-type-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+.rm-dl-type-label{display:flex;align-items:center;gap:9px;font-size:.9rem;cursor:pointer;color:var(--ink)}
+.rm-dl-type-label input[type=checkbox]{accent-color:var(--ink);width:15px;height:15px;flex-shrink:0;cursor:pointer}
+.rm-dl-product-select{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-size:.9rem;color:var(--ink);background:#fff;cursor:pointer}
+.rm-dl-product-select:focus{outline:none;border-color:var(--ink)}
+.rm-dl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.rm-dl-card{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;overflow:hidden;text-decoration:none;color:var(--ink);background:#fff;transition:.22s ease}
+.rm-dl-card:hover{border-color:#bbb;box-shadow:0 10px 28px rgba(0,0,0,.08);transform:translateY(-2px)}
+.rm-dl-card-thumb{aspect-ratio:3/4;background:var(--soft,#f4f3f1);overflow:hidden;display:flex;align-items:center;justify-content:center}
+.rm-dl-card-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.rm-dl-card-thumb--icon{background:var(--ink)}
+.rm-dl-ext{font-family:Poppins;font-weight:700;font-size:1.1rem;letter-spacing:.06em;color:#fff}
+.rm-dl-card-body{flex:1;padding:14px 16px 8px;display:flex;flex-direction:column;gap:4px}
+.rm-dl-card-title{font-family:Poppins;font-weight:600;font-size:.92rem;line-height:1.25;color:var(--ink)}
+.rm-dl-card-meta{font-size:.76rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.rm-dl-card-dl{padding:10px 16px 14px;font-family:Poppins;font-weight:600;font-size:.76rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink)}
+.rm-dl-empty{color:var(--muted);font-size:.95rem;padding:20px 0}
+.rm-dl-loading{color:var(--muted);font-size:.95rem;padding:20px 0}
+@media(max-width:1024px){.rm-dl-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:768px){.rm-dl-page{grid-template-columns:1fr}.rm-dl-filters{position:static}}
+@media(max-width:480px){.rm-dl-grid{grid-template-columns:1fr 1fr;gap:12px}}
+
 /* configurator fallback (when RICOBOT can't resolve the code yet) */
 .rm-cfg-fbnote{font-size:.9rem;color:var(--muted);margin:0 0 16px;line-height:1.6}
 .rm-cfg-fallback .ricoman-spec-table{margin-bottom:18px}
