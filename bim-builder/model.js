@@ -23,6 +23,15 @@ function getCapLogo() {
   return capLogoTex;
 }
 
+// Bump map for the end caps: a faint seam groove around the edge (the cap is a
+// separate plate) plus four flat countersunk corner screws. Grayscale height
+// data, so it shades these as recesses in whatever the body colour is.
+let capBumpTex = null;
+function getCapBump() {
+  if (!capBumpTex) capBumpTex = new THREE.TextureLoader().load('assets/ricoman-cap-bump.png');
+  return capBumpTex;
+}
+
 export async function loadModel(file) {
   const ext = file.name.split('.').pop().toLowerCase();
   const buf = await file.arrayBuffer();
@@ -133,6 +142,7 @@ export function meshToObject(mesh, opts = {}) {
     color: bodyColor, roughness: fin.roughness, metalness: fin.metalness,
     clearcoat: fin.clearcoat, clearcoatRoughness: fin.ccRough, envMapIntensity: 0.85,
     emissive: new THREE.Color(0xffffff), emissiveMap: getCapLogo(), emissiveIntensity: 0.5,
+    bumpMap: getCapBump(), bumpScale: 1.5,   // seam groove + countersunk corner screws
     side: THREE.DoubleSide,
   });
   if (mesh.groups && mesh.groups.length) {
