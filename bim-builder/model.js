@@ -97,6 +97,9 @@ export function meshToObject(mesh, opts = {}) {
   const fin = FINISHES[opts.finish] || FINISHES.matte;
   const bodyColor = new THREE.Color(opts.bodyColor || '#15161a');
   const diffColor = new THREE.Color(opts.diffuserColor || '#f4f3ee');
+  // The emitted light is tinted by the colour temperature (warm 2700K -> cool 5000K+),
+  // so the lens glows the right colour; falls back to the diffuser colour.
+  const emitColor = new THREE.Color(opts.emissiveColor || opts.diffuserColor || '#f4f3ee');
 
   const bodyMat = new THREE.MeshPhysicalMaterial({
     color: bodyColor, roughness: fin.roughness, metalness: fin.metalness,
@@ -107,7 +110,7 @@ export function meshToObject(mesh, opts = {}) {
   // so it catches highlights like real frosted acrylic.
   const diffMat = new THREE.MeshPhysicalMaterial({
     color: diffColor, roughness: 0.5, metalness: 0,
-    emissive: diffColor, emissiveIntensity: opts.lit === false ? 0 : 1.0,
+    emissive: emitColor, emissiveIntensity: opts.lit === false ? 0 : 1.0,
     clearcoat: 0.6, clearcoatRoughness: 0.3, envMapIntensity: 0.6,
     side: THREE.DoubleSide,
   });

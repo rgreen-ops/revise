@@ -12,6 +12,7 @@ import { makeZip } from './zip.js';
 
 let modelMod = null;
 let lastMesh = null;
+let bgMode = 'dark';   // preview background: 'dark' | 'light'
 
 export function initFlow(root) {
   root.innerHTML = `
@@ -51,10 +52,6 @@ export function initFlow(root) {
           <option value="satin">Satin</option>
           <option value="gloss">Gloss</option>
         </select></div>
-        <div><label>Preview background</label><select id="fc-bg">
-          <option value="dark">Black</option>
-          <option value="light">Light grey</option>
-        </select></div>
       </div>
 
       <div class="metrics" id="fc-summary" style="margin-top:16px"></div>
@@ -66,6 +63,10 @@ export function initFlow(root) {
       </div>
     </div>
     <div class="card section" id="fc-preview-card" hidden>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span class="faint" style="font-size:12.5px">3D preview — drag to orbit</span>
+        <button class="btn ghost" id="fc-bg-toggle" type="button" style="padding:6px 12px">◐ Light background</button>
+      </div>
       <canvas id="fc-canvas" style="width:100%;height:300px;border-radius:10px;background:#0c1120"></canvas>
     </div>`;
 
@@ -91,8 +92,14 @@ export function initFlow(root) {
     .forEach((el) => el.addEventListener('input', () => { update(root); refreshPreview(root); }));
   // Appearance controls only affect the render, so re-skin the live preview
   // (if open) without recomputing photometry.
-  root.querySelectorAll('#fc-body,#fc-diff,#fc-fin,#fc-bg')
+  root.querySelectorAll('#fc-body,#fc-diff,#fc-fin')
     .forEach((el) => el.addEventListener('change', () => refreshPreview(root)));
+  const bgBtn = root.querySelector('#fc-bg-toggle');
+  bgBtn.addEventListener('click', () => {
+    bgMode = bgMode === 'dark' ? 'light' : 'dark';
+    bgBtn.textContent = bgMode === 'dark' ? '◐ Light background' : '◐ Dark background';
+    refreshPreview(root);
+  });
   root.querySelector('#fc-generate').addEventListener('click', () => generate(root));
   root.querySelector('#fc-preview').addEventListener('click', () => doPreview(root));
 
@@ -100,11 +107,33 @@ export function initFlow(root) {
 }
 
 function readAppearance(root) {
+  const cct = parseInt(root.querySelector('#fc-cct').value, 10) || 3000;
   return {
     bodyColor: root.querySelector('#fc-body').value,
     diffuserColor: root.querySelector('#fc-diff').value,
     finish: root.querySelector('#fc-fin').value,
+    emissiveColor: cctToHex(cct),
   };
+}
+
+/* Approximate the lens glow colour from the colour temperature, interpolating
+   between anchors so 2700K reads warm/amber and 5000K+ reads cool/blue-white. */
+const CCT_ANCHORS = [
+  [2200, [255, 157, 84]], [2700, [255, 180, 120]], [3000, [255, 197, 143]],
+  [4000, [255, 224, 189]], [5000, [222, 231, 255]], [6500, [201, 220, 255]],
+];
+function cctToHex(k) {
+  const a = CCT_ANCHORS;
+  const hex = (c) => '#' + c.map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('');
+  if (k <= a[0][0]) return hex(a[0][1]);
+  if (k >= a[a.length - 1][0]) return hex(a[a.length - 1][1]);
+  for (let i = 0; i < a.length - 1; i++) {
+    if (k >= a[i][0] && k <= a[i + 1][0]) {
+      const t = (k - a[i][0]) / (a[i + 1][0] - a[i][0]);
+      return hex(a[i][1].map((v, j) => v + (a[i + 1][1][j] - v) * t));
+    }
+  }
+  return hex(a[0][1]);
 }
 
 // Re-render the preview only if it is already on screen.
@@ -207,7 +236,7 @@ async function doPreview(root) {
   root.querySelector('#fc-preview-card').hidden = false;
   try {
     if (!modelMod) modelMod = await import('./model.js');
-    const bg = root.querySelector('#fc-bg').value === 'light' ? '#e9ebee' : '#0b0e16';
+    const bg = bgMode === 'light' ? '#e9ebee' : '#0b0e16';
     modelMod.preview(modelMod.meshToObject(mesh, readAppearance(root)), root.querySelector('#fc-canvas'), { background: bg });
   } catch (err) {
     root.querySelector('#fc-preview-card').hidden = true;
