@@ -191,15 +191,12 @@ function ricoman_downloads_admin_page() {
 
 /* ------------------------------------------------------------------ shortcode / front-end */
 
-// Force the downloads page to use the full-width page-downloads template.
-add_filter( 'template_include', function( $template ) {
-	if ( is_page( 'downloads' ) && ! is_admin() ) {
-		$candidate = get_theme_file_path( 'templates/page-downloads.html' );
-		if ( file_exists( $candidate ) ) {
-			return $candidate;
-		}
+// Force the downloads page to use the full-width page-downloads block template.
+add_filter( 'block_template_hierarchy', function( $hierarchy ) {
+	if ( is_page( 'downloads' ) ) {
+		array_unshift( $hierarchy, 'page-downloads' );
 	}
-	return $template;
+	return $hierarchy;
 } );
 
 add_shortcode( 'ricoman_downloads', 'ricoman_downloads_shortcode' );
