@@ -61,6 +61,7 @@ function getDiffuserGrad() {
     gradTex = new THREE.TextureLoader().load('assets/diffuser-grad.png');
     gradTex.colorSpace = THREE.SRGBColorSpace;
     gradTex.wrapS = gradTex.wrapT = THREE.RepeatWrapping;
+    gradTex.repeat.set(0.12, 1);   // stretch the variation over the whole length (subtle, not stripey)
   }
   return gradTex;
 }
@@ -186,8 +187,8 @@ export function meshToObject(mesh, opts = {}) {
     color: bodyColor, roughness: bodyRough, metalness,
     clearcoat: fin.clearcoat, clearcoatRoughness: fin.ccRough, envMapIntensity: envI,
     emissive: new THREE.Color(0xffffff), emissiveMap: getCapLogo(), emissiveIntensity: 0.5,
-    bumpMap: getCapBump(), bumpScale: 3,   // seam groove + countersunk corner screws
-    side: THREE.DoubleSide,
+    bumpMap: getCapBump(), bumpScale: 3,   // countersunk corner screws
+    side: THREE.FrontSide,   // logo only shows from outside, never mirrored through the back
   });
   if (mesh.groups && mesh.groups.length) {
     return new THREE.Mesh(geo, [bodyMat, diffMat, capMat]);
@@ -233,9 +234,9 @@ export function preview(object, canvas, opts = {}) {
   object.position.sub(center);
   scene.add(object);
 
-  // Default to a 3/4 view: the lit lens (mesh -Z face) toward the viewer, raised
-  // and offset along the run so an engraved end cap is in shot.
-  camera.position.set(maxDim * 0.7, maxDim * 0.55, -maxDim * 1.7);
+  // Default 3/4 view from the lit-lens side (mesh -Z), raised and offset along the
+  // run so the glowing lens is the hero and an engraved end cap is in shot.
+  camera.position.set(maxDim * 0.8, maxDim * 0.6, -maxDim * 1.6);
   camera.lookAt(0, 0, 0);
   // Tighten the depth range to the object's scale — the default 0.01..100000 has
   // far too little z-buffer precision for a few-hundred-mm part and causes
@@ -249,7 +250,7 @@ export function preview(object, canvas, opts = {}) {
   controls.autoRotate = false;   // hold the default 3/4 angle; user can drag to orbit
   // Clamp zoom so you can't dive into the surface (which fills the frame with the
   // bright reflective metal and blows out to white) or fly off into the distance.
-  controls.minDistance = maxDim * 0.8;
+  controls.minDistance = maxDim * 0.35;
   controls.maxDistance = maxDim * 6;
 
   const resize = () => {
