@@ -200,6 +200,14 @@ function ricoman_downloads_shortcode() {
 
 	ob_start();
 	?>
+	<div class="rm-dl-wrap">
+
+	<div class="rm-dl-hero">
+		<p class="rm-eyebrow">Downloads &amp; Resources</p>
+		<h1 class="rm-dl-title">Catalogues, datasheets &amp; BIM.</h1>
+		<p class="rm-dl-lead">Everything you need to specify Ricoman — product catalogue, technical datasheets, photometric (IES/LDT) files, BIM objects and installation guides.</p>
+	</div>
+
 	<div class="rm-dl-page" id="rm-dl-page">
 
 		<aside class="rm-dl-filters" aria-label="Filter downloads">
@@ -236,6 +244,19 @@ function ricoman_downloads_shortcode() {
 			<?php echo ricoman_dl_render_manual( $manual, array( 'catalogue', 'brochure' ) ); ?>
 		</div>
 
+	</div>
+
+	</div><!-- .rm-dl-wrap -->
+
+	<div class="rm-dl-cta">
+		<div class="rm-dl-cta-inner">
+			<h2 class="rm-dl-cta-head">Can&rsquo;t find a document?</h2>
+			<p class="rm-dl-cta-sub">Tell us the product or project and our team will send the exact files you need.</p>
+			<div class="rm-dl-cta-btns">
+				<a class="wp-block-button__link is-style-outline-light wp-element-button" href="/contact/">Request files</a>
+				<a class="wp-block-button__link is-style-outline-light wp-element-button" href="/about/">Talk to the team &rarr;</a>
+			</div>
+		</div>
 	</div>
 
 	<script>
