@@ -36,8 +36,8 @@ function getCapBump() {
   const g = cv.getContext('2d');
   g.fillStyle = '#808080';                 // neutral height — no bump
   g.fillRect(0, 0, S, S);
-  const INSET = 0.11 * S;                    // screw centre distance from each edge
-  const SCREW_R = 0.014 * S;                 // screw radius — ~75% smaller than the old map (~0.055)
+  const INSET = 0.075 * S;                   // screw centre distance from each edge (tucked into the corners)
+  const SCREW_R = 0.022 * S;                 // screw radius
   const pts = [[INSET, INSET], [S - INSET, INSET], [S - INSET, S - INSET], [INSET, S - INSET]];
   for (const [cx, cy] of pts) {
     const rg = g.createRadialGradient(cx, cy, 0, cx, cy, SCREW_R);
