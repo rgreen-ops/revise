@@ -236,7 +236,7 @@ function sweepInto(path, profile, closed, vertices, uvs, body, diff, caps, width
    seals the opening, so there's no proud "step" drawing a square line around the
    perimeter. A positive thickness restores a proud bolted-on plate (its inner face
    and four edge walls go in the plain-metal 'body' group). */
-const CAP_THICKNESS = 5;   // mm — real 5 mm end-cap plate (set to 0 for a flush face)
+const CAP_THICKNESS = 3;   // mm — 3 mm-deep end-cap plate (set to 0 for a flush face)
 function cap(outline, ringBase, vertices, uvs, body, caps, outward, width, height, flip, wind) {
   const base = vertices.length / 3;
   const CORNER_UV = [[0, 1], [1, 1], [1, 0], [0, 0]];   // outline order: TL, TR, BR, BL
