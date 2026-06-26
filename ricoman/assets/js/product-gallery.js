@@ -327,6 +327,7 @@
 		var coLo = w.querySelector( '.rm-co-lo' ), coHi = w.querySelector( '.rm-co-hi' );
 		var count = w.querySelector( '.rm-fcount b' ), none = w.querySelector( '.rm-fnone' );
 		var catSel = w.querySelector( '.rm-fcat-sel' ), mountSel = w.querySelector( '.rm-fmount-sel' );
+		var acyCat = w.dataset.acyCat || '';
 		var isPaged = w.classList.contains( 'rm-allprods' );
 		var pgn = w.querySelector( '.rm-pgn-bot' ) || w.querySelector( '.rm-pgn' );
 		var pgnTop = w.querySelector( '.rm-pgn-top' );
@@ -391,7 +392,6 @@
 				var cm = ( c.dataset.mount || '' ).split( ' ' ).filter( Boolean );
 				var cn = ( c.dataset.fin   || '' ).split( ' ' ).filter( Boolean );
 				var ok = true;
-				var isAcy = c.dataset.accessory === '1';
 				if ( ! lmFull && ( clm <= 0 || clm < loLm || clm > hiLm ) ) { ok = false; }
 				if ( ! wFull  && ( cw  <= 0 || cw  < loW  || cw  > hiW  ) ) { ok = false; }
 				if ( ! coFull && ( cco <= 0 || cco < loCo || cco > hiCo ) ) { ok = false; }
@@ -399,8 +399,8 @@
 				if ( wantCat.length   && ! wantCat.some(   function ( v ) { return cc.indexOf( v ) >= 0; } ) ) { ok = false; }
 				if ( wantMount.length && ! wantMount.some( function ( v ) { return cm.indexOf( v ) >= 0; } ) ) { ok = false; }
 				if ( wantFin.length   && ! wantFin.some(   function ( v ) { return cn.indexOf( v ) >= 0; } ) ) { ok = false; }
-				// Hide accessories unless a category filter is explicitly active.
-				if ( isAcy && ! wantCat.length ) { ok = false; }
+				// Hide accessories by default unless a category is explicitly selected.
+				if ( acyCat && ! wantCat.length && cc.indexOf( acyCat ) >= 0 ) { ok = false; }
 				if ( ok ) { matched.push( c ); shown++; }
 				if ( ! isPaged ) { c.classList.toggle( 'rm-pg-hide', ! ok ); }
 			} );

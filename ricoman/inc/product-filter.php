@@ -497,6 +497,10 @@ function ricoman_pcard_html( $url, $pid, $img, $sub, $mx, $co, $fslug, $cats, $m
  * Method, Finish, Lumens, Wattage. Client-side JS pagination (24 per page).
  * ------------------------------------------------------------------------- */
 add_shortcode( 'ricoman_all_products', function () {
+	// Resolve the Accessories category slug so JS can exclude it from default view.
+	$acy_term = get_term_by( 'name', 'Accessories', 'product-cat' );
+	$acy_slug = $acy_term ? $acy_term->slug : 'accessories';
+
 	$posts = get_posts( array(
 		'post_type'      => 'product',
 		'post_status'    => 'publish',
@@ -640,7 +644,7 @@ add_shortcode( 'ricoman_all_products', function () {
 	}
 	$sidebar .= '<button type="button" class="rm-fclear">Clear filters</button>';
 
-	$out  = '<div class="rm-pp-wrap rm-catarch rm-allprods">';
+	$out  = '<div class="rm-pp-wrap rm-catarch rm-allprods" data-acy-cat="' . esc_attr( $acy_slug ) . '">';
 	$out .= '<div class="rm-pp-crumb">' . $crumb . '</div>';
 	$out .= '<h1 class="rm-catarch-title">All Products <span class="rm-catarch-count" aria-hidden="true">' . (int) $total . '</span></h1>';
 	$out .= '<div class="rm-catgrid-wrap"><aside class="rm-facets">' . $sidebar . '</aside>';
