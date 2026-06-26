@@ -359,7 +359,7 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 		}
 		$img  = function_exists( 'ricoman_product_img' ) ? ricoman_product_img( $pid ) : get_the_post_thumbnail_url( $pid, 'large' );
 		$sub  = function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( $pid, 'product_subname' ) : '';
-		$cats = wp_get_post_terms( $pid, 'product-cat', array( 'fields' => 'slugs' ) );
+		$cats = wp_get_post_terms( $pid, $pcat_tax, array( 'fields' => 'slugs' ) );
 		$cats = is_wp_error( $cats ) ? array() : $cats;
 		$mts  = wp_get_post_terms( $pid, 'mounting-method', array( 'fields' => 'slugs' ) );
 		$mts  = is_wp_error( $mts ) ? array() : $mts;
@@ -498,17 +498,20 @@ function ricoman_pcard_html( $url, $pid, $img, $sub, $mx, $co, $fslug, $cats, $m
  * Method, Finish, Lumens, Wattage. Client-side JS pagination (24 per page).
  * ------------------------------------------------------------------------- */
 add_shortcode( 'ricoman_all_products', function () {
+	// Resolve which product category taxonomy is active on this install.
+	$pcat_tax = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
+
 	// Resolve the Accessories category slug so JS can exclude it from default view.
-	$acy_term = get_term_by( 'name', 'Accessories', 'product-cat' );
+	$acy_term = get_term_by( 'name', 'Accessories', $pcat_tax );
 	$acy_slug = $acy_term ? $acy_term->slug : 'accessories';
 
 	// Build set of product IDs that should show by default (linear lighting, incl. children).
-	$linear_term = get_term_by( 'slug', 'led-linear-lighting', 'product-cat' );
+	$linear_term  = get_term_by( 'slug', 'led-linear-lighting', $pcat_tax );
 	$default_pids = array();
 	if ( $linear_term ) {
-		$tids = array_merge( array( $linear_term->term_id ), get_term_children( $linear_term->term_id, 'product-cat' ) );
+		$tids = array_merge( array( $linear_term->term_id ), get_term_children( $linear_term->term_id, $pcat_tax ) );
 		foreach ( $tids as $tid ) {
-			$pids_in = get_objects_in_term( (int) $tid, 'product-cat' );
+			$pids_in = get_objects_in_term( (int) $tid, $pcat_tax );
 			if ( ! is_wp_error( $pids_in ) ) {
 				foreach ( $pids_in as $pid_in ) { $default_pids[ (int) $pid_in ] = true; }
 			}
@@ -550,7 +553,7 @@ add_shortcode( 'ricoman_all_products', function () {
 		}
 		$img  = function_exists( 'ricoman_product_img' ) ? ricoman_product_img( $pid ) : get_the_post_thumbnail_url( $pid, 'large' );
 		$sub  = function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( $pid, 'product_subname' ) : '';
-		$cats = wp_get_post_terms( $pid, 'product-cat', array( 'fields' => 'slugs' ) );
+		$cats = wp_get_post_terms( $pid, $pcat_tax, array( 'fields' => 'slugs' ) );
 		$cats = is_wp_error( $cats ) ? array() : $cats;
 		$mts  = wp_get_post_terms( $pid, 'mounting-method', array( 'fields' => 'slugs' ) );
 		$mts  = is_wp_error( $mts ) ? array() : $mts;
@@ -560,7 +563,7 @@ add_shortcode( 'ricoman_all_products', function () {
 
 		foreach ( $cats as $s ) {
 			if ( ! isset( $all_cats[ $s ] ) ) {
-				$t = get_term_by( 'slug', $s, 'product-cat' );
+				$t = get_term_by( 'slug', $s, $pcat_tax );
 				$all_cats[ $s ] = $t ? $t->name : ucwords( str_replace( '-', ' ', $s ) );
 			}
 		}
