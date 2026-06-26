@@ -30,14 +30,14 @@ function getCapLogo() {
 let capBumpTex = null;
 function getCapBump() {
   if (capBumpTex) return capBumpTex;
-  const S = 512;
+  const S = 1024;                           // hi-res so the small screws stay crisp
   const cv = document.createElement('canvas');
   cv.width = cv.height = S;
   const g = cv.getContext('2d');
   g.fillStyle = '#808080';                 // neutral height — no bump
   g.fillRect(0, 0, S, S);
-  const INSET = 0.11 * S;                   // screw centre distance from each edge
-  const SCREW_R = 0.020 * S;                // screw radius (was ~0.055 in the old map)
+  const INSET = 0.11 * S;                    // screw centre distance from each edge
+  const SCREW_R = 0.014 * S;                 // screw radius — ~75% smaller than the old map (~0.055)
   const pts = [[INSET, INSET], [S - INSET, INSET], [S - INSET, S - INSET], [INSET, S - INSET]];
   for (const [cx, cy] of pts) {
     const rg = g.createRadialGradient(cx, cy, 0, cx, cy, SCREW_R);
@@ -46,9 +46,14 @@ function getCapBump() {
     rg.addColorStop(1, '#808080');          // blend back into the flat field
     g.fillStyle = rg;
     g.beginPath(); g.arc(cx, cy, SCREW_R, 0, Math.PI * 2); g.fill();
-    g.strokeStyle = '#101010';              // single flat-head drive slot
-    g.lineWidth = Math.max(1, SCREW_R * 0.24);
-    g.beginPath(); g.moveTo(cx - SCREW_R * 0.66, cy); g.lineTo(cx + SCREW_R * 0.66, cy); g.stroke();
+    // Phillips (cross) drive: two short perpendicular slots through the centre.
+    g.strokeStyle = '#0d0d0d';
+    g.lineWidth = Math.max(1, SCREW_R * 0.2);
+    g.lineCap = 'round';
+    g.beginPath();
+    g.moveTo(cx - SCREW_R * 0.6, cy); g.lineTo(cx + SCREW_R * 0.6, cy);   // horizontal
+    g.moveTo(cx, cy - SCREW_R * 0.6); g.lineTo(cx, cy + SCREW_R * 0.6);   // vertical
+    g.stroke();
   }
   capBumpTex = new THREE.CanvasTexture(cv);
   return capBumpTex;
