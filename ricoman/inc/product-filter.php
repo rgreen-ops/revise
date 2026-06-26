@@ -671,6 +671,7 @@ add_shortcode( 'ricoman_all_products', function () {
 		. '.rm-pcard-eyebrow{display:block;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;font-family:Poppins;font-weight:600;color:#888;margin-bottom:4px}'
 		. '.rm-pcard-title{display:block;font-size:.85rem;font-weight:600;font-family:Poppins;line-height:1.3}'
 		. '.rm-allpgrid>p,.rm-allpgrid>br{display:none!important}'
+		. '[style*="display: none"]{display:none!important}'
 		. '</style>';
 	$out .= '<div class="rm-pp-wrap rm-catarch rm-allprods" data-acy-cat="' . esc_attr( $acy_slug ) . '">';
 	$out .= '<div class="rm-pp-crumb">' . $crumb . '</div>';
