@@ -622,11 +622,11 @@ add_shortcode( 'ricoman_all_products', function () {
 
 	$sidebar  = '<p class="rm-facets-head">Filter</p>';
 	if ( $all_cats ) {
-		$sidebar .= '<div class="rm-fgroup"><label class="rm-facets-sub" for="rm-fcat-sel">Category</label>'
+		$sidebar .= '<div class="rm-fgroup rm-fgroup-sel"><label class="rm-facets-sub" for="rm-fcat-sel">Category</label>'
 			. '<select id="rm-fcat-sel" class="rm-fcat-sel rm-fselect">' . $cat_opts . '</select></div>';
 	}
 	if ( $all_mts ) {
-		$sidebar .= '<div class="rm-fgroup"><label class="rm-facets-sub" for="rm-fmount-sel">Mounting Method</label>'
+		$sidebar .= '<div class="rm-fgroup rm-fgroup-sel"><label class="rm-facets-sub" for="rm-fmount-sel">Mounting Method</label>'
 			. '<select id="rm-fmount-sel" class="rm-fmount-sel rm-fselect">' . $mt_opts . '</select></div>';
 	}
 	$sidebar .= $lmslider . $wslider;

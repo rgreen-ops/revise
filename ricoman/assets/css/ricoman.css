@@ -1234,7 +1234,7 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-frange label{display:block;font-family:Poppins;font-size:.8rem;font-weight:500;color:var(--text);margin-bottom:10px}
 .rm-frange label b{color:var(--accent);font-weight:700}
 .rm-frange input[type=range]{width:100%;accent-color:var(--accent)}
-.rm-fgroup{border-top:1px solid var(--line);padding-top:16px;margin-top:4px}
+.rm-fgroup{border-top:1px solid var(--line);padding-top:16px;margin-top:4px}.rm-fgroup-sel{border-top:none;padding-top:0;margin-top:12px}
 .rm-ftick{display:flex;align-items:center;gap:9px;font-family:Poppins;font-size:.85rem;color:var(--text);margin:9px 0;cursor:pointer}
 .rm-ftick input{accent-color:var(--accent);width:16px;height:16px}
 .rm-fclear{margin-top:14px;background:none;border:0;color:var(--accent);font-family:Poppins;font-size:.78rem;font-weight:600;cursor:pointer;padding:0}
