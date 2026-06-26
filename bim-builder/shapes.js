@@ -14,7 +14,7 @@
 export const FAMILIES = {
   estrella: {
     label: 'Estrella — linear',
-    profile: { width: 70, height: 70 },     // typical extrusion section (mm)
+    profile: { width: 70, height: 70, lip: 3 },  // extrusion section (mm); 3 mm lens lip each side
     shapes: {
       line: { label: 'Single line', params: { length: 2400 } },
       l: { label: 'L-shape', params: { armA: 1800, armB: 1200 } },
@@ -118,7 +118,7 @@ export function buildMesh(family, shape, params) {
   const base = { ...FAMILIES[family].profile };
   if (params.profileWidth) base.width = params.profileWidth;
   if (params.profileHeight) base.height = params.profileHeight;
-  const profile = housingProfile(base.width, base.height, params.lip);
+  const profile = housingProfile(base.width, base.height, params.lip ?? base.lip);
   const { paths, closed } = buildPaths(family, shape, params);
 
   const vertices = [];
@@ -236,7 +236,7 @@ function sweepInto(path, profile, closed, vertices, uvs, body, diff, caps, width
    seals the opening, so there's no proud "step" drawing a square line around the
    perimeter. A positive thickness restores a proud bolted-on plate (its inner face
    and four edge walls go in the plain-metal 'body' group). */
-const CAP_THICKNESS = 0;   // mm — 0 = flush end face (no perimeter step line)
+const CAP_THICKNESS = 5;   // mm — real 5 mm end-cap plate (set to 0 for a flush face)
 function cap(outline, ringBase, vertices, uvs, body, caps, outward, width, height, flip, wind) {
   const base = vertices.length / 3;
   const CORNER_UV = [[0, 1], [1, 1], [1, 0], [0, 0]];   // outline order: TL, TR, BR, BL
