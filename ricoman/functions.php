@@ -151,7 +151,7 @@ add_filter( 'body_class', function ( $classes ) {
 	// project single pages open on the project's hero photo — these overlay the
 	// header. The projects listing + project-cat now open on a WHITE intro, so
 	// they keep the solid dark header (a white overlay header was invisible there).
-	if ( is_front_page() || is_post_type_archive( 'product' ) || is_singular( 'project' ) ) {
+	if ( is_front_page() || is_singular( 'project' ) ) {
 		$classes[] = 'rm-hero';
 	} elseif ( is_singular() || is_page() ) {
 		$post = get_post();
