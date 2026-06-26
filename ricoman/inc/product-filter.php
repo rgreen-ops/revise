@@ -606,14 +606,30 @@ add_shortcode( 'ricoman_all_products', function () {
 
 	$crumb = do_shortcode( '[ricoman_breadcrumbs]' );
 
+	// Category dropdown.
+	$cat_opts = '<option value="">All Categories</option>';
+	asort( $all_cats );
+	foreach ( $all_cats as $slug => $label ) {
+		$cat_opts .= '<option value="' . esc_attr( $slug ) . '">' . esc_html( $label ) . '</option>';
+	}
+
+	// Mounting method dropdown.
+	$mt_opts = '<option value="">All Mounting Methods</option>';
+	asort( $all_mts );
+	foreach ( $all_mts as $slug => $label ) {
+		$mt_opts .= '<option value="' . esc_attr( $slug ) . '">' . esc_html( $label ) . '</option>';
+	}
+
 	$sidebar  = '<p class="rm-facets-head">Filter</p>';
+	if ( $all_cats ) {
+		$sidebar .= '<div class="rm-fgroup"><label class="rm-facets-sub" for="rm-fcat-sel">Category</label>'
+			. '<select id="rm-fcat-sel" class="rm-fcat-sel rm-fselect">' . $cat_opts . '</select></div>';
+	}
+	if ( $all_mts ) {
+		$sidebar .= '<div class="rm-fgroup"><label class="rm-facets-sub" for="rm-fmount-sel">Mounting Method</label>'
+			. '<select id="rm-fmount-sel" class="rm-fmount-sel rm-fselect">' . $mt_opts . '</select></div>';
+	}
 	$sidebar .= $lmslider . $wslider;
-	if ( $cat_ticks ) {
-		$sidebar .= '<div class="rm-fgroup"><p class="rm-facets-sub">Category</p>' . $cat_ticks . '</div>';
-	}
-	if ( $mt_ticks ) {
-		$sidebar .= '<div class="rm-fgroup"><p class="rm-facets-sub">Mounting</p>' . $mt_ticks . '</div>';
-	}
 	if ( $fin_ticks ) {
 		$sidebar .= '<div class="rm-fgroup"><p class="rm-facets-sub">Finish</p>' . $fin_ticks . '</div>';
 	}

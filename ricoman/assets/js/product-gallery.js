@@ -326,6 +326,7 @@
 		var wLo = w.querySelector( '.rm-w-lo' ), wHi = w.querySelector( '.rm-w-hi' );
 		var coLo = w.querySelector( '.rm-co-lo' ), coHi = w.querySelector( '.rm-co-hi' );
 		var count = w.querySelector( '.rm-fcount b' ), none = w.querySelector( '.rm-fnone' );
+		var catSel = w.querySelector( '.rm-fcat-sel' ), mountSel = w.querySelector( '.rm-fmount-sel' );
 		var isPaged = w.classList.contains( 'rm-allprods' );
 		var pgn = w.querySelector( '.rm-pgn' );
 		var PER_PAGE = 24, curPage = 1;
@@ -371,8 +372,8 @@
 			if ( coLo ) { coLo.textContent = loCo; }
 			if ( coHi ) { coHi.textContent = hiCo; }
 			var want = ticks();
-			var wantCat   = checkedVals( '.rm-fcat-cb' );
-			var wantMount = checkedVals( '.rm-fmount-cb' );
+			var wantCat   = catSel   && catSel.value   ? [ catSel.value ]   : [];
+			var wantMount = mountSel && mountSel.value ? [ mountSel.value ] : [];
 			var wantFin   = checkedVals( '.rm-ffin-cb' );
 			var matched = [], shown = 0;
 			cards.forEach( function ( c ) {
@@ -408,11 +409,15 @@
 		}
 		pair( lmMin, lmMax, 100 ); pair( wMin, wMax, 1 ); pair( coMin, coMax, 1 );
 		w.querySelectorAll( '.rm-ftick input' ).forEach( function ( i ) { i.addEventListener( 'change', apply ); } );
+		if ( catSel )   { catSel.addEventListener(   'change', apply ); }
+		if ( mountSel ) { mountSel.addEventListener( 'change', apply ); }
 		w.querySelectorAll( '.rm-fclear' ).forEach( function ( b ) {
 			b.addEventListener( 'click', function () {
 				if ( lmMin ) { lmMin.value = lmMin.min; } if ( lmMax ) { lmMax.value = lmMax.max; }
 				if ( wMin ) { wMin.value = wMin.min; } if ( wMax ) { wMax.value = wMax.max; }
 				if ( coMin ) { coMin.value = coMin.min; } if ( coMax ) { coMax.value = coMax.max; }
+				if ( catSel )   { catSel.value   = ''; }
+				if ( mountSel ) { mountSel.value = ''; }
 				w.querySelectorAll( '.rm-ftick input' ).forEach( function ( i ) { i.checked = false; } ); apply();
 			} );
 		} );

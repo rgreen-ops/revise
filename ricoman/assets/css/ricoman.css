@@ -1228,6 +1228,8 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-facets{position:sticky;top:100px;border:1px solid var(--line);border-radius:14px;padding:22px}
 .rm-facets-head{font-family:Poppins;font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.14em;color:var(--ink);margin:0 0 16px}
 .rm-facets-sub{font-family:Poppins;font-weight:600;font-size:.66rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:6px 0 10px}
+.rm-fselect{display:block;width:100%;padding:8px 32px 8px 10px;border:1px solid var(--line);border-radius:8px;font-family:Poppins;font-size:.82rem;color:var(--ink);background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 10px center;-webkit-appearance:none;appearance:none;cursor:pointer;margin-bottom:4px}
+.rm-fselect:focus{outline:2px solid var(--accent);border-color:var(--accent)}
 .rm-frange{margin:0 0 20px}
 .rm-frange label{display:block;font-family:Poppins;font-size:.8rem;font-weight:500;color:var(--text);margin-bottom:10px}
 .rm-frange label b{color:var(--accent);font-weight:700}
