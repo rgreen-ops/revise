@@ -465,13 +465,14 @@ function ricoman_pcard_finish_slugs( $pid ) {
 }
 
 /** Build a portrait product card <a> element. */
-function ricoman_pcard_html( $url, $pid, $img, $sub, $mx, $co, $fslug, $cats, $mts, $fins, $isnew = false ) {
+function ricoman_pcard_html( $url, $pid, $img, $sub, $mx, $co, $fslug, $cats, $mts, $fins, $isnew = false, $is_accessory = false ) {
 	$h  = '<a class="rm-fcard rm-pcard" href="' . esc_url( $url ) . '"'
 		. ' data-lm="' . (int) $mx['lm'] . '" data-w="' . (int) $mx['w'] . '" data-co="' . (int) $co . '"'
 		. ' data-feat="' . esc_attr( implode( ' ', $fslug ) ) . '"'
 		. ' data-cat="' . esc_attr( implode( ' ', $cats ) ) . '"'
 		. ' data-mount="' . esc_attr( implode( ' ', $mts ) ) . '"'
-		. ' data-fin="' . esc_attr( implode( ' ', $fins ) ) . '">';
+		. ' data-fin="' . esc_attr( implode( ' ', $fins ) ) . '"'
+		. ( $is_accessory ? ' data-accessory="1"' : '' ) . '>';
 	$h .= '<div class="rm-pcard-img">';
 	if ( $img ) {
 		$h .= '<img src="' . esc_url( $img ) . '" alt="' . esc_attr( get_the_title( $pid ) ) . '" loading="lazy">';
@@ -535,8 +536,9 @@ add_shortcode( 'ricoman_all_products', function () {
 		$cats = is_wp_error( $cats ) ? array() : $cats;
 		$mts  = wp_get_post_terms( $pid, 'mounting-method', array( 'fields' => 'slugs' ) );
 		$mts  = is_wp_error( $mts ) ? array() : $mts;
-		$fins = ricoman_pcard_finish_slugs( $pid );
-		$isnw = get_post_meta( $pid, '_ricoman_is_new', true ) ? true : false;
+		$fins  = ricoman_pcard_finish_slugs( $pid );
+		$isnw  = get_post_meta( $pid, '_ricoman_is_new', true ) ? true : false;
+		$isacy = in_array( get_post_meta( $pid, 'is_accessories_product', true ), array( '1', 'yes', 'true' ), true );
 
 		foreach ( $cats as $s ) {
 			if ( ! isset( $all_cats[ $s ] ) ) {
@@ -554,7 +556,7 @@ add_shortcode( 'ricoman_all_products', function () {
 			$all_fins[ $s ] = ucwords( str_replace( '-', ' ', $s ) );
 		}
 
-		$cards .= ricoman_pcard_html( get_permalink( $pid ), $pid, $img, $sub, $mx, $co, $fslug, $cats, $mts, $fins, $isnw );
+		$cards .= ricoman_pcard_html( get_permalink( $pid ), $pid, $img, $sub, $mx, $co, $fslug, $cats, $mts, $fins, $isnw, $isacy );
 	}
 	wp_reset_postdata();
 
