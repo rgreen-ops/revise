@@ -1084,7 +1084,7 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-pcard-badge{position:absolute;top:10px;left:10px;background:#1a56ff;color:#fff;font-size:.6rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:3px 8px;border-radius:4px;font-family:Poppins}
 .rm-pcard-body{padding:10px 2px 0}
 .rm-pcard-eyebrow{display:block;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;font-family:Poppins;font-weight:600;color:var(--muted);margin-bottom:4px}
-.rm-pcard-title{display:block;font-size:.85rem;font-weight:600;font-family:Poppins;color:var(--ink);line-height:1.3}
+.rm-pcard-title{display:block;font-size:1rem;font-weight:600;font-family:Poppins;color:var(--ink);line-height:1.3}
 .rm-pcard:hover .rm-pcard-img{box-shadow:0 8px 24px rgba(0,0,0,.13);transform:translateY(-2px);transition:transform .2s,box-shadow .2s}
 .rm-pcard-img{transition:transform .2s,box-shadow .2s}
 /* Search results — uniform visual grid reusing the projcard look */

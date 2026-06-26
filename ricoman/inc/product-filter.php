@@ -669,7 +669,7 @@ add_shortcode( 'ricoman_all_products', function () {
 		. '.rm-pcard-img img{width:84%;height:84%;object-fit:contain;display:block}'
 		. '.rm-pcard-body{padding:10px 2px 0}'
 		. '.rm-pcard-eyebrow{display:block;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;font-family:Poppins;font-weight:600;color:#888;margin-bottom:4px}'
-		. '.rm-pcard-title{display:block;font-size:.85rem;font-weight:600;font-family:Poppins;line-height:1.3}'
+		. '.rm-pcard-title{display:block;font-size:1rem;font-weight:600;font-family:Poppins;line-height:1.3}'
 		. '.rm-allpgrid>p,.rm-allpgrid>br{display:none!important}'
 		. '[style*="display: none"]{display:none!important}'
 		. '</style>';
