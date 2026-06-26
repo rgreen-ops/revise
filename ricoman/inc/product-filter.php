@@ -483,10 +483,10 @@ function ricoman_pcard_html( $url, $pid, $img, $sub, $mx, $co, $fslug, $cats, $m
 	}
 	$h .= '</div>';
 	$h .= '<div class="rm-pcard-body">';
-	if ( $sub ) {
-		$h .= '<span class="rm-eyebrow rm-pcard-eyebrow">' . esc_html( $sub ) . '</span>';
-	}
 	$h .= '<span class="rm-pcard-title">' . esc_html( get_the_title( $pid ) ) . '</span>';
+	if ( $sub ) {
+		$h .= '<span class="rm-pcard-eyebrow">' . esc_html( $sub ) . '</span>';
+	}
 	$h .= '</div>';
 	$h .= '</a>';
 	return $h;
@@ -668,7 +668,7 @@ add_shortcode( 'ricoman_all_products', function () {
 		. '.rm-pcard-img{position:relative;aspect-ratio:3/4;background:#f2f2f2;border-radius:10px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center}'
 		. '.rm-pcard-img img{width:84%;height:84%;object-fit:contain;display:block}'
 		. '.rm-pcard-body{padding:10px 2px 0;text-align:center}'
-		. '.rm-pcard-eyebrow{display:block;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;font-family:Poppins;font-weight:600;color:#888;margin-bottom:4px;text-align:center}'
+		. '.rm-pcard-eyebrow{display:block;font-size:.78rem;letter-spacing:0;text-transform:none;font-family:Poppins;font-weight:400;color:#888;margin-top:4px;text-align:center;line-height:1.4}'
 		. '.rm-pcard-title{display:block;font-size:1.05rem;font-weight:600;font-family:Poppins;line-height:1.3;text-align:center}'
 		. '.rm-allpgrid>p,.rm-allpgrid>br{display:none!important}'
 		. '[style*="display: none"]{display:none!important}'
