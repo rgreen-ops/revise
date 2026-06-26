@@ -1264,6 +1264,8 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 @media(max-width:1300px){.rm-allpgrid{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:1000px){.rm-allpgrid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:700px){.rm-allpgrid{grid-template-columns:repeat(2,1fr)}}
+/* JS pagination hide class — forces display:none regardless of inherited grid/flex rules */
+.rm-pg-hide{display:none!important}
 /* Pagination controls */
 .rm-pgn{display:flex;align-items:center;gap:12px;padding:24px 0 8px;justify-content:center}
 .rm-pgn-btn{background:var(--ink);color:#fff;border:none;padding:8px 20px;border-radius:6px;cursor:pointer;font-family:Poppins;font-size:.8rem;font-weight:600}

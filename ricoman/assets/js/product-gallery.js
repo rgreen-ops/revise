@@ -352,8 +352,8 @@
 		function applyPage( matched ) {
 			matchedCards = matched;
 			var start = ( curPage - 1 ) * PER_PAGE;
-			cards.forEach( function ( c ) { c.hidden = true; } );
-			matched.slice( start, start + PER_PAGE ).forEach( function ( c ) { c.hidden = false; } );
+			cards.forEach( function ( c ) { c.classList.add( 'rm-pg-hide' ); } );
+			matched.slice( start, start + PER_PAGE ).forEach( function ( c ) { c.classList.remove( 'rm-pg-hide' ); } );
 			renderPagination( matched.length );
 		}
 
@@ -390,7 +390,7 @@
 				if ( wantMount.length && ! wantMount.some( function ( v ) { return cm.indexOf( v ) >= 0; } ) ) { ok = false; }
 				if ( wantFin.length   && ! wantFin.some(   function ( v ) { return cn.indexOf( v ) >= 0; } ) ) { ok = false; }
 				if ( ok ) { matched.push( c ); shown++; }
-				if ( ! isPaged ) { c.hidden = ! ok; }
+				if ( ! isPaged ) { c.classList.toggle( 'rm-pg-hide', ! ok ); }
 			} );
 			if ( isPaged ) { curPage = 1; applyPage( matched ); }
 			[].slice.call( w.querySelectorAll( '.rm-catsec' ) ).forEach( function ( s ) {

@@ -496,15 +496,14 @@ function ricoman_pcard_html( $url, $pid, $img, $sub, $mx, $co, $fslug, $cats, $m
  * Method, Finish, Lumens, Wattage. Client-side JS pagination (24 per page).
  * ------------------------------------------------------------------------- */
 add_shortcode( 'ricoman_all_products', function () {
-	$args = array(
+	$posts = get_posts( array(
 		'post_type'      => 'product',
 		'post_status'    => 'publish',
 		'posts_per_page' => -1,
 		'orderby'        => array( 'menu_order' => 'ASC', 'title' => 'ASC' ),
 		'no_found_rows'  => true,
-	);
-	$q = new WP_Query( $args );
-	if ( ! $q->have_posts() ) {
+	) );
+	if ( empty( $posts ) ) {
 		return '<div class="rm-pp-wrap"><p class="rm-config-note">No products yet.</p></div>';
 	}
 
@@ -517,9 +516,9 @@ add_shortcode( 'ricoman_all_products', function () {
 	$all_mts  = array();
 	$all_fins = array();
 
-	while ( $q->have_posts() ) {
-		$q->the_post();
-		$pid   = get_the_ID();
+	foreach ( $posts as $post ) {
+		setup_postdata( $post );
+		$pid   = $post->ID;
 		$mx    = ricoman_pf_metrics( $pid );
 		$maxlm = max( $maxlm, $mx['lm'] );
 		$maxw  = max( $maxw, $mx['w'] );
@@ -540,20 +539,26 @@ add_shortcode( 'ricoman_all_products', function () {
 		$isnw = get_post_meta( $pid, '_ricoman_is_new', true ) ? true : false;
 
 		foreach ( $cats as $s ) {
-			$all_cats[ $s ] = get_term_by( 'slug', $s, 'product-cat' )->name ?? $s;
+			if ( ! isset( $all_cats[ $s ] ) ) {
+				$t = get_term_by( 'slug', $s, 'product-cat' );
+				$all_cats[ $s ] = $t ? $t->name : ucwords( str_replace( '-', ' ', $s ) );
+			}
 		}
 		foreach ( $mts as $s ) {
-			$all_mts[ $s ] = get_term_by( 'slug', $s, 'mounting-method' )->name ?? $s;
+			if ( ! isset( $all_mts[ $s ] ) ) {
+				$t = get_term_by( 'slug', $s, 'mounting-method' );
+				$all_mts[ $s ] = $t ? $t->name : ucwords( str_replace( '-', ' ', $s ) );
+			}
 		}
 		foreach ( $fins as $s ) {
 			$all_fins[ $s ] = ucwords( str_replace( '-', ' ', $s ) );
 		}
 
-		$cards .= ricoman_pcard_html( get_permalink(), $pid, $img, $sub, $mx, $co, $fslug, $cats, $mts, $fins, $isnw );
+		$cards .= ricoman_pcard_html( get_permalink( $pid ), $pid, $img, $sub, $mx, $co, $fslug, $cats, $mts, $fins, $isnw );
 	}
 	wp_reset_postdata();
 
-	$total = $q->post_count;
+	$total = count( $posts );
 	$maxlm = $maxlm > 0 ? (int) ( ceil( $maxlm / 500 ) * 500 ) : 0;
 	$maxw  = $maxw > 0 ? (int) ( ceil( $maxw / 5 ) * 5 ) : 0;
 	$maxco = $maxco > 0 ? (int) ( ceil( $maxco / 5 ) * 5 ) : 0;
