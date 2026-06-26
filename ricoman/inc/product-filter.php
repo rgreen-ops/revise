@@ -505,24 +505,12 @@ add_shortcode( 'ricoman_all_products', function () {
 	$acy_term = get_term_by( 'name', 'Accessories', $pcat_tax );
 	$acy_slug = $acy_term ? $acy_term->slug : 'accessories';
 
-	// Build set of product IDs that should show by default (linear lighting, incl. children).
-	$linear_term  = get_term_by( 'slug', 'led-linear-lighting', $pcat_tax );
-	$default_pids = array();
-	if ( $linear_term ) {
-		$tids = array_merge( array( $linear_term->term_id ), get_term_children( $linear_term->term_id, $pcat_tax ) );
-		foreach ( $tids as $tid ) {
-			$pids_in = get_objects_in_term( (int) $tid, $pcat_tax );
-			if ( ! is_wp_error( $pids_in ) ) {
-				foreach ( $pids_in as $pid_in ) { $default_pids[ (int) $pid_in ] = true; }
-			}
-		}
-	}
-
 	$posts = get_posts( array(
 		'post_type'      => 'product',
 		'post_status'    => 'publish',
 		'posts_per_page' => -1,
-		'orderby'        => array( 'menu_order' => 'ASC', 'title' => 'ASC' ),
+		'orderby'        => 'date',
+		'order'          => 'DESC',
 		'no_found_rows'  => true,
 	) );
 	if ( empty( $posts ) ) {
@@ -577,8 +565,7 @@ add_shortcode( 'ricoman_all_products', function () {
 			$all_fins[ $s ] = ucwords( str_replace( '-', ' ', $s ) );
 		}
 
-		$is_default = isset( $default_pids[ $pid ] );
-		$cards .= ricoman_pcard_html( get_permalink( $pid ), $pid, $img, $sub, $mx, $co, $fslug, $cats, $mts, $fins, $isnw, $isacy, $is_default );
+		$cards .= ricoman_pcard_html( get_permalink( $pid ), $pid, $img, $sub, $mx, $co, $fslug, $cats, $mts, $fins, $isnw, $isacy );
 	}
 	wp_reset_postdata();
 

@@ -399,15 +399,9 @@
 				if ( wantCat.length   && ! wantCat.some(   function ( v ) { return cc.indexOf( v ) >= 0; } ) ) { ok = false; }
 				if ( wantMount.length && ! wantMount.some( function ( v ) { return cm.indexOf( v ) >= 0; } ) ) { ok = false; }
 				if ( wantFin.length   && ! wantFin.some(   function ( v ) { return cn.indexOf( v ) >= 0; } ) ) { ok = false; }
-				// All-products page only: apply default (linear) view and accessories logic.
-				if ( isPaged ) {
-					if ( ! wantCat.length ) {
-						// Default: show only data-default products, never accessories.
-						if ( c.dataset.default !== '1' || ( acyCat && cc.indexOf( acyCat ) >= 0 ) ) { ok = false; }
-					} else if ( acyCat && cc.indexOf( acyCat ) >= 0 && wantCat.indexOf( acyCat ) < 0 ) {
-						// Hide accessories when a non-accessory category is active.
-						ok = false;
-					}
+				// All-products page only: hide accessories unless explicitly selected.
+				if ( isPaged && acyCat && cc.indexOf( acyCat ) >= 0 && wantCat.indexOf( acyCat ) < 0 ) {
+					ok = false;
 				}
 				if ( ok ) { matched.push( c ); shown++; }
 				if ( ! isPaged ) { c.style.display = ok ? '' : 'none'; }
