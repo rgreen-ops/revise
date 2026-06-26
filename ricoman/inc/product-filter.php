@@ -465,14 +465,15 @@ function ricoman_pcard_finish_slugs( $pid ) {
 }
 
 /** Build a portrait product card <a> element. */
-function ricoman_pcard_html( $url, $pid, $img, $sub, $mx, $co, $fslug, $cats, $mts, $fins, $isnew = false, $is_accessory = false ) {
+function ricoman_pcard_html( $url, $pid, $img, $sub, $mx, $co, $fslug, $cats, $mts, $fins, $isnew = false, $is_accessory = false, $is_default = false ) {
 	$h  = '<a class="rm-fcard rm-pcard" href="' . esc_url( $url ) . '"'
 		. ' data-lm="' . (int) $mx['lm'] . '" data-w="' . (int) $mx['w'] . '" data-co="' . (int) $co . '"'
 		. ' data-feat="' . esc_attr( implode( ' ', $fslug ) ) . '"'
 		. ' data-cat="' . esc_attr( implode( ' ', $cats ) ) . '"'
 		. ' data-mount="' . esc_attr( implode( ' ', $mts ) ) . '"'
 		. ' data-fin="' . esc_attr( implode( ' ', $fins ) ) . '"'
-		. ( $is_accessory ? ' data-accessory="1"' : '' ) . '>';
+		. ( $is_accessory ? ' data-accessory="1"' : '' )
+		. ( $is_default  ? ' data-default="1"'   : '' ) . '>';
 	$h .= '<div class="rm-pcard-img">';
 	if ( $img ) {
 		$h .= '<img src="' . esc_url( $img ) . '" alt="' . esc_attr( get_the_title( $pid ) ) . '" loading="lazy">';
@@ -501,9 +502,18 @@ add_shortcode( 'ricoman_all_products', function () {
 	$acy_term = get_term_by( 'name', 'Accessories', 'product-cat' );
 	$acy_slug = $acy_term ? $acy_term->slug : 'accessories';
 
-	// Resolve the default category (LED Linear Lighting) to pre-select on load.
-	$default_cat_term = get_term_by( 'slug', 'led-linear-lighting', 'product-cat' );
-	$default_cat_slug = $default_cat_term ? $default_cat_term->slug : '';
+	// Build set of product IDs that should show by default (linear lighting, incl. children).
+	$linear_term = get_term_by( 'slug', 'led-linear-lighting', 'product-cat' );
+	$default_pids = array();
+	if ( $linear_term ) {
+		$tids = array_merge( array( $linear_term->term_id ), get_term_children( $linear_term->term_id, 'product-cat' ) );
+		foreach ( $tids as $tid ) {
+			$pids_in = get_objects_in_term( (int) $tid, 'product-cat' );
+			if ( ! is_wp_error( $pids_in ) ) {
+				foreach ( $pids_in as $pid_in ) { $default_pids[ (int) $pid_in ] = true; }
+			}
+		}
+	}
 
 	$posts = get_posts( array(
 		'post_type'      => 'product',
@@ -564,7 +574,8 @@ add_shortcode( 'ricoman_all_products', function () {
 			$all_fins[ $s ] = ucwords( str_replace( '-', ' ', $s ) );
 		}
 
-		$cards .= ricoman_pcard_html( get_permalink( $pid ), $pid, $img, $sub, $mx, $co, $fslug, $cats, $mts, $fins, $isnw, $isacy );
+		$is_default = isset( $default_pids[ $pid ] );
+		$cards .= ricoman_pcard_html( get_permalink( $pid ), $pid, $img, $sub, $mx, $co, $fslug, $cats, $mts, $fins, $isnw, $isacy, $is_default );
 	}
 	wp_reset_postdata();
 
@@ -620,8 +631,7 @@ add_shortcode( 'ricoman_all_products', function () {
 	$cat_opts = '<option value="">All Categories</option>';
 	asort( $all_cats );
 	foreach ( $all_cats as $slug => $label ) {
-		$selected  = ( $slug === $default_cat_slug ) ? ' selected' : '';
-		$cat_opts .= '<option value="' . esc_attr( $slug ) . '"' . $selected . '>' . esc_html( $label ) . '</option>';
+		$cat_opts .= '<option value="' . esc_attr( $slug ) . '">' . esc_html( $label ) . '</option>';
 	}
 
 	// Mounting method dropdown.
@@ -649,13 +659,13 @@ add_shortcode( 'ricoman_all_products', function () {
 	}
 	$sidebar .= '<button type="button" class="rm-fclear">Clear filters</button>';
 
-	$out  = '<div class="rm-pp-wrap rm-catarch rm-allprods" data-acy-cat="' . esc_attr( $acy_slug ) . '" data-default-cat="' . esc_attr( $default_cat_slug ) . '">';
+	$out  = '<div class="rm-pp-wrap rm-catarch rm-allprods" data-acy-cat="' . esc_attr( $acy_slug ) . '">';
 	$out .= '<div class="rm-pp-crumb">' . $crumb . '</div>';
 	$out .= '<h1 class="rm-catarch-title">All Products <span class="rm-catarch-count" aria-hidden="true">' . (int) $total . '</span></h1>';
 	$out .= '<div class="rm-catgrid-wrap"><aside class="rm-facets">' . $sidebar . '</aside>';
 	$out .= '<div class="rm-catgrid">';
 	$out .= '<div class="rm-catgrid-top"><p class="rm-fcount"><b>' . (int) $total . '</b> products</p><div class="rm-pgn rm-pgn-top" aria-label="Products pagination top"></div></div>';
-	$out .= '<div class="rm-allpgrid">' . $cards . '</div>';
+	$out .= '<div class="rm-allpgrid" style="display:grid;grid-template-columns:repeat(5,1fr);grid-auto-rows:auto;gap:16px">' . $cards . '</div>';
 	$out .= '<p class="rm-fnone" hidden>No products match those filters. <button type="button" class="rm-fclear">Clear filters</button></p>';
 	$out .= '<div class="rm-pgn rm-pgn-bot" aria-label="Products pagination"></div>';
 	$out .= '</div></div></div>';

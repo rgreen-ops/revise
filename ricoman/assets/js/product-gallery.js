@@ -328,7 +328,6 @@
 		var count = w.querySelector( '.rm-fcount b' ), none = w.querySelector( '.rm-fnone' );
 		var catSel = w.querySelector( '.rm-fcat-sel' ), mountSel = w.querySelector( '.rm-fmount-sel' );
 		var acyCat = w.dataset.acyCat || '';
-		var defaultCat = w.dataset.defaultCat || '';
 		var isPaged = w.classList.contains( 'rm-allprods' );
 		var pgn = w.querySelector( '.rm-pgn-bot' ) || w.querySelector( '.rm-pgn' );
 		var pgnTop = w.querySelector( '.rm-pgn-top' );
@@ -400,8 +399,12 @@
 				if ( wantCat.length   && ! wantCat.some(   function ( v ) { return cc.indexOf( v ) >= 0; } ) ) { ok = false; }
 				if ( wantMount.length && ! wantMount.some( function ( v ) { return cm.indexOf( v ) >= 0; } ) ) { ok = false; }
 				if ( wantFin.length   && ! wantFin.some(   function ( v ) { return cn.indexOf( v ) >= 0; } ) ) { ok = false; }
-				// Hide accessories by default unless a category is explicitly selected.
-				if ( acyCat && ! wantCat.length && cc.indexOf( acyCat ) >= 0 ) { ok = false; }
+				// When no category is selected: show only default (linear) products, hide accessories.
+				if ( ! wantCat.length ) {
+					if ( c.dataset.default !== '1' ) { ok = false; }
+				} else if ( acyCat && cc.indexOf( acyCat ) >= 0 && wantCat.indexOf( acyCat ) < 0 ) {
+					ok = false;
+				}
 				if ( ok ) { matched.push( c ); shown++; }
 				if ( ! isPaged ) { c.classList.toggle( 'rm-pg-hide', ! ok ); }
 			} );
@@ -428,7 +431,7 @@
 				if ( lmMin ) { lmMin.value = lmMin.min; } if ( lmMax ) { lmMax.value = lmMax.max; }
 				if ( wMin ) { wMin.value = wMin.min; } if ( wMax ) { wMax.value = wMax.max; }
 				if ( coMin ) { coMin.value = coMin.min; } if ( coMax ) { coMax.value = coMax.max; }
-				if ( catSel )   { catSel.value   = defaultCat; }
+				if ( catSel )   { catSel.value   = ''; }
 				if ( mountSel ) { mountSel.value = ''; }
 				w.querySelectorAll( '.rm-ftick input' ).forEach( function ( i ) { i.checked = false; } ); apply();
 			} );
