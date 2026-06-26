@@ -232,6 +232,26 @@ function ricoman_register_taxonomies() {
 			'rewrite'           => array( 'slug' => 'spc', 'with_front' => false ),
 		)
 	);
+
+	// Mounting method (Surface, Recessed, Suspended, Track, Wall…) for filter sidebar.
+	register_taxonomy(
+		'mounting-method',
+		'product',
+		array(
+			'labels'            => array(
+				'name'          => __( 'Mounting Methods', 'ricoman' ),
+				'singular_name' => __( 'Mounting Method', 'ricoman' ),
+				'menu_name'     => __( 'Mounting Methods', 'ricoman' ),
+				'add_new_item'  => __( 'Add Mounting Method', 'ricoman' ),
+			),
+			'hierarchical'      => false,
+			'public'            => false,
+			'show_ui'           => true,
+			'show_admin_column' => true,
+			'show_in_rest'      => true,
+			'rewrite'           => false,
+		)
+	);
 }
 add_action( 'init', 'ricoman_register_taxonomies' );
 

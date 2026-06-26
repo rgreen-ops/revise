@@ -357,18 +357,15 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 			$allfeat[ $f ] = true;
 			$fslug[]       = sanitize_title( $f );
 		}
-		$img   = function_exists( 'ricoman_product_img' ) ? ricoman_product_img( $pid ) : get_the_post_thumbnail_url( $pid, 'large' );
-		$sub   = function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( $pid, 'product_subname' ) : '';
-		$style = $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '';
-		// Lumens/wattage stay as data-attributes for the filter, but are NOT shown
-		// on the card: a product spans many variants with different output/power,
-		// so a single figure on the card would mislead.
-		$cards .= '<a class="rm-projcard rm-fcard" href="' . esc_url( get_permalink() ) . '"'
-			. ' data-lm="' . (int) $mx['lm'] . '" data-w="' . (int) $mx['w'] . '" data-co="' . $co . '" data-feat="' . esc_attr( implode( ' ', $fslug ) ) . '"' . $style . '>'
-			. '<span class="rm-projcard-ov">'
-			. ( $sub ? '<span class="rm-eyebrow">' . esc_html( $sub ) . '</span>' : '' )
-			. '<span class="rm-projcard-t">' . esc_html( get_the_title() ) . '</span>'
-			. '</span></a>';
+		$img  = function_exists( 'ricoman_product_img' ) ? ricoman_product_img( $pid ) : get_the_post_thumbnail_url( $pid, 'large' );
+		$sub  = function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( $pid, 'product_subname' ) : '';
+		$cats = wp_get_post_terms( $pid, 'product-cat', array( 'fields' => 'slugs' ) );
+		$cats = is_wp_error( $cats ) ? array() : $cats;
+		$mts  = wp_get_post_terms( $pid, 'mounting-method', array( 'fields' => 'slugs' ) );
+		$mts  = is_wp_error( $mts ) ? array() : $mts;
+		$fins = ricoman_pcard_finish_slugs( $pid );
+		$isnw = get_post_meta( $pid, '_ricoman_is_new', true ) ? true : false;
+		$cards .= ricoman_pcard_html( get_permalink(), $pid, $img, $sub, $mx, $co, $fslug, $cats, $mts, $fins, $isnw );
 	}
 	wp_reset_postdata();
 
@@ -441,6 +438,196 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 
 	// Filtering is wired up by the enqueued product-gallery.js (rmCatFilterInit),
 	// keyed off .rm-catarch — reliable regardless of where the markup lands.
+	return $out;
+} );
+
+/* ---------------------------------------------------------------------------
+ * Shared product card helpers.
+ * ------------------------------------------------------------------------- */
+
+/** Return sanitized finish slugs from _ricoman_finishes meta. */
+function ricoman_pcard_finish_slugs( $pid ) {
+	$raw = get_post_meta( $pid, '_ricoman_finishes', true );
+	if ( ! $raw ) {
+		return array();
+	}
+	$data = json_decode( $raw, true );
+	if ( ! is_array( $data ) ) {
+		return array();
+	}
+	$slugs = array();
+	foreach ( $data as $row ) {
+		if ( ! empty( $row['name'] ) ) {
+			$slugs[] = sanitize_title( $row['name'] );
+		}
+	}
+	return $slugs;
+}
+
+/** Build a portrait product card <a> element. */
+function ricoman_pcard_html( $url, $pid, $img, $sub, $mx, $co, $fslug, $cats, $mts, $fins, $isnew = false ) {
+	$h  = '<a class="rm-fcard rm-pcard" href="' . esc_url( $url ) . '"'
+		. ' data-lm="' . (int) $mx['lm'] . '" data-w="' . (int) $mx['w'] . '" data-co="' . (int) $co . '"'
+		. ' data-feat="' . esc_attr( implode( ' ', $fslug ) ) . '"'
+		. ' data-cat="' . esc_attr( implode( ' ', $cats ) ) . '"'
+		. ' data-mount="' . esc_attr( implode( ' ', $mts ) ) . '"'
+		. ' data-fin="' . esc_attr( implode( ' ', $fins ) ) . '">';
+	$h .= '<div class="rm-pcard-img">';
+	if ( $img ) {
+		$h .= '<img src="' . esc_url( $img ) . '" alt="' . esc_attr( get_the_title( $pid ) ) . '" loading="lazy">';
+	}
+	if ( $isnew ) {
+		$h .= '<span class="rm-pcard-badge">New</span>';
+	}
+	$h .= '</div>';
+	$h .= '<div class="rm-pcard-body">';
+	if ( $sub ) {
+		$h .= '<span class="rm-eyebrow rm-pcard-eyebrow">' . esc_html( $sub ) . '</span>';
+	}
+	$h .= '<span class="rm-pcard-title">' . esc_html( get_the_title( $pid ) ) . '</span>';
+	$h .= '</div>';
+	$h .= '</a>';
+	return $h;
+}
+
+/* ---------------------------------------------------------------------------
+ * All-products archive with extended faceted filter. [ricoman_all_products]
+ * Shows every published product with sidebar filters: Category, Mounting
+ * Method, Finish, Lumens, Wattage. Client-side JS pagination (24 per page).
+ * ------------------------------------------------------------------------- */
+add_shortcode( 'ricoman_all_products', function () {
+	$args = array(
+		'post_type'      => 'product',
+		'post_status'    => 'publish',
+		'posts_per_page' => -1,
+		'orderby'        => array( 'menu_order' => 'ASC', 'title' => 'ASC' ),
+		'no_found_rows'  => true,
+	);
+	$q = new WP_Query( $args );
+	if ( ! $q->have_posts() ) {
+		return '<div class="rm-pp-wrap"><p class="rm-config-note">No products yet.</p></div>';
+	}
+
+	$cards    = '';
+	$maxlm    = 0;
+	$maxw     = 0;
+	$maxco    = 0;
+	$allfeat  = array();
+	$all_cats = array();
+	$all_mts  = array();
+	$all_fins = array();
+
+	while ( $q->have_posts() ) {
+		$q->the_post();
+		$pid   = get_the_ID();
+		$mx    = ricoman_pf_metrics( $pid );
+		$maxlm = max( $maxlm, $mx['lm'] );
+		$maxw  = max( $maxw, $mx['w'] );
+		$co    = (int) ( $mx['co'] ?? 0 );
+		$maxco = max( $maxco, $co );
+		$fslug = array();
+		foreach ( $mx['feats'] as $f ) {
+			$allfeat[ $f ] = true;
+			$fslug[]       = sanitize_title( $f );
+		}
+		$img  = function_exists( 'ricoman_product_img' ) ? ricoman_product_img( $pid ) : get_the_post_thumbnail_url( $pid, 'large' );
+		$sub  = function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( $pid, 'product_subname' ) : '';
+		$cats = wp_get_post_terms( $pid, 'product-cat', array( 'fields' => 'slugs' ) );
+		$cats = is_wp_error( $cats ) ? array() : $cats;
+		$mts  = wp_get_post_terms( $pid, 'mounting-method', array( 'fields' => 'slugs' ) );
+		$mts  = is_wp_error( $mts ) ? array() : $mts;
+		$fins = ricoman_pcard_finish_slugs( $pid );
+		$isnw = get_post_meta( $pid, '_ricoman_is_new', true ) ? true : false;
+
+		foreach ( $cats as $s ) {
+			$all_cats[ $s ] = get_term_by( 'slug', $s, 'product-cat' )->name ?? $s;
+		}
+		foreach ( $mts as $s ) {
+			$all_mts[ $s ] = get_term_by( 'slug', $s, 'mounting-method' )->name ?? $s;
+		}
+		foreach ( $fins as $s ) {
+			$all_fins[ $s ] = ucwords( str_replace( '-', ' ', $s ) );
+		}
+
+		$cards .= ricoman_pcard_html( get_permalink(), $pid, $img, $sub, $mx, $co, $fslug, $cats, $mts, $fins, $isnw );
+	}
+	wp_reset_postdata();
+
+	$total = $q->post_count;
+	$maxlm = $maxlm > 0 ? (int) ( ceil( $maxlm / 500 ) * 500 ) : 0;
+	$maxw  = $maxw > 0 ? (int) ( ceil( $maxw / 5 ) * 5 ) : 0;
+	$maxco = $maxco > 0 ? (int) ( ceil( $maxco / 5 ) * 5 ) : 0;
+
+	// Sliders.
+	$lmslider = $maxlm ? '<div class="rm-frange rm-dual"><label>Light output <b class="rm-lm-lo">0</b> – <b class="rm-lm-hi">' . $maxlm . '</b> lm</label>'
+		. '<div class="rm-dual-track"><input type="range" class="rm-lm-min" aria-label="Minimum lumens" min="0" max="' . $maxlm . '" step="100" value="0">'
+		. '<input type="range" class="rm-lm-max" aria-label="Maximum lumens" min="0" max="' . $maxlm . '" step="100" value="' . $maxlm . '"></div></div>' : '';
+	$wslider  = $maxw ? '<div class="rm-frange rm-dual"><label>Power <b class="rm-w-lo">0</b> – <b class="rm-w-hi">' . $maxw . '</b> W</label>'
+		. '<div class="rm-dual-track"><input type="range" class="rm-w-min" aria-label="Minimum watts" min="0" max="' . $maxw . '" step="1" value="0">'
+		. '<input type="range" class="rm-w-max" aria-label="Maximum watts" min="0" max="' . $maxw . '" step="1" value="' . $maxw . '"></div></div>' : '';
+
+	// Feature tick-boxes.
+	ksort( $allfeat );
+	$excluded = ricoman_pf_excluded_features();
+	$ticks    = '';
+	foreach ( array_keys( $allfeat ) as $f ) {
+		if ( ! preg_match( '/[a-z]{2,}/i', (string) $f ) || in_array( $f, $excluded, true ) ) {
+			continue;
+		}
+		$slug   = sanitize_title( $f );
+		$ticks .= '<label class="rm-ftick"><input type="checkbox" value="' . esc_attr( $slug ) . '"> ' . esc_html( $f ) . '</label>';
+	}
+
+	// Category checkboxes.
+	asort( $all_cats );
+	$cat_ticks = '';
+	foreach ( $all_cats as $slug => $label ) {
+		$cat_ticks .= '<label class="rm-ftick"><input type="checkbox" class="rm-fcat-cb" value="' . esc_attr( $slug ) . '"> ' . esc_html( $label ) . '</label>';
+	}
+
+	// Mounting method checkboxes.
+	asort( $all_mts );
+	$mt_ticks = '';
+	foreach ( $all_mts as $slug => $label ) {
+		$mt_ticks .= '<label class="rm-ftick"><input type="checkbox" class="rm-fmount-cb" value="' . esc_attr( $slug ) . '"> ' . esc_html( $label ) . '</label>';
+	}
+
+	// Finish checkboxes.
+	asort( $all_fins );
+	$fin_ticks = '';
+	foreach ( $all_fins as $slug => $label ) {
+		$fin_ticks .= '<label class="rm-ftick"><input type="checkbox" class="rm-ffin-cb" value="' . esc_attr( $slug ) . '"> ' . esc_html( $label ) . '</label>';
+	}
+
+	$crumb = do_shortcode( '[ricoman_breadcrumbs]' );
+
+	$sidebar  = '<p class="rm-facets-head">Filter</p>';
+	$sidebar .= $lmslider . $wslider;
+	if ( $cat_ticks ) {
+		$sidebar .= '<div class="rm-fgroup"><p class="rm-facets-sub">Category</p>' . $cat_ticks . '</div>';
+	}
+	if ( $mt_ticks ) {
+		$sidebar .= '<div class="rm-fgroup"><p class="rm-facets-sub">Mounting</p>' . $mt_ticks . '</div>';
+	}
+	if ( $fin_ticks ) {
+		$sidebar .= '<div class="rm-fgroup"><p class="rm-facets-sub">Finish</p>' . $fin_ticks . '</div>';
+	}
+	if ( $ticks ) {
+		$sidebar .= '<div class="rm-fgroup"><p class="rm-facets-sub">Features</p>' . $ticks . '</div>';
+	}
+	$sidebar .= '<button type="button" class="rm-fclear">Clear filters</button>';
+
+	$out  = '<div class="rm-pp-wrap rm-catarch rm-allprods">';
+	$out .= '<div class="rm-pp-crumb">' . $crumb . '</div>';
+	$out .= '<h1 class="rm-catarch-title">All Products <span class="rm-catarch-count" aria-hidden="true">' . (int) $total . '</span></h1>';
+	$out .= '<div class="rm-catgrid-wrap"><aside class="rm-facets">' . $sidebar . '</aside>';
+	$out .= '<div class="rm-catgrid">';
+	$out .= '<p class="rm-fcount"><b>' . (int) $total . '</b> products</p>';
+	$out .= '<div class="rm-prodgrid rm-fgrid rm-allpgrid">' . $cards . '</div>';
+	$out .= '<p class="rm-fnone" hidden>No products match those filters. <button type="button" class="rm-fclear">Clear filters</button></p>';
+	$out .= '<div class="rm-pgn" aria-label="Products pagination"></div>';
+	$out .= '</div></div></div>';
+
 	return $out;
 } );
 

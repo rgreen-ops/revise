@@ -326,9 +326,37 @@
 		var wLo = w.querySelector( '.rm-w-lo' ), wHi = w.querySelector( '.rm-w-hi' );
 		var coLo = w.querySelector( '.rm-co-lo' ), coHi = w.querySelector( '.rm-co-hi' );
 		var count = w.querySelector( '.rm-fcount b' ), none = w.querySelector( '.rm-fnone' );
-		function ticks() {
-			return [].slice.call( w.querySelectorAll( '.rm-ftick input:checked' ) ).map( function ( i ) { return i.value; } );
+		var isPaged = w.classList.contains( 'rm-allprods' );
+		var pgn = w.querySelector( '.rm-pgn' );
+		var PER_PAGE = 24, curPage = 1;
+
+		function checkedVals( sel ) {
+			return [].slice.call( w.querySelectorAll( sel + ':checked' ) ).map( function ( i ) { return i.value; } );
 		}
+		function ticks() { return checkedVals( '.rm-ftick input' ); }
+
+		function renderPagination( total ) {
+			if ( ! pgn ) { return; }
+			var pages = Math.ceil( total / PER_PAGE );
+			if ( pages <= 1 ) { pgn.innerHTML = ''; return; }
+			var html = '';
+			if ( curPage > 1 ) { html += '<button class="rm-pgn-btn" data-p="' + ( curPage - 1 ) + '">&larr; Prev</button>'; }
+			html += '<span class="rm-pgn-info">Page ' + curPage + ' of ' + pages + '</span>';
+			if ( curPage < pages ) { html += '<button class="rm-pgn-btn" data-p="' + ( curPage + 1 ) + '">Next &rarr;</button>'; }
+			pgn.innerHTML = html;
+			pgn.querySelectorAll( '.rm-pgn-btn' ).forEach( function ( b ) {
+				b.addEventListener( 'click', function () { curPage = +b.dataset.p; applyPage( matchedCards ); pgn.scrollIntoView( { behavior: 'smooth', block: 'nearest' } ); } );
+			} );
+		}
+		var matchedCards = [];
+		function applyPage( matched ) {
+			matchedCards = matched;
+			var start = ( curPage - 1 ) * PER_PAGE;
+			cards.forEach( function ( c ) { c.hidden = true; } );
+			matched.slice( start, start + PER_PAGE ).forEach( function ( c ) { c.hidden = false; } );
+			renderPagination( matched.length );
+		}
+
 		function apply() {
 			var loLm = lmMin ? +lmMin.value : 0, hiLm = lmMax ? +lmMax.value : 1e9;
 			var loW = wMin ? +wMin.value : 0, hiW = wMax ? +wMax.value : 1e9;
@@ -342,23 +370,33 @@
 			if ( wHi ) { wHi.textContent = hiW; }
 			if ( coLo ) { coLo.textContent = loCo; }
 			if ( coHi ) { coHi.textContent = hiCo; }
-			var want = ticks(), shown = 0;
+			var want = ticks();
+			var wantCat   = checkedVals( '.rm-fcat-cb' );
+			var wantMount = checkedVals( '.rm-fmount-cb' );
+			var wantFin   = checkedVals( '.rm-ffin-cb' );
+			var matched = [], shown = 0;
 			cards.forEach( function ( c ) {
-				var clm = +c.dataset.lm || 0, cw = +c.dataset.w || 0, cco = +c.dataset.co || 0, cf = ( c.dataset.feat || '' ).split( ' ' );
+				var clm = +c.dataset.lm || 0, cw = +c.dataset.w || 0, cco = +c.dataset.co || 0;
+				var cf = ( c.dataset.feat  || '' ).split( ' ' ).filter( Boolean );
+				var cc = ( c.dataset.cat   || '' ).split( ' ' ).filter( Boolean );
+				var cm = ( c.dataset.mount || '' ).split( ' ' ).filter( Boolean );
+				var cn = ( c.dataset.fin   || '' ).split( ' ' ).filter( Boolean );
 				var ok = true;
-				// When a range filter is active, products without that metric
-				// (accessories, track housing, etc.) are excluded — they can't
-				// satisfy a lumen/wattage/cut-out requirement.
 				if ( ! lmFull && ( clm <= 0 || clm < loLm || clm > hiLm ) ) { ok = false; }
-				if ( ! wFull && ( cw <= 0 || cw < loW || cw > hiW ) ) { ok = false; }
+				if ( ! wFull  && ( cw  <= 0 || cw  < loW  || cw  > hiW  ) ) { ok = false; }
 				if ( ! coFull && ( cco <= 0 || cco < loCo || cco > hiCo ) ) { ok = false; }
-				want.forEach( function ( f ) { if ( cf.indexOf( f ) < 0 ) { ok = false; } } );
-				c.hidden = ! ok; if ( ok ) { shown++; }
+				want.forEach(      function ( f ) { if ( cf.indexOf( f ) < 0 ) { ok = false; } } );
+				if ( wantCat.length   && ! wantCat.some(   function ( v ) { return cc.indexOf( v ) >= 0; } ) ) { ok = false; }
+				if ( wantMount.length && ! wantMount.some( function ( v ) { return cm.indexOf( v ) >= 0; } ) ) { ok = false; }
+				if ( wantFin.length   && ! wantFin.some(   function ( v ) { return cn.indexOf( v ) >= 0; } ) ) { ok = false; }
+				if ( ok ) { matched.push( c ); shown++; }
+				if ( ! isPaged ) { c.hidden = ! ok; }
 			} );
+			if ( isPaged ) { curPage = 1; applyPage( matched ); }
 			[].slice.call( w.querySelectorAll( '.rm-catsec' ) ).forEach( function ( s ) {
 				var vis = s.querySelectorAll( '.rm-fcard:not([hidden])' ).length;
 				s.hidden = vis === 0;
-				var cc = s.querySelector( '.rm-catarch-count' ); if ( cc ) { cc.textContent = vis; }
+				var cc2 = s.querySelector( '.rm-catarch-count' ); if ( cc2 ) { cc2.textContent = vis; }
 			} );
 			if ( count ) { count.textContent = shown; }
 			if ( none ) { none.hidden = shown > 0; }

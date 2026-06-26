@@ -1074,13 +1074,19 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-projcard-t{font-family:Poppins;font-weight:600;font-size:1.2rem;letter-spacing:-.01em;line-height:1.15;color:#fff;display:block}
 .rm-projcard-loc{font-family:Poppins;font-size:.82rem;font-weight:400;color:rgba(255,255,255,.85);display:block;margin-top:.35em}
 .rm-projcard img{width:100%;height:100%;object-fit:cover}
-/* Product cards (filter grid): show the WHOLE product — studio shots were being
-   cropped by the lifestyle "cover" treatment. Uniform square tile, image
-   contained on a neutral frame, title still overlaid at the bottom. */
+/* Portrait product cards — image-top + text-below, no overlay */
 .rm-fgrid{grid-auto-rows:auto;grid-auto-flow:row}
-.rm-fgrid .rm-projcard{grid-row:auto!important;min-height:0;aspect-ratio:1/1;background-color:#e4e4e4;background-size:contain;background-position:center}
-.rm-fgrid .rm-projcard::after{background:linear-gradient(180deg,rgba(0,0,0,0) 60%,rgba(0,0,0,.5))}
-.rm-fgrid .rm-projcard img{object-fit:contain}
+.rm-pcard{display:flex;flex-direction:column;text-decoration:none;color:var(--ink);border-radius:0;background:none;min-height:0;overflow:visible}
+.rm-pcard::after{display:none}
+.rm-pcard:hover{transform:none;box-shadow:none}
+.rm-pcard-img{position:relative;aspect-ratio:3/4;background:#f2f2f2;border-radius:10px;overflow:hidden;flex-shrink:0}
+.rm-pcard-img img{width:100%;height:100%;object-fit:contain;display:block;padding:8%}
+.rm-pcard-badge{position:absolute;top:10px;left:10px;background:#1a56ff;color:#fff;font-size:.6rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:3px 8px;border-radius:4px;font-family:Poppins}
+.rm-pcard-body{padding:10px 2px 0}
+.rm-pcard-eyebrow{display:block;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;font-family:Poppins;font-weight:600;color:var(--muted);margin-bottom:4px}
+.rm-pcard-title{display:block;font-size:.85rem;font-weight:600;font-family:Poppins;color:var(--ink);line-height:1.3}
+.rm-pcard:hover .rm-pcard-img{box-shadow:0 8px 24px rgba(0,0,0,.13);transform:translateY(-2px);transition:transform .2s,box-shadow .2s}
+.rm-pcard-img{transition:transform .2s,box-shadow .2s}
 /* Search results — uniform visual grid reusing the projcard look */
 .rm-searchgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin:0 0 36px}
 .rm-searchgrid .rm-searchcard{min-height:260px}
@@ -1253,6 +1259,16 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 @media(max-width:1200px){.rm-prodgrid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:860px){.rm-prodgrid{grid-template-columns:1fr 1fr}}
 @media(max-width:520px){.rm-prodgrid{grid-template-columns:1fr}}
+/* All-products archive: 5 columns (tighter cards fit more) */
+.rm-allpgrid{grid-template-columns:repeat(5,1fr)!important}
+@media(max-width:1300px){.rm-allpgrid{grid-template-columns:repeat(4,1fr)!important}}
+@media(max-width:1000px){.rm-allpgrid{grid-template-columns:repeat(3,1fr)!important}}
+@media(max-width:700px){.rm-allpgrid{grid-template-columns:repeat(2,1fr)!important}}
+/* Pagination controls */
+.rm-pgn{display:flex;align-items:center;gap:12px;padding:24px 0 8px;justify-content:center}
+.rm-pgn-btn{background:var(--ink);color:#fff;border:none;padding:8px 20px;border-radius:6px;cursor:pointer;font-family:Poppins;font-size:.8rem;font-weight:600}
+.rm-pgn-btn:hover{opacity:.82}
+.rm-pgn-info{font-size:.82rem;color:var(--muted)}
 .rm-catfilter{display:flex;flex-wrap:wrap;align-items:flex-end;gap:clamp(20px,3vw,46px);padding:20px 22px;border:1px solid var(--line);border-radius:14px;margin:0 0 22px}
 .rm-catfilter .rm-catfilter-ranges{display:flex;flex-wrap:wrap;gap:clamp(20px,3vw,40px);flex:1 1 360px}
 .rm-catfilter .rm-frange{margin:0;min-width:180px;flex:1 1 180px}
