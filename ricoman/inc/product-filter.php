@@ -659,7 +659,16 @@ add_shortcode( 'ricoman_all_products', function () {
 	}
 	$sidebar .= '<button type="button" class="rm-fclear">Clear filters</button>';
 
-	$out  = '<div class="rm-pp-wrap rm-catarch rm-allprods" data-acy-cat="' . esc_attr( $acy_slug ) . '">';
+	// Inline critical CSS so card layout works even if the stylesheet is cached.
+	$out  = '<style>'
+		. '.rm-pcard{display:flex!important;flex-direction:column;text-decoration:none;color:inherit;border-radius:0;background:none;overflow:visible}'
+		. '.rm-pcard-img{position:relative;aspect-ratio:3/4;background:#f2f2f2;border-radius:10px;overflow:hidden;flex-shrink:0}'
+		. '.rm-pcard-img img{width:100%;height:100%;object-fit:contain;display:block;padding:8%}'
+		. '.rm-pcard-body{padding:10px 2px 0}'
+		. '.rm-pcard-eyebrow{display:block;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;font-family:Poppins;font-weight:600;color:#888;margin-bottom:4px}'
+		. '.rm-pcard-title{display:block;font-size:.85rem;font-weight:600;font-family:Poppins;line-height:1.3}'
+		. '</style>';
+	$out .= '<div class="rm-pp-wrap rm-catarch rm-allprods" data-acy-cat="' . esc_attr( $acy_slug ) . '">';
 	$out .= '<div class="rm-pp-crumb">' . $crumb . '</div>';
 	$out .= '<h1 class="rm-catarch-title">All Products <span class="rm-catarch-count" aria-hidden="true">' . (int) $total . '</span></h1>';
 	$out .= '<div class="rm-catgrid-wrap"><aside class="rm-facets">' . $sidebar . '</aside>';

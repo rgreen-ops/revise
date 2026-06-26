@@ -362,8 +362,8 @@
 		function applyPage( matched ) {
 			matchedCards = matched;
 			var start = ( curPage - 1 ) * PER_PAGE;
-			cards.forEach( function ( c ) { c.classList.add( 'rm-pg-hide' ); } );
-			matched.slice( start, start + PER_PAGE ).forEach( function ( c ) { c.classList.remove( 'rm-pg-hide' ); } );
+			cards.forEach( function ( c ) { c.style.display = 'none'; } );
+			matched.slice( start, start + PER_PAGE ).forEach( function ( c ) { c.style.display = ''; } );
 			renderPagination( matched.length );
 		}
 
@@ -406,7 +406,7 @@
 					ok = false;
 				}
 				if ( ok ) { matched.push( c ); shown++; }
-				if ( ! isPaged ) { c.classList.toggle( 'rm-pg-hide', ! ok ); }
+				if ( ! isPaged ) { c.style.display = ok ? '' : 'none'; }
 			} );
 			if ( isPaged ) { curPage = 1; applyPage( matched ); }
 			[].slice.call( w.querySelectorAll( '.rm-catsec' ) ).forEach( function ( s ) {
