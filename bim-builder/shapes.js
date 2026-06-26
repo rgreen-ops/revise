@@ -36,7 +36,7 @@ export const FAMILIES = {
   },
 };
 
-const ARC_STEP_DEG = 3; // arc tessellation (smaller = smoother curves)
+const ARC_STEP_DEG = 1; // arc tessellation (smaller = smoother curves) — 1° for a smooth diffuser
 
 // ---- path generators (return { paths:[[ [x,y], ... ] ...], closed:bool }) ----
 export function buildPaths(family, shape, p) {
