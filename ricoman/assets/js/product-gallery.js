@@ -328,6 +328,7 @@
 		var count = w.querySelector( '.rm-fcount b' ), none = w.querySelector( '.rm-fnone' );
 		var catSel = w.querySelector( '.rm-fcat-sel' ), mountSel = w.querySelector( '.rm-fmount-sel' );
 		var acyCat = w.dataset.acyCat || '';
+		var defaultCat = w.dataset.defaultCat || '';
 		var isPaged = w.classList.contains( 'rm-allprods' );
 		var pgn = w.querySelector( '.rm-pgn-bot' ) || w.querySelector( '.rm-pgn' );
 		var pgnTop = w.querySelector( '.rm-pgn-top' );
@@ -427,7 +428,7 @@
 				if ( lmMin ) { lmMin.value = lmMin.min; } if ( lmMax ) { lmMax.value = lmMax.max; }
 				if ( wMin ) { wMin.value = wMin.min; } if ( wMax ) { wMax.value = wMax.max; }
 				if ( coMin ) { coMin.value = coMin.min; } if ( coMax ) { coMax.value = coMax.max; }
-				if ( catSel )   { catSel.value   = ''; }
+				if ( catSel )   { catSel.value   = defaultCat; }
 				if ( mountSel ) { mountSel.value = ''; }
 				w.querySelectorAll( '.rm-ftick input' ).forEach( function ( i ) { i.checked = false; } ); apply();
 			} );

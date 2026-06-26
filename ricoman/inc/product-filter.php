@@ -501,6 +501,10 @@ add_shortcode( 'ricoman_all_products', function () {
 	$acy_term = get_term_by( 'name', 'Accessories', 'product-cat' );
 	$acy_slug = $acy_term ? $acy_term->slug : 'accessories';
 
+	// Resolve the default category (LED Linear Lighting) to pre-select on load.
+	$default_cat_term = get_term_by( 'slug', 'led-linear-lighting', 'product-cat' );
+	$default_cat_slug = $default_cat_term ? $default_cat_term->slug : '';
+
 	$posts = get_posts( array(
 		'post_type'      => 'product',
 		'post_status'    => 'publish',
@@ -616,7 +620,8 @@ add_shortcode( 'ricoman_all_products', function () {
 	$cat_opts = '<option value="">All Categories</option>';
 	asort( $all_cats );
 	foreach ( $all_cats as $slug => $label ) {
-		$cat_opts .= '<option value="' . esc_attr( $slug ) . '">' . esc_html( $label ) . '</option>';
+		$selected  = ( $slug === $default_cat_slug ) ? ' selected' : '';
+		$cat_opts .= '<option value="' . esc_attr( $slug ) . '"' . $selected . '>' . esc_html( $label ) . '</option>';
 	}
 
 	// Mounting method dropdown.
@@ -644,7 +649,7 @@ add_shortcode( 'ricoman_all_products', function () {
 	}
 	$sidebar .= '<button type="button" class="rm-fclear">Clear filters</button>';
 
-	$out  = '<div class="rm-pp-wrap rm-catarch rm-allprods" data-acy-cat="' . esc_attr( $acy_slug ) . '">';
+	$out  = '<div class="rm-pp-wrap rm-catarch rm-allprods" data-acy-cat="' . esc_attr( $acy_slug ) . '" data-default-cat="' . esc_attr( $default_cat_slug ) . '">';
 	$out .= '<div class="rm-pp-crumb">' . $crumb . '</div>';
 	$out .= '<h1 class="rm-catarch-title">All Products <span class="rm-catarch-count" aria-hidden="true">' . (int) $total . '</span></h1>';
 	$out .= '<div class="rm-catgrid-wrap"><aside class="rm-facets">' . $sidebar . '</aside>';
