@@ -1259,11 +1259,11 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 @media(max-width:1200px){.rm-prodgrid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:860px){.rm-prodgrid{grid-template-columns:1fr 1fr}}
 @media(max-width:520px){.rm-prodgrid{grid-template-columns:1fr}}
-/* All-products archive: 5 columns (tighter cards fit more) */
-.rm-allpgrid{grid-template-columns:repeat(5,1fr)!important}
-@media(max-width:1300px){.rm-allpgrid{grid-template-columns:repeat(4,1fr)!important}}
-@media(max-width:1000px){.rm-allpgrid{grid-template-columns:repeat(3,1fr)!important}}
-@media(max-width:700px){.rm-allpgrid{grid-template-columns:repeat(2,1fr)!important}}
+/* All-products archive — standalone grid, no inheritance from rm-projgrid */
+.rm-allpgrid{display:grid;grid-template-columns:repeat(5,1fr);grid-auto-rows:auto;grid-auto-flow:row;gap:16px;margin-top:4px}
+@media(max-width:1300px){.rm-allpgrid{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:1000px){.rm-allpgrid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:700px){.rm-allpgrid{grid-template-columns:repeat(2,1fr)}}
 /* Pagination controls */
 .rm-pgn{display:flex;align-items:center;gap:12px;padding:24px 0 8px;justify-content:center}
 .rm-pgn-btn{background:var(--ink);color:#fff;border:none;padding:8px 20px;border-radius:6px;cursor:pointer;font-family:Poppins;font-size:.8rem;font-weight:600}
