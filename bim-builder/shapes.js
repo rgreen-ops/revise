@@ -228,19 +228,35 @@ function sweepInto(path, profile, closed, vertices, uvs, body, diff, caps, width
   }
 }
 
-/* Solid 3 mm end plate: a separate rectangular cap that covers the open end of
-   the extrusion and stands proud by its thickness, so it reads as a real
-   bolted-on plate. The OUTER face carries the engraved logo + countersunk screws
-   (textured, 'cap' group); the inner face and the four edge walls (the visible
-   thickness) are plain metal ('body' group). `outward` is the unit run direction
-   the plate stands proud along (in the X/Y plane). */
-const CAP_THICKNESS = 3;   // mm
+/* End plate that covers the open end of the extrusion and carries the engraved
+   logo + countersunk screws (textured, 'cap' group). `outward` is the unit run
+   direction the plate faces (in the X/Y plane).
+
+   CAP_THICKNESS = 0 keeps the cap flush with the body end: a single engraved face
+   seals the opening, so there's no proud "step" drawing a square line around the
+   perimeter. A positive thickness restores a proud bolted-on plate (its inner face
+   and four edge walls go in the plain-metal 'body' group). */
+const CAP_THICKNESS = 0;   // mm — 0 = flush end face (no perimeter step line)
 function cap(outline, ringBase, vertices, uvs, body, caps, outward, width, height, flip, wind) {
   const base = vertices.length / 3;
-  const ox = outward[0] * CAP_THICKNESS, oy = outward[1] * CAP_THICKNESS;
   const CORNER_UV = [[0, 1], [1, 1], [1, 0], [0, 0]];   // outline order: TL, TR, BR, BL
-  // Inner corners (base+0..3) at the body end — plain; outer corners (base+4..7)
-  // proud by the thickness — carry the texture UVs (flipped 180° on one cap).
+
+  // Flush cap: one engraved face at the body end, no proud step.
+  if (CAP_THICKNESS <= 0) {
+    for (let c = 0; c < 4; c++) {
+      const k = (ringBase + outline[c]) * 3;
+      const cu = flip ? 1 - CORNER_UV[c][0] : CORNER_UV[c][0];   // horizontal mirror only
+      vertices.push(vertices[k], vertices[k + 1], vertices[k + 2]);
+      uvs.push(cu, CORNER_UV[c][1]);
+    }
+    const O = (c) => base + c;
+    if (wind) caps.push(O(0), O(2), O(1), O(0), O(3), O(2));   // reversed so it faces outward
+    else caps.push(O(0), O(1), O(2), O(0), O(2), O(3));        // engraved outer face
+    return;
+  }
+
+  // Proud plate: inner corners at the body end, outer corners pushed proud.
+  const ox = outward[0] * CAP_THICKNESS, oy = outward[1] * CAP_THICKNESS;
   for (let c = 0; c < 4; c++) {
     const k = (ringBase + outline[c]) * 3;
     vertices.push(vertices[k], vertices[k + 1], vertices[k + 2]);
@@ -256,7 +272,7 @@ function cap(outline, ringBase, vertices, uvs, body, caps, outward, width, heigh
   if (wind) caps.push(O(0), O(2), O(1), O(0), O(3), O(2));   // reversed so it faces outward
   else caps.push(O(0), O(1), O(2), O(0), O(2), O(3));        // outer engraved face
   body.push(I(0), I(2), I(1), I(0), I(3), I(2));        // inner face (seals the end)
-  for (let c = 0; c < 4; c++) {                          // four edge walls = the 3 mm thickness
+  for (let c = 0; c < 4; c++) {                          // four edge walls = the thickness
     const d = (c + 1) % 4;
     body.push(I(c), I(d), O(d), I(c), O(d), O(c));
   }

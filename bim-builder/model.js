@@ -23,12 +23,34 @@ function getCapLogo() {
   return capLogoTex;
 }
 
-// Bump map for the end caps: a faint seam groove around the edge (the cap is a
-// separate plate) plus four flat countersunk corner screws. Grayscale height
-// data, so it shades these as recesses in whatever the body colour is.
+// Bump map for the end caps: four small countersunk corner screws on a flat field
+// (mid-grey = no displacement, so they read as recesses in whatever the body
+// colour is). No perimeter/seam groove. Built procedurally so the screw size is a
+// single tunable number — adjust SCREW_R below.
 let capBumpTex = null;
 function getCapBump() {
-  if (!capBumpTex) capBumpTex = new THREE.TextureLoader().load('assets/ricoman-cap-bump.png');
+  if (capBumpTex) return capBumpTex;
+  const S = 512;
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = S;
+  const g = cv.getContext('2d');
+  g.fillStyle = '#808080';                 // neutral height — no bump
+  g.fillRect(0, 0, S, S);
+  const INSET = 0.11 * S;                   // screw centre distance from each edge
+  const SCREW_R = 0.020 * S;                // screw radius (was ~0.055 in the old map)
+  const pts = [[INSET, INSET], [S - INSET, INSET], [S - INSET, S - INSET], [INSET, S - INSET]];
+  for (const [cx, cy] of pts) {
+    const rg = g.createRadialGradient(cx, cy, 0, cx, cy, SCREW_R);
+    rg.addColorStop(0, '#1a1a1a');          // recessed centre
+    rg.addColorStop(0.85, '#5e5e5e');
+    rg.addColorStop(1, '#808080');          // blend back into the flat field
+    g.fillStyle = rg;
+    g.beginPath(); g.arc(cx, cy, SCREW_R, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = '#101010';              // single flat-head drive slot
+    g.lineWidth = Math.max(1, SCREW_R * 0.24);
+    g.beginPath(); g.moveTo(cx - SCREW_R * 0.66, cy); g.lineTo(cx + SCREW_R * 0.66, cy); g.stroke();
+  }
+  capBumpTex = new THREE.CanvasTexture(cv);
   return capBumpTex;
 }
 
