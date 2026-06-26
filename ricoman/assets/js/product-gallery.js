@@ -328,7 +328,8 @@
 		var count = w.querySelector( '.rm-fcount b' ), none = w.querySelector( '.rm-fnone' );
 		var catSel = w.querySelector( '.rm-fcat-sel' ), mountSel = w.querySelector( '.rm-fmount-sel' );
 		var isPaged = w.classList.contains( 'rm-allprods' );
-		var pgn = w.querySelector( '.rm-pgn' );
+		var pgn = w.querySelector( '.rm-pgn-bot' ) || w.querySelector( '.rm-pgn' );
+		var pgnTop = w.querySelector( '.rm-pgn-top' );
 		var PER_PAGE = 24, curPage = 1;
 
 		function checkedVals( sel ) {
@@ -337,17 +338,24 @@
 		function ticks() { return checkedVals( '.rm-ftick input' ); }
 
 		function renderPagination( total ) {
-			if ( ! pgn ) { return; }
 			var pages = Math.ceil( total / PER_PAGE );
-			if ( pages <= 1 ) { pgn.innerHTML = ''; return; }
-			var html = '';
-			if ( curPage > 1 ) { html += '<button class="rm-pgn-btn" data-p="' + ( curPage - 1 ) + '">&larr; Prev</button>'; }
-			html += '<span class="rm-pgn-info">Page ' + curPage + ' of ' + pages + '</span>';
-			if ( curPage < pages ) { html += '<button class="rm-pgn-btn" data-p="' + ( curPage + 1 ) + '">Next &rarr;</button>'; }
-			pgn.innerHTML = html;
-			pgn.querySelectorAll( '.rm-pgn-btn' ).forEach( function ( b ) {
-				b.addEventListener( 'click', function () { curPage = +b.dataset.p; applyPage( matchedCards ); pgn.scrollIntoView( { behavior: 'smooth', block: 'nearest' } ); } );
-			} );
+			function buildHtml( isTop ) {
+				if ( pages <= 1 ) { return ''; }
+				var html = '';
+				if ( curPage > 1 ) { html += '<button class="rm-pgn-btn" data-p="' + ( curPage - 1 ) + '">&larr; Prev</button>'; }
+				html += '<span class="rm-pgn-info">Page ' + curPage + ' of ' + pages + '</span>';
+				if ( curPage < pages ) { html += '<button class="rm-pgn-btn" data-p="' + ( curPage + 1 ) + '">Next &rarr;</button>'; }
+				return html;
+			}
+			function wire( el, scrollTo ) {
+				if ( ! el ) { return; }
+				el.innerHTML = buildHtml();
+				el.querySelectorAll( '.rm-pgn-btn' ).forEach( function ( b ) {
+					b.addEventListener( 'click', function () { curPage = +b.dataset.p; applyPage( matchedCards ); if ( scrollTo ) { scrollTo.scrollIntoView( { behavior: 'smooth', block: 'start' } ); } } );
+				} );
+			}
+			wire( pgn, null );
+			wire( pgnTop, null );
 		}
 		var matchedCards = [];
 		function applyPage( matched ) {

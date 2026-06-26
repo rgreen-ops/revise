@@ -643,10 +643,10 @@ add_shortcode( 'ricoman_all_products', function () {
 	$out .= '<h1 class="rm-catarch-title">All Products <span class="rm-catarch-count" aria-hidden="true">' . (int) $total . '</span></h1>';
 	$out .= '<div class="rm-catgrid-wrap"><aside class="rm-facets">' . $sidebar . '</aside>';
 	$out .= '<div class="rm-catgrid">';
-	$out .= '<p class="rm-fcount"><b>' . (int) $total . '</b> products</p>';
+	$out .= '<div class="rm-catgrid-top"><p class="rm-fcount"><b>' . (int) $total . '</b> products</p><div class="rm-pgn rm-pgn-top" aria-label="Products pagination top"></div></div>';
 	$out .= '<div class="rm-allpgrid">' . $cards . '</div>';
 	$out .= '<p class="rm-fnone" hidden>No products match those filters. <button type="button" class="rm-fclear">Clear filters</button></p>';
-	$out .= '<div class="rm-pgn" aria-label="Products pagination"></div>';
+	$out .= '<div class="rm-pgn rm-pgn-bot" aria-label="Products pagination"></div>';
 	$out .= '</div></div></div>';
 
 	return $out;
