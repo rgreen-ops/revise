@@ -1,3 +1,13 @@
+/* Sticky header: turns solid black once the user scrolls past the hero. */
+(function () {
+  var hdr = document.querySelector('header.site') || document.querySelector('.ricoman-site-header');
+  if (hdr) {
+    function onScroll() { hdr.classList.toggle('rm-stuck', (window.scrollY || window.pageYOffset) > 40); }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  }
+})();
+
 /* Ricoman previews — subtle motion layer (progressive enhancement).
    - Gentle reveal-on-scroll for sections/cards (slight fade + rise, light stagger)
    - Count-up for leading numeric stats (projects, components, sq ft, %)

@@ -32,14 +32,6 @@
 		im.src = chain[0];
 	}
 
-	/* ---- Sticky header: solid bar once scrolled ---- */
-	( function () {
-		var hdr = document.querySelector( 'header.site' ) || document.querySelector( '.ricoman-site-header' );
-		if ( ! hdr ) { return; }
-		function onScroll() { hdr.classList.toggle( 'rm-stuck', ( window.scrollY || window.pageYOffset ) > 40 ); }
-		window.addEventListener( 'scroll', onScroll, { passive: true } );
-		onScroll();
-	} )();
 
 	function wrapOf( el ) {
 		return el.closest( '.rm-pdp-gallery' ) || el.closest( '.rm-cfghero-wrap' ) || document;
