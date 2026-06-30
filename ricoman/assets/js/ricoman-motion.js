@@ -1,11 +1,14 @@
 /* Sticky header: turns solid black once the user scrolls past the hero. */
 (function () {
   var hdr = document.querySelector('header.site') || document.querySelector('.ricoman-site-header');
-  if (hdr) {
-    function onScroll() { hdr.classList.toggle('rm-stuck', (window.scrollY || window.pageYOffset) > 40); }
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
+  if (!hdr) { return; }
+  var hero = document.querySelector('.wp-block-cover.alignfull') || document.querySelector('.rm-cfghero-wrap');
+  function onScroll() {
+    var threshold = hero ? hero.offsetHeight - hdr.offsetHeight : 80;
+    hdr.classList.toggle('rm-stuck', (window.scrollY || window.pageYOffset) > threshold);
   }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
 })();
 
 /* Ricoman previews — subtle motion layer (progressive enhancement).
