@@ -1,6 +1,6 @@
 /* Sticky header: turns solid black once the user scrolls past the hero. */
 (function () {
-  var hdr = document.querySelector('header.site') || document.querySelector('.ricoman-site-header');
+  var hdr = document.querySelector('.ricoman-site-header') || document.querySelector('header.site');
   if (!hdr) { return; }
   var hero = document.querySelector('.wp-block-cover.alignfull') || document.querySelector('.rm-cfghero-wrap');
   function onScroll() {
