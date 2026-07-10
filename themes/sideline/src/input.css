@@ -1,0 +1,204 @@
+/* ==========================================================================
+   Sideline — source stylesheet
+   Compiled to assets/css/main.css with:  npm run build
+   ==========================================================================
+
+   YOUR CLUB'S COLOURS — edit the variables below, rebuild, done.
+   Every colour and font in the theme resolves to these variables, so you
+   can put the whole site in your club's colours without touching a single
+   HTML file.
+
+   Colour values are space-separated RGB channels (not hex) so Tailwind
+   can apply opacity modifiers, e.g. 21 94 60 = #155e3c.
+   ========================================================================== */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Club colours ---------------------------------------------------------- */
+  --sl-primary: 21 94 60;        /* pitch green — dark sections, headings   */
+  --sl-primary-dark: 10 56 35;   /* darkest green — topbar, footer          */
+  --sl-primary-light: 30 122 79; /* raised green — cards on dark            */
+  --sl-accent: 253 199 44;       /* sunshine yellow — CTAs, highlights      */
+  --sl-accent-dark: 176 122 5;   /* deep gold — hover states, kickers       */
+
+  /* Pathway badge colours (boys / girls / mixed chips) --------------------- */
+  --sl-boys: 2 112 181;
+  --sl-girls: 190 24 93;
+  --sl-mixed: 109 40 217;
+
+  /* Neutrals --------------------------------------------------------------- */
+  --sl-ink: 25 33 28;            /* body text on light */
+  --sl-ink-soft: 84 98 90;       /* secondary text */
+  --sl-ink-faint: 152 166 158;   /* captions, meta */
+  --sl-paper: 255 255 255;       /* page background */
+  --sl-board: 244 248 245;       /* tinted section background */
+  --sl-line: 226 234 229;        /* borders, dividers */
+
+  /* Typography & shape ------------------------------------------------------ */
+  --sl-font-display: "Nunito", ui-sans-serif, system-ui, sans-serif;
+  --sl-font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --sl-radius: 0.75rem;          /* rounder corners — friendlier, junior club */
+}
+
+/* --------------------------------------------------------------------------
+   Base
+   -------------------------------------------------------------------------- */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+  }
+  body {
+    @apply font-body text-ink bg-paper antialiased;
+  }
+  h1, h2, h3, h4 {
+    @apply font-display font-extrabold tracking-tight text-primary;
+    text-wrap: balance;
+  }
+  /* Visible focus for keyboard users — WCAG 2.4.7 */
+  :focus-visible {
+    outline: 3px solid rgb(var(--sl-accent-dark));
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+  ::selection {
+    background: rgb(var(--sl-accent) / 0.45);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Components
+   -------------------------------------------------------------------------- */
+@layer components {
+  /* Skip link — hidden until focused */
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100]
+      focus:rounded-card focus:bg-accent focus:px-5 focus:py-3 focus:font-semibold focus:text-primary-dark;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-card px-6 py-3
+      font-display text-base font-extrabold transition-colors;
+  }
+  .btn-accent {
+    @apply btn bg-accent text-primary-dark hover:bg-accent-dark hover:text-white;
+  }
+  .btn-primary {
+    @apply btn bg-primary text-white hover:bg-primary-light;
+  }
+  .btn-outline {
+    @apply btn border-2 border-primary text-primary hover:bg-primary hover:text-white;
+  }
+  .btn-ghost-light {
+    @apply btn border-2 border-white/40 text-white hover:border-white hover:bg-white hover:text-primary;
+  }
+
+  /* Section heading kicker, e.g. "FIND A TEAM" */
+  .kicker {
+    @apply mb-3 inline-flex items-center gap-2 font-display text-sm font-extrabold uppercase
+      tracking-[0.2em] text-accent-dark;
+  }
+  .kicker::before {
+    content: "";
+    @apply block h-[3px] w-8 rounded-full bg-accent;
+  }
+
+  .section-title {
+    @apply text-3xl md:text-4xl;
+  }
+
+  .card {
+    @apply rounded-card border border-line bg-paper;
+  }
+
+  /* Form controls.
+     16px font size is deliberate — iOS Safari zooms the page on focus for
+     any input below 16px, which breaks the layout on iPhone. */
+  .field-label {
+    @apply mb-1.5 block text-sm font-semibold text-primary;
+  }
+  .field-input {
+    @apply w-full rounded-card border border-line bg-paper px-4 py-3 text-base text-ink
+      placeholder:text-ink-faint focus:border-accent-dark;
+  }
+
+  /* Pathway chips on team cards */
+  .chip-boys  { @apply inline-flex items-center rounded-full bg-boys/10  px-2.5 py-0.5 font-display text-xs font-extrabold text-boys; }
+  .chip-girls { @apply inline-flex items-center rounded-full bg-girls/10 px-2.5 py-0.5 font-display text-xs font-extrabold text-girls; }
+  .chip-mixed { @apply inline-flex items-center rounded-full bg-mixed/10 px-2.5 py-0.5 font-display text-xs font-extrabold text-mixed; }
+
+  /* Info chips, e.g. "SAT 9AM" */
+  .info-chip {
+    @apply inline-flex items-center rounded-full border border-line bg-board px-2.5 py-0.5
+      font-display text-xs font-bold text-ink-soft;
+  }
+
+  /* Age badge on team cards */
+  .age-badge {
+    @apply flex h-14 w-14 shrink-0 items-center justify-center rounded-card bg-primary
+      font-display text-lg font-extrabold text-accent;
+  }
+
+  /* Subs / info tables */
+  .stat-table {
+    @apply w-full border-collapse text-sm;
+  }
+  .stat-table th {
+    @apply border-b-2 border-primary bg-board px-3 py-2.5 text-left font-display text-xs
+      font-extrabold uppercase tracking-wider text-primary;
+  }
+  .stat-table td {
+    @apply border-b border-line px-3 py-2.5 text-ink-soft;
+  }
+
+  /* Long-form article body (news single) */
+  .prose-sl {
+    @apply max-w-prose text-[1.0625rem] leading-relaxed text-ink-soft;
+  }
+  .prose-sl h2 { @apply mb-4 mt-10 text-2xl; }
+  .prose-sl h3 { @apply mb-3 mt-8 text-xl; }
+  .prose-sl p  { @apply mb-5; }
+  .prose-sl ul { @apply mb-5 list-disc space-y-2 pl-6; }
+  .prose-sl ol { @apply mb-5 list-decimal space-y-2 pl-6; }
+  .prose-sl a  { @apply font-semibold text-primary underline decoration-accent decoration-2 underline-offset-2 hover:text-accent-dark; }
+  .prose-sl blockquote {
+    @apply my-8 rounded-card border-l-4 border-accent bg-board px-6 py-4 font-display text-xl font-extrabold text-primary;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Utilities
+   -------------------------------------------------------------------------- */
+@layer utilities {
+  /* Pitch-line backdrop for dark hero/CTA bands */
+  .bg-pitch {
+    background-image:
+      radial-gradient(circle at 50% 130%, rgb(255 255 255 / 0.06) 0 26%, transparent 26.5%),
+      linear-gradient(rgb(255 255 255 / 0.05) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 64px;
+  }
+
+  /* Scroll-reveal animation — no-ops for reduced-motion users */
+  .reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 0.55s ease, transform 0.55s ease;
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+}

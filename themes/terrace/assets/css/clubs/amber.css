@@ -1,0 +1,17 @@
+/* Terrace colourway: AMBER — black & amber.
+   Load AFTER main.css:
+   <link rel="stylesheet" href="assets/css/main.css">
+   <link rel="stylesheet" href="assets/css/clubs/amber.css">
+   No rebuild needed — these override the :root variables at runtime. */
+:root {
+  --tc-primary: 24 24 24;
+  --tc-primary-dark: 10 10 10;
+  --tc-primary-light: 44 44 44;
+  --tc-accent: 245 158 11;
+  --tc-accent-dark: 170 96 5;
+  --tc-ink: 26 26 26;
+  --tc-ink-soft: 92 92 92;
+  --tc-ink-faint: 158 158 158;
+  --tc-board: 246 246 245;
+  --tc-line: 230 230 228;
+}

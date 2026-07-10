@@ -112,8 +112,10 @@
   .field-label {
     @apply mb-1.5 block text-sm font-semibold text-primary;
   }
+  /* 16px font size is deliberate — iOS Safari zooms the page on focus for
+     any input below 16px, which breaks the layout on iPhone. */
   .field-input {
-    @apply w-full rounded-card border border-line bg-paper px-4 py-3 text-sm text-ink
+    @apply w-full rounded-card border border-line bg-paper px-4 py-3 text-base text-ink
       placeholder:text-ink-faint focus:border-accent;
   }
 

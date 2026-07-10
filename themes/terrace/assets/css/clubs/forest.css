@@ -1,0 +1,17 @@
+/* Terrace colourway: FOREST — deep green & gold.
+   Load AFTER main.css:
+   <link rel="stylesheet" href="assets/css/main.css">
+   <link rel="stylesheet" href="assets/css/clubs/forest.css">
+   No rebuild needed — these override the :root variables at runtime. */
+:root {
+  --tc-primary: 20 83 45;
+  --tc-primary-dark: 9 48 25;
+  --tc-primary-light: 26 110 60;
+  --tc-accent: 250 204 21;
+  --tc-accent-dark: 146 94 8;
+  --tc-ink: 24 34 28;
+  --tc-ink-soft: 82 98 88;
+  --tc-ink-faint: 150 166 156;
+  --tc-board: 244 248 245;
+  --tc-line: 226 234 228;
+}

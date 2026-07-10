@@ -1,0 +1,17 @@
+/* Terrace colourway: ROYAL — royal blue & gold.
+   Load AFTER main.css:
+   <link rel="stylesheet" href="assets/css/main.css">
+   <link rel="stylesheet" href="assets/css/clubs/royal.css">
+   No rebuild needed — these override the :root variables at runtime. */
+:root {
+  --tc-primary: 23 58 138;
+  --tc-primary-dark: 16 34 84;
+  --tc-primary-light: 34 82 190;
+  --tc-accent: 250 204 21;
+  --tc-accent-dark: 161 98 7;
+  --tc-ink: 24 28 40;
+  --tc-ink-soft: 78 86 106;
+  --tc-ink-faint: 148 156 176;
+  --tc-board: 244 246 250;
+  --tc-line: 226 230 238;
+}

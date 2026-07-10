@@ -1,0 +1,17 @@
+/* Terrace colourway: SCARLET — red & gold.
+   Load AFTER main.css:
+   <link rel="stylesheet" href="assets/css/main.css">
+   <link rel="stylesheet" href="assets/css/clubs/scarlet.css">
+   No rebuild needed — these override the :root variables at runtime. */
+:root {
+  --tc-primary: 153 27 27;
+  --tc-primary-dark: 88 12 12;
+  --tc-primary-light: 190 34 34;
+  --tc-accent: 253 224 71;
+  --tc-accent-dark: 161 98 7;
+  --tc-ink: 38 26 26;
+  --tc-ink-soft: 104 82 82;
+  --tc-ink-faint: 172 150 150;
+  --tc-board: 249 245 244;
+  --tc-line: 236 227 226;
+}

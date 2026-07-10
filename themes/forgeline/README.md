@@ -109,6 +109,13 @@ Built to WCAG 2.1 AA: semantic landmarks, skip link, visible focus states,
 labelled form controls, `aria-current` navigation, keyboard-operable tabs
 and accordion, AA-checked colour contrast, and reduced-motion support.
 
+## Mobile & iPhone
+
+Tested at iPhone viewports (390/375px): no horizontal scroll on any
+page, hamburger navigation with Escape-to-close, 16px form inputs (so
+iOS Safari never zoom-jumps on focus), and an `apple-touch-icon` for
+home-screen bookmarks.
+
 ## Browser support
 
 All modern evergreen browsers (Chrome, Edge, Firefox, Safari — last two
@@ -119,8 +126,10 @@ versions). No IE11.
 - [Tailwind CSS](https://tailwindcss.com) (MIT) — build-time only
 - [Archivo](https://fonts.google.com/specimen/Archivo) &
   [Inter](https://fonts.google.com/specimen/Inter) via Google Fonts (OFL)
-- All demo copy, company names, people and imagery are fictional
-  placeholder content created for this template.
+- Demo photographs from [Unsplash](https://unsplash.com/license) (free
+  for commercial use, no attribution required); product images are
+  original SVG technical renders included with the theme.
+- All demo copy, company names and people are fictional.
 
 Licence per the marketplace you purchased from (single-site licence unless
 stated otherwise). Thanks for buying Forgeline — build something solid.

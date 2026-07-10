@@ -43,9 +43,23 @@ Plus:
 
 ## Your club's colours
 
-Every colour and font resolves to CSS variables declared at the top of
-`src/input.css`. Change those values, rebuild, and the whole site is in
-your colours — **you never edit HTML to rebrand**.
+**Five ready-made colourways ship with the theme.** The default is claret
+& sky; four more live in `assets/css/clubs/` — Royal & Gold, Scarlet &
+Gold, Forest & Gold, and Black & Amber. To use one, add a single line
+after `main.css` on every page (no rebuild needed — the badge, buttons,
+tables and form badges all recolour together):
+
+```html
+<link rel="stylesheet" href="assets/css/main.css">
+<link rel="stylesheet" href="assets/css/clubs/royal.css">
+```
+
+Preview them side by side in **`colours.html`** — a live switcher page
+included with the theme.
+
+For exact club colours, every colour and font resolves to CSS variables
+declared at the top of `src/input.css`. Change those values, rebuild, and
+the whole site is in your colours — **you never edit HTML to rebrand**.
 
 ```css
 :root {
@@ -114,6 +128,13 @@ states, labelled form controls, `aria-current` navigation,
 keyboard-operable tabs and accordion, table captions for screen readers,
 AA-checked colour contrast, and reduced-motion support.
 
+## Mobile & iPhone
+
+Tested at iPhone viewports (390/375px): no horizontal scroll on any
+page, hamburger navigation with Escape-to-close, 16px form inputs (so
+iOS Safari never zoom-jumps on focus), and an `apple-touch-icon` for
+home-screen bookmarks.
+
 ## Browser support
 
 All modern evergreen browsers (Chrome, Edge, Firefox, Safari — last two
@@ -124,8 +145,11 @@ versions). No IE11.
 - [Tailwind CSS](https://tailwindcss.com) (MIT) — build-time only
 - [Oswald](https://fonts.google.com/specimen/Oswald) &
   [Inter](https://fonts.google.com/specimen/Inter) via Google Fonts (OFL)
-- All demo copy, club names, people, badges and imagery are fictional
-  placeholder content created for this template.
+- Demo photographs from [Unsplash](https://unsplash.com/license) (free
+  for commercial use, no attribution required). They are placeholders —
+  replace them with your club's own consented photography before launch,
+  especially anything showing junior players.
+- All demo copy, club names, people and badges are fictional.
 
 Licence per the marketplace you purchased from (single-site licence
 unless stated otherwise). Thanks for buying Terrace — up the Rovers.
