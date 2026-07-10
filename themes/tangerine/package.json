@@ -1,0 +1,13 @@
+{
+  "name": "tangerine-theme",
+  "version": "1.0.0",
+  "description": "Tangerine — Football Club HTML template (tangerine orange & black) built with Tailwind CSS",
+  "private": true,
+  "scripts": {
+    "build": "tailwindcss -c tailwind.config.js -i src/input.css -o assets/css/main.css --minify",
+    "watch": "tailwindcss -c tailwind.config.js -i src/input.css -o assets/css/main.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}

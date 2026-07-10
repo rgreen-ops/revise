@@ -1,0 +1,13 @@
+{
+  "name": "canary-theme",
+  "version": "1.0.0",
+  "description": "Canary — Football Club HTML template (canary yellow & slate) built with Tailwind CSS",
+  "private": true,
+  "scripts": {
+    "build": "tailwindcss -c tailwind.config.js -i src/input.css -o assets/css/main.css --minify",
+    "watch": "tailwindcss -c tailwind.config.js -i src/input.css -o assets/css/main.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}
