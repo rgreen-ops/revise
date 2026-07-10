@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 560" role="img" aria-label="Training pitch with cones and passing drill arrows">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#601628"/><stop offset="1" stop-color="#3d0c19"/>
+    </linearGradient>
+    <pattern id="stripes" width="26" height="26" patternUnits="userSpaceOnUse" patternTransform="rotate(-55)">
+      <rect width="2" height="26" fill="rgba(255,255,255,0.045)"/>
+    </pattern>
+    <radialGradient id="glow" cx="0.5" cy="0.4" r="0.65">
+      <stop offset="0" stop-color="rgba(125,211,252,0.15)"/><stop offset="1" stop-color="rgba(125,211,252,0)"/>
+    </radialGradient>
+  </defs>
+  <rect width="880" height="560" fill="url(#bg)"/>
+  <rect width="880" height="560" fill="url(#stripes)"/>
+  <rect width="880" height="560" fill="url(#glow)"/>
+  
+    <g stroke="rgba(255,255,255,0.30)" stroke-width="2" fill="none">
+      <rect x="90" y="90" width="700" height="380" rx="6"/>
+      <line x1="440" y1="90" x2="440" y2="470"/>
+      <circle cx="440" cy="280" r="60"/>
+    </g>
+    <g fill="#7dd3fc">
+      <path d="M200 350 l16 30 h-32z"/><path d="M280 300 l16 30 h-32z"/><path d="M360 350 l16 30 h-32z"/>
+      <path d="M540 210 l16 30 h-32z"/><path d="M620 160 l16 30 h-32z"/><path d="M700 210 l16 30 h-32z"/>
+    </g>
+    <g stroke="rgba(255,255,255,0.88)" stroke-width="2.5" fill="none" stroke-dasharray="8 8">
+      <path d="M216 340 C250 290 260 300 280 296 M296 330 C330 370 340 360 360 346 M556 240 C590 190 600 200 620 196 M636 190 C670 230 680 220 700 206"/>
+    </g>
+    <circle cx="216" cy="332" r="9" fill="rgba(255,255,255,0.88)"/>
+    <circle cx="556" cy="232" r="9" fill="rgba(255,255,255,0.88)"/>
+    <text x="110" y="130" fill="rgba(255,255,255,0.30)" font-family="monospace" font-size="15">TUESDAY SESSION · PASSING PATTERNS</text>
+</svg>
