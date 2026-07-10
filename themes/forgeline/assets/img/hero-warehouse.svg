@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 560" role="img" aria-label="Warehouse aisle lit by rows of LED high bays">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1e293f"/><stop offset="1" stop-color="#101828"/>
+    </linearGradient>
+    <pattern id="grid" width="36" height="36" patternUnits="userSpaceOnUse">
+      <path d="M36 0H0v36" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+    </pattern>
+    <radialGradient id="glow" cx="0.5" cy="0.45" r="0.6">
+      <stop offset="0" stop-color="rgba(245,158,11,0.16)"/><stop offset="1" stop-color="rgba(245,158,11,0)"/>
+    </radialGradient>
+  </defs>
+  <rect width="880" height="560" fill="url(#bg)"/>
+  <rect width="880" height="560" fill="url(#grid)"/>
+  <rect width="880" height="560" fill="url(#glow)"/>
+  
+    <g stroke="rgba(255,255,255,0.28)" stroke-width="2" fill="none">
+      <path d="M0 460 L440 240 L880 460"/><path d="M120 520 L440 300 L760 520"/>
+      <path d="M60 240 v210 M820 240 v210 M180 280 v190 M700 280 v190 M300 320 v160 M580 320 v160"/>
+    </g>
+    <g stroke="rgba(255,255,255,0.85)" stroke-width="3" fill="none">
+      <path d="M200 120 h480 M240 170 h400 M280 220 h320"/>
+    </g>
+    <g fill="rgba(245,158,11,0.9)">
+      <rect x="300" y="112" width="52" height="12" rx="4"/><rect x="420" y="112" width="52" height="12" rx="4"/><rect x="540" y="112" width="52" height="12" rx="4"/>
+      <rect x="330" y="162" width="44" height="12" rx="4"/><rect x="430" y="162" width="44" height="12" rx="4"/><rect x="530" y="162" width="44" height="12" rx="4"/>
+      <rect x="360" y="212" width="38" height="12" rx="4"/><rect x="440" y="212" width="38" height="12" rx="4"/><rect x="520" y="212" width="38" height="12" rx="4"/>
+    </g>
+    <g fill="rgba(245,158,11,0.07)">
+      <path d="M300 124 L260 460 L400 460 L352 124z"/><path d="M420 124 L390 460 L510 460 L472 124z"/><path d="M540 124 L510 460 L640 460 L592 124z"/>
+    </g>
+</svg>

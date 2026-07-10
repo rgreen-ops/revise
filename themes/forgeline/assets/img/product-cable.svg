@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 480" role="img" aria-label="Armoured cable drum">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1e293f"/><stop offset="1" stop-color="#101828"/>
+    </linearGradient>
+    <pattern id="grid" width="36" height="36" patternUnits="userSpaceOnUse">
+      <path d="M36 0H0v36" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+    </pattern>
+    <radialGradient id="glow" cx="0.5" cy="0.45" r="0.6">
+      <stop offset="0" stop-color="rgba(245,158,11,0.16)"/><stop offset="1" stop-color="rgba(245,158,11,0)"/>
+    </radialGradient>
+  </defs>
+  <rect width="600" height="480" fill="url(#bg)"/>
+  <rect width="600" height="480" fill="url(#grid)"/>
+  <rect width="600" height="480" fill="url(#glow)"/>
+  <g transform="translate(100,90)">
+    <g stroke="rgba(255,255,255,0.85)" stroke-width="3" fill="none">
+      <circle cx="200" cy="150" r="92"/>
+      <circle cx="200" cy="150" r="64" stroke="rgba(255,255,255,0.28)" stroke-width="2"/>
+      <circle cx="200" cy="150" r="26" stroke="#f59e0b" stroke-width="2" fill="rgba(245,158,11,0.14)"/>
+      <line x1="200" y1="58" x2="200" y2="124"/><line x1="200" y1="176" x2="200" y2="242"/>
+      <line x1="108" y1="150" x2="174" y2="150"/><line x1="226" y1="150" x2="292" y2="150"/>
+      <path d="M292 176c30 8 42 26 30 48" stroke="#f59e0b" stroke-width="3"/>
+    </g></g>
+  <rect x="24" y="24" width="120" height="26" rx="4" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.15)"/>
+  <text x="38" y="41" fill="rgba(255,255,255,0.28)" font-family="monospace" font-size="12">CAL-CABL SERIES</text>
+</svg>
