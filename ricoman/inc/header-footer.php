@@ -193,7 +193,8 @@ add_shortcode( 'ricoman_header', function () {
 		. '.rm-mega-col ul{display:grid!important;grid-template-columns:1fr 1fr!important;gap:.45em 16px!important}'
 		. '.rm-mega-col ul a{font-size:.82rem!important;line-height:1.25!important}'
 		. '}'
-		. '.ricoman-site-header{position:sticky!important;top:0!important;z-index:999!important;background:#000!important}'
+		. '.ricoman-site-header{background:#000!important}'
+		. '.wp-block-template-part:first-child{position:sticky!important;top:0!important;z-index:999!important}'
 		. '</style>';
 	return $crit . '<div class="site ricoman-site-header"><div class="wrap nav">'
 		. $brand
