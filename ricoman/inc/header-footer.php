@@ -193,13 +193,8 @@ add_shortcode( 'ricoman_header', function () {
 		. '.rm-mega-col ul{display:grid!important;grid-template-columns:1fr 1fr!important;gap:.45em 16px!important}'
 		. '.rm-mega-col ul a{font-size:.82rem!important;line-height:1.25!important}'
 		. '}'
-		. '.ricoman-site-header{transition:background .25s ease,box-shadow .25s ease}'
-		. 'body:not(.rm-hero) .ricoman-site-header{position:sticky;top:0;z-index:60}'
-		. 'body.rm-hero .ricoman-site-header{position:fixed;top:0;left:0;right:0;z-index:60;background:linear-gradient(180deg,rgba(0,0,0,.5) 0%,rgba(0,0,0,.14) 55%,rgba(0,0,0,0) 100%)}'
-		. '.ricoman-site-header.rm-stuck{position:fixed!important;top:0!important;left:0!important;right:0!important;background:#000!important;box-shadow:0 6px 26px rgba(0,0,0,.22)!important}'
+		. '.ricoman-site-header{position:sticky;top:0;z-index:60;background:#000}'
 		. '</style>';
-
-	$crit .= '<script>document.addEventListener("DOMContentLoaded",function(){var h=document.querySelector(".ricoman-site-header");if(!h)return;var hero=document.querySelector(".wp-block-cover.alignfull");function s(){var t=hero?hero.offsetHeight-h.offsetHeight:80;h.classList.toggle("rm-stuck",(window.scrollY||window.pageYOffset)>t);}window.addEventListener("scroll",s,{passive:true});s();});</script>';
 	return $crit . '<div class="site ricoman-site-header"><div class="wrap nav">'
 		. $brand
 		. '<input type="checkbox" id="rm-navtoggle" class="rm-navtoggle" hidden>'

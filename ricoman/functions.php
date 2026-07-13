@@ -143,30 +143,7 @@ add_action( 'wp_head', function () {
  * Flag pages that open with a dark hero so the header overlays transparently;
  * everything else gets a solid dark header bar (see ricoman.css).
  */
-add_filter( 'body_class', function ( $classes ) {
-	// NB: product single pages open with a light split hero (not a dark cover),
-	// so they keep the solid header (not added to rm-hero). Project singles and
-	// the listing archives do open on dark imagery, so they overlay.
-	// Front page + the products archive open on a dark full-bleed cover, and
-	// project single pages open on the project's hero photo — these overlay the
-	// header. The projects listing + project-cat now open on a WHITE intro, so
-	// they keep the solid dark header (a white overlay header was invisible there).
-	if ( is_front_page() ) {
-		$classes[] = 'rm-hero';
-	} elseif ( is_singular() || is_page() ) {
-		$post = get_post();
-		if ( $post ) {
-			$c    = ltrim( $post->post_content );
-			$top  = substr( $c, 0, 400 );
-			// Bespoke hero classes, or a native full-bleed Cover as the opening block.
-			if ( false !== strpos( $post->post_content, 'phero' ) || false !== strpos( $post->post_content, 'chero' ) || false !== strpos( $post->post_content, 'class="hero"' )
-				|| 0 === strpos( $c, '<!-- wp:cover' ) || ( false !== strpos( $top, '<!-- wp:cover' ) && false !== strpos( $top, 'alignfull' ) ) ) {
-				$classes[] = 'rm-hero';
-			}
-		}
-	}
-	return $classes;
-} );
+// rm-hero body class removed — header is solid black and sticky on all pages.
 
 /**
  * Cache-busting asset version: the file's modification time, so every CSS/JS
