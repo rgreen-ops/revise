@@ -199,6 +199,7 @@ add_shortcode( 'ricoman_header', function () {
 		. '.ricoman-site-header.rm-stuck{position:fixed!important;top:0!important;left:0!important;right:0!important;background:#000!important;box-shadow:0 6px 26px rgba(0,0,0,.22)!important}'
 		. '</style>';
 
+	$crit .= '<script>document.addEventListener("DOMContentLoaded",function(){var h=document.querySelector(".ricoman-site-header");if(!h)return;var hero=document.querySelector(".wp-block-cover.alignfull");function s(){var t=hero?hero.offsetHeight-h.offsetHeight:80;h.classList.toggle("rm-stuck",(window.scrollY||window.pageYOffset)>t);}window.addEventListener("scroll",s,{passive:true});s();});</script>';
 	return $crit . '<div class="site ricoman-site-header"><div class="wrap nav">'
 		. $brand
 		. '<input type="checkbox" id="rm-navtoggle" class="rm-navtoggle" hidden>'
