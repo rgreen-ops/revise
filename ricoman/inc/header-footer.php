@@ -193,9 +193,21 @@ add_shortcode( 'ricoman_header', function () {
 		. '.rm-mega-col ul{display:grid!important;grid-template-columns:1fr 1fr!important;gap:.45em 16px!important}'
 		. '.rm-mega-col ul a{font-size:.82rem!important;line-height:1.25!important}'
 		. '}'
-		. '.ricoman-site-header{background:#000!important}'
+		. '.ricoman-site-header{background:#000!important;transition:background .3s ease}'
+		. '.ricoman-site-header.rm-transparent{background:transparent!important}'
 		. '.wp-block-template-part:first-child{position:sticky!important;top:0!important;z-index:999!important}'
-		. '</style>';
+		. '</style>'
+		. '<script>'
+		. '(function(){'
+		. 'var h=document.querySelector(".ricoman-site-header");'
+		. 'if(!h)return;'
+		. 'if(!document.body.classList.contains("home"))return;'
+		. 'h.classList.add("rm-transparent");'
+		. 'window.addEventListener("scroll",function(){'
+		. 'h.classList.toggle("rm-transparent",(window.scrollY||window.pageYOffset)<50);'
+		. '},{passive:true});'
+		. '})();'
+		. '</script>';
 	return $crit . '<div class="site ricoman-site-header"><div class="wrap nav">'
 		. $brand
 		. '<input type="checkbox" id="rm-navtoggle" class="rm-navtoggle" hidden>'
