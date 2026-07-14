@@ -1,11 +1,18 @@
-name: Deploy Bim Builder to Pages
+name: Publish site (Bim Builder + theme demos)
 
-# Publishes the /bim-builder static app to GitHub Pages so it can be tested
-# from a public URL. Serves the bim-builder folder as the site root.
+# One site, two things on it:
+#   /            -> the Bim Builder app (unchanged URLs)
+#   /demos/      -> theme demo hub + all twelve theme demos
+# Also packages the sellable theme zips and uploads them as a run
+# artifact ("theme-zips") — download from the run's Summary page.
 on:
   push:
-    branches: ["main"]
-    paths: ["bim-builder/**", ".github/workflows/pages.yml"]
+    branches: ["main", "claude/niche-themes-marketplace-n9qm1r"]
+    paths:
+      - "bim-builder/**"
+      - "themes/**"
+      - "marketing/**"
+      - ".github/workflows/pages.yml"
   workflow_dispatch:
 
 permissions:
@@ -25,11 +32,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Assemble site (bim-builder at root, demos under /demos)
+        run: |
+          ./marketing/build-demos.sh
+          mkdir -p _site/demos
+          cp -r bim-builder/. _site/
+          cp -r marketing/demo-site/. _site/demos/
+
+      - name: Package theme zips
+        run: ./marketing/package-zips.sh
+
+      - name: Upload theme zips artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: theme-zips
+          path: marketing/dist/*.zip
+          retention-days: 90
+
       - uses: actions/configure-pages@v5
         with:
           enablement: true
+
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: bim-builder
+          path: _site
+
       - id: deployment
         uses: actions/deploy-pages@v4
