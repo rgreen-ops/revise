@@ -449,10 +449,11 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 	$out .= '<div class="rm-pgn rm-pgn-bot" aria-label="Products pagination"></div>';
 	$out .= '</div></div>';
 	$out .= $seo_body;
+	// Inline pagination — runs immediately, bypasses W3Speedster JS lazy-loading.
+	$out .= '<script>(function(){var w=document.currentScript&&document.currentScript.closest?document.currentScript.closest(".rm-allprods"):null;if(!w)w=document.querySelector(".rm-allprods:not([data-rmpgn])");if(!w||w.dataset.rmpgn)return;w.dataset.rmpgn="1";var P=20,pg=1,all=[].slice.call(w.querySelectorAll(".rm-fcard"));if(!all.length)return;function show(){var s=(pg-1)*P;all.forEach(function(c){c.style.display="none";});all.slice(s,s+P).forEach(function(c){c.style.display="";});render();}function render(){var pages=Math.ceil(all.length/P);[".rm-pgn-top",".rm-pgn-bot"].forEach(function(sel){var el=w.querySelector(sel);if(!el)return;if(pages<=1){el.innerHTML="";return;}var h="";if(pg>1)h+="<button class=\"rm-pgn-btn\" data-p=\""+(pg-1)+"\">← Prev</button>";h+="<span class=\"rm-pgn-info\">Page "+pg+" of "+pages+"</span>";if(pg<pages)h+="<button class=\"rm-pgn-btn\" data-p=\""+(pg+1)+"\">Next →</button>";el.innerHTML=h;el.querySelectorAll(".rm-pgn-btn").forEach(function(b){b.addEventListener("click",function(){pg=+b.dataset.p;show();w.scrollIntoView({behavior:"smooth",block:"start"});});});});}show();})()</script>';
 	$out .= '</div>';
 
-	// Filtering is wired up by the enqueued product-gallery.js (rmCatFilterInit),
-	// keyed off .rm-catarch — reliable regardless of where the markup lands.
+	// Full filter+pagination wired by product-gallery.js (rmCatFilterInit) when loaded.
 	return $out;
 } );
 
@@ -688,6 +689,8 @@ add_shortcode( 'ricoman_all_products', function () {
 	$out .= '<div class="rm-allpgrid" style="display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:auto;gap:24px">' . $cards . '</div>';
 	$out .= '<p class="rm-fnone" hidden>No products match those filters. <button type="button" class="rm-fclear">Clear filters</button></p>';
 	$out .= '<div class="rm-pgn rm-pgn-bot" aria-label="Products pagination"></div>';
+	// Inline pagination — runs immediately, bypasses W3Speedster JS lazy-loading.
+	$out .= '<script>(function(){var w=document.currentScript&&document.currentScript.closest?document.currentScript.closest(".rm-allprods"):null;if(!w)w=document.querySelector(".rm-allprods:not([data-rmpgn])");if(!w||w.dataset.rmpgn)return;w.dataset.rmpgn="1";var P=20,pg=1,all=[].slice.call(w.querySelectorAll(".rm-fcard"));if(!all.length)return;function show(){var s=(pg-1)*P;all.forEach(function(c){c.style.display="none";});all.slice(s,s+P).forEach(function(c){c.style.display="";});render();}function render(){var pages=Math.ceil(all.length/P);[".rm-pgn-top",".rm-pgn-bot"].forEach(function(sel){var el=w.querySelector(sel);if(!el)return;if(pages<=1){el.innerHTML="";return;}var h="";if(pg>1)h+="<button class=\"rm-pgn-btn\" data-p=\""+(pg-1)+"\">← Prev</button>";h+="<span class=\"rm-pgn-info\">Page "+pg+" of "+pages+"</span>";if(pg<pages)h+="<button class=\"rm-pgn-btn\" data-p=\""+(pg+1)+"\">Next →</button>";el.innerHTML=h;el.querySelectorAll(".rm-pgn-btn").forEach(function(b){b.addEventListener("click",function(){pg=+b.dataset.p;show();w.scrollIntoView({behavior:"smooth",block:"start"});});});});}show();})()</script>';
 	$out .= '</div></div></div>';
 
 	return $out;

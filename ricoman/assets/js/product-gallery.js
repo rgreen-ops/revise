@@ -308,7 +308,7 @@
 	} );
 
 	/* ---- Product catalogue / category faceted filter (lumens + watts + ticks) ---- */
-	function rmCatFilter( w ) {
+	function rmCatFilter( w, skipInitPage ) {
 		var cards = [].slice.call( w.querySelectorAll( '.rm-fcard' ) );
 		if ( ! cards.length ) { return; }
 		var lmMin = w.querySelector( '.rm-lm-min' ), lmMax = w.querySelector( '.rm-lm-max' );
@@ -426,11 +426,18 @@
 				w.querySelectorAll( '.rm-ftick input' ).forEach( function ( i ) { i.checked = false; } ); apply();
 			} );
 		} );
-		apply();
+		// Skip initial apply() if inline pagination already rendered page 1;
+		// filters will call apply() themselves when the user interacts.
+		if ( ! skipInitPage ) { apply(); }
 	}
 	function rmCatFilterInit() {
 		document.querySelectorAll( '.rm-catwide, .rm-catarch' ).forEach( function ( w ) {
-			if ( w.dataset.rmcf ) { return; } w.dataset.rmcf = '1'; rmCatFilter( w );
+			if ( w.dataset.rmcf ) { return; }
+			// If inline pagination already initialized this wrapper, wire up filter
+			// inputs only (don't reset pagination state to page 1).
+			var hasPgn = w.dataset.rmpgn === '1';
+			w.dataset.rmcf = '1';
+			rmCatFilter( w, hasPgn );
 		} );
 	}
 	if ( document.readyState !== 'loading' ) { rmCatFilterInit(); } else { document.addEventListener( 'DOMContentLoaded', rmCatFilterInit ); }
