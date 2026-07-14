@@ -334,22 +334,27 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 		$args['tax_query'] = array( array( 'taxonomy' => $tax, 'terms' => $term->term_id ) );
 		$title             = $term->name;
 	}
-	$distinct_cb = function() { return 'DISTINCT'; };
-	add_filter( 'posts_distinct', $distinct_cb );
 	$q = new WP_Query( $args );
-	remove_filter( 'posts_distinct', $distinct_cb );
 	if ( ! $q->have_posts() ) {
 		return '<div class="rm-pp-wrap"><p class="rm-config-note">No products in this category yet.</p></div>';
 	}
+
+	// Deduplicate posts by ID in case plugin JOINs (e.g. Yoast) return duplicates.
+	$seen_ids = array();
+	$posts    = array_filter( $q->posts, function( $p ) use ( &$seen_ids ) {
+		if ( isset( $seen_ids[ $p->ID ] ) ) { return false; }
+		$seen_ids[ $p->ID ] = true;
+		return true;
+	} );
 
 	$cards   = '';
 	$maxlm   = 0;
 	$maxw    = 0;
 	$maxco   = 0;
 	$allfeat = array();
-	while ( $q->have_posts() ) {
-		$q->the_post();
-		$pid   = get_the_ID();
+	foreach ( $posts as $post ) {
+		setup_postdata( $post );
+		$pid   = $post->ID;
 		$mx    = ricoman_pf_metrics( $pid );
 		$maxlm = max( $maxlm, $mx['lm'] );
 		$maxw  = max( $maxw, $mx['w'] );
@@ -372,7 +377,7 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 	}
 	wp_reset_postdata();
 
-	$total = $q->post_count;
+	$total = count( $posts );
 	$maxlm = $maxlm > 0 ? (int) ( ceil( $maxlm / 500 ) * 500 ) : 0;
 	$maxw  = $maxw > 0 ? (int) ( ceil( $maxw / 5 ) * 5 ) : 0;
 	$maxco = $maxco > 0 ? (int) ( ceil( $maxco / 5 ) * 5 ) : 0;
