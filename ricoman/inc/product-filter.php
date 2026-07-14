@@ -430,7 +430,7 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 		. ( $lmslider || $wslider || $coslider || $ticks ? '<button type="button" class="rm-fclear">Clear filters</button>' : '' )
 		. '</aside>';
 	$out .= '<div class="rm-catgrid"><p class="rm-fcount"><b>' . (int) $total . '</b> products</p>'
-		. '<div class="rm-prodgrid rm-fgrid" style="display:grid;gap:24px">' . $cards . '</div>'
+		. '<div class="rm-prodgrid rm-fgrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:24px">' . $cards . '</div>'
 		. '<p class="rm-fnone" hidden>No products match those filters. <button type="button" class="rm-fclear">Clear filters</button></p></div>';
 	$out .= '</div>';
 	$out .= $seo_body;
@@ -657,6 +657,10 @@ add_shortcode( 'ricoman_all_products', function () {
 		. '.rm-pcard-body{padding:14px 4px 0;text-align:center}'
 		. '.rm-pcard-eyebrow{display:block;font-size:.82rem;letter-spacing:0;text-transform:none;font-family:Poppins;font-weight:400;color:#888;margin-top:6px;text-align:center;line-height:1.4}'
 		. '.rm-pcard-title{display:block;font-size:1.1rem;font-weight:600;font-family:Poppins;line-height:1.3;text-align:center}'
+		. '.rm-prodgrid,.rm-allpgrid{display:grid!important;grid-template-columns:repeat(4,1fr)!important;gap:24px!important}'
+		. '@media(max-width:1100px){.rm-prodgrid,.rm-allpgrid{grid-template-columns:repeat(3,1fr)!important}}'
+		. '@media(max-width:760px){.rm-prodgrid,.rm-allpgrid{grid-template-columns:1fr 1fr!important}}'
+		. '@media(max-width:480px){.rm-prodgrid,.rm-allpgrid{grid-template-columns:1fr!important}}'
 		. '.rm-allpgrid>p,.rm-allpgrid>br{display:none!important}'
 		. '[style*="display: none"]{display:none!important}'
 		. '</style>';
