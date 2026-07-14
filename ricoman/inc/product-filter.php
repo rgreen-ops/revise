@@ -542,6 +542,13 @@ add_shortcode( 'ricoman_all_products', function () {
 		'suppress_filters' => false,
 	) );
 	remove_filter( 'posts_distinct', $distinct_cb );
+	// Dedup by ID in case plugin JOINs return duplicate rows.
+	$seen_ids = array();
+	$posts    = array_values( array_filter( $posts, function( $p ) use ( &$seen_ids ) {
+		if ( isset( $seen_ids[ $p->ID ] ) ) { return false; }
+		$seen_ids[ $p->ID ] = true;
+		return true;
+	} ) );
 	if ( empty( $posts ) ) {
 		return '<div class="rm-pp-wrap"><p class="rm-config-note">No products yet.</p></div>';
 	}
