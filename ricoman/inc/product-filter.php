@@ -334,7 +334,10 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 		$args['tax_query'] = array( array( 'taxonomy' => $tax, 'terms' => $term->term_id ) );
 		$title             = $term->name;
 	}
+	$distinct_cb = function() { return 'DISTINCT'; };
+	add_filter( 'posts_distinct', $distinct_cb );
 	$q = new WP_Query( $args );
+	remove_filter( 'posts_distinct', $distinct_cb );
 	if ( ! $q->have_posts() ) {
 		return '<div class="rm-pp-wrap"><p class="rm-config-note">No products in this category yet.</p></div>';
 	}
@@ -522,14 +525,18 @@ add_shortcode( 'ricoman_all_products', function () {
 	$acy_term = get_term_by( 'name', 'Accessories', $pcat_tax );
 	$acy_slug = $acy_term ? $acy_term->slug : 'accessories';
 
+	$distinct_cb = function() { return 'DISTINCT'; };
+	add_filter( 'posts_distinct', $distinct_cb );
 	$posts = get_posts( array(
-		'post_type'      => 'product',
-		'post_status'    => 'publish',
-		'posts_per_page' => -1,
-		'orderby'        => 'date',
-		'order'          => 'DESC',
-		'no_found_rows'  => true,
+		'post_type'        => 'product',
+		'post_status'      => 'publish',
+		'posts_per_page'   => -1,
+		'orderby'          => 'date',
+		'order'            => 'DESC',
+		'no_found_rows'    => true,
+		'suppress_filters' => false,
 	) );
+	remove_filter( 'posts_distinct', $distinct_cb );
 	if ( empty( $posts ) ) {
 		return '<div class="rm-pp-wrap"><p class="rm-config-note">No products yet.</p></div>';
 	}
