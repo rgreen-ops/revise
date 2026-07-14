@@ -6,7 +6,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 OUT=marketing/dist
-THEMES="forgeline sideline terrace clarion vermilion evergreen amberline skyline tangerine midnight canary candystripe"
+THEMES="forgeline sideline terrace clarion vermilion evergreen amberline skyline tangerine midnight canary candystripe callout callout-plumbing callout-building callout-landscaping callout-roofing"
 
 rm -rf "$OUT"
 mkdir -p "$OUT"

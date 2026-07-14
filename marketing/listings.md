@@ -49,6 +49,30 @@ b2b template
 
 ---
 
+## Callout — Local Trade Templates (five editions) — £29 each
+
+**One-liner ([TRADE] edition):** A complete website for a local [TRADE]
+— built around what actually wins trade work: reviews, fixed-quote
+promises, photos of real jobs, and a phone number everywhere.
+
+**Description:** Five pages (Home, Services, Recent Work, About, Free
+Quote) with a fully written demo company so you see a real trade
+business, not lorem ipsum: trust strip with guarantees, 6 service cards
+with honest trade copy, project cards with budgets, review cards ready
+for your Checkatrade quotes, an areas-covered strip, and a quote form
+with job-type dropdown. HTML + compiled Tailwind, CSS-variable
+rebranding, vanilla JS, WCAG-AA, iPhone-tested. Editions & demos:
+- Electrician (Callout): https://rgreen-ops.github.io/revise/demos/callout/
+- Plumber: https://rgreen-ops.github.io/revise/demos/callout-plumbing/
+- Builder: https://rgreen-ops.github.io/revise/demos/callout-building/
+- Landscaper: https://rgreen-ops.github.io/revise/demos/callout-landscaping/
+- Roofer: https://rgreen-ops.github.io/revise/demos/callout-roofing/
+
+**Tags:** electrician website, plumber website, builder website,
+landscaper, roofer, tradesman template, local business
+
+---
+
 ## Sideline — Grassroots Junior Football Club Template — £35
 
 **One-liner:** The first club website template built for how junior
