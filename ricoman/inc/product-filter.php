@@ -430,7 +430,7 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 		. '@media(max-width:1100px){.rm-allprods .rm-prodgrid,.rm-allprods .rm-allpgrid{grid-template-columns:repeat(3,1fr)}}'
 		. '@media(max-width:600px){.rm-allprods .rm-prodgrid,.rm-allprods .rm-allpgrid{grid-template-columns:1fr 1fr}}'
 		. '@media(max-width:400px){.rm-allprods .rm-prodgrid,.rm-allprods .rm-allpgrid{grid-template-columns:1fr}}'
-		. '.rm-allpgrid>p,.rm-allpgrid>br{display:none!important}'
+		. '.rm-allpgrid>p{display:contents!important}.rm-allpgrid>br{display:none!important}'
 		. '[style*="display: none"]{display:none!important}'
 		. '</style>';
 	$out .= '<div class="rm-pp-wrap rm-catarch rm-allprods">';
@@ -678,7 +678,7 @@ add_shortcode( 'ricoman_all_products', function () {
 		. '@media(max-width:1100px){.rm-allprods .rm-prodgrid,.rm-allprods .rm-allpgrid{grid-template-columns:repeat(3,1fr)}}'
 		. '@media(max-width:600px){.rm-allprods .rm-prodgrid,.rm-allprods .rm-allpgrid{grid-template-columns:1fr 1fr}}'
 		. '@media(max-width:400px){.rm-allprods .rm-prodgrid,.rm-allprods .rm-allpgrid{grid-template-columns:1fr}}'
-		. '.rm-allpgrid>p,.rm-allpgrid>br{display:none!important}'
+		. '.rm-allpgrid>p{display:contents!important}.rm-allpgrid>br{display:none!important}'
 		. '[style*="display: none"]{display:none!important}'
 		. '</style>';
 	$out .= '<div class="rm-pp-wrap rm-catarch rm-allprods" data-acy-cat="' . esc_attr( $acy_slug ) . '">';
