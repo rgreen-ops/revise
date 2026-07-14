@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write # release uploads
   pages: write
   id-token: write
 
@@ -50,6 +50,19 @@ jobs:
           name: theme-zips
           path: marketing/dist/*.zip
           retention-days: 90
+
+      # Publish the zips to a rolling release so each product has a
+      # stable, one-click download URL:
+      # https://github.com/<owner>/<repo>/releases/download/themes-latest/<file>
+      - name: Publish theme zips to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: themes-latest
+          name: Theme product zips (latest)
+          body: >
+            Sellable theme packages, rebuilt automatically on every push.
+            Upload these zips to your marketplace listings.
+          files: marketing/dist/*.zip
 
       - uses: actions/configure-pages@v5
         with:
