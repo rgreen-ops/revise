@@ -1707,8 +1707,6 @@ html,body{overflow-x:clip}
 	.nav ul a{color:rgba(255,255,255,.96)}
 	.rm-nav>li{display:flex;align-items:center}
 	.rm-nav>li>a{position:relative;display:inline-flex;align-items:center;gap:.4em;padding-bottom:4px}
-	.rm-nav>li>a::after{content:"\2197";font-size:.78em;opacity:0;transition:opacity .2s ease,transform .2s ease}
-	.rm-nav>li>a:hover::after{opacity:.8;transform:translate(1px,-1px)}
 	.rm-nav>li.rm-has-mega>a::after{content:none}
 	.rm-nav>li>a::before{content:"";position:absolute;left:0;bottom:0;height:1.5px;width:0;background:#fff;transition:width .28s ease}
 	.rm-nav>li>a:hover::before{width:100%}
