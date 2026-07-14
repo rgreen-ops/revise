@@ -430,7 +430,7 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 		. ( $lmslider || $wslider || $coslider || $ticks ? '<button type="button" class="rm-fclear">Clear filters</button>' : '' )
 		. '</aside>';
 	$out .= '<div class="rm-catgrid"><p class="rm-fcount"><b>' . (int) $total . '</b> products</p>'
-		. '<div class="rm-projgrid rm-prodgrid rm-fgrid" style="grid-template-columns:repeat(4,1fr);grid-auto-rows:auto;gap:24px">' . $cards . '</div>'
+		. '<div class="rm-prodgrid rm-fgrid" style="display:grid;gap:24px">' . $cards . '</div>'
 		. '<p class="rm-fnone" hidden>No products match those filters. <button type="button" class="rm-fclear">Clear filters</button></p></div>';
 	$out .= '</div>';
 	$out .= $seo_body;
