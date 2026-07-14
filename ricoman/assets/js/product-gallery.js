@@ -323,7 +323,7 @@
 		var isPaged = w.classList.contains( 'rm-allprods' );
 		var pgn = w.querySelector( '.rm-pgn-bot' ) || w.querySelector( '.rm-pgn' );
 		var pgnTop = w.querySelector( '.rm-pgn-top' );
-		var PER_PAGE = 24, curPage = 1;
+		var PER_PAGE = 20, curPage = 1;
 
 		function checkedVals( sel ) {
 			return [].slice.call( w.querySelectorAll( sel + ':checked' ) ).map( function ( i ) { return i.value; } );

@@ -430,7 +430,7 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 		. ( $lmslider || $wslider || $coslider || $ticks ? '<button type="button" class="rm-fclear">Clear filters</button>' : '' )
 		. '</aside>';
 	$out .= '<div class="rm-catgrid"><p class="rm-fcount"><b>' . (int) $total . '</b> products</p>'
-		. '<div class="rm-projgrid rm-prodgrid rm-fgrid" style="grid-template-columns:repeat(5,1fr);grid-auto-rows:auto;gap:16px">' . $cards . '</div>'
+		. '<div class="rm-projgrid rm-prodgrid rm-fgrid" style="grid-template-columns:repeat(4,1fr);grid-auto-rows:auto;gap:24px">' . $cards . '</div>'
 		. '<p class="rm-fnone" hidden>No products match those filters. <button type="button" class="rm-fclear">Clear filters</button></p></div>';
 	$out .= '</div>';
 	$out .= $seo_body;
@@ -652,11 +652,11 @@ add_shortcode( 'ricoman_all_products', function () {
 	// Inline critical CSS so card layout works even if the stylesheet is cached.
 	$out  = '<style>'
 		. '.rm-pcard{display:flex!important;flex-direction:column;text-decoration:none;color:inherit;border-radius:0;background:none;overflow:visible}'
-		. '.rm-pcard-img{position:relative;aspect-ratio:3/4;background:#f2f2f2;border-radius:10px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center}'
-		. '.rm-pcard-img img{width:84%;height:84%;object-fit:contain;display:block}'
-		. '.rm-pcard-body{padding:10px 2px 0;text-align:center}'
-		. '.rm-pcard-eyebrow{display:block;font-size:.78rem;letter-spacing:0;text-transform:none;font-family:Poppins;font-weight:400;color:#888;margin-top:4px;text-align:center;line-height:1.4}'
-		. '.rm-pcard-title{display:block;font-size:1.05rem;font-weight:600;font-family:Poppins;line-height:1.3;text-align:center}'
+		. '.rm-pcard-img{position:relative;aspect-ratio:4/5;background:#f2f2f2;border-radius:12px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center}'
+		. '.rm-pcard-img img{width:82%;height:82%;object-fit:contain;display:block}'
+		. '.rm-pcard-body{padding:14px 4px 0;text-align:center}'
+		. '.rm-pcard-eyebrow{display:block;font-size:.82rem;letter-spacing:0;text-transform:none;font-family:Poppins;font-weight:400;color:#888;margin-top:6px;text-align:center;line-height:1.4}'
+		. '.rm-pcard-title{display:block;font-size:1.1rem;font-weight:600;font-family:Poppins;line-height:1.3;text-align:center}'
 		. '.rm-allpgrid>p,.rm-allpgrid>br{display:none!important}'
 		. '[style*="display: none"]{display:none!important}'
 		. '</style>';
@@ -666,7 +666,7 @@ add_shortcode( 'ricoman_all_products', function () {
 	$out .= '<div class="rm-catgrid-wrap"><aside class="rm-facets">' . $sidebar . '</aside>';
 	$out .= '<div class="rm-catgrid">';
 	$out .= '<div class="rm-catgrid-top"><p class="rm-fcount"><b>' . (int) $total . '</b> products</p><div class="rm-pgn rm-pgn-top" aria-label="Products pagination top"></div></div>';
-	$out .= '<div class="rm-allpgrid" style="display:grid;grid-template-columns:repeat(5,1fr);grid-auto-rows:auto;gap:16px">' . $cards . '</div>';
+	$out .= '<div class="rm-allpgrid" style="display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:auto;gap:24px">' . $cards . '</div>';
 	$out .= '<p class="rm-fnone" hidden>No products match those filters. <button type="button" class="rm-fclear">Clear filters</button></p>';
 	$out .= '<div class="rm-pgn rm-pgn-bot" aria-label="Products pagination"></div>';
 	$out .= '</div></div></div>';
