@@ -1,7 +1,7 @@
 # Marketplace listings — copy-paste pack
 
 Ready-to-use listing copy for Gumroad (use as-is) and ThemeForest (adapt
-to their form fields). Swap `[DEMO-URL]` for your Netlify demo domain
+to their form fields). Swap `https://rgreen-ops.github.io/revise/demos` for your Netlify demo domain
 after deploying `marketing/demo-site/`.
 
 **Suggested launch pricing (Gumroad):**
@@ -43,7 +43,7 @@ a "send us your bill of materials" quote flow.
 Perfect for: electrical wholesalers, lighting suppliers, manufacturers,
 engineering firms, industrial distributors, builders' merchants.
 
-**Live demo:** [DEMO-URL]/forgeline/
+**Live demo:** https://rgreen-ops.github.io/revise/demos/forgeline/
 **Tags:** industrial website, trade supplier, wholesale, manufacturing,
 b2b template
 
@@ -71,7 +71,7 @@ setup. Sideline is organised around exactly that:
   contact page, no junior players named, photo-consent language modelled
 - 8 pages, HTML + compiled Tailwind, vanilla JS, WCAG-AA, iPhone-tested
 
-**Live demo:** [DEMO-URL]/sideline/
+**Live demo:** https://rgreen-ops.github.io/revise/demos/sideline/
 **Tags:** football club, soccer club, youth sports, junior football,
 grassroots, sports team website
 
@@ -114,16 +114,16 @@ league sides, club volunteers who got handed "the website job".
 
 | Edition | Colours | Demo club | Est. | Demo URL |
 |---|---|---|---|---|
-| Terrace (flagship) | Claret & sky + 5-way switcher | Ravenshaw Rovers | 1921 | [DEMO-URL]/terrace/ |
-| Clarion | Royal blue & gold | Kingsfield Rovers | 1907 | [DEMO-URL]/clarion/ |
-| Vermilion | Scarlet & gold | Redbrook Rovers | 1911 | [DEMO-URL]/vermilion/ |
-| Evergreen | Forest green & gold | Oakhurst Rovers | 1924 | [DEMO-URL]/evergreen/ |
-| Amberline | Black & amber | Blackwick Rovers | 1899 | [DEMO-URL]/amberline/ |
-| Skyline | Sky blue & gold | Easthaven Rovers | 1902 | [DEMO-URL]/skyline/ |
-| Tangerine | Orange & black | Seabrook Rovers | 1912 | [DEMO-URL]/tangerine/ |
-| Midnight | Navy & sky | Northgate Rovers | 1905 | [DEMO-URL]/midnight/ |
-| Canary | Yellow & slate | Marshside Rovers | 1926 | [DEMO-URL]/canary/ |
-| Candystripe | Red & white stripes | Westport Rovers | 1889 | [DEMO-URL]/candystripe/ |
+| Terrace (flagship) | Claret & sky + 5-way switcher | Ravenshaw Rovers | 1921 | https://rgreen-ops.github.io/revise/demos/terrace/ |
+| Clarion | Royal blue & gold | Kingsfield Rovers | 1907 | https://rgreen-ops.github.io/revise/demos/clarion/ |
+| Vermilion | Scarlet & gold | Redbrook Rovers | 1911 | https://rgreen-ops.github.io/revise/demos/vermilion/ |
+| Evergreen | Forest green & gold | Oakhurst Rovers | 1924 | https://rgreen-ops.github.io/revise/demos/evergreen/ |
+| Amberline | Black & amber | Blackwick Rovers | 1899 | https://rgreen-ops.github.io/revise/demos/amberline/ |
+| Skyline | Sky blue & gold | Easthaven Rovers | 1902 | https://rgreen-ops.github.io/revise/demos/skyline/ |
+| Tangerine | Orange & black | Seabrook Rovers | 1912 | https://rgreen-ops.github.io/revise/demos/tangerine/ |
+| Midnight | Navy & sky | Northgate Rovers | 1905 | https://rgreen-ops.github.io/revise/demos/midnight/ |
+| Canary | Yellow & slate | Marshside Rovers | 1926 | https://rgreen-ops.github.io/revise/demos/canary/ |
+| Candystripe | Red & white stripes | Westport Rovers | 1889 | https://rgreen-ops.github.io/revise/demos/candystripe/ |
 
 **Terrace-only extra paragraph:** Can't see your colours? Terrace is the
 any-colour edition: five ready-made colourways ship in the box (claret,
