@@ -320,35 +320,30 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 	$tax  = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
 
 	$term = $atts['cat'] ? get_term_by( 'slug', $atts['cat'], $tax ) : get_queried_object();
-	// Honour each product's "Order" (menu_order) page attribute first, so the team
-	// can promote products within a category; fall back to alphabetical.
-	$args = array(
-		'post_type'      => 'product',
-		'post_status'    => 'publish',
-		'posts_per_page' => -1,
-		'orderby'        => array( 'menu_order' => 'ASC', 'title' => 'ASC' ),
-		'no_found_rows'  => true,
-	);
 	$title = 'All products';
+	global $wpdb;
 	if ( $term instanceof WP_Term ) {
-		$args['tax_query'] = array( array( 'taxonomy' => $tax, 'terms' => $term->term_id ) );
-		$title             = $term->name;
+		$title = $term->name;
+		$ids   = $wpdb->get_col( $wpdb->prepare(
+			"SELECT DISTINCT p.ID FROM {$wpdb->posts} p
+			 INNER JOIN {$wpdb->term_relationships} tr ON p.ID = tr.object_id
+			 INNER JOIN {$wpdb->term_taxonomy} tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
+			 WHERE p.post_type = 'product' AND p.post_status = 'publish'
+			   AND tt.taxonomy = %s AND tt.term_id = %d
+			 ORDER BY p.menu_order ASC, p.post_title ASC",
+			$tax, $term->term_id
+		) );
+	} else {
+		$ids = $wpdb->get_col(
+			"SELECT ID FROM {$wpdb->posts}
+			 WHERE post_type = 'product' AND post_status = 'publish'
+			 ORDER BY menu_order ASC, post_title ASC"
+		);
 	}
-	$groupby_cb = function() { global $wpdb; return "$wpdb->posts.ID"; };
-	add_filter( 'posts_groupby', $groupby_cb );
-	$q = new WP_Query( $args );
-	remove_filter( 'posts_groupby', $groupby_cb );
-	if ( ! $q->have_posts() ) {
+	if ( empty( $ids ) ) {
 		return '<div class="rm-pp-wrap"><p class="rm-config-note">No products in this category yet.</p></div>';
 	}
-
-	// Deduplicate posts by ID in case plugin JOINs (e.g. Yoast) return duplicates.
-	$seen_ids = array();
-	$posts    = array_filter( $q->posts, function( $p ) use ( &$seen_ids ) {
-		if ( isset( $seen_ids[ $p->ID ] ) ) { return false; }
-		$seen_ids[ $p->ID ] = true;
-		return true;
-	} );
+	$posts = array_filter( array_map( 'get_post', $ids ) );
 
 	$cards   = '';
 	$maxlm   = 0;
@@ -533,25 +528,13 @@ add_shortcode( 'ricoman_all_products', function () {
 	$acy_term = get_term_by( 'name', 'Accessories', $pcat_tax );
 	$acy_slug = $acy_term ? $acy_term->slug : 'accessories';
 
-	$groupby_cb = function() { global $wpdb; return "$wpdb->posts.ID"; };
-	add_filter( 'posts_groupby', $groupby_cb );
-	$posts = get_posts( array(
-		'post_type'        => 'product',
-		'post_status'      => 'publish',
-		'posts_per_page'   => -1,
-		'orderby'          => 'date',
-		'order'            => 'DESC',
-		'no_found_rows'    => true,
-		'suppress_filters' => false,
-	) );
-	remove_filter( 'posts_groupby', $groupby_cb );
-	// Dedup by ID in case plugin JOINs return duplicate rows.
-	$seen_ids = array();
-	$posts    = array_values( array_filter( $posts, function( $p ) use ( &$seen_ids ) {
-		if ( isset( $seen_ids[ $p->ID ] ) ) { return false; }
-		$seen_ids[ $p->ID ] = true;
-		return true;
-	} ) );
+	global $wpdb;
+	$ids = $wpdb->get_col(
+		"SELECT ID FROM {$wpdb->posts}
+		 WHERE post_type = 'product' AND post_status = 'publish'
+		 ORDER BY menu_order ASC, post_title ASC"
+	);
+	$posts = array_filter( array_map( 'get_post', $ids ) );
 	if ( empty( $posts ) ) {
 		return '<div class="rm-pp-wrap"><p class="rm-config-note">No products yet.</p></div>';
 	}
