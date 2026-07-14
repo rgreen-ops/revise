@@ -430,7 +430,7 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 		. '@media(max-width:1100px){.rm-allprods .rm-prodgrid,.rm-allprods .rm-allpgrid{grid-template-columns:repeat(3,1fr)}}'
 		. '@media(max-width:600px){.rm-allprods .rm-prodgrid,.rm-allprods .rm-allpgrid{grid-template-columns:1fr 1fr}}'
 		. '@media(max-width:400px){.rm-allprods .rm-prodgrid,.rm-allprods .rm-allpgrid{grid-template-columns:1fr}}'
-		. '.rm-allpgrid>p{display:contents!important}.rm-allpgrid>br{display:none!important}'
+		. '.rm-allpgrid>p,.rm-allpgrid>br{display:none!important}'
 		. '[style*="display: none"]{display:none!important}'
 		. '</style>';
 	$out .= '<div class="rm-pp-wrap rm-catarch rm-allprods">';
@@ -451,7 +451,7 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 	$out .= '</div></div>';
 	$out .= $seo_body;
 	// Inline pagination — runs immediately, bypasses W3Speedster JS lazy-loading.
-	$out .= '<script>(function(){var w=document.currentScript&&document.currentScript.closest?document.currentScript.closest(".rm-allprods"):null;if(!w)w=document.querySelector(".rm-allprods:not([data-rmpgn])");if(!w||w.dataset.rmpgn)return;w.dataset.rmpgn="1";var P=20,pg=1,all=[].slice.call(w.querySelectorAll(".rm-fcard"));if(!all.length)return;function show(){var s=(pg-1)*P;all.forEach(function(c){c.style.display="none";});all.slice(s,s+P).forEach(function(c){c.style.display="";});render();}function render(){var pages=Math.ceil(all.length/P);[".rm-pgn-top",".rm-pgn-bot"].forEach(function(sel){var el=w.querySelector(sel);if(!el)return;if(pages<=1){el.innerHTML="";return;}var h="";if(pg>1)h+="<button class=\"rm-pgn-btn\" data-p=\""+(pg-1)+"\">← Prev</button>";h+="<span class=\"rm-pgn-info\">Page "+pg+" of "+pages+"</span>";if(pg<pages)h+="<button class=\"rm-pgn-btn\" data-p=\""+(pg+1)+"\">Next →</button>";el.innerHTML=h;el.querySelectorAll(".rm-pgn-btn").forEach(function(b){b.addEventListener("click",function(){pg=+b.dataset.p;show();w.scrollIntoView({behavior:"smooth",block:"start"});});});});}show();})()</script>';
+	$out .= '<script>(function(){var w=document.currentScript&&document.currentScript.closest?document.currentScript.closest(".rm-allprods"):null;if(!w)w=document.querySelector(".rm-allprods:not([data-rmpgn])");if(!w||w.dataset.rmpgn)return;w.dataset.rmpgn="1";var g=w.querySelector(".rm-allpgrid");if(g){[].slice.call(g.children).forEach(function(p){if(p.tagName==="P"){while(p.firstChild){g.insertBefore(p.firstChild,p);}g.removeChild(p);}});}var P=20,pg=1,all=[].slice.call(w.querySelectorAll(".rm-fcard"));if(!all.length)return;function show(){var s=(pg-1)*P;all.forEach(function(c){c.style.display="none";});all.slice(s,s+P).forEach(function(c){c.style.display="";});render();}function render(){var pages=Math.ceil(all.length/P);[".rm-pgn-top",".rm-pgn-bot"].forEach(function(sel){var el=w.querySelector(sel);if(!el)return;if(pages<=1){el.innerHTML="";return;}var h="";if(pg>1)h+="<button class=\"rm-pgn-btn\" data-p=\""+(pg-1)+"\">← Prev</button>";h+="<span class=\"rm-pgn-info\">Page "+pg+" of "+pages+"</span>";if(pg<pages)h+="<button class=\"rm-pgn-btn\" data-p=\""+(pg+1)+"\">Next →</button>";el.innerHTML=h;el.querySelectorAll(".rm-pgn-btn").forEach(function(b){b.addEventListener("click",function(){pg=+b.dataset.p;show();w.scrollIntoView({behavior:"smooth",block:"start"});});});});}show();})()</script>';
 	$out .= '</div>';
 
 	// Full filter+pagination wired by product-gallery.js (rmCatFilterInit) when loaded.
@@ -678,7 +678,7 @@ add_shortcode( 'ricoman_all_products', function () {
 		. '@media(max-width:1100px){.rm-allprods .rm-prodgrid,.rm-allprods .rm-allpgrid{grid-template-columns:repeat(3,1fr)}}'
 		. '@media(max-width:600px){.rm-allprods .rm-prodgrid,.rm-allprods .rm-allpgrid{grid-template-columns:1fr 1fr}}'
 		. '@media(max-width:400px){.rm-allprods .rm-prodgrid,.rm-allprods .rm-allpgrid{grid-template-columns:1fr}}'
-		. '.rm-allpgrid>p{display:contents!important}.rm-allpgrid>br{display:none!important}'
+		. '.rm-allpgrid>p,.rm-allpgrid>br{display:none!important}'
 		. '[style*="display: none"]{display:none!important}'
 		. '</style>';
 	$out .= '<div class="rm-pp-wrap rm-catarch rm-allprods" data-acy-cat="' . esc_attr( $acy_slug ) . '">';
@@ -691,7 +691,7 @@ add_shortcode( 'ricoman_all_products', function () {
 	$out .= '<p class="rm-fnone" hidden>No products match those filters. <button type="button" class="rm-fclear">Clear filters</button></p>';
 	$out .= '<div class="rm-pgn rm-pgn-bot" aria-label="Products pagination"></div>';
 	// Inline pagination — runs immediately, bypasses W3Speedster JS lazy-loading.
-	$out .= '<script>(function(){var w=document.currentScript&&document.currentScript.closest?document.currentScript.closest(".rm-allprods"):null;if(!w)w=document.querySelector(".rm-allprods:not([data-rmpgn])");if(!w||w.dataset.rmpgn)return;w.dataset.rmpgn="1";var P=20,pg=1,all=[].slice.call(w.querySelectorAll(".rm-fcard"));if(!all.length)return;function show(){var s=(pg-1)*P;all.forEach(function(c){c.style.display="none";});all.slice(s,s+P).forEach(function(c){c.style.display="";});render();}function render(){var pages=Math.ceil(all.length/P);[".rm-pgn-top",".rm-pgn-bot"].forEach(function(sel){var el=w.querySelector(sel);if(!el)return;if(pages<=1){el.innerHTML="";return;}var h="";if(pg>1)h+="<button class=\"rm-pgn-btn\" data-p=\""+(pg-1)+"\">← Prev</button>";h+="<span class=\"rm-pgn-info\">Page "+pg+" of "+pages+"</span>";if(pg<pages)h+="<button class=\"rm-pgn-btn\" data-p=\""+(pg+1)+"\">Next →</button>";el.innerHTML=h;el.querySelectorAll(".rm-pgn-btn").forEach(function(b){b.addEventListener("click",function(){pg=+b.dataset.p;show();w.scrollIntoView({behavior:"smooth",block:"start"});});});});}show();})()</script>';
+	$out .= '<script>(function(){var w=document.currentScript&&document.currentScript.closest?document.currentScript.closest(".rm-allprods"):null;if(!w)w=document.querySelector(".rm-allprods:not([data-rmpgn])");if(!w||w.dataset.rmpgn)return;w.dataset.rmpgn="1";var g=w.querySelector(".rm-allpgrid");if(g){[].slice.call(g.children).forEach(function(p){if(p.tagName==="P"){while(p.firstChild){g.insertBefore(p.firstChild,p);}g.removeChild(p);}});}var P=20,pg=1,all=[].slice.call(w.querySelectorAll(".rm-fcard"));if(!all.length)return;function show(){var s=(pg-1)*P;all.forEach(function(c){c.style.display="none";});all.slice(s,s+P).forEach(function(c){c.style.display="";});render();}function render(){var pages=Math.ceil(all.length/P);[".rm-pgn-top",".rm-pgn-bot"].forEach(function(sel){var el=w.querySelector(sel);if(!el)return;if(pages<=1){el.innerHTML="";return;}var h="";if(pg>1)h+="<button class=\"rm-pgn-btn\" data-p=\""+(pg-1)+"\">← Prev</button>";h+="<span class=\"rm-pgn-info\">Page "+pg+" of "+pages+"</span>";if(pg<pages)h+="<button class=\"rm-pgn-btn\" data-p=\""+(pg+1)+"\">Next →</button>";el.innerHTML=h;el.querySelectorAll(".rm-pgn-btn").forEach(function(b){b.addEventListener("click",function(){pg=+b.dataset.p;show();w.scrollIntoView({behavior:"smooth",block:"start"});});});});}show();})()</script>';
 	$out .= '</div></div></div>';
 
 	return $out;
