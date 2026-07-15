@@ -69,7 +69,7 @@ jobs:
           server-dir: ${{ secrets.FTP_SERVER_DIR }}
           dangerous-clean-slate: false
           state-name: .ftp-deploy-sync-state-v2.json
-          timeout: 120000
+          timeout: 180000
           exclude: |
             **/.git*
             **/.git*/**
