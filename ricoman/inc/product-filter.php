@@ -371,7 +371,7 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 		$mts  = is_wp_error( $mts ) ? array() : $mts;
 		$fins = ricoman_pcard_finish_slugs( $pid );
 		$isnw = get_post_meta( $pid, '_ricoman_is_new', true ) ? true : false;
-		$cards .= ricoman_pcard_html( get_permalink(), $pid, $img, $sub, $mx, $co, $fslug, $cats, $mts, $fins, $isnw );
+		$cards .= ricoman_pcard_html( get_permalink( $pid ), $pid, $img, $sub, $mx, $co, $fslug, $cats, $mts, $fins, $isnw );
 	}
 	wp_reset_postdata();
 
