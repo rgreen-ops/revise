@@ -82,6 +82,7 @@ require_once get_theme_file_path( 'inc/category-meta.php' );  // Per-category St
 require_once get_theme_file_path( 'inc/category-seo-seed.php' );// Starter SEO intro/FAQ copy for the core categories (one-click, fills empties).
 require_once get_theme_file_path( 'inc/page-seo-seed.php' );  // Starter SEO title/description for marketing + feature pages (one-click, fills empties).
 require_once get_theme_file_path( 'inc/product-filter.php' ); // Category archive grid + faceted filters (lumens/watts/features).
+require_once get_theme_file_path( 'inc/product-filter-fix.php' ); // Shortcode overrides: correct query + URL fix.
 require_once get_theme_file_path( 'inc/configurator.php' );   // Live variant configurator (RICOBOT price/options).
 require_once get_theme_file_path( 'inc/product-patterns.php' );// Product page blocks (Hero/Specs/Configurator/…).
 require_once get_theme_file_path( 'inc/family.php' );         // Family filter page (facets -> pick -> configure).
