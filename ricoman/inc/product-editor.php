@@ -166,6 +166,9 @@ add_action( 'wp', function () {
 			$GLOBALS['rm_pe_preview'][ $gk ] = $draft[ $gk ];
 		}
 	}
+	if ( is_array( $draft ) && array_key_exists( 'accessories', $draft ) && is_array( $draft['accessories'] ) ) {
+		$GLOBALS['rm_pe_preview']['accessories'] = array_map( 'absint', $draft['accessories'] );
+	}
 } );
 
 /** Title override in preview. */
@@ -283,8 +286,30 @@ add_action( 'wp_ajax_ricoman_pe_draft', function () {
 		'configvisual' => $configvisual,
 		'gallery'      => $ids( 'gallery' ),
 		'insitu'       => $ids( 'insitu' ),
+		'accessories'  => $ids( 'accessories' ),
 	), HOUR_IN_SECONDS );
 	wp_send_json_success();
+} );
+
+/** Product search for the accessories picker. */
+add_action( 'wp_ajax_ricoman_pe_acc_search', function () {
+	if ( ! current_user_can( 'edit_posts' ) || ! check_ajax_referer( 'ricoman_pe_thumb', 'nonce', false ) ) {
+		wp_send_json_error();
+	}
+	$q   = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( $_GET['q'] ) ) : '';
+	$exc = isset( $_GET['exclude'] ) ? absint( $_GET['exclude'] ) : 0;
+	$ps  = get_posts( array(
+		'post_type'      => 'product',
+		'post_status'    => 'publish',
+		'posts_per_page' => 10,
+		'post__not_in'   => $exc ? array( $exc ) : array(),
+		's'              => $q,
+		'orderby'        => 'title',
+		'order'          => 'ASC',
+	) );
+	wp_send_json_success( array_map( function ( $p ) {
+		return array( 'id' => $p->ID, 'title' => $p->post_title );
+	}, $ps ) );
 } );
 
 /** Return a pattern's shared template content (to seed the per-page editor). */
@@ -439,6 +464,21 @@ function ricoman_product_editor_render() {
 	}
 	$cur_foff = function_exists( 'ricoman_variant_filters_off' ) ? ricoman_variant_filters_off( $pid ) : array();
 
+	// Saved accessories for the picker (load titles from post data).
+	$acc_data = array();
+	$acc_raw  = get_post_meta( $pid, '_ricoman_accessories', true );
+	if ( $acc_raw ) {
+		$acc_ids = json_decode( $acc_raw, true );
+		if ( is_array( $acc_ids ) ) {
+			foreach ( array_filter( array_map( 'absint', $acc_ids ) ) as $acc_id ) {
+				$acc_p = get_post( $acc_id );
+				if ( $acc_p && 'product' === $acc_p->post_type ) {
+					$acc_data[] = array( 'id' => (int) $acc_id, 'title' => $acc_p->post_title );
+				}
+			}
+		}
+	}
+
 	$boot = array(
 		'pid'      => $pid,
 		'isTpl'    => $is_tpl,
@@ -452,7 +492,8 @@ function ricoman_product_editor_render() {
 		'patterns' => $patterns,
 		'heroFields' => $fgroups['hero'],
 		'specFields' => $fgroups['specs'],
-		'faqFields'  => isset( $fgroups['faq'] ) ? $fgroups['faq'] : array(),
+		'faqFields'        => isset( $fgroups['faq'] ) ? $fgroups['faq'] : array(),
+		'accessoriesData'  => $acc_data,
 		'values'   => $fieldvals,
 		'gallery'  => $gallery,
 		'insitu'   => $insitu,
@@ -566,6 +607,20 @@ function ricoman_product_editor_render() {
 		.rmpe-gthumb.rmpe-gdrag{opacity:.4}
 		.rmpe-gbtn{border:1px dashed #b3c2dd;background:var(--tint-2);color:var(--accent);border-radius:7px;padding:0 14px;height:46px;font-weight:700;font-size:12px;cursor:pointer}
 		.rmpe-gbtn:hover{background:var(--tint)}
+		/* accessories picker */
+		.rmpe-accsrch{position:relative;margin:0 0 10px}
+		.rmpe-accsrch input{width:100%;border:1px solid #d8dbe4;border-radius:var(--r-sm);padding:10px 12px;font-size:13px;font-family:inherit;background:#fff;transition:.14s;color:var(--ink)}
+		.rmpe-accsrch input:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px rgba(0,72,153,.14)}
+		.rmpe-accdd{position:absolute;top:calc(100% + 2px);left:0;right:0;background:#fff;border:1px solid #d8dbe4;border-radius:var(--r-sm);box-shadow:var(--sh-lift);z-index:20;max-height:190px;overflow-y:auto;display:none}
+		.rmpe-accsrch.open .rmpe-accdd{display:block}
+		.rmpe-accopt{padding:9px 12px;cursor:pointer;font-size:13px;color:var(--ink);transition:.12s}
+		.rmpe-accopt:hover,.rmpe-accopt:focus{background:var(--tint)}
+		.rmpe-accnone{padding:9px 12px;font-size:13px;color:var(--faint);font-style:italic}
+		.rmpe-acclist{display:flex;flex-direction:column;gap:5px;margin:0 0 12px}
+		.rmpe-accitem{display:flex;align-items:center;gap:8px;background:var(--tint-2);border:1px solid var(--line);border-radius:7px;padding:7px 10px;font-size:12.5px;font-weight:500;color:var(--ink)}
+		.rmpe-accitem span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+		.rmpe-accitem button{border:0;background:none;cursor:pointer;color:var(--faint);padding:2px 4px;border-radius:4px;line-height:1;font-size:16px;transition:.12s;font-family:inherit}
+		.rmpe-accitem button:hover{color:#c0392b;background:#fdeaea}
 		/* visual picker modal */
 		.rmpe-modal{position:fixed;inset:0;background:rgba(13,15,22,.5);backdrop-filter:blur(4px);z-index:100000;display:flex;align-items:center;justify-content:center;padding:3vh 3vw;animation:rmpe-fade .18s ease}
 		@keyframes rmpe-fade{from{opacity:0}to{opacity:1}}
@@ -659,6 +714,7 @@ function ricoman_product_editor_render() {
 			<input type="hidden" name="cols_global" id="rmpe-save-cols-global" value="0">
 			<input type="hidden" name="gallery_json" id="rmpe-save-gallery">
 			<input type="hidden" name="insitu_json" id="rmpe-save-insitu">
+			<input type="hidden" name="accessories_json" id="rmpe-save-accessories">
 		</form>
 
 		<form id="rmpe-resetform" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:none">
@@ -671,7 +727,7 @@ function ricoman_product_editor_render() {
 	<script>
 	( function () {
 		var B = <?php echo wp_json_encode( $boot ); ?>;
-		var state = { layout: B.layout.slice(), fields: Object.assign( {}, B.values ), cols: ( B.cols || [] ).slice(), filterOff: ( B.filterOff || [] ).slice(), configVisual: !! B.configVisual, colsGlobal: false, gallery: ( B.gallery || [] ).slice(), insitu: ( B.insitu || [] ).slice(), sel: 0, device: 'desktop' };
+		var state = { layout: B.layout.slice(), fields: Object.assign( {}, B.values ), cols: ( B.cols || [] ).slice(), filterOff: ( B.filterOff || [] ).slice(), configVisual: !! B.configVisual, colsGlobal: false, gallery: ( B.gallery || [] ).slice(), insitu: ( B.insitu || [] ).slice(), accessories: ( B.accessoriesData || [] ).slice(), sel: 0, device: 'desktop' };
 		var $ = function ( id ) { return document.getElementById( id ); };
 		var iframe = $( 'rmpe-iframe' ), load = $( 'rmpe-load' );
 
@@ -689,6 +745,7 @@ function ricoman_product_editor_render() {
 			fd.append( 'configvisual', state.configVisual ? '1' : '0' );
 			fd.append( 'gallery', JSON.stringify( state.gallery.map( function ( i ) { return i.id; } ) ) );
 			fd.append( 'insitu', JSON.stringify( state.insitu.map( function ( i ) { return i.id; } ) ) );
+			fd.append( 'accessories', JSON.stringify( state.accessories.map( function ( i ) { return i.id; } ) ) );
 			clearTimeout( draftTimer );
 			draftTimer = setTimeout( function () {
 				fetch( B.ajax, { method: 'POST', body: fd, credentials: 'same-origin' } ).then( function () {
@@ -837,6 +894,52 @@ function ricoman_product_editor_render() {
 			state.sel = at; closeModal(); renderList(); renderSettings(); pushDraft();
 		} );
 
+		/* ---- accessories search ---- */
+		function initAccSearch() {
+			var inp = document.getElementById( 'rmpe-acc-q' );
+			if ( ! inp ) { return; }
+			var wrap = inp.parentNode;
+			var dd = document.createElement( 'div' ); dd.className = 'rmpe-accdd'; wrap.appendChild( dd );
+			var timer = null;
+			function currentIds() { return state.accessories.map( function ( a ) { return a.id; } ); }
+			function doSearch() {
+				var q = inp.value.trim();
+				if ( q.length < 1 ) { wrap.classList.remove( 'open' ); return; }
+				clearTimeout( timer );
+				timer = setTimeout( function () {
+					var url = B.ajax + '?action=ricoman_pe_acc_search&nonce=' + encodeURIComponent( B.tnonce ) + '&exclude=' + B.pid + '&q=' + encodeURIComponent( q );
+					fetch( url, { credentials: 'same-origin' } ).then( function ( r ) { return r.json(); } ).then( function ( j ) {
+						dd.innerHTML = '';
+						var sel = currentIds();
+						var items = ( j && j.success && j.data ) ? j.data.filter( function ( p ) { return sel.indexOf( p.id ) < 0; } ) : [];
+						if ( ! items.length ) {
+							dd.innerHTML = '<div class="rmpe-accnone">No products found.</div>';
+						} else {
+							items.forEach( function ( p ) {
+								var opt = document.createElement( 'div' ); opt.className = 'rmpe-accopt'; opt.textContent = p.title;
+								opt.dataset.accid = p.id; opt.dataset.acctitle = p.title;
+								dd.appendChild( opt );
+							} );
+						}
+						wrap.classList.add( 'open' );
+					} );
+				}, 250 );
+			}
+			inp.addEventListener( 'input', doSearch );
+			dd.addEventListener( 'click', function ( e ) {
+				var opt = e.target.closest( '.rmpe-accopt' ); if ( ! opt || ! opt.dataset.accid ) { return; }
+				var id = parseInt( opt.dataset.accid, 10 ), title = opt.dataset.acctitle || '';
+				if ( currentIds().indexOf( id ) < 0 ) {
+					state.accessories.push( { id: id, title: title } );
+					pushDraft();
+					renderSettings();
+				}
+			} );
+			document.addEventListener( 'click', function closeAcc( e ) {
+				if ( ! wrap.contains( e.target ) ) { wrap.classList.remove( 'open' ); document.removeEventListener( 'click', closeAcc ); }
+			} );
+		}
+
 		/* ---- right settings ---- */
 		function teardownSpecEditor() {
 			if ( window.wp && wp.editor && document.getElementById( 'rmpe-spec' ) ) {
@@ -902,8 +1005,19 @@ function ricoman_product_editor_render() {
 						+ '<br><span style="opacity:.7">Opens in a new tab — set, save, then reload this editor to preview.</span></p>';
 				}
 				html += visRow( it );
-			} else if ( it.type === 'section' ) {
-				html += '<p class="ttl">' + sectionName( it ) + '</p><p class="hint">This section renders from the product’s fields.</p>';
+			} else if ( it.type === ‘section’ && it.key === ‘accessories’ && ! B.isTpl ) {
+				html += ‘<p class="ttl">Product Accessories</p><p class="hint">Choose which products appear as accessories. Leave empty to use automatic category matching.</p>’;
+				if ( state.accessories.length ) {
+					html += ‘<div class="rmpe-acclist">’;
+					state.accessories.forEach( function ( a ) {
+						html += ‘<div class="rmpe-accitem" data-accid="’ + a.id + ‘"><span>’ + ( a.title || ‘’ ).replace( /</g, ‘&lt;’ ) + ‘</span><button type="button" data-accrem="’ + a.id + ‘" title="Remove" aria-label="Remove">&times;</button></div>’;
+					} );
+					html += ‘</div>’;
+				}
+				html += ‘<div class="rmpe-accsrch"><input type="search" id="rmpe-acc-q" placeholder="Search and add a product…" autocomplete="off"></div>’;
+				html += visRow( it );
+			} else if ( it.type === ‘section’ ) {
+				html += ‘<p class="ttl">’ + sectionName( it ) + ‘</p><p class="hint">This section renders from the product’s fields.</p>’;
 				html += visRow( it );
 			} else {
 				html += '<p class="ttl">' + sectionName( it ) + '</p><p class="hint">Edit this pattern’s text &amp; images for THIS page only.</p>';
@@ -912,6 +1026,7 @@ function ricoman_product_editor_render() {
 			}
 			box.innerHTML = html;
 			if ( it.type === 'section' && it.key === 'specs' && ! B.isTpl ) { initSpecEditor(); }
+			if ( it.type === 'section' && it.key === 'accessories' && ! B.isTpl ) { initAccSearch(); }
 			if ( it.type === 'pattern' ) { initPatEditor( it ); }
 		}
 		function teardownPatEditor() {
@@ -1009,6 +1124,13 @@ function ricoman_product_editor_render() {
 				renderSettings(); pushDraft();
 				return;
 			}
+			var accRem = e.target.closest( '[data-accrem]' );
+			if ( accRem ) {
+				var remId = parseInt( accRem.getAttribute( 'data-accrem' ), 10 );
+				state.accessories = state.accessories.filter( function ( a ) { return a.id !== remId; } );
+				pushDraft(); renderSettings();
+				return;
+			}
 			var grm = e.target.closest( '[data-grm]' );
 			if ( grm ) {
 				var rk = grm.getAttribute( 'data-grm' );
@@ -1074,6 +1196,7 @@ function ricoman_product_editor_render() {
 			$( 'rmpe-save-cols-global' ).value = state.colsGlobal ? '1' : '0';
 			$( 'rmpe-save-gallery' ).value = JSON.stringify( state.gallery.map( function ( i ) { return i.id; } ) );
 			$( 'rmpe-save-insitu' ).value = JSON.stringify( state.insitu.map( function ( i ) { return i.id; } ) );
+			$( 'rmpe-save-accessories' ).value = JSON.stringify( state.accessories.map( function ( i ) { return i.id; } ) );
 			$( 'rmpe-saveform' ).submit();
 		} );
 		$( 'rmpe-exit' ).addEventListener( 'click', function () { window.location.href = B.exitUrl; } );
@@ -1208,6 +1331,14 @@ add_action( 'admin_post_ricoman_save_product_page', function () {
 			if ( ! empty( $_POST['cols_global'] ) && '1' === (string) $_POST['cols_global'] ) {
 				update_option( 'ricoman_spec_filters_off', $foff );
 			}
+		}
+	}
+
+	// Accessories: per-product curated list (overrides auto-matching when non-empty).
+	if ( isset( $_POST['accessories_json'] ) ) {
+		$acc = json_decode( wp_unslash( $_POST['accessories_json'] ), true );
+		if ( is_array( $acc ) ) {
+			update_post_meta( $pid, '_ricoman_accessories', wp_json_encode( array_values( array_filter( array_map( 'absint', $acc ) ) ) ) );
 		}
 	}
 

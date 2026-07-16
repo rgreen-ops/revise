@@ -148,6 +148,55 @@ function ricoman_pf_carousel( $title, $cards, $plain = false ) {
  * accessory products. Same grey-card carousel as "You may also like".
  */
 function ricoman_pf_accessories( $pid, $max = 24 ) {
+	$render_cards = function ( $q ) {
+		$cards = '';
+		while ( $q->have_posts() ) {
+			$q->the_post();
+			$img    = function_exists( 'ricoman_product_img' ) ? ricoman_product_img( get_the_ID() ) : get_the_post_thumbnail_url( get_the_ID(), 'large' );
+			$cards .= ricoman_pf_relcard( get_permalink(), $img, get_the_title() );
+		}
+		wp_reset_postdata();
+		return ricoman_pf_carousel( 'Accessories', $cards, false );
+	};
+
+	// Preview mode: respect the draft accessories selection.
+	if ( ! empty( $GLOBALS['rm_pe_preview'] ) && array_key_exists( 'accessories', $GLOBALS['rm_pe_preview'] ) ) {
+		$ids = array_values( array_filter( array_map( 'absint', (array) $GLOBALS['rm_pe_preview']['accessories'] ) ) );
+		if ( ! $ids ) {
+			return ''; // empty selection = no accessories in preview.
+		}
+		$q = new WP_Query( array(
+			'post_type'      => 'product',
+			'post_status'    => 'publish',
+			'posts_per_page' => count( $ids ),
+			'post__in'       => $ids,
+			'orderby'        => 'post__in',
+			'no_found_rows'  => true,
+		) );
+		return $q->have_posts() ? $render_cards( $q ) : '';
+	}
+
+	// Saved per-product selection (non-empty array overrides auto-matching).
+	$saved_raw = get_post_meta( $pid, '_ricoman_accessories', true );
+	if ( '' !== (string) $saved_raw ) {
+		$saved_ids = json_decode( (string) $saved_raw, true );
+		if ( is_array( $saved_ids ) && $saved_ids ) {
+			$ids = array_values( array_filter( array_map( 'absint', $saved_ids ) ) );
+			if ( $ids ) {
+				$q = new WP_Query( array(
+					'post_type'      => 'product',
+					'post_status'    => 'publish',
+					'posts_per_page' => count( $ids ),
+					'post__in'       => $ids,
+					'orderby'        => 'post__in',
+					'no_found_rows'  => true,
+				) );
+				return $q->have_posts() ? $render_cards( $q ) : '';
+			}
+		}
+	}
+
+	// Auto-match: category-scoped first, then global fallback.
 	$yes  = array( '1', 'yes', 'Yes', 'YES', 'true', 'on' );
 	$base = array(
 		'post_type'      => 'product',
@@ -168,19 +217,9 @@ function ricoman_pf_accessories( $pid, $max = 24 ) {
 		$q              = new WP_Query( $a );
 	}
 	if ( ! $q || ! $q->have_posts() ) {
-		$q = new WP_Query( $base ); // fall back to all accessory products.
+		$q = new WP_Query( $base );
 	}
-	if ( ! $q->have_posts() ) {
-		return '';
-	}
-	$cards = '';
-	while ( $q->have_posts() ) {
-		$q->the_post();
-		$img    = function_exists( 'ricoman_product_img' ) ? ricoman_product_img( get_the_ID() ) : get_the_post_thumbnail_url( get_the_ID(), 'large' );
-		$cards .= ricoman_pf_relcard( get_permalink(), $img, get_the_title() );
-	}
-	wp_reset_postdata();
-	return ricoman_pf_carousel( 'Accessories', $cards, false );
+	return $q->have_posts() ? $render_cards( $q ) : '';
 }
 
 /** "You may also like" — carousel of other products in the same category. */
