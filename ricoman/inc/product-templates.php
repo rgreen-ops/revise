@@ -138,10 +138,18 @@ function ricoman_pe_render_layout( $pid, $layout = null ) {
 	// the configure section for hub products (and don't double-render it).
 	$range_html = isset( $sections['range'] ) ? (string) $sections['range'] : '';
 	$range_done = '' === $range_html;
+	// Downloads section isn't in older saved layouts; inject it before configure.
+	$dl_html    = isset( $sections['downloads'] ) ? (string) $sections['downloads'] : '';
+	$dl_done    = '' === $dl_html;
 	$out        = '';
 	foreach ( (array) $layout as $it ) {
 		$type = isset( $it['type'] ) ? $it['type'] : '';
 		if ( 'section' === $type && ! empty( $it['key'] ) ) {
+			// Inject downloads before configure if not explicitly in the layout.
+			if ( 'configure' === $it['key'] && ! $dl_done ) {
+				$out    .= $dl_html;
+				$dl_done = true;
+			}
 			if ( ! isset( $it['on'] ) || $it['on'] ) {
 				$out .= isset( $sections[ $it['key'] ] ) ? $sections[ $it['key'] ] : '';
 			}
@@ -150,6 +158,8 @@ function ricoman_pe_render_layout( $pid, $layout = null ) {
 			} elseif ( 'configure' === $it['key'] && ! $range_done ) {
 				$out       .= $range_html;
 				$range_done = true;
+			} elseif ( 'downloads' === $it['key'] ) {
+				$dl_done = true; // layout already places it explicitly.
 			}
 		} elseif ( 'pattern' === $type && ! empty( $it['name'] ) && $reg && $reg->is_registered( $it['name'] ) ) {
 			$p    = $reg->get_registered( $it['name'] );
@@ -158,6 +168,9 @@ function ricoman_pe_render_layout( $pid, $layout = null ) {
 	}
 	if ( ! $range_done ) {
 		$out .= $range_html; // no configure section in the layout — append at the end.
+	}
+	if ( ! $dl_done ) {
+		$out .= $dl_html; // no configure section in the layout — append at the end.
 	}
 	return $out;
 }

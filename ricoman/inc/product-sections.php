@@ -39,6 +39,9 @@ add_shortcode( 'ricoman_section_hero', function () {
 add_shortcode( 'ricoman_section_specs', function () {
 	return ricoman_section_render( 'specs' );
 } );
+add_shortcode( 'ricoman_section_downloads', function () {
+	return ricoman_section_render( 'downloads' );
+} );
 add_shortcode( 'ricoman_section_configure', function () {
 	return ricoman_section_render( 'configure' );
 } );
@@ -63,6 +66,7 @@ function ricoman_section_defs() {
 	return array(
 		'hero'        => __( 'Product: Hero (gallery + panel)', 'ricoman' ),
 		'specs'       => __( 'Product: Specification & details', 'ricoman' ),
+		'downloads'   => __( 'Product: Downloads', 'ricoman' ),
 		'configure'   => __( 'Product: Configure & order codes', 'ricoman' ),
 		'range'       => __( 'Product: Range content (Estrella)', 'ricoman' ),
 		'accessories' => __( 'Product: Accessories', 'ricoman' ),
