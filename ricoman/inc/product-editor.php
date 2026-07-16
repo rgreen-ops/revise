@@ -53,6 +53,9 @@ function ricoman_pe_field_groups() {
 		'specs' => array(
 			array( 'specification', __( 'Specification (HTML)', 'ricoman' ), 'textarea' ),
 		),
+		'faq'  => array(
+			array( '_ricoman_faq', __( 'FAQs (Q: / A: format, one pair per question)', 'ricoman' ), 'textarea' ),
+		),
 	);
 }
 
@@ -449,6 +452,7 @@ function ricoman_product_editor_render() {
 		'patterns' => $patterns,
 		'heroFields' => $fgroups['hero'],
 		'specFields' => $fgroups['specs'],
+		'faqFields'  => isset( $fgroups['faq'] ) ? $fgroups['faq'] : array(),
 		'values'   => $fieldvals,
 		'gallery'  => $gallery,
 		'insitu'   => $insitu,
@@ -869,6 +873,10 @@ function ricoman_product_editor_render() {
 			} else if ( it.type === 'section' && it.key === 'specs' && ! B.isTpl ) {
 				html += '<p class="ttl">Specification &amp; details</p><p class="hint">Edit the specification shown in this section.</p>';
 				( B.specFields || [] ).forEach( function ( f ) { html += field( f[0], f[1], f[2] ); } );
+				html += visRow( it );
+			} else if ( it.type === 'section' && it.key === 'faq' && ! B.isTpl ) {
+				html += '<p class="ttl">Product FAQs</p><p class="hint">One Q: / A: pair per question, e.g.<br><code>Q: Is this dimmable?<br>A: Yes — DALI and mains dimming.</code><br>Renders as a FAQ section and adds FAQ schema for SEO.</p>';
+				( B.faqFields || [] ).forEach( function ( f ) { html += field( f[0], f[1], f[2] ); } );
 				html += visRow( it );
 			} else if ( it.type === 'section' && it.key === 'configure' ) {
 				html += '<p class="ttl">Configure &amp; order codes</p><p class="hint">Choose how customers pick a variant, then which spec columns / filters show.</p>';
