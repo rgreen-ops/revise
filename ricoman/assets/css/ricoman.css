@@ -42,7 +42,9 @@ a{color:inherit;text-decoration:none}
 .ricoman-add-project .rm-pico{font-size:1.6rem;line-height:1;font-weight:300;display:flex;align-items:center}
 .ricoman-add-project .rm-plbl{font-size:.72rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;max-width:0;overflow:hidden;opacity:0;padding-left:0;transition:max-width .25s ease,opacity .18s ease .07s,padding-left .25s ease}
 .ricoman-add-project:hover .rm-plbl,.ricoman-add-project.is-added .rm-plbl{max-width:200px;opacity:1;padding-left:.4em}
-.rm-gallery-add{display:flex;justify-content:flex-end;padding-top:10px}
+.rm-gallery-row{display:flex;align-items:center;margin:14px 0 0}
+.rm-gallery-row .rm-gtabs{margin:0;flex:0 0 auto}
+.rm-gallery-row .ricoman-add-project{margin-left:auto}
 
 /* header */
 header.site,.ricoman-site-header{position:absolute;top:0;left:0;right:0;z-index:50}
