@@ -1696,7 +1696,7 @@ function ricoman_pf_sections( $pid ) {
 	}
 
 	// ---- Product FAQs (edited via the Product FAQs metabox; emits FAQPage schema) ----
-	$faq_raw = (string) get_post_meta( $pid, '_ricoman_faq', true );
+	$faq_raw = (string) ricoman_pf_get( $pid, '_ricoman_faq' );
 	$faq_sec = '';
 	if ( '' !== trim( $faq_raw ) && function_exists( 'ricoman_faq_shortcode' ) ) {
 		$faq_inner = ricoman_faq_shortcode( array(), $faq_raw );
