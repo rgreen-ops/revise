@@ -1356,7 +1356,7 @@ function ricoman_pf_insitu_images( $pid ) {
 }
 
 /** Hero gallery block: main image (with finish swatches + order code chip), All/Studio/In-situ tabs, thumbnails. */
-function ricoman_pf_gallery_block( $pid, $title, $code, $sw_html ) {
+function ricoman_pf_gallery_block( $pid, $title, $code, $sw_html, $footer = '' ) {
 	$studio = ricoman_pf_gallery( $pid ); // product_gallery_image.
 	foreach ( ricoman_pf_color_variants( $pid ) as $cv ) {
 		if ( $cv['main'] ) {
@@ -1413,6 +1413,7 @@ function ricoman_pf_gallery_block( $pid, $title, $code, $sw_html ) {
 		. $viz
 		. '</div>'
 		. ( $thumbs ? '<div class="rm-gtabs">' . $tabs . '</div>' : '' )
+		. ( $footer ? '<div class="rm-gallery-add">' . $footer . '</div>' : '' )
 		. '<div class="rm-lightbox" hidden><button type="button" class="rm-lightbox-x" aria-label="Close">&times;</button><img class="rm-lightbox-img" src="" alt=""></div>'
 		. '</div>';
 }
@@ -1570,8 +1571,8 @@ function ricoman_pf_sections( $pid ) {
 	$tr    = ricoman_pf_get( $pid, '_ricoman_trade_btn', 'Apply for a Trade Account' );
 	$tru   = ricoman_pf_get( $pid, '_ricoman_trade_url', '/contact/' );
 	$enq   = esc_url( home_url( '/my-project/' ) );
-	$acts  = '<div class="rm-cfg-acts"><button type="button" class="ricoman-add-project" aria-label="' . esc_attr__( 'Add to My Project', 'ricoman' ) . '" data-add-to-project data-id="' . (int) $pid . '" data-title="' . esc_attr( $title ) . '" data-label="Add to my project"><span class="rm-pico" aria-hidden="true">&#xff0b;</span><span class="rm-plbl">Add to my project</span></button>';
-	$acts .= ' <a class="btn btn-line-d" href="' . esc_url( $ldu ) . '">' . esc_html( $ld ) . '</a>';
+	$add_btn = '<button type="button" class="ricoman-add-project" aria-label="' . esc_attr__( 'Add to My Project', 'ricoman' ) . '" data-add-to-project data-id="' . (int) $pid . '" data-title="' . esc_attr( $title ) . '" data-label="Add to my project"><span class="rm-pico" aria-hidden="true">&#xff0b;</span><span class="rm-plbl">Add to my project</span></button>';
+	$acts  = '<div class="rm-cfg-acts"><a class="btn btn-line-d" href="' . esc_url( $ldu ) . '">' . esc_html( $ld ) . '</a>';
 	$acts .= ' <a class="btn btn-line-d" href="' . esc_url( $tru ) . '">' . esc_html( $tr ) . '</a></div>';
 
 	$crumb = do_shortcode( '[ricoman_breadcrumbs]' );
@@ -1634,7 +1635,7 @@ function ricoman_pf_sections( $pid ) {
 	// Trade) and the Downloads list beside the images on every product page.
 	$hero_html = ( $crumb ? '<div class="rm-section rm-pp-crumbwrap"><div class="rm-pp-wrap rm-pp-crumb">' . $crumb . '</div></div>' : '' )
 		. '<div class="rm-cfghero-wrap"><div class="rm-cfghero rm-pdp">'
-		. ricoman_pf_gallery_block( $pid, $title, $code, $sw )
+		. ricoman_pf_gallery_block( $pid, $title, $code, $sw, $add_btn )
 		. '<div class="rm-cfg-panel">'
 		. '<h1 class="rm-cfg-name">' . esc_html( $title ) . '</h1>'
 		. ( $desc ? '<p class="rm-cfg-desc">' . esc_html( $desc ) . '</p>' : '' )
