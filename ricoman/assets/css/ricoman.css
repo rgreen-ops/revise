@@ -46,7 +46,7 @@ a{color:inherit;text-decoration:none}
 .rm-gallery-row .rm-gtabs{margin:0;flex:0 0 auto}
 .rm-gallery-row .ricoman-add-project{margin-left:auto}
 /* Hero jump-link buttons (Configure Product | Specifications | Downloads) */
-.rm-pp-jumps{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 0}
+.rm-pp-jumps{display:flex;flex-wrap:wrap;gap:22px;margin:20px 0 0}
 .rm-pp-jbtn{display:inline-flex;align-items:center;gap:7px;font-family:Poppins;font-size:.7rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--blue);border:none;padding:0;text-decoration:none;transition:opacity .2s;line-height:1}
 .rm-pp-jbtn:hover{opacity:.65}
 .rm-pp-jbtn svg{flex-shrink:0}
