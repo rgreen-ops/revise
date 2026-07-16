@@ -1355,7 +1355,7 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-hi-ic{width:17px;height:17px;color:var(--ink);flex-shrink:0;margin-top:2px}
 .rm-hi strong{font-weight:600;color:var(--ink)}
 /* Accordions */
-.rm-accs{max-width:1180px;margin:0 auto;border-top:1px solid var(--line)}
+.rm-accs{border-top:1px solid var(--line)}
 .rm-acc{border-bottom:1px solid var(--line)}
 .rm-acc-h{display:flex;align-items:center;justify-content:space-between;cursor:pointer;list-style:none;padding:22px 6px;font-family:Poppins;font-weight:600;font-size:1.15rem;color:var(--ink)}.rm-acc-title{margin:0;font:inherit;color:inherit;flex:1 1 auto}
 .rm-acc-h::-webkit-details-marker{display:none}
@@ -1395,7 +1395,8 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-dimgrid{display:flex;flex-wrap:wrap;gap:18px;justify-content:center;align-items:flex-start}
 /* Dimension diagrams are small line drawings — never upscale them (that's what
    made them blurry). Render at natural size, capped so a large one still fits. */
-.rm-dimgrid img{width:auto;height:auto;max-width:min(100%,300px);max-height:300px;object-fit:contain;background:#f7f8fa;border:1px solid var(--line);border-radius:16px;padding:clamp(20px,3vw,40px)}
+.rm-dimgrid img{width:auto;height:auto;max-width:min(100%,300px);max-height:300px;object-fit:contain;background:#f7f8fa;border:1px solid var(--line);border-radius:16px;padding:clamp(20px,3vw,40px);cursor:zoom-in;transition:transform .35s ease,box-shadow .35s ease}
+.rm-dimgrid img:hover{transform:scale(1.45);box-shadow:0 10px 40px rgba(0,0,0,.12);position:relative;z-index:5}
 @media(max-width:520px){.rm-dimgrid img{max-width:100%}}
 /* Contact page */
 .rm-contact-head{padding-bottom:0}
