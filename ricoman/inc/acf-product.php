@@ -1460,7 +1460,7 @@ function ricoman_pf_sections( $pid ) {
 	// 'm3' = markup version; bump to invalidate cached sections when section HTML
 	// changes. (Variant thumbnails use native loading="lazy"; the optimiser, not
 	// the theme, was the speed problem.)
-	$tkey      = 'rm_pfsec_m14_' . $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true ) . '_' . get_option( 'rm_cfgimg_ver', '0' );
+	$tkey      = 'rm_pfsec_m15_' . $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true ) . '_' . get_option( 'rm_cfgimg_ver', '0' );
 	if ( $cacheable ) {
 		$pre = get_transient( $tkey );
 		if ( is_array( $pre ) ) {
@@ -1562,7 +1562,7 @@ function ricoman_pf_sections( $pid ) {
 	// so it's a request link on every product — not a direct download.
 	$dl = apply_filters( 'ricoman_pf_downloads_html', $dl, $pid );
 	$dl .= '<a class="rm-bim-req" href="#" data-product="' . esc_attr( $title ) . '"><span class="rm-dl-lbl">' . esc_html__( 'BIM / Revit', 'ricoman' ) . '</span> <span class="rm-dl-sub">' . esc_html__( '(RFA) · request', 'ricoman' ) . '</span></a>';
-	$downloads = '<div class="rm-prod-downloads"><div class="rm-dls">' . $dl . '</div></div>';
+	$dl_section = '<div class="rm-section" id="downloads"><div class="rm-pp-wrap"><h2 class="rm-shead">' . esc_html__( 'Downloads', 'ricoman' ) . '</h2><div class="rm-prod-downloads"><div class="rm-dls">' . $dl . '</div></div></div></div>';
 
 	// CTA buttons (LD + trade) from the structured fields, with fallbacks.
 	$ld    = ricoman_pf_get( $pid, '_ricoman_ld_btn', 'Request a Lighting Design' );
@@ -1608,7 +1608,20 @@ function ricoman_pf_sections( $pid ) {
 	}
 	$has_fam = '' !== (string) ricoman_pf_get( $pid, '_ricoman_family' );
 
-	$jump = ''; // In-hero jump links removed.
+	// Jump-link buttons in the hero panel (Configure Product, Specifications, Downloads).
+	$vcount   = ricoman_pf_variant_count( $pid );
+	$_ico_cfg = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><line x1="1" y1="3" x2="13" y2="3"/><line x1="1" y1="7" x2="13" y2="7"/><line x1="1" y1="11" x2="13" y2="11"/><circle cx="4" cy="3" r="1.6" fill="currentColor" stroke="none"/><circle cx="10" cy="7" r="1.6" fill="currentColor" stroke="none"/><circle cx="6" cy="11" r="1.6" fill="currentColor" stroke="none"/></svg>';
+	$_ico_spc = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><rect x="2.5" y="1" width="9" height="12" rx="1"/><line x1="5" y1="4.5" x2="9" y2="4.5"/><line x1="5" y1="7" x2="9" y2="7"/><line x1="5" y1="9.5" x2="7" y2="9.5"/></svg>';
+	$_ico_dl  = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><line x1="7" y1="1" x2="7" y2="9"/><polyline points="4,6.5 7,9.5 10,6.5"/><line x1="1.5" y1="12.5" x2="12.5" y2="12.5"/></svg>';
+	$_jbtns   = '';
+	if ( $vcount ) {
+		$_jbtns .= '<a href="#variants" class="rm-pp-jbtn">' . $_ico_cfg . ' ' . esc_html__( 'Configure Product', 'ricoman' ) . '</a>';
+	}
+	$_jbtns .= '<a href="#specification" class="rm-pp-jbtn">' . $_ico_spc . ' ' . esc_html__( 'Specifications', 'ricoman' ) . '</a>';
+	if ( $dl ) {
+		$_jbtns .= '<a href="#downloads" class="rm-pp-jbtn">' . $_ico_dl . ' ' . esc_html__( 'Downloads', 'ricoman' ) . '</a>';
+	}
+	$jump = '<div class="rm-pp-jumps">' . $_jbtns . '</div>';
 
 	// Short description — fall back through the Builder tagline/lead and the post
 	// excerpt so feature ranges still get a line under the title.
@@ -1640,14 +1653,11 @@ function ricoman_pf_sections( $pid ) {
 		. ( $desc ? '<p class="rm-cfg-desc">' . esc_html( $desc ) . '</p>' : '' )
 		. $highlights
 		. $acts
-		. $downloads
 		. $jump
 		. '</div></div></div>'
 		. ricoman_pf_gallery_js();
 
 	// ---- Accordions: Specification / Dimensions / Features ----
-	// (No "Downloads and Resources" accordion — the downloads are shown in the
-	// hero panel above, so a duplicate here is redundant.)
 	$acc  = ricoman_pf_acc( 'Specification', $spec, false );
 	$acc .= ricoman_pf_acc( 'Dimensions', $dims );
 	$acc .= ricoman_pf_acc( 'Features', $feat_full );
@@ -1706,6 +1716,7 @@ function ricoman_pf_sections( $pid ) {
 	$cache[ $pid ] = array(
 		'hero'        => $hero_html,
 		'specs'       => $acc_sec,
+		'downloads'   => $dl_section,
 		'configure'   => $var_sec,
 		'range'       => $range_sec,
 		'accessories' => $acc_block,
@@ -1856,7 +1867,7 @@ add_shortcode( 'ricoman_product_page', function () {
 	}
 	// Fallback: read ACF/meta fields directly, assembled from the section map.
 	$s = ricoman_pf_sections( $pid );
-	return $s['hero'] . $s['specs'] . $s['configure'] . ( isset( $s['range'] ) ? $s['range'] : '' ) . $s['accessories'] . $s['related'] . ( isset( $s['faq'] ) ? $s['faq'] : '' ) . $s['cta'];
+	return $s['hero'] . $s['specs'] . ( isset( $s['downloads'] ) ? $s['downloads'] : '' ) . $s['configure'] . ( isset( $s['range'] ) ? $s['range'] : '' ) . $s['accessories'] . $s['related'] . ( isset( $s['faq'] ) ? $s['faq'] : '' ) . $s['cta'];
 } );
 
 /* When a product has no block content (the ACF products), render the field page. */
