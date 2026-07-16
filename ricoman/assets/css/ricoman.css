@@ -37,6 +37,12 @@ a{color:inherit;text-decoration:none}
 .btn-blue{background:var(--blue);color:#fff}.btn-blue:hover{background:var(--ink)}
 .lnk{font-family:Poppins;font-weight:600;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;display:inline-flex;gap:.7em;align-items:center}
 .lnk:hover{color:var(--blue)}
+/* Add to My Project — compact blue icon, expands on hover */
+.ricoman-add-project{display:inline-flex;align-items:center;height:40px;width:40px;padding:0;border-radius:50%;background:var(--blue);color:#fff;border:none;cursor:pointer;overflow:hidden;font-family:Poppins;transition:width .25s ease,border-radius .25s ease,padding-right .25s ease;white-space:nowrap;flex-shrink:0;text-decoration:none}
+.ricoman-add-project .rm-pico{display:flex;align-items:center;justify-content:center;min-width:40px;font-size:1.3rem;line-height:1}
+.ricoman-add-project .rm-plbl{font-size:.72rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;max-width:0;overflow:hidden;opacity:0;transition:max-width .25s ease,opacity .18s ease .07s}
+.ricoman-add-project:hover,.ricoman-add-project.is-added{border-radius:999px;width:auto;padding-right:1.2em}
+.ricoman-add-project:hover .rm-plbl,.ricoman-add-project.is-added .rm-plbl{max-width:200px;opacity:1}
 
 /* header */
 header.site,.ricoman-site-header{position:absolute;top:0;left:0;right:0;z-index:50}

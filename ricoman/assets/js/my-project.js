@@ -98,12 +98,14 @@
 					sku: btn.getAttribute( 'data-sku' ) || '',
 					url: btn.getAttribute( 'data-url' ) || '',
 				} );
-				var original = btn.getAttribute( 'data-label' ) || btn.textContent;
+				var ico = btn.querySelector( '.rm-pico' );
+				var lbl = btn.querySelector( '.rm-plbl' );
+				var original = btn.getAttribute( 'data-label' ) || btn.textContent.trim();
 				btn.setAttribute( 'data-label', original );
-				btn.textContent = '✓ Added to My Project';
+				if ( ico ) { ico.textContent = '✓'; } if ( lbl ) { lbl.textContent = 'Added'; } else { btn.textContent = '✓ Added'; }
 				btn.classList.add( 'is-added' );
 				window.setTimeout( function () {
-					btn.textContent = original;
+					if ( ico ) { ico.textContent = '＋'; } if ( lbl ) { lbl.textContent = original; } else { btn.textContent = original; }
 					btn.classList.remove( 'is-added' );
 				}, 1800 );
 			} );

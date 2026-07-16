@@ -1570,7 +1570,7 @@ function ricoman_pf_sections( $pid ) {
 	$tr    = ricoman_pf_get( $pid, '_ricoman_trade_btn', 'Apply for a Trade Account' );
 	$tru   = ricoman_pf_get( $pid, '_ricoman_trade_url', '/contact/' );
 	$enq   = esc_url( home_url( '/my-project/' ) );
-	$acts  = '<div class="rm-cfg-acts"><button type="button" class="btn btn-solid ricoman-add-project" data-add-to-project data-id="' . (int) $pid . '" data-title="' . esc_attr( $title ) . '">＋ Add to My Project</button>';
+	$acts  = '<div class="rm-cfg-acts"><button type="button" class="ricoman-add-project" aria-label="' . esc_attr__( 'Add to My Project', 'ricoman' ) . '" data-add-to-project data-id="' . (int) $pid . '" data-title="' . esc_attr( $title ) . '" data-label="Add to my project"><span class="rm-pico" aria-hidden="true">&#xff0b;</span><span class="rm-plbl">Add to my project</span></button>';
 	$acts .= ' <a class="btn btn-line-d" href="' . esc_url( $ldu ) . '">' . esc_html( $ld ) . '</a>';
 	$acts .= ' <a class="btn btn-line-d" href="' . esc_url( $tru ) . '">' . esc_html( $tr ) . '</a></div>';
 

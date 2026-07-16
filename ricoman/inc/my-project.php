@@ -51,12 +51,12 @@ function ricoman_sc_add_to_project( $atts ) {
 	$label = esc_html( $atts['label'] );
 
 	return sprintf(
-		'<button type="button" class="ricoman-add-project wp-element-button" data-add-to-project data-id="%1$d" data-title="%2$s" data-sku="%3$s" data-url="%4$s" data-label="%5$s">%5$s</button>',
+		'<button type="button" class="ricoman-add-project" aria-label="%5$s" data-add-to-project data-id="%1$d" data-title="%2$s" data-sku="%3$s" data-url="%4$s" data-label="Add to my project"><span class="rm-pico" aria-hidden="true">&#xff0b;</span><span class="rm-plbl">Add to my project</span></button>',
 		$id,
 		esc_attr( get_the_title( $id ) ),
 		esc_attr( (string) get_post_meta( $id, '_ricoman_sku', true ) ),
 		esc_attr( get_permalink( $id ) ),
-		$label
+		esc_attr( $atts['label'] )
 	);
 }
 add_shortcode( 'ricoman_add_to_project', 'ricoman_sc_add_to_project' );
