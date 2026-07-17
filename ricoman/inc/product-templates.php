@@ -161,11 +161,11 @@ function ricoman_pe_render_layout( $pid, $layout = null ) {
 			} elseif ( 'downloads' === $it['key'] ) {
 				$dl_done = true; // layout already places it explicitly.
 			}
-		} elseif ( 'pattern' === $type && ! empty( $it['name'] ) && $reg && $reg->is_registered( $it['name'] ) ) {
+		} elseif ( 'pattern' === $type && ! empty( $it['name'] ) ) {
 			if ( ! empty( $it['html'] ) ) {
 				// Per-page override: TinyMCE produces rendered HTML, not block markup.
 				$out .= wp_kses_post( $it['html'] );
-			} else {
+			} elseif ( $reg && $reg->is_registered( $it['name'] ) ) {
 				$p    = $reg->get_registered( $it['name'] );
 				$out .= do_blocks( isset( $p['content'] ) ? $p['content'] : '' );
 			}

@@ -169,6 +169,9 @@ add_action( 'wp', function () {
 	if ( is_array( $draft ) && array_key_exists( 'accessories', $draft ) && is_array( $draft['accessories'] ) ) {
 		$GLOBALS['rm_pe_preview']['accessories'] = array_map( 'absint', $draft['accessories'] );
 	}
+	add_filter( 'body_class', function ( $classes ) {
+		return array_merge( $classes, array( 'rm-pe-preview' ) );
+	} );
 } );
 
 /** Title override in preview. */

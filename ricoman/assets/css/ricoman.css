@@ -525,7 +525,9 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 @media(max-width:680px){.rm-gpane.on{grid-template-columns:1fr}}
 
 /* media panel: viewport-edge image, text at readable width */
-.rm-mediapanel{padding:0;width:100vw;margin-left:calc(50% - 50vw)!important;margin-right:calc(50% - 50vw)!important;max-width:none!important}
+.rm-mediapanel{padding:0;max-width:none!important}
+/* live page only — pull to viewport edges; preview iframe gets normal flow */
+body:not(.rm-pe-preview) .rm-mediapanel{width:100vw;margin-left:calc(50% - 50vw)!important;margin-right:calc(50% - 50vw)!important}
 .rm-mediapanel .wp-block-columns{display:flex!important;flex-wrap:nowrap!important;gap:0!important;align-items:center!important}
 .rm-mediapanel .wp-block-column{display:flex;flex-direction:column;justify-content:center}
 .rm-mediapanel--left .wp-block-column:first-child{flex:0 0 55%!important;max-width:55%!important;padding:0!important}
@@ -534,7 +536,7 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-mediapanel--right .wp-block-column:first-child{flex:1 1 0!important;padding:clamp(48px,5vw,80px) clamp(32px,4vw,64px)!important}
 .rm-mediapanel figure.wp-block-image{margin:0;width:100%}
 .rm-mediapanel figure.wp-block-image img{width:100%;height:auto;display:block}
-@media(max-width:781px){.rm-mediapanel{width:100%;margin-left:0!important;margin-right:0!important}.rm-mediapanel .wp-block-columns{flex-wrap:wrap!important}.rm-mediapanel .wp-block-column{flex:1 1 100%!important;max-width:100%!important}.rm-mediapanel--left .wp-block-column:last-child,.rm-mediapanel--right .wp-block-column:first-child{padding:clamp(32px,8vw,56px) clamp(20px,6vw,36px)!important}}
+@media(max-width:781px){body:not(.rm-pe-preview) .rm-mediapanel{width:100%;margin-left:0!important;margin-right:0!important}.rm-mediapanel .wp-block-columns{flex-wrap:wrap!important}.rm-mediapanel .wp-block-column{flex:1 1 100%!important;max-width:100%!important}.rm-mediapanel--left .wp-block-column:last-child,.rm-mediapanel--right .wp-block-column:first-child{padding:clamp(32px,8vw,56px) clamp(20px,6vw,36px)!important}}
 /* flow product patterns (native blocks) */
 .rm-flist{list-style:none;padding:0;margin:1.2em 0 0}
 .rm-flist li{padding:.6em 0;border-top:1px solid var(--line);font-size:1rem}
