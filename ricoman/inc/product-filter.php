@@ -451,7 +451,7 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 		. '</aside>';
 	$out .= '<div class="rm-catgrid">';
 	$out .= '<div class="rm-catgrid-top"><p class="rm-fcount"><b>' . (int) $total . '</b> products</p><div class="rm-pgn rm-pgn-top" aria-label="Products pagination top"></div></div>';
-	$out .= '<div class="rm-allpgrid rm-fgrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:24px">' . $cards . '</div>';
+	$out .= '<div class="rm-allpgrid rm-fgrid" style="display:grid;gap:24px">' . $cards . '</div>';
 	$out .= '<p class="rm-fnone" hidden>No products match those filters. <button type="button" class="rm-fclear">Clear filters</button></p>';
 	$out .= '<div class="rm-pgn rm-pgn-bot" aria-label="Products pagination"></div>';
 	$out .= '</div></div>';
@@ -695,7 +695,7 @@ add_shortcode( 'ricoman_all_products', function () {
 	$out .= '<div class="rm-catgrid-wrap"><aside class="rm-facets">' . $sidebar . '</aside>';
 	$out .= '<div class="rm-catgrid">';
 	$out .= '<div class="rm-catgrid-top"><p class="rm-fcount"><b>' . (int) $total . '</b> products</p><div class="rm-pgn rm-pgn-top" aria-label="Products pagination top"></div></div>';
-	$out .= '<div class="rm-allpgrid" style="display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:auto;gap:24px">' . $cards . '</div>';
+	$out .= '<div class="rm-allpgrid" style="display:grid;grid-auto-rows:auto;gap:24px">' . $cards . '</div>';
 	$out .= '<p class="rm-fnone" hidden>No products match those filters. <button type="button" class="rm-fclear">Clear filters</button></p>';
 	$out .= '<div class="rm-pgn rm-pgn-bot" aria-label="Products pagination"></div>';
 	// Inline pagination — runs immediately, bypasses W3Speedster JS lazy-loading.
