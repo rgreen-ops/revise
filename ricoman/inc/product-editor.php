@@ -1017,7 +1017,7 @@ function ricoman_product_editor_render() {
 				html += '<div class="rmpe-accsrch"><input type="search" id="rmpe-acc-q" placeholder="Search and add a product…" autocomplete="off"></div>';
 				html += visRow( it );
 			} else if ( it.type === 'section' ) {
-				html += '<p class="ttl">' + sectionName( it ) + '</p><p class="hint">This section renders from the product's fields.</p>';
+				html += '<p class="ttl">' + sectionName( it ) + '</p><p class="hint">This section renders from the product’s fields.</p>';
 				html += visRow( it );
 			} else {
 				html += '<p class="ttl">' + sectionName( it ) + '</p><p class="hint">Edit this pattern’s text &amp; images for THIS page only.</p>';
