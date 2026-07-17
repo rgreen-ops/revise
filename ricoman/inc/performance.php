@@ -278,15 +278,39 @@ add_action( 'wp_head', function () {
 	}
 	$key = 'ricoman_inline_css_' . md5( $ver );
 	$css = get_transient( $key );
-	if ( false === $css ) {
-		$css = '';
+
+	// A healthy combined build is ~150KB. Rebuild if the transient is missing OR
+	// looks truncated — the latter happens when a request lands mid-deploy while
+	// a stylesheet is still being uploaded and file_get_contents returns empty.
+	// Crucially, only CACHE a build where every file read cleanly, so a mid-write
+	// read can never poison the transient for a week.
+	if ( false === $css || strlen( $css ) < 50000 ) {
+		$css     = '';
+		$healthy = true;
 		foreach ( $files as $rel ) {
-			$css .= ricoman_inline_css_file( $rel );
+			$chunk = ricoman_inline_css_file( $rel );
+			if ( '' === trim( $chunk ) ) {
+				$healthy = false; // a stylesheet was unreadable/empty (mid-upload)
+			}
+			$css .= $chunk;
 		}
-		set_transient( $key, $css, WEEK_IN_SECONDS );
+		if ( $healthy && strlen( $css ) >= 50000 ) {
+			set_transient( $key, $css, WEEK_IN_SECONDS );
+		}
 	}
-	if ( '' !== trim( $css ) ) {
+
+	if ( strlen( $css ) >= 50000 ) {
 		echo "<style id=\"ricoman-inline-css\">" . $css . "</style>\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		return;
+	}
+
+	// Safety net: the inline build wasn't healthy this request (mid-deploy). NEVER
+	// ship an unstyled page — load the real stylesheets as ordinary <link>s. This
+	// path does not cache, so the next request retries the inline build once the
+	// upload has finished.
+	$fk = substr( md5( $ver ), 0, 10 );
+	foreach ( $files as $rel ) {
+		echo '<link rel="stylesheet" class="ricoman-css-fallback" href="' . esc_url( get_theme_file_uri( $rel ) . '?v=' . $fk ) . '" media="all">' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 }, 9 );
 
