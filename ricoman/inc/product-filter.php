@@ -431,7 +431,7 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 		. '.rm-pcard-img img{width:82%;height:82%;object-fit:contain;display:block;mix-blend-mode:multiply}'
 		. '.rm-pcard-body{padding:14px 4px 0;text-align:center}'
 		. '.rm-pcard-eyebrow{display:block;font-size:.82rem;letter-spacing:0;text-transform:none;font-family:Poppins;font-weight:400;color:#888;margin-top:6px;text-align:center;line-height:1.4}'
-		. '.rm-pcard-title{display:block;font-size:1.1rem;font-weight:600;font-family:Poppins;line-height:1.3;text-align:center}'
+		. '.rm-pcard-title{display:block;font-size:1.1rem;font-weight:600;font-family:Poppins;line-height:1.3;text-align:center}.rm-pcard-noimg{font-family:Poppins;font-size:1.15rem;font-weight:600;color:#c9c9c9;text-align:center;line-height:1.5}'
 		. '.rm-allprods .rm-prodgrid,.rm-allprods .rm-allpgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}'
 		. '@media(max-width:1100px){.rm-allprods .rm-prodgrid,.rm-allprods .rm-allpgrid{grid-template-columns:repeat(3,1fr)}}'
 		. '@media(max-width:600px){.rm-allprods .rm-prodgrid,.rm-allprods .rm-allpgrid{grid-template-columns:1fr 1fr}}'
@@ -500,6 +500,8 @@ function ricoman_pcard_html( $url, $pid, $img, $sub, $mx, $co, $fslug, $cats, $m
 	$h .= '<div class="rm-pcard-img">';
 	if ( $img ) {
 		$h .= '<img src="' . esc_url( $img ) . '" alt="' . esc_attr( get_the_title( $pid ) ) . '" loading="lazy">';
+	} else {
+		$h .= '<span class="rm-pcard-noimg">Image<br>Coming<br>Soon</span>';
 	}
 	if ( $isnew ) {
 		$h .= '<span class="rm-pcard-badge">New</span>';
@@ -678,7 +680,7 @@ add_shortcode( 'ricoman_all_products', function () {
 		. '.rm-pcard-img img{width:82%;height:82%;object-fit:contain;display:block;mix-blend-mode:multiply}'
 		. '.rm-pcard-body{padding:14px 4px 0;text-align:center}'
 		. '.rm-pcard-eyebrow{display:block;font-size:.82rem;letter-spacing:0;text-transform:none;font-family:Poppins;font-weight:400;color:#888;margin-top:6px;text-align:center;line-height:1.4}'
-		. '.rm-pcard-title{display:block;font-size:1.1rem;font-weight:600;font-family:Poppins;line-height:1.3;text-align:center}'
+		. '.rm-pcard-title{display:block;font-size:1.1rem;font-weight:600;font-family:Poppins;line-height:1.3;text-align:center}.rm-pcard-noimg{font-family:Poppins;font-size:1.15rem;font-weight:600;color:#c9c9c9;text-align:center;line-height:1.5}'
 		. '.rm-allprods .rm-prodgrid,.rm-allprods .rm-allpgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}'
 		. '@media(max-width:1100px){.rm-allprods .rm-prodgrid,.rm-allprods .rm-allpgrid{grid-template-columns:repeat(3,1fr)}}'
 		. '@media(max-width:600px){.rm-allprods .rm-prodgrid,.rm-allprods .rm-allpgrid{grid-template-columns:1fr 1fr}}'
