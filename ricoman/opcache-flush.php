@@ -32,6 +32,18 @@ echo $ok
 	? "OPcache flushed. The latest PHP is now live — reload your page.\n"
 	: "opcache_reset() returned false (it may already be clearing, or another process holds it). Try once more, or restart PHP-FPM.\n";
 
+// Also bump the theme's full-page cache version so anonymous visitors stop
+// getting pre-deploy HTML (it holds pages, with the CSS inlined, for up to
+// an hour — deploys looked broken until it expired).
+$wp_load = dirname( __FILE__, 4 ) . '/wp-load.php';
+if ( file_exists( $wp_load ) ) {
+	require_once $wp_load;
+	if ( function_exists( 'ricoman_pagecache_flush' ) ) {
+		ricoman_pagecache_flush();
+		echo "Page cache flushed too.\n";
+	}
+}
+
 if ( function_exists( 'opcache_get_status' ) ) {
 	$s = @opcache_get_status( false );
 	if ( is_array( $s ) && isset( $s['opcache_enabled'] ) ) {
