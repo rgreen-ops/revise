@@ -1426,7 +1426,7 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-vptable th{font-family:Poppins;font-size:.64rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--ink);text-align:left;padding:0 12px 9px;border-bottom:1px solid var(--ink)}
 .rm-vptable td{padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:middle;color:var(--text)}
 .rm-vptable .vt-thumb{width:64px}
-.rm-vptable .vt-thumb img{width:40px;height:40px;object-fit:contain;background:#f2f2f0;border-radius:6px}
+.rm-vptable .vt-thumb img{width:44px;height:44px;object-fit:contain;background:#f2f2f2;border-radius:6px;padding:3px;filter:brightness(.95)}
 .rm-vptable .vt-code{font-family:Poppins;font-weight:600;color:var(--accent);white-space:nowrap}
 .rm-vptable .vt-desc{min-width:200px}
 .rm-vptable .vt-spec{white-space:nowrap;color:var(--ink)}
