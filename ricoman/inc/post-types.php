@@ -619,6 +619,21 @@ function ricoman_product_img( $pid ) {
 	return '';
 }
 
+/** First in-situ (real-space) photo for a product, from the insitu_gallery field. Empty if none. */
+function ricoman_product_img_insitu( $pid ) {
+	if ( function_exists( 'ricoman_pf_get' ) && function_exists( 'ricoman_pf_imgurl' ) ) {
+		$g     = ricoman_pf_get( $pid, 'insitu_gallery' );
+		$first = is_array( $g ) ? reset( $g ) : $g;
+		if ( $first ) {
+			$u = ricoman_pf_imgurl( $first );
+			if ( $u ) {
+				return $u;
+			}
+		}
+	}
+	return '';
+}
+
 /**
  * Visual search results: an image grid of matching products/projects/news/pages,
  * each with the right image (product gallery / project photo / featured image),

@@ -772,7 +772,7 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-vtable th{text-align:left;font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);padding:0 16px 16px;border-bottom:1px solid var(--ink);white-space:nowrap}
 .rm-vtable td{padding:16px;border-bottom:1px solid var(--line);vertical-align:middle}
 .rm-vtable .vt-thumb{width:1%}
-.rm-vtable .vt-thumb img{width:52px;height:38px;object-fit:cover;border-radius:5px;display:block}
+.rm-vtable .vt-thumb img{width:52px;height:44px;object-fit:contain;border-radius:5px;display:block;background:#f2f2f2;padding:3px;filter:brightness(.95)}
 .rm-vt-noimg{display:block;width:52px;height:38px;background:var(--soft);border-radius:5px}
 .vt-code .rm-vt-view{background:none;border:0;cursor:pointer;font-family:'JetBrains Mono',Poppins,monospace;font-weight:600;color:#004899;font-size:.95rem;padding:0;letter-spacing:.01em}
 .vt-code .rm-vt-view:hover{text-decoration:underline}
@@ -1925,3 +1925,14 @@ html,body{overflow-x:clip}
 .rm-vcfg-rowdl{flex:0 0 auto;display:flex;gap:14px;font-family:Poppins;font-size:.82rem;font-weight:600}
 .rm-vcfg-rowdl a{color:var(--ink);text-decoration:none;border-bottom:1px solid currentColor;white-space:nowrap}
 @media(max-width:560px){.rm-vcfg-row{flex-wrap:wrap}.rm-vcfg-rowdl{flex-basis:100%}}
+
+/* ===== Header fix: the .nav ul{margin:0} reset out-specifies .rm-nav's margin,
+   so the menu sat flush against the search box (DOWNLOADS underlapped it on
+   narrower desktops). Real gap + shrinkable search so they can never collide. */
+@media(min-width:1025px){
+	.nav ul.rm-nav{margin-right:34px}
+	.rm-search{flex:0 1 150px;min-width:90px}
+}
+@media(min-width:1025px) and (max-width:1480px){
+	.nav ul.rm-nav{gap:18px;margin-right:22px}
+}

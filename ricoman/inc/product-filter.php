@@ -488,7 +488,7 @@ function ricoman_pcard_finish_slugs( $pid ) {
 }
 
 /** Build a portrait product card <a> element. */
-function ricoman_pcard_html( $url, $pid, $img, $sub, $mx, $co, $fslug, $cats, $mts, $fins, $isnew = false, $is_accessory = false, $is_default = false ) {
+function ricoman_pcard_html( $url, $pid, $img, $sub, $mx, $co, $fslug, $cats, $mts, $fins, $isnew = false, $is_accessory = false, $is_default = false, $img2 = '' ) {
 	$h  = '<a class="rm-fcard rm-pcard" data-dbg-pid="' . (int) $pid . '" data-dbg-url="' . esc_attr( $url ) . '" href="' . esc_url( $url ) . '"'
 		. ' data-lm="' . (int) $mx['lm'] . '" data-w="' . (int) $mx['w'] . '" data-co="' . (int) $co . '"'
 		. ' data-feat="' . esc_attr( implode( ' ', $fslug ) ) . '"'
@@ -496,7 +496,8 @@ function ricoman_pcard_html( $url, $pid, $img, $sub, $mx, $co, $fslug, $cats, $m
 		. ' data-mount="' . esc_attr( implode( ' ', $mts ) ) . '"'
 		. ' data-fin="' . esc_attr( implode( ' ', $fins ) ) . '"'
 		. ( $is_accessory ? ' data-accessory="1"' : '' )
-		. ( $is_default  ? ' data-default="1"'   : '' ) . '>';
+		. ( $is_default  ? ' data-default="1"'   : '' )
+		. ( $img2 ? ' data-img2="' . esc_url( $img2 ) . '"' : '' ) . '>';
 	$h .= '<div class="rm-pcard-img">';
 	if ( $img ) {
 		$h .= '<img src="' . esc_url( $img ) . '" alt="' . esc_attr( get_the_title( $pid ) ) . '" loading="lazy">';
