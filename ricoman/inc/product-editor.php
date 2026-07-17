@@ -1005,19 +1005,19 @@ function ricoman_product_editor_render() {
 						+ '<br><span style="opacity:.7">Opens in a new tab — set, save, then reload this editor to preview.</span></p>';
 				}
 				html += visRow( it );
-			} else if ( it.type === ‘section’ && it.key === ‘accessories’ && ! B.isTpl ) {
-				html += ‘<p class="ttl">Product Accessories</p><p class="hint">Choose which products appear as accessories. Leave empty to use automatic category matching.</p>’;
+			} else if ( it.type === 'section' && it.key === 'accessories' && ! B.isTpl ) {
+				html += '<p class="ttl">Product Accessories</p><p class="hint">Choose which products appear as accessories. Leave empty to use automatic category matching.</p>';
 				if ( state.accessories.length ) {
-					html += ‘<div class="rmpe-acclist">’;
+					html += '<div class="rmpe-acclist">';
 					state.accessories.forEach( function ( a ) {
-						html += ‘<div class="rmpe-accitem" data-accid="’ + a.id + ‘"><span>’ + ( a.title || ‘’ ).replace( /</g, ‘&lt;’ ) + ‘</span><button type="button" data-accrem="’ + a.id + ‘" title="Remove" aria-label="Remove">&times;</button></div>’;
+						html += '<div class="rmpe-accitem" data-accid="' + a.id + '"><span>' + ( a.title || '' ).replace( /</g, '&lt;' ) + '</span><button type="button" data-accrem="' + a.id + '" title="Remove" aria-label="Remove">&times;</button></div>';
 					} );
-					html += ‘</div>’;
+					html += '</div>';
 				}
-				html += ‘<div class="rmpe-accsrch"><input type="search" id="rmpe-acc-q" placeholder="Search and add a product…" autocomplete="off"></div>’;
+				html += '<div class="rmpe-accsrch"><input type="search" id="rmpe-acc-q" placeholder="Search and add a product…" autocomplete="off"></div>';
 				html += visRow( it );
-			} else if ( it.type === ‘section’ ) {
-				html += ‘<p class="ttl">’ + sectionName( it ) + ‘</p><p class="hint">This section renders from the product’s fields.</p>’;
+			} else if ( it.type === 'section' ) {
+				html += '<p class="ttl">' + sectionName( it ) + '</p><p class="hint">This section renders from the product's fields.</p>';
 				html += visRow( it );
 			} else {
 				html += '<p class="ttl">' + sectionName( it ) + '</p><p class="hint">Edit this pattern’s text &amp; images for THIS page only.</p>';

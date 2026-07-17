@@ -159,12 +159,10 @@ function ricoman_pf_accessories( $pid, $max = 24 ) {
 		return ricoman_pf_carousel( 'Accessories', $cards, false );
 	};
 
-	// Preview mode: respect the draft accessories selection.
-	if ( ! empty( $GLOBALS['rm_pe_preview'] ) && array_key_exists( 'accessories', $GLOBALS['rm_pe_preview'] ) ) {
+	// Preview mode: use the draft selection only when the user has explicitly chosen accessories.
+	// An empty list falls through to auto-matching so the preview reflects the live behaviour.
+	if ( ! empty( $GLOBALS['rm_pe_preview'] ) && ! empty( $GLOBALS['rm_pe_preview']['accessories'] ) ) {
 		$ids = array_values( array_filter( array_map( 'absint', (array) $GLOBALS['rm_pe_preview']['accessories'] ) ) );
-		if ( ! $ids ) {
-			return ''; // empty selection = no accessories in preview.
-		}
 		$q = new WP_Query( array(
 			'post_type'      => 'product',
 			'post_status'    => 'publish',
