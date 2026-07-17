@@ -388,11 +388,12 @@
 				if ( ! wFull  && ( cw  <= 0 || cw  < loW  || cw  > hiW  ) ) { ok = false; }
 				if ( ! coFull && ( cco <= 0 || cco < loCo || cco > hiCo ) ) { ok = false; }
 				want.forEach(      function ( f ) { if ( cf.indexOf( f ) < 0 ) { ok = false; } } );
-				if ( wantCat.length   && ! wantCat.some(   function ( v ) { return cc.indexOf( v ) >= 0; } ) ) { ok = false; }
+				if ( wantCat.length   && ! wantCat.some(   function ( v ) { return cc.indexOf( v ) >= 0 || ( v === acyCat && c.dataset.accessory === '1' ); } ) ) { ok = false; }
 				if ( wantMount.length && ! wantMount.some( function ( v ) { return cm.indexOf( v ) >= 0; } ) ) { ok = false; }
 				if ( wantFin.length   && ! wantFin.some(   function ( v ) { return cn.indexOf( v ) >= 0; } ) ) { ok = false; }
 				// All-products page only: hide accessories unless explicitly selected.
-				if ( isPaged && acyCat && cc.indexOf( acyCat ) >= 0 && wantCat.indexOf( acyCat ) < 0 ) {
+				var isAcy = acyCat && ( cc.indexOf( acyCat ) >= 0 || c.dataset.accessory === '1' );
+				if ( isPaged && isAcy && wantCat.indexOf( acyCat ) < 0 ) {
 					ok = false;
 				}
 				if ( ok ) { matched.push( c ); shown++; }
