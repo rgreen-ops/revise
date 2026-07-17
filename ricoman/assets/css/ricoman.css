@@ -771,8 +771,8 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-vtable{width:100%;border-collapse:collapse;font-family:Poppins;font-size:.95rem}
 .rm-vtable th{text-align:left;font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);padding:0 16px 16px;border-bottom:1px solid var(--ink);white-space:nowrap}
 .rm-vtable td{padding:16px;border-bottom:1px solid var(--line);vertical-align:middle}
-.rm-vtable .vt-thumb{width:1%;background:#f2f2f2}
-.rm-vtable .vt-thumb img{width:52px;height:44px;object-fit:contain;border-radius:5px;display:block;padding:2px;mix-blend-mode:multiply}
+.rm-vtable .vt-thumb{width:1%}
+.rm-vtable .vt-thumb img{width:52px;height:44px;object-fit:contain;border-radius:5px;display:block;padding:3px;background:#fff;border:1px solid #ececec}
 .rm-vt-noimg{display:block;width:52px;height:38px;background:var(--soft);border-radius:5px}
 .vt-code .rm-vt-view{background:none;border:0;cursor:pointer;font-family:'JetBrains Mono',Poppins,monospace;font-weight:600;color:#004899;font-size:.95rem;padding:0;letter-spacing:.01em}
 .vt-code .rm-vt-view:hover{text-decoration:underline}
@@ -1426,17 +1426,15 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-vptable th{font-family:Poppins;font-size:.64rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--ink);text-align:left;padding:0 12px 9px;border-bottom:1px solid var(--ink)}
 .rm-vptable td{padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:middle;color:var(--text)}
 .rm-vptable .vt-thumb{width:64px}
-.rm-vptable .vt-thumb img{width:44px;height:44px;object-fit:contain;border-radius:6px;padding:2px;mix-blend-mode:multiply}
+.rm-vptable .vt-thumb img{width:44px;height:44px;object-fit:contain;border-radius:6px;padding:3px;background:#fff;border:1px solid #ececec}
 .rm-vptable .vt-code{font-family:Poppins;font-weight:600;color:var(--accent);white-space:nowrap}
 .rm-vptable .vt-desc{min-width:200px}
 .rm-vptable .vt-spec{white-space:nowrap;color:var(--ink)}
 /* Keep the thumbnail + order code visible while scrolling the wide spec table */
-.rm-vptable .vt-thumb{position:sticky;left:0;background:#f2f2f2;z-index:2}
-.rm-vptable thead th:first-child{position:sticky;left:0;background:#fff;z-index:2}
+.rm-vptable .vt-thumb,.rm-vptable thead th:first-child{position:sticky;left:0;background:#fff;z-index:2}
 .rm-vptable .vt-code,.rm-vptable thead th:nth-child(2){position:sticky;left:64px;background:#fff;z-index:2}
 .rm-vptable thead th:first-child,.rm-vptable thead th:nth-child(2){z-index:3}
-.rm-vptable .vt-row:hover .vt-thumb{background:#ececec}
-.rm-vptable .vt-row:hover .vt-code{background:#f5f7fb}
+.rm-vptable .vt-row:hover .vt-thumb,.rm-vptable .vt-row:hover .vt-code{background:#f5f7fb}
 @media(max-width:600px){.rm-vptable .vt-thumb,.rm-vptable thead th:first-child{position:static}.rm-vptable .vt-code,.rm-vptable thead th:nth-child(2){left:0}}
 .rm-vptable th{white-space:nowrap}
 .rm-vptable .vt-dl a{color:var(--ink);text-decoration:none;font-weight:600;white-space:nowrap}
