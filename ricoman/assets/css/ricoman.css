@@ -524,6 +524,14 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-acc-table .acc-code{font-family:Poppins;font-size:.7rem;font-weight:600;color:var(--accent);white-space:nowrap;width:1%}
 @media(max-width:680px){.rm-gpane.on{grid-template-columns:1fr}}
 
+/* media panel pattern: image 58%, text 42% */
+.rm-mediapanel .wp-block-columns{align-items:center}
+.rm-mediapanel img{width:100%;height:auto;display:block}
+.rm-mediapanel--left .wp-block-column:first-child{flex:0 0 58%;max-width:58%}
+.rm-mediapanel--left .wp-block-column:last-child{flex:1 1 0;min-width:0}
+.rm-mediapanel--right .wp-block-column:last-child{flex:0 0 58%;max-width:58%}
+.rm-mediapanel--right .wp-block-column:first-child{flex:1 1 0;min-width:0}
+@media(max-width:781px){.rm-mediapanel .wp-block-column{flex:1 1 100%!important;max-width:100%!important}}
 /* flow product patterns (native blocks) */
 .rm-flist{list-style:none;padding:0;margin:1.2em 0 0}
 .rm-flist li{padding:.6em 0;border-top:1px solid var(--line);font-size:1rem}
