@@ -435,7 +435,7 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 		. '.rm-allprods .rm-prodgrid,.rm-allprods .rm-allpgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}'
 		. '@media(max-width:1100px){.rm-allprods .rm-prodgrid,.rm-allprods .rm-allpgrid{grid-template-columns:repeat(3,1fr)}}'
 		. '@media(max-width:600px){.rm-allprods .rm-prodgrid,.rm-allprods .rm-allpgrid{grid-template-columns:1fr 1fr}}'
-		. '@media(max-width:400px){.rm-allprods .rm-prodgrid,.rm-allprods .rm-allpgrid{grid-template-columns:1fr}}'
+		. '@media(max-width:360px){.rm-allprods .rm-prodgrid,.rm-allprods .rm-allpgrid{grid-template-columns:1fr}}'
 		. '.rm-allpgrid>p,.rm-allpgrid>br{display:none!important}'
 		. '[style*="display: none"]{display:none!important}'
 		. '</style>';
@@ -685,7 +685,7 @@ add_shortcode( 'ricoman_all_products', function () {
 		. '.rm-allprods .rm-prodgrid,.rm-allprods .rm-allpgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}'
 		. '@media(max-width:1100px){.rm-allprods .rm-prodgrid,.rm-allprods .rm-allpgrid{grid-template-columns:repeat(3,1fr)}}'
 		. '@media(max-width:600px){.rm-allprods .rm-prodgrid,.rm-allprods .rm-allpgrid{grid-template-columns:1fr 1fr}}'
-		. '@media(max-width:400px){.rm-allprods .rm-prodgrid,.rm-allprods .rm-allpgrid{grid-template-columns:1fr}}'
+		. '@media(max-width:360px){.rm-allprods .rm-prodgrid,.rm-allprods .rm-allpgrid{grid-template-columns:1fr}}'
 		. '.rm-allpgrid>p,.rm-allpgrid>br{display:none!important}'
 		. '[style*="display: none"]{display:none!important}'
 		. '</style>';
