@@ -454,8 +454,20 @@ function ricoman_product_order_page() {
 	);
 	// "__all" = every product, in the exact order the All Products page uses
 	// (menu_order then title) — dragging here controls that page directly.
+	// Accessories are excluded: the page hides them by default, and their
+	// relative order still holds when the Accessories filter is picked.
 	if ( '__all' !== $cur ) {
 		$args['tax_query'] = array( array( 'taxonomy' => $tax, 'field' => 'slug', 'terms' => $cur ) ); // phpcs:ignore WordPress.DB.SlowDBQuery
+	} else {
+		$acy = get_term_by( 'name', 'Accessories', $tax );
+		if ( $acy ) {
+			$args['tax_query'] = array( array( 'taxonomy' => $tax, 'field' => 'term_id', 'terms' => (int) $acy->term_id, 'operator' => 'NOT IN' ) ); // phpcs:ignore WordPress.DB.SlowDBQuery
+		}
+		$args['meta_query'] = array( // phpcs:ignore WordPress.DB.SlowDBQuery
+			'relation' => 'OR',
+			array( 'key' => 'is_accessories_product', 'compare' => 'NOT EXISTS' ),
+			array( 'key' => 'is_accessories_product', 'value' => array( '1', 'yes', 'true' ), 'compare' => 'NOT IN' ),
+		);
 	}
 	$q = new WP_Query( $args );
 
@@ -465,7 +477,7 @@ function ricoman_product_order_page() {
 	}
 
 	if ( '__all' === $cur ) {
-		echo '<p style="max-width:620px;color:#646970">' . esc_html__( 'This is the order the All Products page uses. Heads-up: saving a single category\'s order afterwards renumbers those products from 1, which pulls them to the front of this list — reorder categories first, then fine-tune here.', 'ricoman' ) . '</p>';
+		echo '<p style="max-width:620px;color:#646970">' . esc_html__( 'This is the order the All Products page uses (accessories are left out — order those in the Accessories category). Heads-up: saving a single category\'s order afterwards renumbers those products from 1, which pulls them to the front of this list — reorder categories first, then fine-tune here.', 'ricoman' ) . '</p>';
 	}
 
 	echo '<p><span id="rm-prodord-status" style="font-weight:600"></span></p>';
