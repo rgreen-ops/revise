@@ -111,13 +111,15 @@ add_action( 'admin_menu', function () {
 add_action( 'admin_menu', function () {
 	global $submenu;
 	$parent = 'ricoman-hub';
-	// 1) Hide rare / setup tools (each has a Control Center tile).
-	foreach ( apply_filters( 'ricoman_menu_hide', array(
+	// 1) Hide rare / setup tools from the nav (each has a Control Center tile).
+	//    IMPORTANT: keep them IN $submenu and hide with a CSS class —
+	//    remove_submenu_page() also blocks direct URL access ("Sorry, you are
+	//    not allowed to access this page"), which broke the Control Center
+	//    tiles that link to these tools.
+	$hide = apply_filters( 'ricoman_menu_hide', array(
 		'ricoman-config-images', 'ricoman-cat-order', 'ricoman-product-order',
 		'ricoman-image-alt', 'ricoman-pull-images', 'ricoman-media-cleanup',
-	) ) as $slug ) {
-		remove_submenu_page( $parent, $slug );
-	}
+	) );
 	if ( empty( $submenu[ $parent ] ) ) {
 		return;
 	}
@@ -131,8 +133,16 @@ add_action( 'admin_menu', function () {
 	$items   = $submenu[ $parent ];
 	$used    = array();
 	$ordered = array();
-	// Control Center stays at the very top, ungrouped.
+	$hidden  = array();
+	// Control Center stays at the very top, ungrouped. Hidden tools are pulled
+	// aside first so the grouping below never touches them.
 	foreach ( $items as $idx => $it ) {
+		if ( in_array( $it[2], $hide, true ) ) {
+			$it[4]        = ( isset( $it[4] ) ? $it[4] . ' ' : '' ) . 'rm-subhide';
+			$hidden[]     = $it;
+			$used[ $idx ] = true;
+			continue;
+		}
 		if ( 'ricoman-hub' === $it[2] ) {
 			$ordered[]    = $it;
 			$used[ $idx ] = true;
@@ -169,12 +179,16 @@ add_action( 'admin_menu', function () {
 			$ordered[] = $it; // anything unmatched stays visible (ungrouped) so nothing is lost.
 		}
 	}
+	// Hidden tools go last — still registered (so their URLs work), just not shown.
+	foreach ( $hidden as $it ) {
+		$ordered[] = $it;
+	}
 	$submenu[ $parent ] = $ordered;
 }, 9999 );
 
 /** Style the non-clickable submenu section headers. */
 add_action( 'admin_head', function () {
-	echo '<style>#adminmenu .rm-subhead a{pointer-events:none;cursor:default;color:#8c8f94 !important;text-transform:uppercase;font-size:10px;letter-spacing:.06em;font-weight:700;padding:8px 12px 2px;opacity:.85}#adminmenu .rm-subhead a:hover{background:transparent !important;color:#8c8f94 !important}</style>';
+	echo '<style>#adminmenu .rm-subhead a{pointer-events:none;cursor:default;color:#8c8f94 !important;text-transform:uppercase;font-size:10px;letter-spacing:.06em;font-weight:700;padding:8px 12px 2px;opacity:.85}#adminmenu .rm-subhead a:hover{background:transparent !important;color:#8c8f94 !important}#adminmenu li.rm-subhide{display:none}</style>';
 } );
 
 function ricoman_render_hub() {
