@@ -434,6 +434,7 @@ function ricoman_product_order_page() {
 	// Category picker (reloads the page for the chosen category).
 	echo '<form method="get" style="margin:0 0 18px"><input type="hidden" name="page" value="ricoman-product-order">';
 	echo '<select name="cat" onchange="this.form.submit()" style="min-width:280px"><option value="">' . esc_html__( '— Choose a category —', 'ricoman' ) . '</option>';
+	echo '<option value="__all"' . selected( $cur, '__all', false ) . '>' . esc_html__( 'All products (site-wide order)', 'ricoman' ) . '</option>';
 	foreach ( $terms as $t ) {
 		echo '<option value="' . esc_attr( $t->slug ) . '"' . selected( $cur, $t->slug, false ) . '>' . esc_html( $t->name ) . ' (' . (int) $t->count . ')</option>';
 	}
@@ -444,18 +445,27 @@ function ricoman_product_order_page() {
 		return;
 	}
 
-	$q = new WP_Query( array(
+	$args = array(
 		'post_type'      => 'product',
 		'post_status'    => 'publish',
 		'posts_per_page' => 600,
 		'no_found_rows'  => true,
 		'orderby'        => array( 'menu_order' => 'ASC', 'title' => 'ASC' ),
-		'tax_query'      => array( array( 'taxonomy' => $tax, 'field' => 'slug', 'terms' => $cur ) ), // phpcs:ignore WordPress.DB.SlowDBQuery
-	) );
+	);
+	// "__all" = every product, in the exact order the All Products page uses
+	// (menu_order then title) — dragging here controls that page directly.
+	if ( '__all' !== $cur ) {
+		$args['tax_query'] = array( array( 'taxonomy' => $tax, 'field' => 'slug', 'terms' => $cur ) ); // phpcs:ignore WordPress.DB.SlowDBQuery
+	}
+	$q = new WP_Query( $args );
 
 	if ( ! $q->have_posts() ) {
 		echo '<p><em>' . esc_html__( 'No products in this category.', 'ricoman' ) . '</em></p></div>';
 		return;
+	}
+
+	if ( '__all' === $cur ) {
+		echo '<p style="max-width:620px;color:#646970">' . esc_html__( 'This is the order the All Products page uses. Heads-up: saving a single category\'s order afterwards renumbers those products from 1, which pulls them to the front of this list — reorder categories first, then fine-tune here.', 'ricoman' ) . '</p>';
 	}
 
 	echo '<p><span id="rm-prodord-status" style="font-weight:600"></span></p>';
