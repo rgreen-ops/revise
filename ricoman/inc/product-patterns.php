@@ -110,6 +110,17 @@ add_action( 'init', function () {
 	$p['product-zigzag'] = array( 'Product · Zig-zag content (fields)', $sec( $sc( 'ricoman_zigzag' ) ) );
 	$p['product-cta-buttons'] = array( 'Product · Lighting Design / Trade buttons (fields)', $sec( $sc( 'ricoman_cta_buttons' ) ) );
 
+	// Media panel — image or video on one side, heading + body on the other.
+	// Swap the Image block for a Video block in the editor to use video instead.
+	$_media_text = function ( $img_url, $img_side ) use ( $u ) {
+		$media_col = '<!-- wp:column {"verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center"><!-- wp:image {"sizeSlug":"full"} --><figure class="wp-block-image size-full"><img src="' . $img_url . '" alt=""/></figure><!-- /wp:image --></div><!-- /wp:column -->';
+		$text_col  = '<!-- wp:column {"verticalAlignment":"center","style":{"spacing":{"padding":{"' . ( 'left' === $img_side ? 'left' : 'right' ) . '":"var:preset|spacing|50"}}}} --><div class="wp-block-column is-vertically-aligned-center" style="padding-' . ( 'left' === $img_side ? 'left' : 'right' ) . ':var(--wp--preset--spacing--50)"><!-- wp:heading {"level":2,"style":{"typography":{"fontWeight":"600","lineHeight":"1.1"}}} --><h2 class="wp-block-heading" style="font-weight:600;line-height:1.1">Your headline goes here.</h2><!-- /wp:heading --><!-- wp:paragraph {"style":{"color":{"text":"#a0a0a0"}}} --><p class="has-text-color" style="color:#a0a0a0">Describe the key feature or benefit here. Replace this placeholder with your product copy — keep it concise and benefit-led.</p><!-- /wp:paragraph --></div><!-- /wp:column -->';
+		$inner     = 'left' === $img_side ? $media_col . $text_col : $text_col . $media_col;
+		return '<!-- wp:group {"align":"full","className":"rm-section","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-section"><!-- wp:columns {"verticalAlignment":"center"} --><div class="wp-block-columns are-vertically-aligned-center">' . $inner . '</div><!-- /wp:columns --></div><!-- /wp:group -->';
+	};
+	$p['product-mediapanel']     = array( 'Product · Media panel (image / video left)',  $_media_text( $u( 'ceiling.webp' ), 'left' ) );
+	$p['product-mediapanel-rev'] = array( 'Product · Media panel (image / video right)', $_media_text( $u( 'ceiling.webp' ), 'right' ) );
+
 	foreach ( $p as $slug => $data ) {
 		register_block_pattern(
 			'ricoman/' . $slug,
