@@ -1224,7 +1224,7 @@ function ricoman_product_editor_render() {
 
 		/* ---- boot ---- */
 		renderList(); renderAdd(); renderSettings();
-		pushDraft( false ); // seed the draft so the first preview matches.
+		pushDraft(); // seed the draft and reload preview so the saved state is always shown.
 	} )();
 	</script>
 	<?php
