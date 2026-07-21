@@ -252,7 +252,7 @@ function ricoman_variant_datasheet_markup( $vid ) {
 body{font-family:Arial,Helvetica,sans-serif;font-size:10px;color:#1a1a1a;background:#b0b0b0;line-height:1.4}
 /* print button (above the pages) */
 .ds2-printbtn{text-align:center;padding:16px 0}
-.ds2-printbtn button{background:var(--ac);color:#fff;border:0;padding:10px 24px;font-size:13px;font-weight:700;border-radius:5px;cursor:pointer}
+.ds2-printbtn button{background:#1a1a1a;color:#fff;border:0;padding:10px 24px;font-size:13px;font-weight:700;border-radius:5px;cursor:pointer}
 /* A4 pages — fixed pixel width (794 px ≈ 210 mm at 96 dpi) on screen */
 .ds2-wrap{width:794px;margin:0 auto;padding:20px 0;display:flex;flex-direction:column;gap:24px}
 .ds2-page{background:#fff;width:794px;min-height:1123px;overflow:hidden;display:flex;flex-direction:column}
