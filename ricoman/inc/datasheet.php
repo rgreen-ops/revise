@@ -262,7 +262,7 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:10px;color:#1a1a1a;backgro
 .ds2-hero-img img{max-height:370px;max-width:65%;object-fit:contain}
 .ds2-logo-box{position:absolute;top:16px;right:18px;text-align:right}
 .ds2-logo-txt{display:block;font-size:20px;font-weight:900;letter-spacing:3px;color:#1a1a1a;line-height:1}
-.ds2-logo-img{max-height:42px;max-width:180px;display:block;margin-left:auto}
+.ds2-logo-img{max-height:42px;max-width:180px;display:block;margin-left:auto;filter:brightness(0)}
 .ds2-logo-tag{display:block;font-size:7px;letter-spacing:1.4px;text-transform:uppercase;color:#555;margin-top:4px}
 /* identity */
 .ds2-ident{padding:16px 22px 8px}
