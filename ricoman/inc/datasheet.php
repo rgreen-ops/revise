@@ -148,7 +148,8 @@ function ricoman_variant_datasheet_markup( $vid ) {
 		$photometric = ( $v && function_exists( 'ricoman_pf_imgurl' ) ) ? ricoman_pf_imgurl( $v ) : '';
 	}
 
-	// Logo image from the Customizer, if set.
+	// Logo: WordPress Customizer site logo (Appearance → Customize → Site Identity)
+	// is the primary source. Use the black/dark version there — brand_logo is white.
 	$logo_id  = get_theme_mod( 'custom_logo' );
 	$logo_url = $logo_id ? (string) wp_get_attachment_image_url( (int) $logo_id, 'full' ) : '';
 
@@ -315,8 +316,7 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:10px;color:#1a1a1a;backgro
       <?php if ( $logo_url ) : ?>
         <img class="ds2-logo-img" src="<?php echo esc_url( $logo_url ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>">
       <?php else : ?>
-        <span class="ds2-logo-txt">RICOMAN</span>
-        <span class="ds2-logo-tag">Your Lighting. Our Passion.</span>
+        <span class="ds2-logo-txt">RICOMAN<sup style="font-size:55%;letter-spacing:0">&reg;</sup></span>
       <?php endif; ?>
     </div>
     <div class="ds2-hero-img">
@@ -374,8 +374,7 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:10px;color:#1a1a1a;backgro
       <?php if ( $logo_url ) : ?>
         <img class="ds2-logo-img" src="<?php echo esc_url( $logo_url ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>" style="max-height:26px">
       <?php else : ?>
-        <span class="ds2-logo-txt" style="font-size:14px">RICOMAN</span>
-        <span class="ds2-logo-tag">Your Lighting. Our Passion.</span>
+        <span class="ds2-logo-txt" style="font-size:14px">RICOMAN<sup style="font-size:55%;letter-spacing:0">&reg;</sup></span>
       <?php endif; ?>
     </div>
   </div>
