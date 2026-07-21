@@ -86,107 +86,325 @@ function ricoman_variant_datasheet_url( $variant_id, $parent_id ) {
 }
 
 /**
- * Build an A4 datasheet for one variant, on the fly, from that line's own ACF
- * data plus the parent product's image, dimension diagram, spec and features.
+ * Build a two-page A4 datasheet for one variant, on the fly, from that line's
+ * ACF data plus the parent product's images and dimension/photometric diagrams.
+ * Layout matches the Ricoman branded datasheet format.
  */
 function ricoman_variant_datasheet_markup( $vid ) {
-	$g  = function ( $k ) use ( $vid ) { return function_exists( 'ricoman_pf_get' ) ? (string) ricoman_pf_get( $vid, $k ) : (string) get_post_meta( $vid, $k, true ); };
-	$gi = function ( $k ) use ( $vid ) { return function_exists( 'ricoman_pf_imgurl' ) ? ricoman_pf_imgurl( get_post_meta( $vid, $k, true ) ) : ''; };
+	$g = function ( $k ) use ( $vid ) {
+		$v = function_exists( 'ricoman_pf_get' ) ? (string) ricoman_pf_get( $vid, $k ) : (string) get_post_meta( $vid, $k, true );
+		return function_exists( 'ricoman_fix_text' ) ? ricoman_fix_text( trim( $v ) ) : trim( $v );
+	};
+	$gi = function ( $k ) use ( $vid ) {
+		$v = get_post_meta( $vid, $k, true );
+		return function_exists( 'ricoman_pf_imgurl' ) ? ricoman_pf_imgurl( $v ) : '';
+	};
+	$tv = function ( $tax ) use ( $vid ) {
+		if ( ! taxonomy_exists( $tax ) ) {
+			return '';
+		}
+		$terms = get_the_terms( $vid, $tax );
+		if ( is_wp_error( $terms ) || empty( $terms ) ) {
+			return '';
+		}
+		$val = implode( ', ', wp_list_pluck( $terms, 'name' ) );
+		return function_exists( 'ricoman_fix_text' ) ? ricoman_fix_text( $val ) : $val;
+	};
 
 	$parent_id = (int) get_post_meta( $vid, 'parent_product', true );
-	$pname     = $parent_id ? get_the_title( $parent_id ) : '';
-	$code      = $g( 'part_code' ) ? $g( 'part_code' ) : $g( 'order_code' );
+	$pname     = $parent_id ? get_the_title( $parent_id ) : get_the_title( $vid );
+	$code      = $g( 'part_code' ) ?: $g( 'order_code' );
 	$desc      = $g( 'product_sort_description' );
 
-	// Image: variant main image, else parent gallery / thumbnail.
-	$image = $gi( 'product_main_image' );
-	if ( ! $image ) {
-		$image = $gi( 'product_gallery_image' );
-	}
-	if ( ! $image && $parent_id && function_exists( 'ricoman_product_img' ) ) {
-		$image = ricoman_product_img( $parent_id );
-	}
-	// Dimension diagram: variant diagram, else parent dimension_diagrams[0].
-	$diagram = $gi( 'product_diagram' );
-	if ( ! $diagram ) {
-		$diagram = $gi( 'photometric_diagram' );
-	}
-	if ( ! $diagram && $parent_id && function_exists( 'ricoman_pf_dimension_diagrams' ) ) {
-		$dd = ricoman_pf_dimension_diagrams( $parent_id );
-		$diagram = $dd ? $dd[0] : '';
+	// Hero image: variant → parent gallery/thumbnail.
+	$image = $gi( 'product_main_image' ) ?: $gi( 'product_gallery_image' );
+	if ( ! $image && $parent_id ) {
+		if ( function_exists( 'ricoman_product_img' ) ) {
+			$image = ricoman_product_img( $parent_id );
+		}
+		if ( ! $image ) {
+			$v     = get_post_meta( $parent_id, 'product_main_image', true );
+			$image = ( $v && function_exists( 'ricoman_pf_imgurl' ) ) ? ricoman_pf_imgurl( $v ) : '';
+		}
 	}
 
-	// Spec rows — the same unified set as the on-page popup (meta + taxonomy axes
-	// like Wattage / Colour Temp / IP), so the downloaded datasheet matches.
-	$rows = '';
-	if ( function_exists( 'ricoman_variant_spec_pairs' ) ) {
-		foreach ( ricoman_variant_spec_pairs( $vid ) as $label => $v ) {
-			$rows .= '<tr><th>' . esc_html( $label ) . '</th><td>' . esc_html( $v ) . '</td></tr>';
+	// Dimension diagram: variant field → parent dimension_diagrams[0].
+	$dim_diagram = $gi( 'product_diagram' );
+	if ( ! $dim_diagram && $parent_id ) {
+		if ( function_exists( 'ricoman_pf_dimension_diagrams' ) ) {
+			$dd          = ricoman_pf_dimension_diagrams( $parent_id );
+			$dim_diagram = $dd ? $dd[0] : '';
 		}
-	} else {
-		foreach ( array( 'lumens' => 'Lumens', 'dimensions' => 'Dimensions (mm)', 'cri' => 'CRI', 'ip_rating' => 'IP rating', 'warranty' => 'Warranty' ) as $k => $label ) {
-			$v = $g( $k );
-			if ( '' !== trim( $v ) ) {
-				$rows .= '<tr><th>' . esc_html( $label ) . '</th><td>' . esc_html( $v ) . '</td></tr>';
+		if ( ! $dim_diagram ) {
+			$v           = get_post_meta( $parent_id, 'product_diagram', true );
+			$dim_diagram = ( $v && function_exists( 'ricoman_pf_imgurl' ) ) ? ricoman_pf_imgurl( $v ) : '';
+		}
+	}
+
+	// Photometric diagram: variant field → parent fallback.
+	$photometric = $gi( 'photometric_diagram' );
+	if ( ! $photometric && $parent_id ) {
+		$v           = get_post_meta( $parent_id, 'photometric_diagram', true );
+		$photometric = ( $v && function_exists( 'ricoman_pf_imgurl' ) ) ? ricoman_pf_imgurl( $v ) : '';
+	}
+
+	// Logo image from the Customizer, if set.
+	$logo_id  = get_theme_mod( 'custom_logo' );
+	$logo_url = $logo_id ? (string) wp_get_attachment_image_url( (int) $logo_id, 'full' ) : '';
+
+	// Lumens resolved the same way as the configure table.
+	$lumens = function_exists( 'ricoman_variant_lumens' ) ? ricoman_variant_lumens( $vid ) : $g( 'lumens' );
+
+	// Site options for the footer.
+	$rm_opts       = (array) get_option( 'ricoman_settings', array() );
+	$foot_phone    = isset( $rm_opts['foot_phone'] ) ? $rm_opts['foot_phone'] : '0161 451 5913';
+	$foot_email    = isset( $rm_opts['foot_email'] ) ? $rm_opts['foot_email'] : 'sales@ricoman.com';
+	$site_domain   = preg_replace( '#^https?://#', '', rtrim( home_url( '/' ), '/' ) );
+
+	// ------------------------------------------------------------------ sections
+	// Each row: [ label, value, is_accent ]
+	$p1_sections = array(
+		'Product Data' => array(
+			array( 'Part Code (s)', $code, true ),
+			array( 'Applications', $g( 'applications' ) ?: $tv( 'application-area' ), true ),
+			array( 'Warranty', $g( 'warranty' ), false ),
+			array( 'Certification(s)', $g( 'certifications' ), false ),
+		),
+		'Physical Data' => array(
+			array( 'Module', $g( 'module' ) ?: $tv( 'fitting-type' ), true ),
+			array( 'Colour Finish', $g( 'colour_finish' ), false ),
+			array( 'Body Colour', $tv( 'color' ) ?: $g( 'body_colour' ), false ),
+			array( 'Dimensions (mm)', $g( 'dimensions' ), false ),
+			array( 'Length', $tv( 'size' ) ?: $g( 'length' ), false ),
+			array( 'Luminaire Fixing', $g( 'luminaire_fixing' ), true ),
+			array( 'Construction Material', $g( 'construction_material' ), false ),
+			array( 'Diffuser Type', $g( 'diffuser_type' ) ?: $tv( 'diffuser-material' ), false ),
+		),
+		'Electrical Data' => array(
+			array( 'Wattage', $tv( 'wattage' ), false ),
+			array( 'Voltage Range', $g( 'voltage_range' ), false ),
+			array( 'Power Factor', $g( 'power_factor' ), false ),
+			array( 'Inrush Current', $g( 'inrush_current' ), false ),
+			array( 'Running Current', $g( 'running_current' ), false ),
+		),
+	);
+	$p2_sections = array(
+		'Technical Data' => array(
+			array( 'Lumens (±5%)', $lumens, false ),
+			array( 'Efficacy', $g( 'efficacy' ), false ),
+			array( 'Operating Temperature', $g( 'operating_temperatures' ) ?: $g( 'operating_temperature' ), false ),
+			array( 'Beam Angle', $g( 'beam_angle' ) ?: $tv( 'beam-angle' ), false ),
+			array( 'Operating Hours', $g( 'operating_hours' ), false ),
+			array( 'IP Rating', $g( 'ip_rating' ) ?: $tv( 'iprating' ), false ),
+			array( 'IK Rating', $g( 'ik_rating' ), false ),
+		),
+		'Light Source Data' => array(
+			array( 'Kelvins', $tv( 'temperature' ) ?: $g( 'colour_temperature' ), true ),
+			array( 'CRI', $g( 'cri' ), false ),
+			array( 'Macadam Ellipse', $g( 'macadam_ellipse' ), false ),
+			array( 'L80 B50', $g( 'l80_b50' ) ?: $g( 'l80b50' ), true ),
+			array( 'LEDs', $g( 'leds' ), false ),
+		),
+	);
+
+	// Build section HTML (returns '' when all rows are empty).
+	$render_section = function ( $heading, $rows ) {
+		$trs = '';
+		foreach ( $rows as $row ) {
+			if ( '' === trim( (string) $row[1] ) ) {
+				continue;
 			}
+			$cls  = $row[2] ? ' class="ds2-ac"' : '';
+			$trs .= '<tr' . $cls . '><td class="ds2-lbl">' . esc_html( $row[0] ) . '</td><td>' . esc_html( $row[1] ) . '</td></tr>';
 		}
-	}
+		if ( '' === $trs ) {
+			return '';
+		}
+		return '<div class="ds2-sg"><div class="ds2-sh">' . esc_html( $heading ) . '</div>'
+			. '<table class="ds2-tb"><tbody>' . $trs . '</tbody></table></div>';
+	};
 
-	$features = $parent_id ? (string) get_post_meta( $parent_id, 'key_features', true ) : '';
-	$spectext = $parent_id ? (string) get_post_meta( $parent_id, 'specification', true ) : '';
-	$site     = get_bloginfo( 'name' );
-	$permalink = $parent_id ? get_permalink( $parent_id ) : home_url( '/' );
+	$p1_html = '';
+	foreach ( $p1_sections as $heading => $rows ) {
+		$p1_html .= $render_section( $heading, $rows );
+	}
+	$p2_html = '';
+	foreach ( $p2_sections as $heading => $rows ) {
+		$p2_html .= $render_section( $heading, $rows );
+	}
 
 	ob_start();
 	?>
-<!doctype html><html lang="<?php echo esc_attr( get_bloginfo( 'language' ) ); ?>"><head><meta charset="utf-8">
-<title><?php echo esc_html( $pname . ' ' . $code . ' — Datasheet' ); ?></title>
+<!doctype html>
+<html lang="<?php echo esc_attr( get_bloginfo( 'language' ) ); ?>">
+<head>
+<meta charset="utf-8">
+<title><?php echo esc_html( trim( $pname . ' ' . $code ) . ' — Datasheet' ); ?></title>
 <style>
-	@page { size: A4; margin: 16mm; }
-	*{box-sizing:border-box} body{font-family:Arial,Helvetica,sans-serif;color:#16161a;margin:0;font-size:12px;line-height:1.55}
-	.ds-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #004899;padding-bottom:12px}
-	.ds-brand{font-size:22px;font-weight:800;color:#004899}.ds-brand small{display:block;color:#6b7280;font-weight:600;font-size:10px;letter-spacing:.12em;text-transform:uppercase}
-	.ds-tag{text-align:right;font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:.1em;padding-top:6px}
-	h1{font-size:22px;margin:16px 0 2px}.ds-code{color:#004899;font-weight:700;font-size:14px;margin:0 0 2px}.ds-sub{color:#374151;margin:0 0 14px}
-	.ds-cols{display:flex;gap:22px}.ds-main{flex:1}.ds-aside{width:230px}
-	.ds-img{width:100%;border:1px solid #e3e8ef;border-radius:8px;background:#f5f5f3}
-	.ds-diagram{width:100%;border:1px solid #e3e8ef;border-radius:8px;margin-top:12px;background:#fff;padding:6px}
-	table{width:100%;border-collapse:collapse;margin:8px 0 14px}
-	th,td{text-align:left;padding:6px 9px;border-bottom:1px solid #e3e8ef;font-size:11px}
-	th{background:#f5f7fa;width:42%;color:#0e1726}
-	.ds-section{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#004899;font-weight:700;margin:14px 0 4px}
-	.ds-feat{font-size:11px}.ds-feat ul{margin:4px 0 0;padding-left:18px}
-	.ds-foot{margin-top:24px;border-top:1px solid #e3e8ef;padding-top:10px;font-size:10px;color:#6b7280;display:flex;justify-content:space-between}
-	@media screen{body{background:#eceff4}.ds-page{background:#fff;max-width:800px;margin:24px auto;padding:40px;box-shadow:0 8px 30px rgba(0,0,0,.12)}.ds-print{text-align:center;margin:16px}.ds-print button{background:#004899;color:#fff;border:0;padding:10px 18px;border-radius:8px;font-weight:700;cursor:pointer}}
-	@media print{.ds-print{display:none}.ds-page{padding:0}}
-</style></head><body>
-<div class="ds-print"><button onclick="window.print()">Download / Print PDF</button></div>
-<div class="ds-page">
-	<div class="ds-head"><div class="ds-brand"><?php echo esc_html( $site ); ?><small>Commercial Interior Lighting</small></div>
-	<div class="ds-tag">Product Datasheet<br><?php echo esc_html( gmdate( 'F Y' ) ); ?></div></div>
-	<?php if ( $code ) : ?><p class="ds-code"><?php echo esc_html( $code ); ?></p><?php endif; ?>
-	<h1><?php echo esc_html( $pname ); ?></h1>
-	<?php if ( $desc ) : ?><p class="ds-sub"><?php echo esc_html( wp_strip_all_tags( $desc ) ); ?></p><?php endif; ?>
-	<div class="ds-cols">
-		<div class="ds-main">
-			<div class="ds-section">Specification</div>
-			<table><tbody><?php echo $rows ? $rows : '<tr><td colspan="2">Specification to be confirmed.</td></tr>'; // phpcs:ignore ?></tbody></table>
-			<?php if ( '' !== trim( wp_strip_all_tags( $features ) ) ) : ?>
-				<div class="ds-section">Key features</div>
-				<div class="ds-feat"><?php echo wp_kses_post( $features ); ?></div>
-			<?php endif; ?>
-			<?php if ( '' !== trim( wp_strip_all_tags( $spectext ) ) ) : ?>
-				<div class="ds-section">Technical detail</div>
-				<div class="ds-feat"><?php echo wp_kses_post( $spectext ); ?></div>
-			<?php endif; ?>
-		</div>
-		<div class="ds-aside">
-			<?php if ( $image ) : ?><img class="ds-img" src="<?php echo esc_url( $image ); ?>" alt="<?php echo esc_attr( $pname ); ?>"><?php endif; ?>
-			<?php if ( $diagram ) : ?><img class="ds-diagram" src="<?php echo esc_url( $diagram ); ?>" alt="Dimensions"><?php endif; ?>
-		</div>
-	</div>
-	<div class="ds-foot"><span><?php echo esc_html( $site ); ?> · Made in Britain</span><span><?php echo esc_url( $permalink ); ?></span></div>
-</div></body></html>
+/* reset */
+*{box-sizing:border-box;margin:0;padding:0}
+/* base */
+body{font-family:Arial,Helvetica,sans-serif;font-size:10px;color:#1a1a1a;background:#ccc;line-height:1.4}
+/* pages */
+.ds2-wrap{max-width:820px;margin:0 auto;padding:20px 0;display:flex;flex-direction:column;gap:20px}
+.ds2-page{background:#fff;width:100%;overflow:hidden}
+/* hero (page 1) */
+.ds2-hero{background:#ebebeb;height:220px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.ds2-hero-img{display:flex;align-items:center;justify-content:center;width:100%;height:100%;padding:16px}
+.ds2-hero-img img{max-height:190px;max-width:70%;object-fit:contain}
+.ds2-logo-box{position:absolute;top:14px;right:16px;text-align:right}
+.ds2-logo-txt{display:block;font-size:17px;font-weight:900;letter-spacing:2.5px;color:#1a1a1a;line-height:1}
+.ds2-logo-img{max-height:34px;max-width:150px;display:block;margin-left:auto}
+.ds2-logo-tag{display:block;font-size:6.5px;letter-spacing:1.2px;text-transform:uppercase;color:#555;margin-top:3px}
+/* identity */
+.ds2-ident{padding:13px 18px 6px}
+.ds2-pname{font-size:19px;font-weight:700;line-height:1.2}
+.ds2-desc{font-size:10.5px;color:#d81f26;margin-top:4px;font-weight:500}
+/* body columns */
+.ds2-body{display:flex;padding:6px 18px 16px;gap:0}
+.ds2-lc{flex:0 0 58%;padding-right:14px}
+.ds2-rc{flex:1;padding-left:14px;border-left:1px solid #e0e0e0}
+/* section group */
+.ds2-sg{margin-bottom:9px}
+.ds2-sh{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#1a1a1a;border-bottom:1.5px solid #1a1a1a;padding-bottom:2px}
+/* data table */
+.ds2-tb{width:100%;border-collapse:collapse}
+.ds2-tb td{padding:2.5px 4px;border-bottom:1px solid #ebebeb;font-size:9px;vertical-align:top}
+.ds2-lbl{width:45%;font-weight:500;color:#1a1a1a}
+.ds2-ac td{color:#d81f26!important}
+/* right-column diagram area */
+.ds2-diag-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-bottom:1.5px solid #1a1a1a;padding-bottom:2px;margin-bottom:7px}
+.ds2-diag-img img{width:100%;max-width:100%;object-fit:contain;display:block}
+.ds2-no-img{font-size:8.5px;color:#888;font-style:italic;padding:10px 0}
+/* page 2 header strip */
+.ds2-p2h{display:flex;justify-content:space-between;align-items:center;padding:9px 18px;border-bottom:2px solid #1a1a1a}
+.ds2-p2h-code{font-size:9.5px;font-weight:700}
+/* footer */
+.ds2-hr{border:none;border-top:1px solid #d0d0d0;margin:0 18px}
+.ds2-foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:3px 20px;padding:6px 18px 10px;font-size:8px;color:#666}
+/* print button */
+.ds2-printbtn{text-align:center;padding:14px 0}
+.ds2-printbtn button{background:#d81f26;color:#fff;border:0;padding:9px 22px;font-size:13px;font-weight:700;border-radius:5px;cursor:pointer}
+/* print */
+@media print{
+  @page{size:A4;margin:10mm}
+  body{background:#fff;font-size:10px}
+  .ds2-wrap{max-width:none;padding:0;gap:0}
+  .ds2-printbtn{display:none}
+  .ds2-page{page-break-after:always}
+  .ds2-page:last-child{page-break-after:auto}
+}
+</style>
+</head>
+<body>
+
+<div class="ds2-printbtn"><button onclick="window.print()">Print / Save as PDF</button></div>
+
+<div class="ds2-wrap">
+
+<!-- ===== PAGE 1 ===== -->
+<div class="ds2-page">
+
+  <!-- Hero -->
+  <div class="ds2-hero">
+    <div class="ds2-logo-box">
+      <?php if ( $logo_url ) : ?>
+        <img class="ds2-logo-img" src="<?php echo esc_url( $logo_url ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>">
+      <?php else : ?>
+        <span class="ds2-logo-txt">RICOMAN</span>
+        <span class="ds2-logo-tag">Your Lighting. Our Passion.</span>
+      <?php endif; ?>
+    </div>
+    <div class="ds2-hero-img">
+      <?php if ( $image ) : ?>
+        <img src="<?php echo esc_url( $image ); ?>" alt="<?php echo esc_attr( $pname ); ?>">
+      <?php endif; ?>
+    </div>
+  </div>
+
+  <!-- Product identity -->
+  <div class="ds2-ident">
+    <div class="ds2-pname"><?php echo esc_html( $pname ); ?></div>
+    <?php if ( $desc ) : ?>
+      <div class="ds2-desc"><?php echo esc_html( wp_strip_all_tags( $desc ) ); ?></div>
+    <?php endif; ?>
+  </div>
+
+  <!-- Specs (left) + Dimension diagram (right) -->
+  <div class="ds2-body">
+    <div class="ds2-lc"><?php echo $p1_html; // phpcs:ignore ?></div>
+    <div class="ds2-rc">
+      <div class="ds2-diag-lbl">Dimension Diagram</div>
+      <div class="ds2-diag-img">
+        <?php if ( $dim_diagram ) : ?>
+          <img src="<?php echo esc_url( $dim_diagram ); ?>" alt="Dimension Diagram">
+        <?php else : ?>
+          <p class="ds2-no-img">Image not available</p>
+        <?php endif; ?>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <hr class="ds2-hr">
+  <div class="ds2-foot">
+    <span><?php echo esc_html( $site_domain ); ?></span>
+    <span><?php echo esc_html( $foot_phone ); ?></span>
+    <span>Product design and technical data may be subject to change.</span>
+    <span><?php echo esc_html( $foot_email ); ?></span>
+  </div>
+
+</div><!-- /page 1 -->
+
+<!-- ===== PAGE 2 ===== -->
+<div class="ds2-page">
+
+  <!-- Page 2 header strip -->
+  <div class="ds2-p2h">
+    <?php if ( $code ) : ?>
+      <span class="ds2-p2h-code">Part Code: <?php echo esc_html( $code ); ?></span>
+    <?php else : ?>
+      <span></span>
+    <?php endif; ?>
+    <div style="text-align:right">
+      <?php if ( $logo_url ) : ?>
+        <img class="ds2-logo-img" src="<?php echo esc_url( $logo_url ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>" style="max-height:26px">
+      <?php else : ?>
+        <span class="ds2-logo-txt" style="font-size:14px">RICOMAN</span>
+        <span class="ds2-logo-tag">Your Lighting. Our Passion.</span>
+      <?php endif; ?>
+    </div>
+  </div>
+
+  <!-- Specs (left) + Photometric diagram (right) -->
+  <div class="ds2-body" style="padding-top:14px">
+    <div class="ds2-lc"><?php echo $p2_html; // phpcs:ignore ?></div>
+    <div class="ds2-rc">
+      <div class="ds2-diag-lbl">Photometric Diagram</div>
+      <div class="ds2-diag-img">
+        <?php if ( $photometric ) : ?>
+          <img src="<?php echo esc_url( $photometric ); ?>" alt="Photometric Diagram">
+        <?php else : ?>
+          <p class="ds2-no-img">Image not available</p>
+        <?php endif; ?>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <hr class="ds2-hr">
+  <div class="ds2-foot">
+    <span><?php echo esc_html( $site_domain ); ?></span>
+    <span><?php echo esc_html( $foot_phone ); ?></span>
+    <span>Product design and technical data may be subject to change.</span>
+    <span><?php echo esc_html( $foot_email ); ?></span>
+  </div>
+
+</div><!-- /page 2 -->
+
+</div><!-- .ds2-wrap -->
+</body>
+</html>
 	<?php
 	return (string) ob_get_clean();
 }
