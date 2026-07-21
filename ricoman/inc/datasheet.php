@@ -255,7 +255,7 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:10px;color:#1a1a1a;backgro
 .ds2-printbtn button{background:var(--ac);color:#fff;border:0;padding:10px 24px;font-size:13px;font-weight:700;border-radius:5px;cursor:pointer}
 /* A4 pages — fixed pixel width (794 px ≈ 210 mm at 96 dpi) on screen */
 .ds2-wrap{width:794px;margin:0 auto;padding:20px 0;display:flex;flex-direction:column;gap:24px}
-.ds2-page{background:#fff;width:794px;min-height:1123px;overflow:hidden;position:relative}
+.ds2-page{background:#fff;width:794px;min-height:1123px;overflow:hidden;display:flex;flex-direction:column}
 /* hero — 38% of A4 height ≈ 427 px on screen */
 .ds2-hero{background:#ebebeb;height:427px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
 .ds2-hero-img{display:flex;align-items:center;justify-content:center;width:100%;height:100%;padding:24px}
@@ -269,7 +269,7 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:10px;color:#1a1a1a;backgro
 .ds2-pname{font-size:22px;font-weight:700;line-height:1.2}
 .ds2-desc{font-size:11px;color:var(--ac);margin-top:5px;font-weight:500}
 /* body columns */
-.ds2-body{display:flex;padding:8px 22px 18px;gap:0}
+.ds2-body{display:flex;padding:8px 22px 18px;gap:0;flex:1}
 .ds2-lc{flex:0 0 57%;padding-right:16px}
 .ds2-rc{flex:1;padding-left:16px;border-left:1px solid #e0e0e0}
 /* section group */
