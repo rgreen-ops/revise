@@ -236,6 +236,8 @@ function ricoman_variant_datasheet_markup( $vid ) {
 		$p2_html .= $render_section( $heading, $rows );
 	}
 
+	$font_base = get_theme_file_uri( 'assets/fonts/' );
+
 	ob_start();
 	?>
 <!doctype html>
@@ -244,12 +246,15 @@ function ricoman_variant_datasheet_markup( $vid ) {
 <meta charset="utf-8">
 <title><?php echo esc_html( trim( $pname . ' ' . $code ) . ' — Datasheet' ); ?></title>
 <style>
+@font-face{font-family:"Poppins";font-weight:400;font-display:swap;src:url('<?php echo esc_url( $font_base ); ?>poppins-400.woff2') format("woff2")}
+@font-face{font-family:"Poppins";font-weight:600;font-display:swap;src:url('<?php echo esc_url( $font_base ); ?>poppins-600.woff2') format("woff2")}
+@font-face{font-family:"Poppins";font-weight:700;font-display:swap;src:url('<?php echo esc_url( $font_base ); ?>poppins-700.woff2') format("woff2")}
 /* reset */
 *{box-sizing:border-box;margin:0;padding:0}
-/* accent colour — matches the orange in the reference PDF */
+/* accent colour */
 :root{--ac:#e04e1a}
 /* base: grey surround so white pages look like paper on screen */
-body{font-family:Arial,Helvetica,sans-serif;font-size:10px;color:#1a1a1a;background:#b0b0b0;line-height:1.4}
+body{font-family:Poppins,Arial,sans-serif;font-size:10px;color:#1a1a1a;background:#b0b0b0;line-height:1.4}
 /* print button (above the pages) */
 .ds2-printbtn{text-align:center;padding:16px 0}
 .ds2-printbtn button{background:#1a1a1a;color:#fff;border:0;padding:10px 24px;font-size:13px;font-weight:700;border-radius:5px;cursor:pointer}
