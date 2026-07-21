@@ -294,7 +294,9 @@ body{font-family:Poppins,Arial,sans-serif;font-size:10px;color:#1a1a1a;backgroun
 .ds2-p2h-code{font-size:10px;font-weight:700}
 /* footer */
 .ds2-hr{display:none}
-.ds2-foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:3px 20px;padding:7px 22px 12px;font-size:8.5px;color:#1a1a1a}
+.ds2-foot{background:#ebebeb;display:flex;justify-content:space-between;align-items:flex-start;padding:10px 22px;font-size:8.5px;color:#1a1a1a}
+.ds2-foot-l,.ds2-foot-r{display:flex;flex-direction:column;gap:3px}
+.ds2-foot-r{text-align:right}
 /* print */
 @media print{
   @page{size:A4 portrait;margin:10mm}
@@ -357,12 +359,15 @@ body{font-family:Poppins,Arial,sans-serif;font-size:10px;color:#1a1a1a;backgroun
   </div>
 
   <!-- Footer -->
-  <hr class="ds2-hr">
   <div class="ds2-foot">
-    <span><?php echo esc_html( $site_domain ); ?></span>
-    <span><?php echo esc_html( $foot_phone ); ?></span>
-    <span>Product design and technical data may be subject to change.</span>
-    <span><?php echo esc_html( $foot_email ); ?></span>
+    <div class="ds2-foot-l">
+      <span><?php echo esc_html( $site_domain ); ?></span>
+      <span>Product design and technical data may be subject to change.</span>
+    </div>
+    <div class="ds2-foot-r">
+      <span><?php echo esc_html( $foot_phone ); ?></span>
+      <span><?php echo esc_html( $foot_email ); ?></span>
+    </div>
   </div>
 
 </div><!-- /page 1 -->
@@ -402,12 +407,15 @@ body{font-family:Poppins,Arial,sans-serif;font-size:10px;color:#1a1a1a;backgroun
   </div>
 
   <!-- Footer -->
-  <hr class="ds2-hr">
   <div class="ds2-foot">
-    <span><?php echo esc_html( $site_domain ); ?></span>
-    <span><?php echo esc_html( $foot_phone ); ?></span>
-    <span>Product design and technical data may be subject to change.</span>
-    <span><?php echo esc_html( $foot_email ); ?></span>
+    <div class="ds2-foot-l">
+      <span><?php echo esc_html( $site_domain ); ?></span>
+      <span>Product design and technical data may be subject to change.</span>
+    </div>
+    <div class="ds2-foot-r">
+      <span><?php echo esc_html( $foot_phone ); ?></span>
+      <span><?php echo esc_html( $foot_email ); ?></span>
+    </div>
   </div>
 
 </div><!-- /page 2 -->
