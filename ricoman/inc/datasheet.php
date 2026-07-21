@@ -243,56 +243,60 @@ function ricoman_variant_datasheet_markup( $vid ) {
 <style>
 /* reset */
 *{box-sizing:border-box;margin:0;padding:0}
-/* base */
-body{font-family:Arial,Helvetica,sans-serif;font-size:10px;color:#1a1a1a;background:#ccc;line-height:1.4}
-/* pages */
-.ds2-wrap{max-width:820px;margin:0 auto;padding:20px 0;display:flex;flex-direction:column;gap:20px}
-.ds2-page{background:#fff;width:100%;overflow:hidden}
-/* hero (page 1) */
-.ds2-hero{background:#ebebeb;height:220px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
-.ds2-hero-img{display:flex;align-items:center;justify-content:center;width:100%;height:100%;padding:16px}
-.ds2-hero-img img{max-height:190px;max-width:70%;object-fit:contain}
-.ds2-logo-box{position:absolute;top:14px;right:16px;text-align:right}
-.ds2-logo-txt{display:block;font-size:17px;font-weight:900;letter-spacing:2.5px;color:#1a1a1a;line-height:1}
-.ds2-logo-img{max-height:34px;max-width:150px;display:block;margin-left:auto}
-.ds2-logo-tag{display:block;font-size:6.5px;letter-spacing:1.2px;text-transform:uppercase;color:#555;margin-top:3px}
+/* accent colour — matches the orange in the reference PDF */
+:root{--ac:#e04e1a}
+/* base: grey surround so white pages look like paper on screen */
+body{font-family:Arial,Helvetica,sans-serif;font-size:10px;color:#1a1a1a;background:#b0b0b0;line-height:1.4}
+/* print button (above the pages) */
+.ds2-printbtn{text-align:center;padding:16px 0}
+.ds2-printbtn button{background:var(--ac);color:#fff;border:0;padding:10px 24px;font-size:13px;font-weight:700;border-radius:5px;cursor:pointer}
+/* A4 pages — fixed pixel width (794 px ≈ 210 mm at 96 dpi) on screen */
+.ds2-wrap{width:794px;margin:0 auto;padding:20px 0;display:flex;flex-direction:column;gap:24px}
+.ds2-page{background:#fff;width:794px;min-height:1123px;overflow:hidden;position:relative}
+/* hero — 38% of A4 height ≈ 427 px on screen */
+.ds2-hero{background:#ebebeb;height:427px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.ds2-hero-img{display:flex;align-items:center;justify-content:center;width:100%;height:100%;padding:24px}
+.ds2-hero-img img{max-height:370px;max-width:65%;object-fit:contain}
+.ds2-logo-box{position:absolute;top:16px;right:18px;text-align:right}
+.ds2-logo-txt{display:block;font-size:20px;font-weight:900;letter-spacing:3px;color:#1a1a1a;line-height:1}
+.ds2-logo-img{max-height:42px;max-width:180px;display:block;margin-left:auto}
+.ds2-logo-tag{display:block;font-size:7px;letter-spacing:1.4px;text-transform:uppercase;color:#555;margin-top:4px}
 /* identity */
-.ds2-ident{padding:13px 18px 6px}
-.ds2-pname{font-size:19px;font-weight:700;line-height:1.2}
-.ds2-desc{font-size:10.5px;color:#d81f26;margin-top:4px;font-weight:500}
+.ds2-ident{padding:16px 22px 8px}
+.ds2-pname{font-size:22px;font-weight:700;line-height:1.2}
+.ds2-desc{font-size:11px;color:var(--ac);margin-top:5px;font-weight:500}
 /* body columns */
-.ds2-body{display:flex;padding:6px 18px 16px;gap:0}
-.ds2-lc{flex:0 0 58%;padding-right:14px}
-.ds2-rc{flex:1;padding-left:14px;border-left:1px solid #e0e0e0}
+.ds2-body{display:flex;padding:8px 22px 18px;gap:0}
+.ds2-lc{flex:0 0 57%;padding-right:16px}
+.ds2-rc{flex:1;padding-left:16px;border-left:1px solid #e0e0e0}
 /* section group */
-.ds2-sg{margin-bottom:9px}
-.ds2-sh{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#1a1a1a;border-bottom:1.5px solid #1a1a1a;padding-bottom:2px}
+.ds2-sg{margin-bottom:11px}
+.ds2-sh{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#1a1a1a;border-bottom:1.5px solid #1a1a1a;padding-bottom:3px}
 /* data table */
 .ds2-tb{width:100%;border-collapse:collapse}
-.ds2-tb td{padding:2.5px 4px;border-bottom:1px solid #ebebeb;font-size:9px;vertical-align:top}
+.ds2-tb td{padding:3px 5px;border-bottom:1px solid #ebebeb;font-size:9.5px;vertical-align:top}
 .ds2-lbl{width:45%;font-weight:500;color:#1a1a1a}
-.ds2-ac td{color:#d81f26!important}
+.ds2-ac td{color:var(--ac)!important}
 /* right-column diagram area */
-.ds2-diag-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-bottom:1.5px solid #1a1a1a;padding-bottom:2px;margin-bottom:7px}
+.ds2-diag-lbl{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;border-bottom:1.5px solid #1a1a1a;padding-bottom:3px;margin-bottom:8px}
 .ds2-diag-img img{width:100%;max-width:100%;object-fit:contain;display:block}
-.ds2-no-img{font-size:8.5px;color:#888;font-style:italic;padding:10px 0}
+.ds2-no-img{font-size:9px;color:#888;font-style:italic;padding:12px 0}
 /* page 2 header strip */
-.ds2-p2h{display:flex;justify-content:space-between;align-items:center;padding:9px 18px;border-bottom:2px solid #1a1a1a}
-.ds2-p2h-code{font-size:9.5px;font-weight:700}
+.ds2-p2h{display:flex;justify-content:space-between;align-items:center;padding:11px 22px;border-bottom:2px solid #1a1a1a}
+.ds2-p2h-code{font-size:10px;font-weight:700}
 /* footer */
-.ds2-hr{border:none;border-top:1px solid #d0d0d0;margin:0 18px}
-.ds2-foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:3px 20px;padding:6px 18px 10px;font-size:8px;color:#666}
-/* print button */
-.ds2-printbtn{text-align:center;padding:14px 0}
-.ds2-printbtn button{background:#d81f26;color:#fff;border:0;padding:9px 22px;font-size:13px;font-weight:700;border-radius:5px;cursor:pointer}
+.ds2-hr{border:none;border-top:1px solid #d0d0d0;margin:0 22px}
+.ds2-foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:3px 20px;padding:7px 22px 12px;font-size:8.5px;color:#555}
 /* print */
 @media print{
-  @page{size:A4;margin:10mm}
-  body{background:#fff;font-size:10px}
-  .ds2-wrap{max-width:none;padding:0;gap:0}
+  @page{size:A4 portrait;margin:10mm}
+  body{background:#fff}
+  .ds2-wrap{width:auto;padding:0;gap:0}
   .ds2-printbtn{display:none}
-  .ds2-page{page-break-after:always}
+  .ds2-page{width:100%;min-height:auto;page-break-after:always}
   .ds2-page:last-child{page-break-after:auto}
+  .ds2-hero{height:113mm}
+  .ds2-hero-img img{max-height:95mm}
 }
 </style>
 </head>
