@@ -271,7 +271,7 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:10px;color:#1a1a1a;backgro
 /* body columns */
 .ds2-body{display:flex;padding:8px 22px 18px;gap:0;flex:1}
 .ds2-lc{flex:0 0 57%;padding-right:16px}
-.ds2-rc{flex:1;padding-left:16px;border-left:1px solid #e0e0e0}
+.ds2-rc{flex:1;padding-left:16px}
 /* section group */
 .ds2-sg{margin-bottom:11px}
 .ds2-sh{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#1a1a1a;border-bottom:1.5px solid #1a1a1a;padding-bottom:3px}
@@ -288,7 +288,7 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:10px;color:#1a1a1a;backgro
 .ds2-p2h{display:flex;justify-content:space-between;align-items:center;padding:11px 22px;border-bottom:2px solid #1a1a1a}
 .ds2-p2h-code{font-size:10px;font-weight:700}
 /* footer */
-.ds2-hr{border:none;border-top:1px solid #d0d0d0;margin:0 22px}
+.ds2-hr{display:none}
 .ds2-foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:3px 20px;padding:7px 22px 12px;font-size:8.5px;color:#1a1a1a}
 /* print */
 @media print{
