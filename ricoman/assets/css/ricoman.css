@@ -1726,7 +1726,7 @@ a.rm-projhead-sectorlink:hover{color:var(--ink)}
   .rm-cfg-acts{flex-direction:column;align-items:center;gap:10px}
   .rm-cfg-acts .btn{width:auto;max-width:100%;justify-content:center;text-align:center;white-space:normal;padding:.85em 1.5em;font-size:.72rem;letter-spacing:.05em}
 }
-html,body{overflow-x:clip}
+body:not(.rm-pe-preview){overflow-x:clip}
 
 /* ===== Header refinement: thinner, right-grouped, hover underline + arrow ===== */
 .brand{font-weight:500;letter-spacing:.16em;font-size:1rem}
