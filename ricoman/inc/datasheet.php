@@ -148,10 +148,12 @@ function ricoman_variant_datasheet_markup( $vid ) {
 		$photometric = ( $v && function_exists( 'ricoman_pf_imgurl' ) ) ? ricoman_pf_imgurl( $v ) : '';
 	}
 
-	// Logo: WordPress Customizer site logo (Appearance → Customize → Site Identity)
-	// is the primary source. Use the black/dark version there — brand_logo is white.
-	$logo_id  = get_theme_mod( 'custom_logo' );
-	$logo_url = $logo_id ? (string) wp_get_attachment_image_url( (int) $logo_id, 'full' ) : '';
+	// Logo: same image the site header uses (Site Options → Logo).
+	$logo_url = function_exists( 'ricoman_opt' ) ? (string) ricoman_opt( 'brand_logo' ) : '';
+	if ( ! $logo_url ) {
+		$logo_id  = get_theme_mod( 'custom_logo' );
+		$logo_url = $logo_id ? (string) wp_get_attachment_image_url( (int) $logo_id, 'full' ) : '';
+	}
 
 	// Lumens resolved the same way as the configure table.
 	$lumens = function_exists( 'ricoman_variant_lumens' ) ? ricoman_variant_lumens( $vid ) : $g( 'lumens' );
