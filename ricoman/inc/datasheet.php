@@ -290,7 +290,7 @@ body{font-family:Poppins,Arial,sans-serif;font-size:10px;color:#1a1a1a;backgroun
 .ds2-diag-img img{width:100%;max-width:100%;object-fit:contain;display:block}
 .ds2-no-img{font-size:9px;color:#888;font-style:italic;padding:12px 0}
 /* page 2 header strip */
-.ds2-p2h{display:flex;justify-content:space-between;align-items:center;padding:11px 22px;border-bottom:2px solid #1a1a1a}
+.ds2-p2h{display:flex;justify-content:space-between;align-items:center;padding:11px 22px}
 .ds2-p2h-code{font-size:10px;font-weight:700}
 /* footer */
 .ds2-hr{display:none}
