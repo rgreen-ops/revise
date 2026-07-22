@@ -382,6 +382,10 @@ add_action( 'wp_ajax_ricoman_pe_thumb', function () {
 	}
 	header( 'Content-Type: text/html; charset=utf-8' );
 	header( 'X-Robots-Tag: noindex' );
+	// Let the browser keep each preview for a day so re-opening the picker or
+	// scrolling back is instant (no re-fetch/re-render). The URL already varies
+	// by product + pattern, and the signature transient invalidates on edits.
+	header( 'Cache-Control: private, max-age=86400' );
 	echo '<!doctype html><html lang="en"><head><meta charset="utf-8">' . $links // phpcs:ignore
 		. '<style>html,body{margin:0;padding:0;background:#fff;pointer-events:none;width:1280px;overflow:hidden}.rm-lightbox{display:none!important}</style></head><body>'
 		. $body . '</body></html>';
@@ -647,14 +651,14 @@ function ricoman_product_editor_render() {
 		.rmpe-modal-head input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,72,153,.14)}
 		.rmpe-modal-x{border:0;background:#f1f2f6;width:34px;height:34px;border-radius:9px;font-size:22px;line-height:1;cursor:pointer;color:var(--muted);transition:.14s}
 		.rmpe-modal-x:hover{background:#e6e8ef;color:var(--ink)}
-		.rmpe-modal-cats{display:flex;gap:8px;flex-wrap:wrap;padding:14px 22px;border-bottom:1px solid var(--line-2);overflow-x:auto}
+		.rmpe-modal-cats{display:flex;gap:8px;flex-wrap:wrap;padding:14px 22px;border-bottom:1px solid var(--line-2);flex:0 0 auto}
 		.rmpe-chip{border:1px solid #dfe2ea;background:#fff;border-radius:999px;padding:7px 15px;font-size:12px;font-weight:650;color:var(--muted);cursor:pointer;white-space:nowrap;transition:.14s}
 		.rmpe-chip:hover{border-color:#bcc3d4;color:var(--ink)}
 		.rmpe-chip.on{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 2px 6px rgba(0,72,153,.3)}
-		.rmpe-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:18px;padding:22px;overflow-y:auto;align-content:start;background:linear-gradient(180deg,#fafbfd,#fff)}
+		.rmpe-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;padding:22px;overflow-y:auto;align-content:start;background:linear-gradient(180deg,#fafbfd,#fff)}
 		.rmpe-tile{border:1px solid var(--line);border-radius:13px;overflow:hidden;cursor:pointer;background:#fff;box-shadow:var(--sh-sm);transition:border-color .15s,box-shadow .15s,transform .15s}
 		.rmpe-tile:hover{border-color:var(--accent);box-shadow:var(--sh-lift);transform:translateY(-3px)}
-		.rmpe-thumb{position:relative;height:132px;background:#f4f5f8;overflow:hidden;border-bottom:1px solid var(--line-2)}
+		.rmpe-thumb{position:relative;height:158px;background:#f4f5f8;overflow:hidden;border-bottom:1px solid var(--line-2)}
 		.rmpe-thumb iframe{position:absolute;top:0;left:0;width:1280px;height:900px;border:0;transform-origin:0 0;pointer-events:none;opacity:0;transition:opacity .35s ease}
 		.rmpe-thumb.ready iframe{opacity:1}
 		.rmpe-thumb.loading::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,#f4f5f8 30%,#eaedf3 50%,#f4f5f8 70%);background-size:200% 100%;animation:rmpe-shimmer 1.1s linear infinite}
