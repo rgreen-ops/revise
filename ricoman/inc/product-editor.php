@@ -655,10 +655,10 @@ function ricoman_product_editor_render() {
 		.rmpe-chip{border:1px solid #dfe2ea;background:#fff;border-radius:999px;padding:7px 15px;font-size:12px;font-weight:650;color:var(--muted);cursor:pointer;white-space:nowrap;transition:.14s}
 		.rmpe-chip:hover{border-color:#bcc3d4;color:var(--ink)}
 		.rmpe-chip.on{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 2px 6px rgba(0,72,153,.3)}
-		.rmpe-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;padding:22px;overflow-y:auto;align-content:start;background:linear-gradient(180deg,#fafbfd,#fff)}
+		.rmpe-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;padding:22px;overflow-y:auto;align-content:start;background:linear-gradient(180deg,#fafbfd,#fff)}
 		.rmpe-tile{border:1px solid var(--line);border-radius:13px;overflow:hidden;cursor:pointer;background:#fff;box-shadow:var(--sh-sm);transition:border-color .15s,box-shadow .15s,transform .15s}
 		.rmpe-tile:hover{border-color:var(--accent);box-shadow:var(--sh-lift);transform:translateY(-3px)}
-		.rmpe-thumb{position:relative;height:158px;background:#f4f5f8;overflow:hidden;border-bottom:1px solid var(--line-2)}
+		.rmpe-thumb{position:relative;height:210px;background:#f4f5f8;overflow:hidden;border-bottom:1px solid var(--line-2)}
 		.rmpe-thumb iframe{position:absolute;top:0;left:0;width:1280px;height:900px;border:0;transform-origin:0 0;pointer-events:none;opacity:0;transition:opacity .35s ease}
 		.rmpe-thumb.ready iframe{opacity:1}
 		.rmpe-thumb.loading::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,#f4f5f8 30%,#eaedf3 50%,#f4f5f8 70%);background-size:200% 100%;animation:rmpe-shimmer 1.1s linear infinite}
