@@ -909,7 +909,10 @@ function ricoman_product_editor_render() {
 				} );
 			}
 		}
-		function openModal() { buildCats(); buildGrid(); modal.hidden = false; }
+		// Show the modal BEFORE building the grid so the scroll container has real
+		// dimensions when the IntersectionObserver attaches — otherwise it measures
+		// a 0-height grid and loads every preview at once.
+		function openModal() { modal.hidden = false; buildCats(); buildGrid(); }
 		function closeModal() { modal.hidden = true; }
 		$( 'rmpe-add' ).addEventListener( 'click', openModal );
 		$( 'rmpe-modal-x' ).addEventListener( 'click', closeModal );
