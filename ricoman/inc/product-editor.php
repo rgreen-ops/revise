@@ -344,25 +344,36 @@ add_action( 'wp_ajax_ricoman_pe_thumb', function () {
 	$pid  = isset( $_GET['product'] ) ? absint( $_GET['product'] ) : 0;
 	$kind = isset( $_GET['kind'] ) ? sanitize_key( $_GET['kind'] ) : '';
 	$name = isset( $_GET['name'] ) ? sanitize_text_field( wp_unslash( $_GET['name'] ) ) : '';
-	$body = '';
 
-	if ( 'section' === $kind && $pid ) {
-		if ( $GLOBALS['post'] = get_post( $pid ) ) { // phpcs:ignore
-			setup_postdata( $GLOBALS['post'] );
-		}
-		$s    = function_exists( 'ricoman_pf_sections' ) ? ricoman_pf_sections( $pid ) : array();
-		$body = isset( $s[ $name ] ) ? $s[ $name ] : '';
-		wp_reset_postdata();
-	} elseif ( 'pattern' === $kind && class_exists( 'WP_Block_Patterns_Registry' ) ) {
-		$reg = WP_Block_Patterns_Registry::get_instance();
-		if ( $reg->is_registered( $name ) ) {
-			if ( $pid && ( $GLOBALS['post'] = get_post( $pid ) ) ) { // phpcs:ignore
+	// Cache each rendered preview — the picker requests ~150 of these and every
+	// one is a full do_blocks()/do_shortcode() render. Keyed by the product's
+	// last-modified time so an edit refreshes its own previews, and by the CSS
+	// mtime so a restyle refreshes all of them.
+	$sig  = ( $pid ? (string) get_post_modified_time( 'U', true, $pid ) : '0' )
+		. '|' . ( file_exists( get_theme_file_path( 'assets/css/ricoman.css' ) ) ? (string) filemtime( get_theme_file_path( 'assets/css/ricoman.css' ) ) : '0' );
+	$ckey = 'rmpe_thumb_' . md5( $kind . '|' . $name . '|' . $pid . '|' . $sig );
+	$body = get_transient( $ckey );
+	if ( false === $body ) {
+		$body = '';
+		if ( 'section' === $kind && $pid ) {
+			if ( $GLOBALS['post'] = get_post( $pid ) ) { // phpcs:ignore
 				setup_postdata( $GLOBALS['post'] );
 			}
-			$p    = $reg->get_registered( $name );
-			$body = do_shortcode( do_blocks( isset( $p['content'] ) ? $p['content'] : '' ) );
+			$s    = function_exists( 'ricoman_pf_sections' ) ? ricoman_pf_sections( $pid ) : array();
+			$body = isset( $s[ $name ] ) ? $s[ $name ] : '';
 			wp_reset_postdata();
+		} elseif ( 'pattern' === $kind && class_exists( 'WP_Block_Patterns_Registry' ) ) {
+			$reg = WP_Block_Patterns_Registry::get_instance();
+			if ( $reg->is_registered( $name ) ) {
+				if ( $pid && ( $GLOBALS['post'] = get_post( $pid ) ) ) { // phpcs:ignore
+					setup_postdata( $GLOBALS['post'] );
+				}
+				$p    = $reg->get_registered( $name );
+				$body = do_shortcode( do_blocks( isset( $p['content'] ) ? $p['content'] : '' ) );
+				wp_reset_postdata();
+			}
 		}
+		set_transient( $ckey, (string) $body, DAY_IN_SECONDS );
 	}
 
 	$links = '';
@@ -644,7 +655,10 @@ function ricoman_product_editor_render() {
 		.rmpe-tile{border:1px solid var(--line);border-radius:13px;overflow:hidden;cursor:pointer;background:#fff;box-shadow:var(--sh-sm);transition:border-color .15s,box-shadow .15s,transform .15s}
 		.rmpe-tile:hover{border-color:var(--accent);box-shadow:var(--sh-lift);transform:translateY(-3px)}
 		.rmpe-thumb{position:relative;height:132px;background:#f4f5f8;overflow:hidden;border-bottom:1px solid var(--line-2)}
-		.rmpe-thumb iframe{position:absolute;top:0;left:0;width:1280px;height:900px;border:0;transform-origin:0 0;pointer-events:none}
+		.rmpe-thumb iframe{position:absolute;top:0;left:0;width:1280px;height:900px;border:0;transform-origin:0 0;pointer-events:none;opacity:0;transition:opacity .35s ease}
+		.rmpe-thumb.ready iframe{opacity:1}
+		.rmpe-thumb.loading::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,#f4f5f8 30%,#eaedf3 50%,#f4f5f8 70%);background-size:200% 100%;animation:rmpe-shimmer 1.1s linear infinite}
+		@keyframes rmpe-shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
 		.rmpe-thumb.sec{display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#eef3fc,#e3ecfa)}
 		.rmpe-thumb.sec .dashicons{font-size:38px;width:38px;height:38px;color:var(--accent);opacity:.8}
 		.rmpe-tile .lbl{padding:11px 13px;font-size:12.5px;font-weight:650;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -850,7 +864,7 @@ function ricoman_product_editor_render() {
 			var t = document.createElement( 'div' ); t.className = 'rmpe-tile'; t.dataset.kind = kind; t.dataset.name = name;
 			var thumb = ( kind === 'section' )
 				? '<div class="rmpe-thumb sec"><span class="dashicons dashicons-' + ( icon || 'block-default' ) + '"></span></div>'
-				: '<div class="rmpe-thumb"><iframe scrolling="no" data-src="' + thumbUrl( kind, name ) + '" onload="this.style.transform=\'scale(\'+(this.parentNode.clientWidth/1280)+\')\'"></iframe></div>';
+				: '<div class="rmpe-thumb loading"><iframe scrolling="no" data-src="' + thumbUrl( kind, name ) + '" onload="this.style.transform=\'scale(\'+(this.parentNode.clientWidth/1280)+\')\';this.parentNode.classList.remove(\'loading\');this.parentNode.classList.add(\'ready\');"></iframe></div>';
 			t.innerHTML = thumb + '<div class="lbl"><span class="cat">' + cat + '</span>' + label + '</div>';
 			return t;
 		}
@@ -873,13 +887,27 @@ function ricoman_product_editor_render() {
 					grid.appendChild( tile( 'pattern', n, label.replace( /^[^·]*·\s*/, '' ), cat ) );
 				} );
 			}
-			// Load preview iframes progressively (staggered) so the picker stays fast
-			// but every thumbnail reliably renders.
-			grid.querySelectorAll( 'iframe[data-src]' ).forEach( function ( f, i ) {
-				setTimeout( function () {
-					if ( f.dataset.src ) { f.src = f.dataset.src; f.removeAttribute( 'data-src' ); }
-				}, i * 70 );
-			} );
+			// Only render a preview once its tile scrolls into view — with ~150
+			// patterns, firing every iframe up front rendered the whole catalogue
+			// server-side at once (slow, lots of blank tiles). IntersectionObserver
+			// loads just the visible dozen, the rest as you scroll.
+			if ( grid._io ) { grid._io.disconnect(); }
+			if ( 'IntersectionObserver' in window ) {
+				grid._io = new IntersectionObserver( function ( entries ) {
+					entries.forEach( function ( en ) {
+						if ( ! en.isIntersecting ) { return; }
+						var f = en.target;
+						if ( f.dataset.src ) { f.src = f.dataset.src; f.removeAttribute( 'data-src' ); }
+						grid._io.unobserve( f );
+					} );
+				}, { root: grid, rootMargin: '400px 0px' } );
+				grid.querySelectorAll( 'iframe[data-src]' ).forEach( function ( f ) { grid._io.observe( f ); } );
+			} else {
+				// Fallback for very old browsers: staggered load.
+				grid.querySelectorAll( 'iframe[data-src]' ).forEach( function ( f, i ) {
+					setTimeout( function () { if ( f.dataset.src ) { f.src = f.dataset.src; f.removeAttribute( 'data-src' ); } }, i * 70 );
+				} );
+			}
 		}
 		function openModal() { buildCats(); buildGrid(); modal.hidden = false; }
 		function closeModal() { modal.hidden = true; }
