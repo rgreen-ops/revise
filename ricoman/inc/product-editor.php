@@ -900,7 +900,7 @@ function ricoman_product_editor_render() {
 						if ( f.dataset.src ) { f.src = f.dataset.src; f.removeAttribute( 'data-src' ); }
 						grid._io.unobserve( f );
 					} );
-				}, { root: grid, rootMargin: '400px 0px' } );
+				}, { rootMargin: '400px 0px' } ); // viewport root — robust to whichever element actually scrolls
 				grid.querySelectorAll( 'iframe[data-src]' ).forEach( function ( f ) { grid._io.observe( f ); } );
 			} else {
 				// Fallback for very old browsers: staggered load.
