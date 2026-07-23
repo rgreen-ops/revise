@@ -65,8 +65,16 @@ function ricoman_live_origin() {
 }
 
 /**
- * If $url is a local uploads URL whose file is missing on disk, return the same
- * path on the live origin; otherwise return $url unchanged. Cached per request.
+ * Repair a local uploads URL that won't display, cached per request:
+ *
+ *   1. A 0-byte / empty ".webp" (the WebP converter on this host silently writes
+ *      empty files for some sources) → serve the intact original-format sibling
+ *      (same name, .png/.jpg/.jpeg) sitting next to it. Purely local, so it works
+ *      even when the live-origin fallback is switched off.
+ *   2. A file that is genuinely missing (or empty) on disk → borrow the same path
+ *      from the live origin so it still shows.
+ *
+ * Anything already fine on disk is returned unchanged.
  */
 function ricoman_img_fallback( $url ) {
 	if ( ! is_string( $url ) || '' === $url ) {
@@ -76,20 +84,33 @@ function ricoman_img_fallback( $url ) {
 	if ( isset( $cache[ $url ] ) ) {
 		return $cache[ $url ];
 	}
-	$out  = $url;
-	$live = ricoman_live_origin();
-	if ( $live ) {
-		$up      = wp_get_upload_dir();
-		$baseurl = isset( $up['baseurl'] ) ? $up['baseurl'] : '';
-		// Compare ignoring scheme, so http/https differences don't defeat it.
-		$norm    = function ( $u ) { return preg_replace( '#^https?:#i', '', $u ); };
-		$nbase   = $norm( $baseurl );
-		$nurl    = $norm( $url );
-		if ( $baseurl && 0 === strpos( $nurl, $nbase ) ) {
-			$rel = substr( $nurl, strlen( $nbase ) ); // e.g. /2023/07/file.png
-			// Strip any query string before the disk check.
-			$relpath = preg_replace( '/[?#].*$/', '', $rel );
-			if ( ! file_exists( $up['basedir'] . $relpath ) ) {
+	$out     = $url;
+	$up      = wp_get_upload_dir();
+	$baseurl = isset( $up['baseurl'] ) ? $up['baseurl'] : '';
+	$basedir = isset( $up['basedir'] ) ? $up['basedir'] : '';
+	// Compare ignoring scheme, so http/https differences don't defeat it.
+	$norm    = function ( $u ) { return preg_replace( '#^https?:#i', '', $u ); };
+	if ( $baseurl && 0 === strpos( $norm( $url ), $norm( $baseurl ) ) ) {
+		$rel     = substr( $norm( $url ), strlen( $norm( $baseurl ) ) ); // e.g. /2026/07/file.webp
+		$relpath = preg_replace( '/[?#].*$/', '', $rel ); // strip any query string.
+		$size    = @filesize( $basedir . $relpath ); // phpcs:ignore WordPress.PHP.NoSilencedErrors — false = missing, 0 = empty.
+
+		// (1) Broken/empty WebP → swap in the intact original-format sibling.
+		if ( ( false === $size || $size < 1 ) && preg_match( '/\.webp$/i', $relpath ) ) {
+			foreach ( array( 'png', 'jpg', 'jpeg', 'PNG', 'JPG', 'JPEG' ) as $ext ) {
+				$sibrel = preg_replace( '/\.webp$/i', '.' . $ext, $relpath );
+				$sz     = @filesize( $basedir . $sibrel ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
+				if ( $sz && $sz > 0 ) {
+					$cache[ $url ] = $baseurl . $sibrel;
+					return $cache[ $url ];
+				}
+			}
+		}
+
+		// (2) Missing / empty locally → borrow from the live origin.
+		if ( false === $size || $size < 1 ) {
+			$live = ricoman_live_origin();
+			if ( $live ) {
 				$path = wp_parse_url( $baseurl, PHP_URL_PATH ); // /wp-content/uploads
 				$out  = $live . $path . $rel;
 			}
@@ -137,15 +158,18 @@ function ricoman_norm_img_url( $url ) {
 	$rel     = substr( $url, $pos + strlen( $path ) ); // /alluploadedfile/foo-1024x1024.png[?x]
 	$relpath = preg_replace( '/[?#].*$/', '', $rel );
 	$out     = $baseurl . $rel; // re-host onto THIS site.
-	if ( ! file_exists( $basedir . $relpath ) ) {
+	// Treat a 0-byte file as broken, not present — the WebP converter on this host
+	// writes empty full-size .webp files, which "exist" but never display.
+	$size = @filesize( $basedir . $relpath ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
+	if ( false === $size || $size < 1 ) {
 		// Sub-size missing — try the original (strip a trailing -WxH).
 		$orig = preg_replace( '/-\d+x\d+(\.[A-Za-z0-9]+)$/', '$1', $relpath );
-		if ( $orig !== $relpath && file_exists( $basedir . $orig ) ) {
+		$osz  = ( $orig !== $relpath ) ? @filesize( $basedir . $orig ) : false; // phpcs:ignore WordPress.PHP.NoSilencedErrors
+		if ( $orig !== $relpath && $osz && $osz > 0 ) {
 			$out = $baseurl . $orig;
 		} else {
-			// Still missing locally — bounce to live origin.
-			// Use the original filename (no sub-size suffix) because sub-sizes are
-			// rarely present on the live origin; the original upload always is.
+			// Still missing/empty locally — let ricoman_img_fallback repair it
+			// (broken .webp → sibling original, or borrow from the live origin).
 			$live_rel = ( $orig !== $relpath ) ? $orig : $relpath;
 			$out = ricoman_img_fallback( $baseurl . $live_rel );
 		}
