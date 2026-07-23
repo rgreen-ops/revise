@@ -587,10 +587,9 @@ function ricoman_first_term_name( $pid, $taxes ) {
 /** Display image for a product: ACF gallery image (what the page shows), else featured. */
 function ricoman_product_img( $pid ) {
 	// Prefer the ACF gallery image — that's exactly what the product PAGE shows.
-	// For migrated attachments whose files are not on the staging server we use
-	// wp_get_attachment_url() directly (which has ricoman_img_fallback attached)
-	// rather than ricoman_pf_imgurl → ricoman_norm_img_url, because that chain
-	// re-introduces a sub-size suffix that often 404s on the live origin.
+	// ricoman_pf_best_rendition() picks a valid, non-empty sub-size (skipping this
+	// host's 0-byte full-size .webp files) and self-heals via ricoman_img_fallback
+	// otherwise, so cards match the page and never show a broken/placeholder image.
 	if ( function_exists( 'ricoman_pf_get' ) ) {
 		$g     = ricoman_pf_get( $pid, 'product_gallery_image' );
 		$first = is_array( $g ) ? reset( $g ) : $g;
@@ -602,16 +601,10 @@ function ricoman_product_img( $pid ) {
 				$id = (int) ( isset( $first['ID'] ) ? $first['ID'] : ( isset( $first['id'] ) ? $first['id'] : 0 ) );
 			}
 			$u = '';
-			if ( $id ) {
-				$local = (string) get_attached_file( $id );
-				if ( $local && file_exists( $local ) ) {
-					$u = (string) wp_get_attachment_image_url( $id, 'large' );
-					if ( ! $u ) {
-						$u = (string) wp_get_attachment_url( $id );
-					}
-				} else {
-					$u = (string) wp_get_attachment_url( $id );
-				}
+			if ( $id && function_exists( 'ricoman_pf_best_rendition' ) ) {
+				$u = ricoman_pf_best_rendition( $id );
+			} elseif ( $id ) {
+				$u = (string) wp_get_attachment_url( $id );
 			} elseif ( function_exists( 'ricoman_pf_imgurl' ) ) {
 				$u = ricoman_pf_imgurl( $first );
 			}

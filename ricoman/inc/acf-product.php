@@ -431,31 +431,48 @@ function ricoman_pf_variant_row( $row ) {
 	return ( $name || $img ) ? array( $name, $img, $sw ) : null;
 }
 
+/**
+ * Best displayable URL for an attachment: a mid-weight sub-size that actually
+ * exists and is non-empty on disk, preferred over the full size.
+ *
+ * Guards against this host's 0-byte full-size ".webp" files (the WebP converter
+ * writes empty originals while the sub-sizes convert fine) by skipping any
+ * rendition whose file is empty. When no sub-size is usable it returns the
+ * filtered full URL, which self-heals a broken .webp to its original sibling
+ * (or borrows a missing file from the live origin) via ricoman_img_fallback.
+ */
+function ricoman_pf_best_rendition( $id ) {
+	$id = (int) $id;
+	if ( $id <= 0 ) {
+		return '';
+	}
+	$up   = wp_get_upload_dir();
+	$meta = wp_get_attachment_metadata( $id );
+	if ( is_array( $meta ) && ! empty( $meta['file'] ) && ! empty( $meta['sizes'] ) && is_array( $meta['sizes'] ) ) {
+		$dir     = dirname( $meta['file'] );                       // e.g. 2026/07
+		$subdir  = ( '.' === $dir || '' === $dir ) ? '' : trailingslashit( $dir );
+		$basedir = trailingslashit( $up['basedir'] );
+		$baseurl = trailingslashit( $up['baseurl'] );
+		// Mid-weight first (light enough for thumbnails, sharp enough for the hero).
+		foreach ( array( 'ricoman-card', 'large', 'medium_large', 'ricoman-wide', 'medium' ) as $s ) {
+			if ( empty( $meta['sizes'][ $s ]['file'] ) ) {
+				continue;
+			}
+			$rel = $subdir . $meta['sizes'][ $s ]['file'];
+			$sz  = @filesize( $basedir . $rel ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
+			if ( $sz && $sz > 0 ) {
+				return $baseurl . $rel;
+			}
+		}
+	}
+	// No usable sub-size — the filtered full URL self-heals a broken .webp.
+	return (string) wp_get_attachment_url( $id );
+}
+
 /** Gallery image URLs from product_gallery_image (array of IDs / arrays / urls). */
 function ricoman_pf_gallery( $pid ) {
-	// Resolve one attachment ID to its best available URL.
-	// For files present locally, use a sub-size. For migrated attachments whose
-	// originals live on the live origin, wp_get_attachment_url with the
-	// ricoman_img_fallback filter already returns the correct live-origin URL —
-	// we skip ricoman_norm_img_url (called inside ricoman_pf_imgurl) because that
-	// function re-introduces a sub-size suffix which often 404s on the live origin.
 	$resolve_id = function ( $id ) {
-		$id = (int) $id;
-		if ( ! $id ) {
-			return '';
-		}
-		$local = (string) get_attached_file( $id );
-		if ( $local && file_exists( $local ) ) {
-			$u = (string) wp_get_attachment_image_url( $id, 'large' );
-			if ( ! $u ) {
-				$u = (string) wp_get_attachment_url( $id );
-			}
-		} else {
-			// File is missing locally — wp_get_attachment_url via ricoman_img_fallback
-			// returns the live-origin full-size URL (same path the editor uses).
-			$u = (string) wp_get_attachment_url( $id );
-		}
-		return $u;
+		return ricoman_pf_best_rendition( (int) $id );
 	};
 
 	// Live builder preview override (array of attachment IDs).
@@ -1517,7 +1534,7 @@ function ricoman_pf_sections( $pid ) {
 	// 'm3' = markup version; bump to invalidate cached sections when section HTML
 	// changes. (Variant thumbnails use native loading="lazy"; the optimiser, not
 	// the theme, was the speed problem.)
-	$tkey      = 'rm_pfsec_m18_' . $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true ) . '_' . get_option( 'rm_cfgimg_ver', '0' );
+	$tkey      = 'rm_pfsec_m19_' . $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true ) . '_' . get_option( 'rm_cfgimg_ver', '0' );
 	if ( $cacheable ) {
 		$pre = get_transient( $tkey );
 		if ( is_array( $pre ) ) {
