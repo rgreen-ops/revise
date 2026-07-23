@@ -77,6 +77,30 @@ add_filter( 'render_block', function ( $content, $block ) {
 	return $content;
 }, 9, 2 );
 
+/* ---- Lazy-load every image except the marked hero/LCP ----
+ * The homepage and other pages are FSE templates, so their Cover section
+ * backgrounds skip WordPress' native lazy-loading — every section image
+ * (retail/workshop/office, ~600KB) was downloading eagerly and competing with
+ * the hero. Defer anything not explicitly kept eager (the hero filter above
+ * marks the LCP skip-lazy/fetchpriority; product heroes are marked too).
+ * Idempotent: once loading= is present the image is left alone. */
+add_filter( 'render_block', function ( $content ) {
+	if ( is_admin() || is_feed() || false === strpos( $content, '<img' ) ) {
+		return $content;
+	}
+	return preg_replace_callback( '/<img\b[^>]*>/i', function ( $m ) {
+		$tag = $m[0];
+		if ( preg_match( '/\bloading=|\bfetchpriority=|data-no-lazy|data-skip-lazy|skip-lazy|no-lazy/i', $tag ) ) {
+			return $tag;
+		}
+		$add = ' loading="lazy"';
+		if ( false === stripos( $tag, 'decoding=' ) ) {
+			$add .= ' decoding="async"';
+		}
+		return str_replace( '<img', '<img' . $add, $tag );
+	}, $content );
+}, 11 );
+
 /* ---- Remove front-end bloat ---- */
 add_action( 'init', function () {
 	// Emoji.
