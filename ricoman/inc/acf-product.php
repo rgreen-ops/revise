@@ -1335,7 +1335,7 @@ function ricoman_ajax_variant_rows() {
 add_action( 'wp_ajax_rm_vrows', 'ricoman_ajax_variant_rows' );
 add_action( 'wp_ajax_nopriv_rm_vrows', 'ricoman_ajax_variant_rows' );
 
-/** In-situ images for a product — its own In-situ gallery + related projects' galleries. */
+/** In-situ images for a product — manually uploaded via the Product Page Editor only. */
 function ricoman_pf_insitu_images( $pid ) {
 	$out = array();
 	// Live builder preview override (array of attachment IDs).
@@ -1349,43 +1349,13 @@ function ricoman_pf_insitu_images( $pid ) {
 		}
 		return array_values( array_unique( array_filter( $o ) ) );
 	}
-	// 1. Photos tagged directly on the product (insitu_gallery field).
+	// Photos uploaded directly to the product via the insitu_gallery field.
 	$own = ricoman_pf_get( $pid, 'insitu_gallery' );
 	if ( is_array( $own ) ) {
 		foreach ( $own as $g ) {
 			$u = ricoman_pf_imgurl( $g );
 			if ( $u ) {
 				$out[] = $u;
-			}
-		}
-	}
-	// 2. Photos pulled from linked projects' galleries (Option A).
-	$rp = ricoman_pf_get( $pid, 'related_projects' );
-	$ids = array();
-	if ( is_array( $rp ) ) {
-		foreach ( $rp as $v ) {
-			if ( is_numeric( $v ) ) {
-				$ids[] = (int) $v;
-			} elseif ( is_string( $v ) && '' !== $v ) {
-				$p = get_page_by_path( $v, OBJECT, 'project' );
-				if ( $p ) {
-					$ids[] = $p->ID;
-				}
-			}
-		}
-	}
-	foreach ( $ids as $proj ) {
-		$im = ricoman_pf_imgurl( get_post_meta( $proj, 'project_image', true ) );
-		if ( $im ) {
-			$out[] = $im;
-		}
-		$gal = get_post_meta( $proj, 'project_gallery', true );
-		if ( is_array( $gal ) ) {
-			foreach ( $gal as $g ) {
-				$u = ricoman_pf_imgurl( $g );
-				if ( $u ) {
-					$out[] = $u;
-				}
 			}
 		}
 	}
