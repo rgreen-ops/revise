@@ -71,7 +71,7 @@ function ricoman_pf_metrics( $pid ) {
 	// subtitle and image) is precomputed by a background job and read back as a
 	// single meta value here — zero ACF calls on the request.
 	$pre = get_post_meta( $pid, '_rm_pfm', true );
-	if ( is_array( $pre ) && ! empty( $pre['_v'] ) ) {
+	if ( is_array( $pre ) && isset( $pre['_v'] ) && (int) $pre['_v'] >= 3 ) {
 		return $memo[ $pid ] = $pre;
 	}
 
@@ -153,7 +153,7 @@ function ricoman_pf_rebuild( $pid ) {
 	$rec  = ricoman_pf_compute_metrics( $pid );
 	$rec['sub'] = (string) ( function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( $pid, 'product_subname' ) : '' );
 	$rec['img'] = (string) ( function_exists( 'ricoman_product_img' ) ? ricoman_product_img( $pid ) : '' );
-	$rec['_v']  = 2;
+	$rec['_v']  = 3;
 	update_post_meta( $pid, '_rm_pfm', $rec );
 	return $rec;
 }

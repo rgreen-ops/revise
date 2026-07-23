@@ -586,16 +586,35 @@ function ricoman_first_term_name( $pid, $taxes ) {
 
 /** Display image for a product: ACF gallery image (what the page shows), else featured. */
 function ricoman_product_img( $pid ) {
-	// Prefer the ACF gallery image — that's exactly what the product PAGE shows,
-	// and it resolves reliably (ricoman_pf_imgurl re-hosts and drops missing
-	// sub-sizes to the original). Using the featured image's "large" size first
-	// made cards 404 -> office placeholder while the page itself looked fine,
-	// because migrated products often have no generated "large" file on disk.
-	if ( function_exists( 'ricoman_pf_get' ) && function_exists( 'ricoman_pf_imgurl' ) ) {
+	// Prefer the ACF gallery image — that's exactly what the product PAGE shows.
+	// For migrated attachments whose files are not on the staging server we use
+	// wp_get_attachment_url() directly (which has ricoman_img_fallback attached)
+	// rather than ricoman_pf_imgurl → ricoman_norm_img_url, because that chain
+	// re-introduces a sub-size suffix that often 404s on the live origin.
+	if ( function_exists( 'ricoman_pf_get' ) ) {
 		$g     = ricoman_pf_get( $pid, 'product_gallery_image' );
 		$first = is_array( $g ) ? reset( $g ) : $g;
 		if ( $first ) {
-			$u = ricoman_pf_imgurl( $first );
+			$id = 0;
+			if ( is_numeric( $first ) ) {
+				$id = (int) $first;
+			} elseif ( is_array( $first ) ) {
+				$id = (int) ( isset( $first['ID'] ) ? $first['ID'] : ( isset( $first['id'] ) ? $first['id'] : 0 ) );
+			}
+			$u = '';
+			if ( $id ) {
+				$local = (string) get_attached_file( $id );
+				if ( $local && file_exists( $local ) ) {
+					$u = (string) wp_get_attachment_image_url( $id, 'large' );
+					if ( ! $u ) {
+						$u = (string) wp_get_attachment_url( $id );
+					}
+				} else {
+					$u = (string) wp_get_attachment_url( $id );
+				}
+			} elseif ( function_exists( 'ricoman_pf_imgurl' ) ) {
+				$u = ricoman_pf_imgurl( $first );
+			}
 			if ( $u ) {
 				return $u;
 			}
