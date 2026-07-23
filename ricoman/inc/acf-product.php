@@ -355,7 +355,26 @@ function ricoman_pf_imgurl( $v, $size = 'large' ) {
 			if ( ! $su && 'large' !== $size ) {
 				$su = wp_get_attachment_image_url( $id, 'large' );
 			}
-			$u = $su ? $su : (string) wp_get_attachment_image_url( $id, 'full' );
+			if ( ! $su ) {
+				$su = wp_get_attachment_image_url( $id, 'full' );
+			}
+			// Migrated attachments whose sub-size files weren't imported still have
+			// a guid pointing at the old-site URL — use that so ricoman_norm_img_url
+			// can serve it via the live-origin fallback.
+			if ( ! $su ) {
+				$su = (string) wp_get_attachment_url( $id );
+			}
+			// Array fallback: old-site attachment with embedded url/sizes.
+			if ( ! $su && is_array( $v ) ) {
+				if ( ! empty( $v['sizes'][ $size ] ) ) {
+					$su = $v['sizes'][ $size ];
+				} elseif ( ! empty( $v['sizes']['large'] ) ) {
+					$su = $v['sizes']['large'];
+				} elseif ( ! empty( $v['url'] ) ) {
+					$su = $v['url'];
+				}
+			}
+			$u = $su ? $su : '';
 		}
 	}
 	$u = $u ? $u : '';
