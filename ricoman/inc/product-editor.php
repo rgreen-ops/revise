@@ -433,17 +433,62 @@ function ricoman_product_editor_render() {
 	$preview  = add_query_arg( 'rmpe', 1, get_permalink( $pid ) );
 
 	// Gallery values (id + url) for the media picker.
+	// Always read raw post_meta to bypass ACF format conversion (which drops
+	// items when an attachment ID doesn't resolve on this site).
 	$gallery_of = function ( $key ) use ( $pid ) {
-		$out = array();
-		$val = function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( $pid, $key ) : get_post_meta( $pid, $key, true );
-		if ( is_array( $val ) ) {
-			foreach ( $val as $item ) {
-				$id = is_array( $item ) ? (int) ( isset( $item['ID'] ) ? $item['ID'] : ( isset( $item['id'] ) ? $item['id'] : 0 ) ) : ( is_numeric( $item ) ? (int) $item : 0 );
-				$u  = ricoman_pf_imgurl( $item );
-				if ( $u ) {
-					$out[] = array( 'id' => $id, 'url' => $u );
+		$out  = array();
+		$seen = array();
+
+		// Primary: raw post_meta (plain integer IDs or serialised arrays).
+		$raw = get_post_meta( $pid, $key, true );
+		// Fallback: ACF-processed value (attachment arrays, useful when raw is empty).
+		if ( ! is_array( $raw ) || ! $raw ) {
+			if ( function_exists( 'get_field' ) ) {
+				$raw = get_field( $key, $pid );
+			}
+		}
+
+		if ( ! is_array( $raw ) ) {
+			return $out;
+		}
+
+		foreach ( $raw as $item ) {
+			$id = 0;
+			$u  = '';
+
+			if ( is_numeric( $item ) && (int) $item > 0 ) {
+				$id = (int) $item;
+				// Resolve URL for this attachment on the current site.
+				$u = (string) wp_get_attachment_image_url( $id, 'large' );
+				if ( ! $u ) {
+					$u = (string) wp_get_attachment_url( $id );
+				}
+			} elseif ( is_array( $item ) ) {
+				$id = (int) ( isset( $item['ID'] ) ? $item['ID'] : ( isset( $item['id'] ) ? $item['id'] : 0 ) );
+				// Try attachment lookup first, then fall back to the embedded URL.
+				if ( $id ) {
+					$u = (string) wp_get_attachment_image_url( $id, 'large' );
+					if ( ! $u ) {
+						$u = (string) wp_get_attachment_url( $id );
+					}
+				}
+				if ( ! $u ) {
+					$u = function_exists( 'ricoman_pf_imgurl' ) ? ricoman_pf_imgurl( $item ) : ( $item['url'] ?? ( $item['sizes']['large'] ?? '' ) );
+				}
+				// If URL resolved but ID still unknown, look it up (covers migrated URL-only items).
+				if ( $u && ! $id ) {
+					$found = attachment_url_to_postid( $u );
+					if ( $found ) {
+						$id = $found;
+					}
 				}
 			}
+
+			if ( ! $u || isset( $seen[ $u ] ) ) {
+				continue;
+			}
+			$seen[ $u ] = true;
+			$out[] = array( 'id' => $id, 'url' => $u );
 		}
 		return $out;
 	};
@@ -1341,11 +1386,9 @@ add_action( 'admin_post_ricoman_save_product_page', function () {
 			continue;
 		}
 		$idlist = array_values( array_filter( array_map( 'absint', $d ) ) );
-		if ( function_exists( 'update_field' ) ) {
-			update_field( $field_key, $idlist, $pid );
-		} else {
-			update_post_meta( $pid, $field_key, $idlist );
-		}
+		// Use update_post_meta directly — update_field triggers ACF's gallery
+		// return-format conversion which can silently drop valid IDs.
+		update_post_meta( $pid, $field_key, $idlist );
 	}
 
 	// Configure-table columns (per-product + optional global default).
