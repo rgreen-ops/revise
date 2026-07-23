@@ -143,8 +143,11 @@ function ricoman_norm_img_url( $url ) {
 		if ( $orig !== $relpath && file_exists( $basedir . $orig ) ) {
 			$out = $baseurl . $orig;
 		} else {
-			// Still missing locally — let the live-origin fallback handle it.
-			$out = ricoman_img_fallback( $baseurl . $rel );
+			// Still missing locally — bounce to live origin.
+			// Use the original filename (no sub-size suffix) because sub-sizes are
+			// rarely present on the live origin; the original upload always is.
+			$live_rel = ( $orig !== $relpath ) ? $orig : $relpath;
+			$out = ricoman_img_fallback( $baseurl . $live_rel );
 		}
 	}
 	return $cache[ $url ] = $out;
