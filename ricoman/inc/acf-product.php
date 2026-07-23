@@ -433,11 +433,36 @@ function ricoman_pf_variant_row( $row ) {
 
 /** Gallery image URLs from product_gallery_image (array of IDs / arrays / urls). */
 function ricoman_pf_gallery( $pid ) {
+	// Resolve one attachment ID to its best available URL.
+	// For files present locally, use a sub-size. For migrated attachments whose
+	// originals live on the live origin, wp_get_attachment_url with the
+	// ricoman_img_fallback filter already returns the correct live-origin URL —
+	// we skip ricoman_norm_img_url (called inside ricoman_pf_imgurl) because that
+	// function re-introduces a sub-size suffix which often 404s on the live origin.
+	$resolve_id = function ( $id ) {
+		$id = (int) $id;
+		if ( ! $id ) {
+			return '';
+		}
+		$local = (string) get_attached_file( $id );
+		if ( $local && file_exists( $local ) ) {
+			$u = (string) wp_get_attachment_image_url( $id, 'large' );
+			if ( ! $u ) {
+				$u = (string) wp_get_attachment_url( $id );
+			}
+		} else {
+			// File is missing locally — wp_get_attachment_url via ricoman_img_fallback
+			// returns the live-origin full-size URL (same path the editor uses).
+			$u = (string) wp_get_attachment_url( $id );
+		}
+		return $u;
+	};
+
 	// Live builder preview override (array of attachment IDs).
 	if ( ! empty( $GLOBALS['rm_pe_preview'] ) && (int) $GLOBALS['rm_pe_preview']['pid'] === (int) $pid && isset( $GLOBALS['rm_pe_preview']['gallery'] ) && is_array( $GLOBALS['rm_pe_preview']['gallery'] ) ) {
 		$out = array();
 		foreach ( $GLOBALS['rm_pe_preview']['gallery'] as $id ) {
-			$u = ricoman_pf_imgurl( (int) $id );
+			$u = $resolve_id( $id );
 			if ( $u ) {
 				$out[] = $u;
 			}
@@ -448,7 +473,13 @@ function ricoman_pf_gallery( $pid ) {
 	$out = array();
 	if ( is_array( $g ) ) {
 		foreach ( $g as $item ) {
-			$u = ricoman_pf_imgurl( $item );
+			$id = 0;
+			if ( is_numeric( $item ) ) {
+				$id = (int) $item;
+			} elseif ( is_array( $item ) ) {
+				$id = (int) ( isset( $item['ID'] ) ? $item['ID'] : ( isset( $item['id'] ) ? $item['id'] : 0 ) );
+			}
+			$u = $id ? $resolve_id( $id ) : ricoman_pf_imgurl( $item );
 			if ( $u ) {
 				$out[] = $u;
 			}
@@ -1486,7 +1517,7 @@ function ricoman_pf_sections( $pid ) {
 	// 'm3' = markup version; bump to invalidate cached sections when section HTML
 	// changes. (Variant thumbnails use native loading="lazy"; the optimiser, not
 	// the theme, was the speed problem.)
-	$tkey      = 'rm_pfsec_m16_' . $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true ) . '_' . get_option( 'rm_cfgimg_ver', '0' );
+	$tkey      = 'rm_pfsec_m17_' . $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true ) . '_' . get_option( 'rm_cfgimg_ver', '0' );
 	if ( $cacheable ) {
 		$pre = get_transient( $tkey );
 		if ( is_array( $pre ) ) {
