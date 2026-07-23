@@ -49,6 +49,6 @@ $img = function ( $f ) { return esc_url( get_theme_file_uri( 'assets/images/' . 
 <section class="cta"><div class="bg" style="background-image:url(<?php echo $img( 'office1.webp' ); ?>)"></div><div class="scrim"></div><div class="inner"><div class="wrap col">
   <h2>Start your scheme</h2>
   <p>Tell us about the project and share your drawings — one of our lighting designers will be in touch, with your costed scheme to follow.</p>
-  <div class="acts"><a class="btn btn-line" href="/about/">Talk to the team</a><a class="btn btn-solid" style="background:#fff;color:var(--ink)" href="/projects/">See the results →</a></div>
+  <div class="acts"><a class="btn btn-line" href="/about/">Talk to the team</a><a class="btn btn-line" href="/projects/">See the results →</a></div>
 </div></div></section>
 <!-- /wp:html -->
