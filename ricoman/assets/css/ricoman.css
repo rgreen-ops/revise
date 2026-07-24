@@ -873,6 +873,11 @@ body:not(.rm-pe-preview) .rm-mediapanel{width:100vw;margin-left:calc(50% - 50vw)
 .wp-block-cover.alignfull{position:relative}
 .wp-block-cover.alignfull > .wp-block-cover__inner-container{position:relative;z-index:2;padding-left:calc(max(0px,(100vw - var(--wide)) / 2) + var(--pad))!important;padding-right:calc(max(0px,(100vw - var(--wide)) / 2) + var(--pad))!important}
 .wp-block-cover.alignfull::after{content:"";position:absolute;left:0;right:0;bottom:0;height:60%;background:linear-gradient(180deg,transparent,rgba(0,0,0,.55));pointer-events:none;z-index:1}
+/* Full-width Columns bands dropped straight into a page (e.g. the Contact
+   "Technical support" section) keep a full-bleed background but must hold their
+   CONTENT to the site content width, like every .rm-section band — otherwise the
+   text hugs the page edge instead of lining up with the rest of the page. */
+.entry-content > .wp-block-columns.alignfull.has-background{padding-inline:max(var(--pad),calc((100% - var(--wp--style--global--content-size,1180px)) / 2))!important}
 /* muted/grey paragraphs sitting on a dark cover must read light, not grey */
 .wp-block-cover .has-muted-color{color:rgba(255,255,255,.86)!important}
 .wp-block-cover .rm-eyebrow{color:rgba(255,255,255,.8)}
