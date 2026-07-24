@@ -61,6 +61,7 @@ require_once get_theme_file_path( 'inc/transporter.php' );   // Content migratio
 require_once get_theme_file_path( 'inc/ricobot.php' );       // RICOBOT API settings + client.
 require_once get_theme_file_path( 'inc/datasheet.php' );     // Printable / PDF datasheets.
 require_once get_theme_file_path( 'inc/lead-capture.php' );  // Lead form + Sheets webhook.
+require_once get_theme_file_path( 'inc/project-wizard.php' );// Multi-step "Tell us about your project" enquiry wizard.
 require_once get_theme_file_path( 'inc/shortcodes.php' );    // Product spec/variant/datasheet output.
 require_once get_theme_file_path( 'inc/product-builder.php' );// Product Builder: RICOBOT sync + field shortcodes.
 require_once get_theme_file_path( 'inc/product-fields.php' ); // Structured product content (variants/zigzag/paragraphs) as fields.

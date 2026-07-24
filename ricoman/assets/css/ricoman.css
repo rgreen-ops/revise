@@ -1958,3 +1958,56 @@ body:not(.rm-pe-preview){overflow-x:clip}
 @media(min-width:1025px) and (max-width:1480px){
 	.nav ul.rm-nav{gap:18px;margin-right:22px}
 }
+
+/* ============================================================ *
+ * "Tell us about your project" multi-step wizard ([ricoman_project_wizard])
+ * ============================================================ */
+.rm-wiz{max-width:920px;margin:0 auto;text-align:center}
+.rm-wiz-step[hidden],.rm-wiz-done[hidden]{display:none}
+.rm-wiz-prog{font-family:Poppins;font-size:.85rem;letter-spacing:.02em;color:var(--muted);margin:0 0 .5em}
+.rm-wiz-q{font-family:Poppins;font-weight:600;letter-spacing:-.02em;font-size:clamp(1.5rem,3vw,2.3rem);line-height:1.15;margin:0 0 1.2em}
+/* image-card steps */
+.rm-wiz-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,2vw,24px);text-align:left}
+.rm-wiz-card{position:relative;display:block;cursor:pointer;border:2px solid var(--line);border-radius:14px;overflow:hidden;background:#fff;transition:border-color .2s ease,box-shadow .2s ease}
+.rm-wiz-card:hover{border-color:#c9c7c2}
+.rm-wiz-card.on{border-color:var(--blue);box-shadow:0 10px 26px rgba(0,0,0,.08)}
+.rm-wiz-card input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.rm-wiz-card-img{display:block;aspect-ratio:16/11;background-size:cover;background-position:center}
+.rm-wiz-card-tick{position:absolute;top:12px;right:12px;width:26px;height:26px;border-radius:7px;border:2px solid #fff;background:rgba(0,0,0,.28);display:flex;align-items:center;justify-content:center}
+.rm-wiz-card.on .rm-wiz-card-tick{background:var(--blue);border-color:var(--blue)}
+.rm-wiz-card.on .rm-wiz-card-tick::after{content:"";width:6px;height:11px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translateY(-1px)}
+.rm-wiz-card-cap{display:block;padding:14px 16px;font-family:Poppins;font-weight:600;font-size:1rem;color:var(--ink);text-align:center}
+/* checklist step */
+.rm-wiz-checks{display:inline-flex;flex-direction:column;gap:12px;text-align:left;margin:0 auto}
+.rm-wiz-check{display:flex;align-items:center;gap:12px;font-size:1.02rem;color:var(--ink);cursor:pointer}
+.rm-wiz-check input[type=checkbox]{width:20px;height:20px;accent-color:var(--blue);flex:0 0 auto}
+.rm-wiz-check--other{align-items:baseline}
+.rm-wiz-otherfield{border:0;border-bottom:1px solid var(--line);padding:4px 2px;font-size:1rem;min-width:220px;background:transparent}
+.rm-wiz-otherfield:focus{outline:0;border-bottom-color:var(--blue)}
+/* text fields + file drop */
+.rm-wiz-label{display:block;text-align:left;max-width:620px;margin:0 auto 18px;font-family:Poppins;font-weight:600;font-size:.95rem;color:var(--ink)}
+.rm-wiz-field{display:block;width:100%;margin-top:8px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;font:inherit;font-weight:400;color:var(--ink);background:var(--soft)}
+.rm-wiz-field:focus{outline:0;border-color:var(--blue)}
+.rm-wiz-file{position:relative;display:block;margin-top:8px;border:2px dashed var(--line);border-radius:12px;padding:22px 16px;text-align:center;background:var(--soft);font-weight:400}
+.rm-wiz-file:hover{border-color:var(--blue)}
+.rm-wiz-file input[type=file]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.rm-wiz-file-cta{display:block;color:var(--ink)}
+.rm-wiz-file-cta strong{color:var(--blue)}
+.rm-wiz-file-hint{display:block;font-size:.82rem;color:var(--muted);margin-top:4px}
+.rm-wiz-filename{display:block;font-size:.85rem;color:var(--ink);margin-top:6px;font-weight:600}
+/* nav + messages */
+.rm-wiz-nav{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:2em}
+.rm-wiz-nav:only-child,.rm-wiz-step[data-step="1"] .rm-wiz-nav{justify-content:flex-end}
+.rm-wiz-err,.rm-wiz-submsg{color:#b32d2e;font-size:.9rem;margin:1em 0 0}
+.rm-wiz-submsg{color:var(--ink)}
+/* success */
+.rm-wiz-done{text-align:center;padding:20px 0}
+.rm-wiz-done-tick{display:inline-flex;width:64px;height:64px;border-radius:50%;border:3px solid #2e9e5b;align-items:center;justify-content:center;margin-bottom:14px}
+.rm-wiz-done-tick::after{content:"";width:14px;height:26px;border:solid #2e9e5b;border-width:0 4px 4px 0;transform:rotate(45deg) translateY(-2px)}
+.rm-wiz-done p{color:var(--muted);max-width:44ch;margin:.3em auto 0}
+@media(max-width:640px){
+	.rm-wiz-cards{grid-template-columns:1fr;max-width:360px;margin-inline:auto}
+	.rm-wiz-nav{flex-direction:column-reverse}
+	.rm-wiz-nav .btn{width:100%}
+	.rm-wiz-step[data-step="1"] .rm-wiz-nav .btn{width:100%}
+}
