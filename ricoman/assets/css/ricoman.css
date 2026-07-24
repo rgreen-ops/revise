@@ -1894,7 +1894,7 @@ body:not(.rm-pe-preview){overflow-x:clip}
 .rm-cattoggle button.on{background:var(--ink);color:#fff}
 
 /* Footer column headings are <h2> for correct heading order, styled small. */
-.rm-foot-h{font-size:1rem;font-weight:600;line-height:1.3;margin:1.5em 0 .6em;letter-spacing:0;text-transform:none}
+.rm-foot-h{color:#fff;font-size:1rem;font-weight:600;line-height:1.3;margin:1.5em 0 .6em;letter-spacing:0;text-transform:none}
 .rm-foot-col .rm-foot-h:first-child,.rm-foot-brandcol .rm-foot-h:first-child{margin-top:0}
 .rm-foot-brandcol .brand+.rm-foot-h{margin-top:.2em}
 
