@@ -17,15 +17,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /** [ricoman_trade_form title="Apply for a trade account"] */
 function ricoman_trade_form_sc( $atts ) {
-	$a = shortcode_atts( array( 'title' => 'Apply for a trade account' ), $atts, 'ricoman_trade_form' );
+	$a = shortcode_atts( array(
+		'title'    => 'Apply for a trade account',
+		'thankyou' => '', // optional URL to redirect to on success (good for ad conversion tracking).
+	), $atts, 'ricoman_trade_form' );
+
+	$src = get_theme_file_path( 'assets/js/trade-form.js' );
+	wp_enqueue_script( 'ricoman-trade-form', get_theme_file_uri( 'assets/js/trade-form.js' ), array(), file_exists( $src ) ? (string) filemtime( $src ) : '1', true );
 
 	ob_start();
 	?>
-	<form class="rm-tradeform" data-ajax="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" data-nonce="<?php echo esc_attr( wp_create_nonce( 'rm_trade' ) ); ?>" data-ts="<?php echo (int) time(); ?>" novalidate>
+	<form class="rm-tradeform" method="post" data-ajax="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" data-nonce="<?php echo esc_attr( wp_create_nonce( 'rm_trade' ) ); ?>" data-ts="<?php echo (int) time(); ?>" data-redirect="<?php echo esc_url( $a['thankyou'] ); ?>" novalidate>
 		<div aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px"><label>Website<input type="text" name="rm_hp" tabindex="-1" autocomplete="off"></label></div>
 		<?php if ( $a['title'] ) : ?><h2 class="rm-tradeform-h"><?php echo esc_html( $a['title'] ); ?></h2><?php endif; ?>
 		<label class="rm-tradeform-label">Name *
-			<input type="text" name="name" autocomplete="name">
+			<input type="text" name="applicant_name" autocomplete="name">
 		</label>
 		<div class="rm-tradeform-row">
 			<label class="rm-tradeform-label">Company *
@@ -47,65 +53,16 @@ function ricoman_trade_form_sc( $atts ) {
 		<div class="rm-tradeform-actions"><button type="submit" class="btn btn-solid rm-tradeform-go">Send →</button></div>
 	</form>
 	<?php
-	ricoman_trade_form_script();
 	return (string) ob_get_clean();
 }
 add_shortcode( 'ricoman_trade_form', 'ricoman_trade_form_sc' );
-
-/** Delegated submit handler, printed once per page. */
-function ricoman_trade_form_script() {
-	static $done = false;
-	if ( $done ) {
-		return;
-	}
-	$done = true;
-	?>
-	<script>
-	(function(){
-		document.addEventListener('submit', function(e){
-			var f = e.target.closest && e.target.closest('.rm-tradeform');
-			if (!f) { return; }
-			e.preventDefault();
-			if (f.querySelector('[name=rm_hp]') && f.querySelector('[name=rm_hp]').value) { return; }
-			var msg = f.querySelector('.rm-tradeform-msg');
-			var btn = f.querySelector('button[type=submit]');
-			var g = function(n){ return ((f.querySelector('[name='+n+']')||{}).value || '').trim(); };
-			var emailOk = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(g('email'));
-			var phoneDigits = (g('phone').match(/\d/g) || []).length;
-			if (!g('name') || !g('company') || !emailOk || phoneDigits < 7) {
-				if (msg) { msg.hidden = false; msg.className = 'rm-tradeform-msg rm-tradeform-msg--err'; msg.textContent = 'Please fill in your name, company, a valid email and phone number.'; }
-				return;
-			}
-			var body = new URLSearchParams();
-			body.set('action','rm_trade');
-			body.set('nonce', f.dataset.nonce);
-			body.set('ts', f.dataset.ts || '');
-			['name','company','job','email','phone'].forEach(function(n){ body.set(n, g(n)); });
-			if (btn) { btn.disabled = true; }
-			fetch(f.dataset.ajax, { method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: body.toString() })
-				.then(function(r){ return r.json(); })
-				.then(function(r){
-					if (btn) { btn.disabled = false; }
-					if (r && r.success) {
-						f.innerHTML = '<div class="rm-tradeform-done"><span class="rm-tradeform-tick" aria-hidden="true"></span><h2 class="rm-tradeform-h">Thank you — your application has been received.</h2><p>Our team will review it and be in touch shortly.</p></div>';
-					} else if (msg) {
-						msg.hidden = false; msg.className = 'rm-tradeform-msg rm-tradeform-msg--err';
-						msg.textContent = (r && r.data && r.data.msg) ? r.data.msg : 'Sorry, something went wrong — please try again.';
-					}
-				})
-				.catch(function(){ if (btn) { btn.disabled = false; } if (msg) { msg.hidden = false; msg.className = 'rm-tradeform-msg rm-tradeform-msg--err'; msg.textContent = 'Sorry, something went wrong — please try again.'; } });
-		});
-	})();
-	</script>
-	<?php
-}
 
 /** AJAX: capture a trade-account application as a lead. */
 function ricoman_trade_capture() {
 	if ( ! check_ajax_referer( 'rm_trade', 'nonce', false ) ) {
 		wp_send_json_error( array( 'msg' => __( 'Please refresh the page and try again.', 'ricoman' ) ) );
 	}
-	$name    = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
+	$name    = isset( $_POST['applicant_name'] ) ? sanitize_text_field( wp_unslash( $_POST['applicant_name'] ) ) : '';
 	$company = isset( $_POST['company'] ) ? sanitize_text_field( wp_unslash( $_POST['company'] ) ) : '';
 	$job     = isset( $_POST['job'] ) ? sanitize_text_field( wp_unslash( $_POST['job'] ) ) : '';
 	$email   = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';

@@ -73,7 +73,7 @@ function ricoman_project_wizard_sc() {
 
 	ob_start();
 	?>
-	<form class="rm-wiz" data-ajax="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" data-nonce="<?php echo esc_attr( $nonce ); ?>" data-ts="<?php echo (int) time(); ?>" novalidate>
+	<form class="rm-wiz" method="post" data-ajax="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" data-nonce="<?php echo esc_attr( $nonce ); ?>" data-ts="<?php echo (int) time(); ?>" novalidate>
 		<div aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px"><label>Website<input type="text" name="rm_hp" tabindex="-1" autocomplete="off"></label></div>
 
 		<div class="rm-wiz-step" data-step="1">
