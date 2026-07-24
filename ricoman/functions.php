@@ -94,6 +94,7 @@ require_once get_theme_file_path( 'inc/cta.php' );           // Canonical lighti
 require_once get_theme_file_path( 'inc/downloads.php' );     // Downloads & Resources page (filtered, with admin upload manager)..
 require_once get_theme_file_path( 'inc/flow-patterns.php' );  // Flow+ page sections as editable blocks.
 require_once get_theme_file_path( 'inc/page-patterns.php' );  // Home/page sections as editable blocks.
+require_once get_theme_file_path( 'inc/reword-free.php' );   // One-time: reword "free" -> complimentary on already-built pages.
 require_once get_theme_file_path( 'inc/home-slider.php' );   // Home hero slider (image/video slides).
 require_once get_theme_file_path( 'inc/my-project.php' );    // "My Project" specification list (Toolbox).
 require_once get_theme_file_path( 'inc/demo-setup.php' );    // One-time: create linked pages + pretty links.
