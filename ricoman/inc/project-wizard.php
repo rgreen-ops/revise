@@ -54,8 +54,9 @@ function ricoman_wizard_max_bytes() {
 	return (int) apply_filters( 'ricoman_wizard_max_bytes', 10 * 1024 * 1024 );
 }
 
-/** [ricoman_project_wizard] */
-function ricoman_project_wizard_sc() {
+/** [ricoman_project_wizard thankyou="/lighting-design/thank-you/"] */
+function ricoman_project_wizard_sc( $atts ) {
+	$a     = shortcode_atts( array( 'thankyou' => '' ), $atts, 'ricoman_project_wizard' ); // optional success redirect (ad tracking).
 	$cfg   = ricoman_wizard_config();
 	$nonce = wp_create_nonce( 'rm_wizard' );
 
@@ -73,7 +74,7 @@ function ricoman_project_wizard_sc() {
 
 	ob_start();
 	?>
-	<form class="rm-wiz" method="post" data-ajax="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" data-nonce="<?php echo esc_attr( $nonce ); ?>" data-ts="<?php echo (int) time(); ?>" novalidate>
+	<form class="rm-wiz" method="post" data-ajax="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" data-nonce="<?php echo esc_attr( $nonce ); ?>" data-ts="<?php echo (int) time(); ?>" data-redirect="<?php echo esc_url( $a['thankyou'] ); ?>" novalidate>
 		<div aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px"><label>Website<input type="text" name="rm_hp" tabindex="-1" autocomplete="off"></label></div>
 
 		<div class="rm-wiz-step" data-step="1">

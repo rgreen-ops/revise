@@ -93,6 +93,7 @@
 				.then(function (r) { return r.json(); })
 				.then(function (r) {
 					if (r && r.success) {
+						if (form.dataset.redirect) { window.location.href = form.dataset.redirect; return; }
 						steps.forEach(function (s) { s.hidden = true; });
 						if (done) { done.hidden = false; }
 						try { form.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e2) {}
