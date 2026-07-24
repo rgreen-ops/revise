@@ -431,6 +431,10 @@ footer.site li a{color:rgba(255,255,255,.62)}footer.site li a:hover{color:#fff}
 .rm-aud-card{border-top:1px solid var(--ink);padding-top:1.2em}
 .rm-aud-card h3{font-size:1.25rem;font-weight:600;letter-spacing:-.02em;margin:0 0 .4em}
 .rm-aud-card p{color:var(--muted);font-size:.95rem;margin:0}
+/* "Plain" modifier: drop the top rule line for a cleaner grid (add the class
+   rm-aud-plain to the Columns/Group wrapper). Used by the 6-column expectations
+   pattern; the standard lined cards elsewhere are unaffected. */
+.rm-aud-plain .rm-aud-card{border-top:0;padding-top:0}
 /* dark split blocks already get white text via cover/ink group */
 .rm-dark{background:var(--ink)}
 .rm-dark :where(h1,h2,h3,h4,p,a){color:#fff}

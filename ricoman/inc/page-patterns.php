@@ -932,6 +932,35 @@ add_action( 'init', function () {
 </div>
 <!-- /wp:group -->',
 	) );
+
+	// "What to expect" — 6 numbered cards, no top rule line (rm-aud-plain). A clean
+	// grid variant of the audience/values card style; every card stays editable.
+	$exp_items = array(
+		array( '01', 'Lighting calculations', 'Fast, accurate lux and uniformity calculations, with quick turnaround.' ),
+		array( '02', 'Regulations &amp; standards', 'Guidance aligned with current lighting regulations and standards.' ),
+		array( '03', 'Costed scheme in 7 days', 'A specified luminaire schedule, layout and itemised costing.' ),
+		array( '04', '3D visualisations', 'Renders that help clients clearly see the final result.' ),
+		array( '05', 'Made &amp; delivered', 'UK-made to order in Manchester and delivered to programme.' ),
+		array( '06', 'Expert advice', 'On light levels, layout and product selection.' ),
+	);
+	$exp_cols = '';
+	foreach ( $exp_items as $it ) {
+		$exp_cols .= '<!-- wp:column --><div class="wp-block-column">'
+			. '<!-- wp:group {"className":"rm-aud-card","layout":{"type":"constrained"}} --><div class="wp-block-group rm-aud-card">'
+			. '<!-- wp:paragraph {"className":"rm-eyebrow"} --><p class="rm-eyebrow">' . $it[0] . '</p><!-- /wp:paragraph -->'
+			. '<!-- wp:heading {"level":3} --><h3 class="wp-block-heading">' . $it[1] . '</h3><!-- /wp:heading -->'
+			. '<!-- wp:paragraph --><p>' . $it[2] . '</p><!-- /wp:paragraph -->'
+			. '</div><!-- /wp:group --></div><!-- /wp:column -->';
+	}
+	register_block_pattern( 'ricoman/expectations-6col', array(
+		'title'       => 'Lighting · What to expect (6 columns, no line)',
+		'description' => 'Six numbered cards in a clean grid (no top rule lines). Edit each card\'s number, heading and text.',
+		'categories'  => array( 'ricoman-page' ),
+		'content'     => '<!-- wp:group {"align":"full","className":"rm-section","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-section">'
+			. '<!-- wp:heading {"textAlign":"center","className":"rm-shead"} --><h2 class="wp-block-heading has-text-align-center rm-shead">What to expect from our lighting design team.</h2><!-- /wp:heading -->'
+			. '<!-- wp:columns {"className":"rm-aud-plain"} --><div class="wp-block-columns rm-aud-plain">' . $exp_cols . '</div><!-- /wp:columns -->'
+			. '</div><!-- /wp:group -->',
+	) );
 }, 12 );
 
 /** Editable block stacks for the content pages. */
