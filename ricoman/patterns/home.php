@@ -18,7 +18,7 @@ $img = function ( $f ) { return esc_url( get_theme_file_uri( 'assets/images/' . 
       <h1>Lighting that transforms commercial interiors.</h1>
       <div class="row">
         <p class="lede">Designed and manufactured in Manchester for architects, interior designers, design &amp; build teams and electrical contractors — on spec, on time, on budget.</p>
-        <div class="acts"><a class="btn btn-line" href="/products/">Explore Products</a><a class="btn btn-line" href="/lighting-design/">Free Scheme Design ↓</a></div>
+        <div class="acts"><a class="btn btn-line" href="/products/">Explore Products</a><a class="btn btn-line" href="/lighting-design/">Lighting Design ↓</a></div>
       </div>
     </div></div>
   </div>

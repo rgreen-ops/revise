@@ -18,7 +18,7 @@
 			<p class="ricoman-eyebrow">Start a project</p>
 			<!-- /wp:paragraph -->
 			<!-- wp:heading -->
-			<h2 class="wp-block-heading">Free lighting scheme design</h2>
+			<h2 class="wp-block-heading">In-house lighting scheme design</h2>
 			<!-- /wp:heading -->
 			<!-- wp:paragraph {"textColor":"muted"} -->
 			<p class="has-muted-color has-text-color">Share your floor plans, finishes or a product schedule and our in-house designers will return a fully specified, costed lighting scheme — typically within 48 hours.</p>

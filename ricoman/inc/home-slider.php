@@ -94,9 +94,9 @@ add_action( 'init', function () {
 	};
 	$u       = function ( $f ) { return get_theme_file_uri( 'assets/images/' . $f ); };
 	$content = '<!-- wp:group {"align":"full","className":"rm-hslider rm-hslider--multi"} --><div class="wp-block-group alignfull rm-hslider rm-hslider--multi" data-autoplay="6000">'
-		. $slide( $u( 'warm-int.webp' ), 'Commercial Interior Lighting · Made in Britain', 'Light that transforms how a space feels.', 'We&rsquo;re a British manufacturer obsessed with getting light right &mdash; designing and making commercial luminaires in Manchester.', 'Explore Products', '/products/', 'Free Scheme Design', '/lighting-design/' )
+		. $slide( $u( 'warm-int.webp' ), 'Commercial Interior Lighting · Made in Britain', 'Light that transforms how a space feels.', 'We&rsquo;re a British manufacturer obsessed with getting light right &mdash; designing and making commercial luminaires in Manchester.', 'Explore Products', '/products/', 'Lighting Design', '/lighting-design/' )
 		. $slide( $u( 'rico-betfred-flow.webp' ), 'Bespoke &amp; Curved Linear', 'Transforming spaces with lighting that inspires.', 'Seamless curved runs, statement features and made-to-order luminaires &mdash; designed with you and built in Britain.', 'See our work', '/projects/', '', '' )
-		. $slide( $u( 'warehouse.webp' ), 'UK Stock &middot; ~6-Day Lead', 'Lighting that performs, and endures.', 'High-efficacy, long-life luminaires backed by free design, fast UK lead times and a 5-year warranty.', 'Browse products', '/products/', 'Talk to the team', '/contact/' )
+		. $slide( $u( 'warehouse.webp' ), 'UK Stock &middot; ~6-Day Lead', 'Lighting that performs, and endures.', 'High-efficacy, long-life luminaires backed by in-house design, fast UK lead times and a 5-year warranty.', 'Browse products', '/products/', 'Talk to the team', '/contact/' )
 		. '</div><!-- /wp:group -->';
 	register_block_pattern( 'ricoman/home-hero-slider', array(
 		'title'      => __( 'Home · Hero slider', 'ricoman' ),

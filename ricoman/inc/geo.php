@@ -34,8 +34,8 @@ function ricoman_geo_seo_plugin() {
  *   [ricoman_faq]
  *   Q: What lead time can we expect?
  *   A: UK-made fittings ship on an average six-day lead.
- *   Q: Do you offer free lighting design?
- *   A: Yes — send drawings and we return a costed scheme in 3–5 days.
+ *   Q: Do you offer a lighting design service?
+ *   A: Yes — our in-house team returns a costed scheme in 3–5 days, complimentary on commercial projects.
  *   [/ricoman_faq]
  * ------------------------------------------------------------------------- */
 add_shortcode( 'ricoman_faq', 'ricoman_faq_shortcode' );

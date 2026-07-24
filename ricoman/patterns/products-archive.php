@@ -62,7 +62,7 @@ echo $cover(
 	$u( 'office1.webp' ),
 	'<!-- wp:heading {"textAlign":"center","level":2} --><h2 class="wp-block-heading has-text-align-center">Can&rsquo;t find the exact fitting?</h2><!-- /wp:heading -->' .
 	'<!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">Send us a finishes schedule or a drawing and our in-house team will spec the range, beam and finish — and return a costed scheme, usually within 3–5 days.</p><!-- /wp:paragraph -->' .
-	$buttons( $btn( 'Free Scheme Design', '/lighting-design/' ) . $btn( 'Talk to the team →', '/about/', false ), true ),
+	$buttons( $btn( 'Lighting Design', '/lighting-design/' ) . $btn( 'Talk to the team →', '/about/', false ), true ),
 	52,
 	'center center',
 	70

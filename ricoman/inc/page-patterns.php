@@ -52,7 +52,7 @@ add_action( 'init', function () {
 	$hero_inner = $eyebrow( 'Commercial Interior Lighting · Made in Britain' ) .
 		'<!-- wp:heading {"level":1,"style":{"typography":{"fontSize":"clamp(2.8rem, 7vw, 6rem)","fontWeight":"500","lineHeight":"0.98"}}} --><h1 class="wp-block-heading" style="font-size:clamp(2.8rem, 7vw, 6rem);font-weight:500;line-height:0.98">Light that transforms how a space feels.</h1><!-- /wp:heading -->' .
 		$para( 'We&rsquo;re a British manufacturer obsessed with getting light right — designing and making commercial luminaires in Manchester for the architects, designers and specifiers who shape great spaces. On spec, on time, on budget.' ) .
-		$buttons( $btn( 'Explore Products', '/products/' ) . $btn( 'Free Scheme Design', '/lighting-design/' ) );
+		$buttons( $btn( 'Explore Products', '/products/' ) . $btn( 'Lighting Design', '/lighting-design/' ) );
 	// Image hero kept as an alternative pattern; video hero is the default.
 	$p['home-hero'] = array( 'Home · Hero (video)', $vcover( $vid_banner, $hero_inner, 82, 'bottom left', 60 ) );
 	$p['home-hero-image'] = array( 'Home · Hero (image)', $cover( $u( 'warm-int.webp' ), $hero_inner, 82, 'bottom left', 50 ) );
@@ -103,7 +103,7 @@ add_action( 'init', function () {
 	$p['home-testimonials'] = array( 'Home · Testimonials', $sec(
 		$eyebrow( 'What partners say' ) . $shead( 'Specified, delivered, trusted' ) .
 		'<!-- wp:columns --><div class="wp-block-columns">'
-		. $quote( '&ldquo;The free scheme design saved us days, and the lead time was exactly as promised.&rdquo;', 'Lighting Designer, London' )
+		. $quote( '&ldquo;The in-house scheme design saved us days, and the lead time was exactly as promised.&rdquo;', 'Lighting Designer, London' )
 		. $quote( '&ldquo;Bespoke curves to our exact drawings &mdash; installed first time, no fuss.&rdquo;', 'M&amp;E Contractor, Manchester' )
 		. $quote( '&ldquo;Genuine UK manufacturing, and people who actually pick up the phone.&rdquo;', 'Interior Designer, Leeds' )
 		. '</div><!-- /wp:columns -->', 'rm-quotes-sec' ) );
@@ -168,26 +168,26 @@ add_action( 'init', function () {
 	$p['about-intro'] = array( 'About · Who we are', $sec( $twocol(
 		$eyebrow( '01 · Who we are' ) . $shead( 'Lighting that works on spec, on time, on budget' ) .
 		$para( 'Ricoman designs and manufactures commercial interior LED lighting from our own facility in Manchester. We supply architects, interior designers, design &amp; build teams and electrical contractors across the UK.', true ) .
-		$para( 'Because we&rsquo;re the manufacturer — not a reseller — we control quality, lead times and bespoke detail in-house. That lets us offer free scheme design, 2,000+ components stocked ready to build, an average six-day UK-made lead, strong local partnerships and the confidence of a 5-year warranty.', true ) .
+		$para( 'Because we&rsquo;re the manufacturer — not a reseller — we control quality, lead times and bespoke detail in-house. That lets us offer in-house scheme design (complimentary on commercial projects), 2,000+ components stocked ready to build, an average six-day UK-made lead, strong local partnerships and the confidence of a 5-year warranty.', true ) .
 		$buttons( $btn( 'Inside our manufacturing →', '/manufacturing/', false ) ),
 		$image( $u( 'rico-office.webp' ), '', 'Inside Ricoman&rsquo;s Manchester facility' )
 	) ) );
 	$p['about-capabilities'] = array( 'About · What we do', $sec(
 		$eyebrow( '02 · What we do' ) . $shead( 'Design. Manufacture. Deliver.' ) .
 		'<!-- wp:columns --><div class="wp-block-columns">'
-		. $aud( '01', 'In-house lighting design', 'Send us drawings or a finishes schedule — our designers return a fully specified, photometric scheme, usually within 3–5 days. Free of charge.' )
+		. $aud( '01', 'In-house lighting design', 'Send us drawings or a finishes schedule — our designers return a fully specified, photometric scheme, usually within 3–5 days. Complimentary on commercial projects.' )
 		. $aud( '02', 'UK manufacturing', 'Designed, built, finished and tested in our own Manchester facility — full control of quality, bespoke detail and lead times, with UK stock ready to build.' )
 		. $aud( '03', 'Delivered &amp; supported', 'On spec, on time, on budget — backed by a 5-year warranty, serviceable fittings and a team that actually picks up the phone.' )
 		. '</div><!-- /wp:columns -->'
-		. $buttons( $btn( 'Request a free lighting design →', '/lighting-design/', false ) )
+		. $buttons( $btn( 'Request a lighting design →', '/lighting-design/', false ) )
 	) );
 	$p['about-stats'] = array( 'About · Stats', $sec( '<!-- wp:columns --><div class="wp-block-columns">' . $bignum( '1999', 'Our journey began' ) . $bignum( '535', 'Lighting design projects in 2025' ) . $bignum( '2,000+', 'Components stocked, ready to build' ) . $bignum( '5 yr', 'Standard warranty' ) . '</div><!-- /wp:columns -->', 'rm-statband' ) );
-	$p['about-values'] = array( 'About · Values', $sec( $eyebrow( '03 · What we stand for' ) . $shead( 'The way we like to work' ) . '<!-- wp:columns --><div class="wp-block-columns">' . $aud( '↳ 01', 'Made in Britain', 'Designed, built, finished and tested in Manchester — full control, full traceability, shorter lead times.' ) . $aud( '↳ 02', 'Specifier-first', 'Free scheme design, clean photometrics and honest lead times. We make the spec easy to stand behind.' ) . $aud( '↳ 03', 'Built to last', 'Serviceable, high-CRI fittings backed by a 5-year warranty — good for the building and the planet.' ) . '</div><!-- /wp:columns -->' ) );
+	$p['about-values'] = array( 'About · Values', $sec( $eyebrow( '03 · What we stand for' ) . $shead( 'The way we like to work' ) . '<!-- wp:columns --><div class="wp-block-columns">' . $aud( '↳ 01', 'Made in Britain', 'Designed, built, finished and tested in Manchester — full control, full traceability, shorter lead times.' ) . $aud( '↳ 02', 'Specifier-first', 'In-house scheme design, clean photometrics and honest lead times. We make the spec easy to stand behind.' ) .$aud( '↳ 03', 'Built to last', 'Serviceable, high-CRI fittings backed by a 5-year warranty — good for the building and the planet.' ) . '</div><!-- /wp:columns -->' ) );
 	// Why us — benefit cards aimed at specifiers (marketing's "Why us" split).
 	$p['about-why'] = array( 'About · Why us', $sec(
 		$eyebrow( 'Why us' ) . $shead( 'Why specifiers choose Ricoman' ) .
 		'<!-- wp:columns --><div class="wp-block-columns">'
-		. $aud( '01', 'Free scheme design', 'Send drawings or a finishes schedule — our in-house designers return a costed, photometric scheme, usually within 3–5 days.' )
+		. $aud( '01', 'In-house scheme design', 'Send drawings or a finishes schedule — our in-house designers return a costed, photometric scheme, usually within 3–5 days.' )
 		. $aud( '02', 'Made in Britain', 'Designed, assembled, finished and tested in Manchester — full control of quality, bespoke detail and lead times.' )
 		. $aud( '03', 'Bespoke as standard', 'Custom lengths, curves, finishes and colour temperatures to match your drawings — not the other way round.' )
 		. $aud( '04', 'Specified with confidence', 'Datasheets, IES/LDT and BIM for your spec pack, a 5-year warranty and real UK-based support.' )
@@ -220,7 +220,7 @@ add_action( 'init', function () {
 
 	/* ===== Lighting Design ===== */
 	// Lighting Design — the one flagship photo hero (reduced height so content peeks).
-	$p['lighting-hero'] = array( 'Lighting · Hero', $cover( $u( 'rico-office-render.webp' ), $eyebrow( 'Free Scheme Design' ) . '<!-- wp:heading {"level":1,"style":{"typography":{"fontWeight":"500","fontSize":"clamp(2.4rem,5.5vw,4.4rem)","lineHeight":"1.02"}}} --><h1 class="wp-block-heading" style="font-size:clamp(2.4rem,5.5vw,4.4rem);font-weight:500;line-height:1.02">Your scheme, fully designed — at no cost.</h1><!-- /wp:heading -->' . $para( 'Send us a drawing or a finishes schedule and our in-house lighting designers return a fully specified, photometric-backed and costed scheme. Usually within 3–5 days.' ) . $buttons( $btn( 'Start your scheme', '/contact/' ) . $btn( 'How it works ↓', '#lighting-process' ) ), 54, 'bottom left', 55 ) );
+	$p['lighting-hero'] = array( 'Lighting · Hero', $cover( $u( 'rico-office-render.webp' ), $eyebrow( 'Lighting Design Service' ) . '<!-- wp:heading {"level":1,"style":{"typography":{"fontWeight":"500","fontSize":"clamp(2.4rem,5.5vw,4.4rem)","lineHeight":"1.02"}}} --><h1 class="wp-block-heading" style="font-size:clamp(2.4rem,5.5vw,4.4rem);font-weight:500;line-height:1.02">Your commercial scheme, fully designed.</h1><!-- /wp:heading -->' . $para( 'For architects, specifiers, contractors and fit-out teams. Send us a drawing or a finishes schedule and our in-house lighting designers return a fully specified, photometric-backed and costed scheme — complimentary on commercial projects, usually within 3–5 days.' ) . $buttons( $btn( 'Start your scheme', '/contact/' ) . $btn( 'How it works ↓', '#lighting-process' ) ), 54, 'bottom left', 55 ) );
 	$p['lighting-statement'] = array( 'Lighting · Statement', $sec( '<!-- wp:heading {"level":2,"style":{"typography":{"fontWeight":"500","fontSize":"clamp(1.9rem,5vw,4rem)","lineHeight":"1.08"}}} --><h2 class="wp-block-heading" style="font-size:clamp(1.9rem,5vw,4rem);font-weight:500;line-height:1.08">We don&rsquo;t just sell luminaires — we design the light, prove it works, and cost it before you commit a penny.</h2><!-- /wp:heading -->' ) );
 	$p['lighting-steps'] = array( 'Lighting · Process', $sec( '<!-- wp:heading {"level":2,"className":"rm-shead","anchor":"lighting-process"} --><h2 class="wp-block-heading rm-shead" id="lighting-process">Four steps from drawing to delivered scheme</h2><!-- /wp:heading -->' . '<!-- wp:columns --><div class="wp-block-columns">' . $aud( '01', 'Send your drawings', 'A plan, RCP or sketch and a finishes schedule.' ) . $aud( '02', 'We design the light', 'A DIALux photometric study — lux, uniformity, UGR.' ) . $aud( '03', 'Costed scheme in 3–5 days', 'A specified luminaire schedule, layout and costing.' ) . $aud( '04', 'Made &amp; delivered', 'Approved, made to order in Manchester, to programme.' ) . '</div><!-- /wp:columns -->' ) );
 	$p['lighting-receive'] = array( 'Lighting · What you receive (dark)', $darkgroup( $twocol( $eyebrow( 'What you receive' ) . $shead( 'A scheme you can specify with confidence' ) . $checklist( array( '<strong>DIALux photometric study</strong> — lux, uniformity &amp; UGR', '<strong>Luminaire schedule</strong> — every fitting, finish &amp; quantity', '<strong>Reflected ceiling layout</strong> — positions for the contractor', '<strong>Itemised costing</strong> — with value-engineered options', '<strong>Data sheets &amp; BIM files</strong> — ready for your spec pack' ) ), $image( $u( 'office5.webp' ), '', 'Low-glare workplace LED lighting scheme' ) ) ) );
@@ -290,7 +290,7 @@ add_action( 'init', function () {
 		. $aud( '☏', '<a href="tel:01614515913">0161 451 5913</a>', 'Mon&ndash;Thu 8:30&ndash;17:00 &middot; Fri 8:30&ndash;16:00. Talk to a real person.' )
 		. $aud( '✉', '<a href="mailto:sales@ricoman.com">sales@ricoman.com</a>', 'We reply the same working day — usually within hours.' )
 		. $aud( '⌖', 'Visit the showroom', 'Metroplex Business Park, 520 Broadway, M50 2UE, Manchester.' )
-		. $aud( '✎', 'Free scheme design', 'Send your drawings and get a costed, photometric scheme in 3&ndash;5 days.' )
+		. $aud( '✎', 'In-house scheme design', 'Send your drawings and get a costed, photometric scheme in 3&ndash;5 days — complimentary on commercial projects.' )
 		. '</div><!-- /wp:columns -->'
 	, 'rm-contact-ways' ) );
 	$cf_form  = '<!-- wp:group {"className":"rm-soft rm-contact-formcard","style":{"spacing":{"padding":{"top":"var:preset|spacing|50","bottom":"var:preset|spacing|50","left":"var:preset|spacing|50","right":"var:preset|spacing|50"}}},"layout":{"type":"constrained"}} --><div class="wp-block-group rm-soft rm-contact-formcard" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--50);padding-left:var(--wp--preset--spacing--50);padding-right:var(--wp--preset--spacing--50)">'
@@ -301,7 +301,7 @@ add_action( 'init', function () {
 		. $checklist( array(
 			'<strong>We read it properly</strong> — a lighting designer, not a bot.',
 			'<strong>We come back fast</strong> — within one working day.',
-			'<strong>We design &amp; cost it</strong> — a full scheme in 3&ndash;5 days, free.',
+			'<strong>We design &amp; cost it</strong> — a full scheme in 3&ndash;5 days, complimentary on commercial projects.',
 			'<strong>Made in Britain</strong> — UK stock, ~6-day lead, 5-year warranty.',
 		) )
 		. '<!-- wp:shortcode -->[ricoman_callback]<!-- /wp:shortcode -->';
@@ -334,7 +334,7 @@ add_action( 'init', function () {
 			$eyebrow( $a['split_eyb'] ) . $shead( $a['split_head'] ) . $para( $a['split_body'], true ) . $checklist( $a['split_items'] )
 				. $buttons( $btn( $a['cta1'][0], $a['cta1'][1], false ) )
 		) );
-		// Mid-page full-bleed dark CTA band — the one canonical "free design" banner,
+		// Mid-page full-bleed dark CTA band — the one canonical lighting-design banner,
 		// identical on every page (see inc/cta.php).
 		$out .= ricoman_design_cta();
 		// FAQ (schema) + closing CTA cover.
@@ -506,7 +506,7 @@ add_action( 'init', function () {
 	$p['feat-trade'] = array( 'Feature · Trade', $feature( array(
 		'eyb'       => 'For the Trade',
 		'title'     => 'A trade partner that keeps projects moving.',
-		'lead'      => 'Contractors, wholesalers and design &amp; build teams get fast quotes, reliable UK stock, free scheme design and a team that picks up the phone.',
+		'lead'      => 'Contractors, wholesalers and design &amp; build teams get fast quotes, reliable UK stock, in-house scheme design and a team that picks up the phone.',
 		'hero'      => $u( 'warehouse.webp' ),
 		'cta1'      => array( 'Open a trade enquiry', '/contact/' ),
 		'cta2'      => array( 'Browse products', '/products/' ),
@@ -515,7 +515,7 @@ add_action( 'init', function () {
 		'benefits'  => array(
 			array( '01', 'Fast, clear quotes', 'Send us a schedule or a drawing and get a prompt, itemised quote — with value-engineered alternatives where they help.' ),
 			array( '02', 'Stock that ships', 'Core ranges held in UK stock with 2,000+ components, so programmes don&rsquo;t stall waiting on imports.' ),
-			array( '03', 'Free scheme design', 'Our in-house designers turn drawings into a costed, photometric scheme — usually within 3–5 days.' ),
+			array( '03', 'In-house scheme design', 'Our in-house designers turn drawings into a costed, photometric scheme — usually within 3–5 days.' ),
 		),
 		'split_img'  => $u( 'courier.webp' ),
 		'split_eyb'  => 'On site &amp; on programme',
@@ -532,7 +532,7 @@ add_action( 'init', function () {
 	$p['feat-where-to-buy'] = array( 'Feature · Where to Buy', $feature( array(
 		'eyb'       => 'How to Buy',
 		'title'     => 'How to buy Ricoman lighting.',
-		'lead'      => 'Specify direct with our team or order through your wholesaler — either way you get UK stock, free scheme design and full technical support.',
+		'lead'      => 'Specify direct with our team or order through your wholesaler — either way you get UK stock, in-house scheme design and full technical support.',
 		'hero'      => $u( 'rico-office.webp' ),
 		'cta1'      => array( 'Contact our team', '/contact/' ),
 		'cta2'      => array( 'Browse products', '/products/' ),
@@ -547,9 +547,9 @@ add_action( 'init', function () {
 		'split_eyb'  => 'Delivered UK-wide',
 		'split_head' => 'From Manchester to your project',
 		'split_body' => 'Core ranges ship from UK stock and bespoke items are made to order on an average six-day lead — delivered across the UK and available for export.',
-		'split_items'=> array( '<strong>UK stock</strong> on core ranges, ready to ship', '<strong>Made to order</strong> on an average six-day lead', '<strong>Free scheme design</strong> before you commit', '<strong>Export available</strong>, including UAE', '<strong>5-year warranty</strong> &amp; UK support' ),
+		'split_items'=> array( '<strong>UK stock</strong> on core ranges, ready to ship', '<strong>Made to order</strong> on an average six-day lead', '<strong>In-house scheme design</strong> before you commit', '<strong>Export available</strong>, including UAE', '<strong>5-year warranty</strong> &amp; UK support' ),
 		'faq_head'   => 'Where to buy FAQs',
-		'faqs'       => "Q: Can I buy directly from Ricoman?\nA: Yes — specify and order direct with our Manchester team, who can also provide free scheme design and technical support.\nQ: Can I order through my wholesaler?\nA: Yes — if you buy through an electrical wholesaler we can supply your stockist with the fittings you specify.\nQ: Do you deliver across the UK?\nA: Yes — core ranges ship from UK stock and made-to-order items run an average six-day lead, delivered UK-wide.\nQ: Do you export?\nA: Yes — we supply international projects, including exports to the UAE.",
+		'faqs'       => "Q: Can I buy directly from Ricoman?\nA: Yes — specify and order direct with our Manchester team, who can also provide in-house scheme design and technical support.\nQ: Can I order through my wholesaler?\nA: Yes — if you buy through an electrical wholesaler we can supply your stockist with the fittings you specify.\nQ: Do you deliver across the UK?\nA: Yes — core ranges ship from UK stock and made-to-order items run an average six-day lead, delivered UK-wide.\nQ: Do you export?\nA: Yes — we supply international projects, including exports to the UAE.",
 		'cta_img'    => $u( 'office1.webp' ),
 		'cta_head'   => 'Ready to order or need a hand?',
 		'cta_sub'    => 'Tell us about your project and we&rsquo;ll point you to the quickest route to buy — and spec it for you if you need.',
@@ -573,9 +573,9 @@ add_action( 'init', function () {
 		'split_eyb'  => 'How we help',
 		'split_head' => 'The right fitting for the build-up',
 		'split_body' => 'Tell us the ceiling construction and we&rsquo;ll recommend recessed fittings that fit the depth, hit the fire rating and give the finish you want — then design the layout to suit.',
-		'split_items'=> array( '<strong>Shallow recessed</strong> downlights for tight voids', '<strong>Fire-rated</strong> options (30 / 60 / 90 minute)', '<strong>IP-rated</strong> front faces where needed', '<strong>Trimless &amp; acoustic-friendly</strong> finishes', '<strong>Free layout design</strong> to suit the ceiling grid' ),
+		'split_items'=> array( '<strong>Shallow recessed</strong> downlights for tight voids', '<strong>Fire-rated</strong> options (30 / 60 / 90 minute)', '<strong>IP-rated</strong> front faces where needed', '<strong>Trimless &amp; acoustic-friendly</strong> finishes', '<strong>In-house layout design</strong> to suit the ceiling grid' ),
 		'faq_head'   => 'I-joist ceiling lighting FAQs',
-		'faqs'       => "Q: What is an I-joist ceiling?\nA: It's a ceiling built using I-shaped engineered-timber joists — common in modern construction, with a relatively shallow service void to light into.\nQ: Do I need fire-rated downlights?\nA: Where a downlight penetrates a fire-rated ceiling, a fire-rated fitting helps maintain that rating — we'll confirm what's required for your build-up.\nQ: Will the fittings fit a shallow void?\nA: We offer shallow recessed downlights designed for tight ceiling build-ups; tell us the depth and we'll recommend a fit.\nQ: Can you design the layout?\nA: Yes — send your drawings and our designers will return a costed, fitted-out layout, free of charge.",
+		'faqs'       => "Q: What is an I-joist ceiling?\nA: It's a ceiling built using I-shaped engineered-timber joists — common in modern construction, with a relatively shallow service void to light into.\nQ: Do I need fire-rated downlights?\nA: Where a downlight penetrates a fire-rated ceiling, a fire-rated fitting helps maintain that rating — we'll confirm what's required for your build-up.\nQ: Will the fittings fit a shallow void?\nA: We offer shallow recessed downlights designed for tight ceiling build-ups; tell us the depth and we'll recommend a fit.\nQ: Can you design the layout?\nA: Yes — send your drawings and our designers will return a costed, fitted-out layout, complimentary on commercial projects.",
 		'cta_img'    => $u( 'office3.webp' ),
 		'cta_head'   => 'Lighting that fits the ceiling',
 		'cta_sub'    => 'Send us your ceiling detail and our team will recommend the right recessed, fire-rated fittings and design the layout.',
@@ -625,7 +625,7 @@ add_action( 'init', function () {
 		'split_eyb'  => 'How we work internationally',
 		'split_head' => 'From design to delivered, worldwide',
 		'split_body' => 'Send us drawings and our in-house team returns a fully specified, photometric-backed scheme — then we manufacture in the UK and export to your project.',
-		'split_items'=> array( '<strong>Free scheme design</strong> with DIALux photometrics', '<strong>UK manufacture</strong> to international standards', '<strong>Full data pack</strong> — datasheets, IES/LDT, certificates', '<strong>Export logistics</strong> handled for you', '<strong>5-year warranty</strong> &amp; UK support' ),
+		'split_items'=> array( '<strong>In-house scheme design</strong> with DIALux photometrics', '<strong>UK manufacture</strong> to international standards', '<strong>Full data pack</strong> — datasheets, IES/LDT, certificates', '<strong>Export logistics</strong> handled for you', '<strong>5-year warranty</strong> &amp; UK support' ),
 		'faq_head'   => 'UAE export FAQs',
 		'faqs'       => "Q: Do you export lighting to the UAE?\nA: Yes — we supply commercial lighting projects across the UAE, manufactured in the UK.\nQ: Can you provide a lighting design for an overseas project?\nA: Yes — send us drawings and our in-house designers return a costed, DIALux-backed scheme, usually within 3–5 days.\nQ: Do you supply the documentation we need to specify?\nA: Yes — datasheets, photometric IES/LDT files and certificates are all available.\nQ: Do you handle export logistics?\nA: Yes — we manage the logistics of supplying international projects, including the UAE.",
 		'cta_img'    => $u( 'office1.webp' ),
@@ -669,7 +669,7 @@ add_action( 'init', function () {
 		'ben_eyb'   => 'What we do',
 		'ben_head'  => 'Design. Manufacture. Deliver. Support.',
 		'benefits'  => array(
-			array( '01', 'Free lighting design', 'Send drawings or a finishes schedule and our in-house designers return a costed, DIALux-backed scheme — usually within 3–5 days.' ),
+			array( '01', 'In-house lighting design', 'Send drawings or a finishes schedule and our in-house designers return a costed, DIALux-backed scheme — usually within 3–5 days.' ),
 			array( '02', 'UK manufacturing', 'Designed, assembled, finished and tested in Manchester — full control of quality, bespoke detail and lead times.' ),
 			array( '03', 'Stock &amp; delivery', '2,000+ components stocked; core ranges from UK stock and made-to-order on an average six-day lead, delivered UK-wide.' ),
 			array( '04', 'Support &amp; warranty', 'Real people on the phone, technical data when you need it, and a 5-year warranty as standard.' ),
@@ -678,9 +678,9 @@ add_action( 'init', function () {
 		'split_eyb'  => 'How we work',
 		'split_head' => 'One partner, end to end',
 		'split_body' => 'From the first sketch to the fitting on site, it&rsquo;s one team — so the spec you sign off is the light you get, on spec, on time, on budget.',
-		'split_items'=> array( '<strong>Free scheme design</strong> with photometrics', '<strong>Bespoke as standard</strong> — sizes, finishes &amp; CCTs', '<strong>Value engineering</strong> to protect the budget', '<strong>Datasheets, IES/LDT &amp; BIM</strong> for your spec pack', '<strong>5-year warranty</strong> &amp; UK-based support' ),
+		'split_items'=> array( '<strong>In-house scheme design</strong> with photometrics', '<strong>Bespoke as standard</strong> — sizes, finishes &amp; CCTs', '<strong>Value engineering</strong> to protect the budget', '<strong>Datasheets, IES/LDT &amp; BIM</strong> for your spec pack', '<strong>5-year warranty</strong> &amp; UK-based support' ),
 		'faq_head'   => 'Our services FAQs',
-		'faqs'       => "Q: Is lighting design really free?\nA: Yes — send us drawings or a finishes schedule and our in-house designers return a fully specified, costed scheme at no charge, usually within 3–5 working days.\nQ: Do you manufacture your own products?\nA: Yes — we design, assemble, finish and test our luminaires in our own Manchester facility.\nQ: Can you work to a budget?\nA: Yes — we offer value-engineered alternatives so you can hit the spec and the budget.\nQ: What support do you offer after delivery?\nA: UK-based technical support, spares and a 5-year standard warranty.",
+		'faqs'       => "Q: Is the lighting design service really complimentary?\nA: Yes — for commercial projects, send us drawings or a finishes schedule and our in-house designers return a fully specified, costed scheme at no charge, usually within 3–5 working days.\nQ: Do you manufacture your own products?\nA: Yes — we design, assemble, finish and test our luminaires in our own Manchester facility.\nQ: Can you work to a budget?\nA: Yes — we offer value-engineered alternatives so you can hit the spec and the budget.\nQ: What support do you offer after delivery?\nA: UK-based technical support, spares and a 5-year standard warranty.",
 		'cta_img'    => $u( 'office1.webp' ),
 		'cta_head'   => 'Let&rsquo;s make your project easy',
 		'cta_sub'    => 'Tell us what you&rsquo;re working on and we&rsquo;ll design, make and deliver the lighting — start to finish.',
@@ -695,7 +695,7 @@ add_action( 'init', function () {
 	$p['feat-office-lighting'] = array( 'Sector · Office Lighting', $feature( array(
 		'eyb'       => 'Workplace',
 		'title'     => 'Office lighting, designed and made in Britain.',
-		'lead'      => 'Low-glare, energy-efficient office lighting for productive workplaces — UGR&lt;19 linear and recessed luminaires, with a free photometric design service.',
+		'lead'      => 'Low-glare, energy-efficient office lighting for productive workplaces — UGR&lt;19 linear and recessed luminaires, with an in-house photometric design service.',
 		'hero'      => $u( 'office2.webp' ),
 		'cta1'      => array( 'Design my office scheme', '/lighting-design/' ),
 		'cta2'      => array( 'Browse products', '/products/' ),
@@ -703,7 +703,7 @@ add_action( 'init', function () {
 		'ben_head'  => 'Comfortable, compliant, efficient',
 		'benefits'  => array(
 			array( '01', 'Low glare (UGR&lt;19)', 'Anti-glare optics keep office lighting comfortable on screens and compliant with EN 12464-1.' ),
-			array( '02', 'Free scheme design', 'Send a floor plan and our designers return a DIALux study — lux, uniformity and UGR proven before you commit.' ),
+			array( '02', 'In-house scheme design', 'Send a floor plan and our designers return a DIALux study — lux, uniformity and UGR proven before you commit.' ),
 			array( '03', 'Tunable &amp; controllable', 'Human-centric, tunable-white and Casambi options support wellbeing and energy savings.' ),
 		),
 		'split_img'  => $u( 'office5.webp' ),
@@ -712,16 +712,16 @@ add_action( 'init', function () {
 		'split_body' => 'From open-plan floors to meeting rooms and breakout spaces, we specify low-glare luminaires and prove the scheme with a photometric study — then make it in Manchester.',
 		'split_items'=> array( '<strong>UGR&lt;19 linear &amp; recessed</strong> for screen-based work', '<strong>DIALux photometric study</strong> with every scheme', '<strong>Tunable white &amp; Casambi</strong> control options', '<strong>Suspended, surface &amp; recessed</strong> mounting', '<strong>UK-made</strong>, 5-year warranty &amp; fast lead times' ),
 		'faq_head'   => 'Office lighting FAQs',
-		'faqs'       => "Q: What is the recommended lux level for office lighting?\nA: EN 12464-1 recommends around 500 lux on the working plane for general office tasks, with controlled glare (UGR<19) — our designs are modelled to suit.\nQ: What does UGR<19 mean for office lighting?\nA: UGR is the Unified Glare Rating; UGR<19 is the comfort target for screen-based office work, which our anti-glare luminaires are designed to meet.\nQ: Do you provide an office lighting design?\nA: Yes — send a floor plan and our in-house team returns a free, costed, DIALux-backed scheme, usually within 3-5 working days.\nQ: Can office lighting be tunable or controllable?\nA: Yes — tunable-white (human-centric) and Casambi wireless control options are available across many ranges.",
+		'faqs'       => "Q: What is the recommended lux level for office lighting?\nA: EN 12464-1 recommends around 500 lux on the working plane for general office tasks, with controlled glare (UGR<19) — our designs are modelled to suit.\nQ: What does UGR<19 mean for office lighting?\nA: UGR is the Unified Glare Rating; UGR<19 is the comfort target for screen-based office work, which our anti-glare luminaires are designed to meet.\nQ: Do you provide an office lighting design?\nA: Yes — send a floor plan and our in-house team returns a costed, DIALux-backed scheme, complimentary on commercial projects, usually within 3-5 working days.\nQ: Can office lighting be tunable or controllable?\nA: Yes — tunable-white (human-centric) and Casambi wireless control options are available across many ranges.",
 		'cta_img'    => $u( 'office1.webp' ),
 		'cta_head'   => 'Light your office the right way',
-		'cta_sub'    => 'Send us a floor plan and we&rsquo;ll return a low-glare, costed office lighting scheme — free.',
+		'cta_sub'    => 'Send us a floor plan and we&rsquo;ll return a low-glare, costed office lighting scheme — complimentary on commercial projects.',
 	) ) );
 
 	$p['feat-gym-sports-lighting'] = array( 'Sector · Gym & Sports Hall Lighting', $feature( array(
 		'eyb'       => 'Sport &amp; Leisure',
 		'title'     => 'Gym &amp; sports hall lighting built for performance.',
-		'lead'      => 'High-output, glare-controlled gym and sports hall lighting — robust, efficient luminaires designed to the right lux levels for play, with a free design service.',
+		'lead'      => 'High-output, glare-controlled gym and sports hall lighting — robust, efficient luminaires designed to the right lux levels for play, with an in-house design service.',
 		'hero'      => $u( 'rico-astrowave-banner.webp' ),
 		'cta1'      => array( 'Design my sports scheme', '/lighting-design/' ),
 		'cta2'      => array( 'Browse products', '/products/' ),
@@ -738,16 +738,16 @@ add_action( 'init', function () {
 		'split_body' => 'Whether it&rsquo;s a school sports hall, a leisure-centre gym or a multi-use games area, we model the lighting to the right standards and supply robust, efficient luminaires made in the UK.',
 		'split_items'=> array( '<strong>Designed to lux &amp; uniformity</strong> for the activity', '<strong>Impact-resistant</strong> options for ball-strike areas', '<strong>High-bay &amp; linear</strong> for tall and low ceilings', '<strong>Emergency &amp; controls</strong> integrated', '<strong>UK-made</strong>, efficient and warranted 5 years' ),
 		'faq_head'   => 'Gym &amp; sports hall lighting FAQs',
-		'faqs'       => "Q: What lux level is needed for sports hall lighting?\nA: It depends on the activity and grade of play — community use is often around 300-500 lux, with higher levels for competition. We model each scheme to the right standard.\nQ: Do you supply impact-resistant fittings for ball sports?\nA: Yes — for sports halls and MUGAs we specify robust, impact-resistant luminaires suited to ball-strike areas.\nQ: Can you light a gym with a high ceiling?\nA: Yes — high-bay and high-output linear luminaires deliver even, glare-controlled light in tall spaces.\nQ: Is a lighting design included?\nA: Yes — send a plan and our team returns a free, costed photometric scheme.",
+		'faqs'       => "Q: What lux level is needed for sports hall lighting?\nA: It depends on the activity and grade of play — community use is often around 300-500 lux, with higher levels for competition. We model each scheme to the right standard.\nQ: Do you supply impact-resistant fittings for ball sports?\nA: Yes — for sports halls and MUGAs we specify robust, impact-resistant luminaires suited to ball-strike areas.\nQ: Can you light a gym with a high ceiling?\nA: Yes — high-bay and high-output linear luminaires deliver even, glare-controlled light in tall spaces.\nQ: Is a lighting design included?\nA: Yes — send a plan and our team returns a costed photometric scheme, complimentary on commercial projects.",
 		'cta_img'    => $u( 'office1.webp' ),
 		'cta_head'   => 'Light your gym or sports hall',
-		'cta_sub'    => 'Send us the space and we&rsquo;ll design a bright, even, efficient scheme — free.',
+		'cta_sub'    => 'Send us the space and we&rsquo;ll design a bright, even, efficient scheme — complimentary on commercial projects.',
 	) ) );
 
 	$p['feat-education-lighting'] = array( 'Sector · Education Lighting', $feature( array(
 		'eyb'       => 'Schools &amp; Education',
 		'title'     => 'School &amp; education lighting that helps pupils focus.',
-		'lead'      => 'Low-glare, efficient education lighting for classrooms, halls and corridors — designed to the right standards, with emergency, controls and a free design service.',
+		'lead'      => 'Low-glare, efficient education lighting for classrooms, halls and corridors — designed to the right standards, with emergency, controls and an in-house design service.',
 		'hero'      => $u( 'office5.webp' ),
 		'cta1'      => array( 'Design my school scheme', '/lighting-design/' ),
 		'cta2'      => array( 'Browse products', '/products/' ),
@@ -764,16 +764,16 @@ add_action( 'init', function () {
 		'split_body' => 'From classrooms and labs to sports halls, libraries and circulation, we model each space to the right standards and supply efficient, low-maintenance luminaires made in Britain.',
 		'split_items'=> array( '<strong>UGR&lt;19 classroom</strong> luminaires', '<strong>Tunable white</strong> to support focus &amp; wellbeing', '<strong>Emergency &amp; controls</strong> for compliance', '<strong>Robust fittings</strong> for halls &amp; corridors', '<strong>UK-made</strong>, efficient, 5-year warranty' ),
 		'faq_head'   => 'School &amp; education lighting FAQs',
-		'faqs'       => "Q: What lighting do classrooms need?\nA: Comfortable, low-glare light — typically around 300-500 lux with UGR<19 — to suit reading, writing and screen work. We design each room to the right standard.\nQ: Can lighting help pupil concentration?\nA: Tunable-white (human-centric) lighting can support alertness and focus through the day; we can specify it where it helps.\nQ: Do you cover emergency lighting for schools?\nA: Yes — maintained and non-maintained emergency luminaires and signage designed to support BS 5266.\nQ: Is a lighting design included?\nA: Yes — send your plans and our team returns a free, costed scheme, usually within 3-5 days.",
+		'faqs'       => "Q: What lighting do classrooms need?\nA: Comfortable, low-glare light — typically around 300-500 lux with UGR<19 — to suit reading, writing and screen work. We design each room to the right standard.\nQ: Can lighting help pupil concentration?\nA: Tunable-white (human-centric) lighting can support alertness and focus through the day; we can specify it where it helps.\nQ: Do you cover emergency lighting for schools?\nA: Yes — maintained and non-maintained emergency luminaires and signage designed to support BS 5266.\nQ: Is a lighting design included?\nA: Yes — send your plans and our team returns a costed scheme, complimentary on commercial projects, usually within 3-5 days.",
 		'cta_img'    => $u( 'office1.webp' ),
 		'cta_head'   => 'Light your school the right way',
-		'cta_sub'    => 'Send us your plans and we&rsquo;ll design an efficient, low-glare education scheme — free.',
+		'cta_sub'    => 'Send us your plans and we&rsquo;ll design an efficient, low-glare education scheme — complimentary on commercial projects.',
 	) ) );
 
 	$p['feat-retail-lighting'] = array( 'Sector · Retail Lighting', $feature( array(
 		'eyb'       => 'Retail &amp; Display',
 		'title'     => 'Retail lighting that makes products sell.',
-		'lead'      => 'High-CRI accent and track lighting that brings out colour, texture and focus in store — flexible, efficient and backed by a free design service.',
+		'lead'      => 'High-CRI accent and track lighting that brings out colour, texture and focus in store — flexible, efficient and backed by an in-house design service.',
 		'hero'      => $u( 'retail.webp' ),
 		'cta1'      => array( 'Design my retail scheme', '/lighting-design/' ),
 		'cta2'      => array( 'Browse products', '/products/' ),
@@ -790,10 +790,10 @@ add_action( 'init', function () {
 		'split_body' => 'From flagship stores to boutiques and showrooms, we layer ambient, accent and feature light to guide customers and make merchandise pop — designed on plan and made in the UK.',
 		'split_items'=> array( '<strong>CRI 90+</strong> for true-to-life colour', '<strong>48V magnetic track</strong> &amp; adjustable spots', '<strong>Warm dimming</strong> &amp; tunable options', '<strong>Feature &amp; decorative</strong> pendants', '<strong>UK-made</strong>, efficient, 5-year warranty' ),
 		'faq_head'   => 'Retail lighting FAQs',
-		'faqs'       => "Q: Why does CRI matter for retail lighting?\nA: A high Colour Rendering Index (CRI 90+) makes colours, fabrics and finishes look accurate and appealing, which helps products sell.\nQ: Is track lighting good for shops?\nA: Yes — 48V magnetic track with adjustable spots lets you re-aim and reconfigure accent light easily as displays change.\nQ: Can you match the colour temperature to our brand?\nA: Yes — we offer warm to cool and tunable options, and can advise on the right look for your store.\nQ: Do you provide a retail lighting design?\nA: Yes — send a plan and our team returns a free, costed scheme, usually within 3-5 days.",
+		'faqs'       => "Q: Why does CRI matter for retail lighting?\nA: A high Colour Rendering Index (CRI 90+) makes colours, fabrics and finishes look accurate and appealing, which helps products sell.\nQ: Is track lighting good for shops?\nA: Yes — 48V magnetic track with adjustable spots lets you re-aim and reconfigure accent light easily as displays change.\nQ: Can you match the colour temperature to our brand?\nA: Yes — we offer warm to cool and tunable options, and can advise on the right look for your store.\nQ: Do you provide a retail lighting design?\nA: Yes — send a plan and our team returns a costed scheme, complimentary on commercial projects, usually within 3-5 days.",
 		'cta_img'    => $u( 'office1.webp' ),
 		'cta_head'   => 'Make your store shine',
-		'cta_sub'    => 'Send us your layout and we&rsquo;ll design accent and feature lighting that sells — free.',
+		'cta_sub'    => 'Send us your layout and we&rsquo;ll design accent and feature lighting that sells — complimentary on commercial projects.',
 	) ) );
 
 	$p['feat-warehouse-highbay'] = array( 'Sector · Warehouse & High Bay Lighting', $feature( array(
@@ -816,10 +816,10 @@ add_action( 'init', function () {
 		'split_body' => 'We model warehouse and factory lighting to the lux and uniformity the operation needs — including vertical light on racking — and supply efficient, long-life luminaires made in the UK.',
 		'split_items'=> array( '<strong>LED high bay</strong> for tall open spaces', '<strong>Linear &amp; batten</strong> for aisles &amp; production', '<strong>Occupancy &amp; daylight</strong> sensor controls', '<strong>Emergency</strong> &amp; life-safety integrated', '<strong>UK-made</strong>, high-efficacy, 5-year warranty' ),
 		'faq_head'   => 'Warehouse &amp; high bay lighting FAQs',
-		'faqs'       => "Q: What is high bay lighting?\nA: High bay luminaires are designed for spaces with tall ceilings — typically warehouses, factories and sports halls — delivering high output with optics suited to the mounting height.\nQ: How much can LED high bay lighting save?\nA: Switching older fittings to high-efficacy LED high bays (up to ~180 lm/W) with sensor controls can cut lighting energy substantially; we model the savings for your space.\nQ: Can you light racking aisles evenly?\nA: Yes — we design for both horizontal and vertical illuminance so labels and stock on racking are well lit.\nQ: Is a lighting design included?\nA: Yes — send a plan and our team returns a free, costed scheme.",
+		'faqs'       => "Q: What is high bay lighting?\nA: High bay luminaires are designed for spaces with tall ceilings — typically warehouses, factories and sports halls — delivering high output with optics suited to the mounting height.\nQ: How much can LED high bay lighting save?\nA: Switching older fittings to high-efficacy LED high bays (up to ~180 lm/W) with sensor controls can cut lighting energy substantially; we model the savings for your space.\nQ: Can you light racking aisles evenly?\nA: Yes — we design for both horizontal and vertical illuminance so labels and stock on racking are well lit.\nQ: Is a lighting design included?\nA: Yes — send a plan and our team returns a costed scheme, complimentary on commercial projects.",
 		'cta_img'    => $u( 'office1.webp' ),
 		'cta_head'   => 'Cut your warehouse energy bill',
-		'cta_sub'    => 'Send us your plan and we&rsquo;ll design an efficient high bay scheme with the savings modelled — free.',
+		'cta_sub'    => 'Send us your plan and we&rsquo;ll design an efficient high bay scheme with the savings modelled — complimentary on commercial projects.',
 	) ) );
 
 	$p['feat-feature-lighting'] = array( 'Commercial · Feature Lighting', $feature( array(
@@ -868,7 +868,7 @@ add_action( 'init', function () {
 		'split_body' => 'From single pendants to continuous runs and curved features, we configure suspended linear lighting to your drawing, prove it with a photometric study, and make it in Manchester.',
 		'split_items'=> array( '<strong>Continuous &amp; curved</strong> runs to any length', '<strong>UGR&lt;19</strong> low-glare optics', '<strong>Up / down distribution</strong> options', '<strong>Tunable white &amp; Casambi</strong> control', '<strong>UK-made</strong> to order, 5-year warranty' ),
 		'faq_head'   => 'Suspended linear lighting FAQs',
-		'faqs'       => "Q: What is suspended linear lighting?\nA: Linear luminaires hung from the ceiling on cables or rods, often in continuous runs — popular in offices, retail and hospitality for clean lines and comfortable light.\nQ: Can suspended linear runs be made to a custom length?\nA: Yes — we make continuous runs to your exact length, straight or curved, to order in the UK.\nQ: Is suspended linear lighting low-glare?\nA: Yes — UGR<19 optics and up/down distribution options make it comfortable for screen-based work.\nQ: Do you design the linear layout?\nA: Yes — send a plan and our team returns a free, costed photometric scheme.",
+		'faqs'       => "Q: What is suspended linear lighting?\nA: Linear luminaires hung from the ceiling on cables or rods, often in continuous runs — popular in offices, retail and hospitality for clean lines and comfortable light.\nQ: Can suspended linear runs be made to a custom length?\nA: Yes — we make continuous runs to your exact length, straight or curved, to order in the UK.\nQ: Is suspended linear lighting low-glare?\nA: Yes — UGR<19 optics and up/down distribution options make it comfortable for screen-based work.\nQ: Do you design the linear layout?\nA: Yes — send a plan and our team returns a costed photometric scheme, complimentary on commercial projects.",
 		'cta_img'    => $u( 'office1.webp' ),
 		'cta_head'   => 'Specify suspended linear lighting',
 		'cta_sub'    => 'Send us your drawing and we&rsquo;ll configure and cost a low-glare linear run — made to order.',
@@ -879,14 +879,14 @@ add_action( 'init', function () {
 	$p['about-pro'] = array( 'About · Designer', $feature( array(
 		'eyb'        => 'About Ricoman',
 		'title'      => 'British lighting, built for the people who specify it.',
-		'lead'       => 'We&rsquo;re a Manchester manufacturer of commercial LED lighting — and a design partner to the architects, interior designers, lighting designers and fit-out teams who bring great spaces to life. Free scheme design, UK manufacturing, fast lead times and people who pick up the phone.',
+		'lead'       => 'We&rsquo;re a Manchester manufacturer of commercial LED lighting — and a design partner to the architects, interior designers, lighting designers and fit-out teams who bring great spaces to life. In-house scheme design, UK manufacturing, fast lead times and people who pick up the phone.',
 		'hero'       => $u( 'rico-making.webp' ),
 		'cta1'       => array( 'Start a project', '/lighting-design/' ),
 		'cta2'       => array( 'See our work', '/projects/' ),
 		'ben_eyb'    => 'Why specifiers choose us',
 		'ben_head'   => 'A partner, not just a supplier',
 		'benefits'   => array(
-			array( '01', 'Free lighting design', 'Send drawings or a finishes schedule and our in-house designers return a costed, DIALux-backed scheme — usually within 3&ndash;5 days.' ),
+			array( '01', 'In-house lighting design', 'Send drawings or a finishes schedule and our in-house designers return a costed, DIALux-backed scheme — usually within 3&ndash;5 days.' ),
 			array( '02', 'Made in Britain', 'Designed, assembled, finished and tested in Manchester — full control of quality, bespoke detail and lead times.' ),
 			array( '03', 'Bespoke as standard', 'Custom lengths, curves, finishes and colour temperatures to match your drawings — not the other way round.' ),
 			array( '04', 'Specified with confidence', 'Datasheets, IES/LDT and BIM for your spec pack, a 5-year warranty and real UK-based support.' ),
@@ -895,9 +895,9 @@ add_action( 'init', function () {
 		'split_eyb'  => 'How we work',
 		'split_head' => 'From first sketch to fitting on site',
 		'split_body' => 'One British team, end to end — so the scheme you sign off is the light that&rsquo;s installed: on spec, on time, on budget. We&rsquo;ve lit offices, retail, hospitality, healthcare, education and industrial projects across the UK and beyond.',
-		'split_items'=> array( '<strong>Free scheme design</strong> with full photometrics', '<strong>Bespoke sizing, finishes &amp; CCTs</strong> to suit the space', '<strong>Value engineering</strong> to protect the budget', '<strong>UK stock</strong> + made-to-order on an average six-day lead', '<strong>5-year warranty</strong> &amp; UK-based technical support' ),
+		'split_items'=> array( '<strong>In-house scheme design</strong> with full photometrics', '<strong>Bespoke sizing, finishes &amp; CCTs</strong> to suit the space', '<strong>Value engineering</strong> to protect the budget', '<strong>UK stock</strong> + made-to-order on an average six-day lead', '<strong>5-year warranty</strong> &amp; UK-based technical support' ),
 		'faq_head'   => 'About Ricoman &mdash; FAQs',
-		'faqs'       => "Q: Where is Ricoman lighting made?\nA: Designed and manufactured at our facility in Manchester, UK, with stock held here for fast lead times.\nQ: Who do you work with?\nA: Architects, interior and lighting designers, M&E consultants, and fit-out / design-and-build contractors — from concept through to installation.\nQ: Is the lighting design service really free?\nA: Yes — send drawings or a finishes schedule and we return a fully specified, costed scheme at no charge, usually within 3-5 working days.\nQ: Can products be tailored to my project?\nA: Yes — sizes, finishes, colour temperatures and bespoke forms are available across most ranges.",
+		'faqs'       => "Q: Where is Ricoman lighting made?\nA: Designed and manufactured at our facility in Manchester, UK, with stock held here for fast lead times.\nQ: Who do you work with?\nA: Architects, interior and lighting designers, M&E consultants, and fit-out / design-and-build contractors — from concept through to installation.\nQ: Is the lighting design service really complimentary?\nA: Yes — for commercial projects, send drawings or a finishes schedule and we return a fully specified, costed scheme at no charge, usually within 3-5 working days.\nQ: Can products be tailored to my project?\nA: Yes — sizes, finishes, colour temperatures and bespoke forms are available across most ranges.",
 		'cta_img'    => $u( 'office1.webp' ),
 		'cta_head'   => 'Let&rsquo;s light your next project',
 		'cta_sub'    => 'Tell us what you&rsquo;re working on — we&rsquo;ll design, make and deliver the lighting, start to finish.',
@@ -1113,7 +1113,7 @@ function ricoman_project_feature_content( $pr ) {
 	$meta = array(
 		'Sector'   => $pr[2],
 		'Location' => 'Manchester, UK',
-		'Scope'    => 'Supply & free scheme design',
+		'Scope'    => 'Supply & in-house scheme design',
 		'Lighting' => 'UK-made to order',
 		'Warranty' => '5 years',
 	);
@@ -1164,7 +1164,7 @@ function ricoman_project_feature_content( $pr ) {
  * @param array $pr [ title, image, sector, excerpt, products(assoc slug=>name) ].
  */
 function ricoman_project_simple_content( $pr ) {
-	$out  = '<!-- wp:paragraph --><p>Our in-house team designed and supplied the lighting for this ' . esc_html( strtolower( $pr[2] ) ) . ' scheme — a free photometric design, UK-made luminaires built to order in Manchester, and delivery to programme.</p><!-- /wp:paragraph -->';
+	$out  = '<!-- wp:paragraph --><p>Our in-house team designed and supplied the lighting for this ' . esc_html( strtolower( $pr[2] ) ) . ' scheme — an in-house photometric design, UK-made luminaires built to order in Manchester, and delivery to programme.</p><!-- /wp:paragraph -->';
 	$out .= '<!-- wp:paragraph --><p>Low-glare optics, high-CRI light and a 5-year warranty throughout, with value-engineered options kept on the table from the first drawing.</p><!-- /wp:paragraph -->';
 	if ( ! empty( $pr[4] ) ) {
 		$links = array();

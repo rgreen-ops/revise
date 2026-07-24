@@ -28,7 +28,7 @@
 		<div class="wp-block-button is-style-outline-light"><a class="wp-block-button__link wp-element-button" href="#projects">Explore Our Projects →</a></div>
 		<!-- /wp:button -->
 		<!-- wp:button {"className":"is-style-outline-light"} -->
-		<div class="wp-block-button is-style-outline-light"><a class="wp-block-button__link wp-element-button" href="#enquire">Get A Free Scheme →</a></div>
+		<div class="wp-block-button is-style-outline-light"><a class="wp-block-button__link wp-element-button" href="#enquire">Request a Scheme Design →</a></div>
 		<!-- /wp:button -->
 	</div>
 	<!-- /wp:buttons -->

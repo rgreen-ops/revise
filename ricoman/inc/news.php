@@ -494,7 +494,7 @@ function ricoman_news_cta( $pid ) {
 	// Sensible conversion defaults so every article drives an enquiry.
 	if ( '' === trim( $head ) ) { $head = 'Planning a lighting scheme?'; }
 	if ( '' === trim( $sub ) ) { $sub = 'Send us your drawings or a finishes schedule and our in-house designers will return a fully specified scheme — usually within 3–5 days.'; }
-	if ( '' === trim( $btn ) ) { $btn = 'Request a free lighting design'; }
+	if ( '' === trim( $btn ) ) { $btn = 'Request a lighting design'; }
 	if ( '' === trim( $url ) ) { $url = '/lighting-design/'; }
 	return '<aside class="rm-news-cta"><div class="rm-news-cta-in">'
 		. '<h2 class="rm-news-cta-h">' . esc_html( $head ) . '</h2>'
@@ -693,7 +693,7 @@ function ricoman_news_metabox( $post ) {
 	echo '<hr><p><strong>' . esc_html__( 'Conversion CTA band', 'ricoman' ) . '</strong> <span class="desc">(shown at the end of the article — leave blank to use the sensible defaults)</span></p>';
 	echo '<div class="rmn-grid">';
 	echo '<div class="rmn-fld"><label>CTA heading</label><input type="text" name="_rmn_cta_head" value="' . $v( '_rmn_cta_head' ) . '" placeholder="Planning a lighting scheme?"></div>';
-	echo '<div class="rmn-fld"><label>Button label</label><input type="text" name="_rmn_cta_btn" value="' . $v( '_rmn_cta_btn' ) . '" placeholder="Request a free lighting design"></div>';
+	echo '<div class="rmn-fld"><label>Button label</label><input type="text" name="_rmn_cta_btn" value="' . $v( '_rmn_cta_btn' ) . '" placeholder="Request a lighting design"></div>';
 	echo '</div>';
 	echo '<div class="rmn-fld"><label>CTA sub-text</label><textarea name="_rmn_cta_sub" rows="2" placeholder="Send us your drawings…">' . $f( '_rmn_cta_sub' ) . '</textarea></div>';
 	echo '<div class="rmn-fld"><label>Button URL</label><input type="text" name="_rmn_cta_url" value="' . $v( '_rmn_cta_url' ) . '" placeholder="/lighting-design/"></div>';

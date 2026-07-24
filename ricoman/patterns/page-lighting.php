@@ -3,7 +3,7 @@
  * Title: Page — Lighting Design
  * Slug: ricoman/page-lighting
  * Categories: ricoman, ricoman-pages
- * Description: Free scheme design service — process, what you receive, CTA.
+ * Description: Lighting design service — process, what you receive, CTA.
  *
  * @package Ricoman
  */
@@ -13,9 +13,9 @@ $img = function ( $f ) { return esc_url( get_theme_file_uri( 'assets/images/' . 
 <section class="phero">
   <div class="bg" style="background-image:url(<?php echo $img( 'rico-office-render.webp' ); ?>)"></div><div class="scrim"></div>
   <div class="inner"><div class="wrap">
-    <span class="kick lt">Free Scheme Design</span>
-    <h1>Your scheme, fully designed — at no cost.</h1>
-    <p class="lede">Send us a drawing or a finishes schedule and our in-house lighting designers return a fully specified, photometric-backed and costed scheme. Usually within 3–5 days.</p>
+    <span class="kick lt">Lighting Design Service</span>
+    <h1>Your commercial scheme, fully designed.</h1>
+    <p class="lede">For architects, specifiers, contractors and fit-out teams. Send us a drawing or a finishes schedule and our in-house lighting designers return a fully specified, photometric-backed and costed scheme — complimentary on commercial projects, usually within 3–5 days.</p>
   </div></div>
 </section>
 

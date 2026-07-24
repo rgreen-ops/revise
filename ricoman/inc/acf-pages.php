@@ -240,7 +240,7 @@ function ricoman_render_acf_page( $pid ) {
 			. '<span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-70 has-background-dim"></span>'
 			. '<img class="wp-block-cover__image-background" alt="" src="' . $img . '" data-object-fit="cover"/>'
 			. '<div class="wp-block-cover__inner-container"><h2 class="wp-block-heading has-text-align-center" style="text-align:center">Let’s plan your lighting</h2>'
-			. '<p class="has-text-align-center" style="text-align:center">Talk to our team or request a free lighting design for your project.</p>'
+			. '<p class="has-text-align-center" style="text-align:center">Talk to our team or request a lighting design for your project.</p>'
 			. '<div class="wp-block-buttons is-content-justification-center" style="display:flex;justify-content:center;gap:10px">'
 			. '<a class="btn btn-solid" href="' . esc_url( home_url( '/lighting-design/' ) ) . '">Request a Lighting Design</a> '
 			. '<a class="btn btn-line" href="' . esc_url( home_url( '/contact/' ) ) . '">Contact us</a></div></div></div>';

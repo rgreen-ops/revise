@@ -89,7 +89,7 @@ add_shortcode( 'ricoman_sector_hero', function () {
 		. '<p class="rm-eyebrow rm-sechero-eyebrow">Projects by sector</p>'
 		. '<h1 class="rm-sechero-title">' . esc_html( $term->name ) . '</h1>'
 		. '<p class="rm-sechero-hook">' . esc_html( $hook ) . '</p>'
-		. '<div class="rm-sechero-cta"><a class="btn btn-solid" href="#enquire">Get free lighting advice</a> '
+		. '<div class="rm-sechero-cta"><a class="btn btn-solid" href="#enquire">Get expert lighting advice</a> '
 		. '<a class="btn btn-line" href="#projects">See the projects ↓</a></div>'
 		. '</div></div>';
 } );
@@ -104,7 +104,7 @@ add_shortcode( 'ricoman_sector_intro', function () {
 	if ( '' === $desc ) {
 		$name = strtolower( $term->name );
 		$desc = '<p>' . esc_html( sprintf( 'Lighting for %s has to perform — the right output and comfort for the people using the space, low glare, and fittings that last. As a UK manufacturer, Ricoman designs, makes and delivers complete %s schemes: photometrically specified, delivered on short lead times and backed by a 5-year warranty.', $name, $name ) ) . '</p>'
-			. '<p>' . esc_html( sprintf( 'Explore the ranges and real %s projects below — or tell us about your scheme and our in-house designers will spec it for you, free of charge.', $name ) ) . '</p>';
+			. '<p>' . esc_html( sprintf( 'Explore the ranges and real %s projects below — or tell us about your scheme and our in-house designers will spec it for you, complimentary on commercial projects.', $name ) ) . '</p>';
 	}
 	return '<div class="rm-section rm-sectorintro"><div class="rm-pp-wrap rm-sectorintro-in">'
 		. '<div class="rm-sector-desc">' . wp_kses_post( $desc ) . '</div>'
@@ -237,7 +237,7 @@ add_shortcode( 'ricoman_sector_trust', function () {
 	$items = array(
 		array( 'UK manufactured', 'Designed &amp; built in Manchester' ),
 		array( '5-year warranty', 'On every luminaire, as standard' ),
-		array( 'Free lighting design', 'Fully specified scheme in 3–5 days' ),
+		array( 'In-house lighting design', 'Fully specified scheme in 3–5 days' ),
 		array( 'UK stock', 'Short lead times, held in Manchester' ),
 	);
 	$cells = '';
@@ -371,9 +371,9 @@ add_shortcode( 'ricoman_sector_leadgen', function () {
 			. '<p class="rm-secld-small">No spam — just expert ' . esc_html( strtolower( $label ) ) . ' guidance from our UK design team.</p>';
 
 	return '<div class="rm-section rm-secld" id="enquire"><div class="rm-pp-wrap"><div class="rm-secld-in">'
-		. '<div class="rm-secld-copy"><p class="rm-eyebrow" style="color:rgba(255,255,255,.7)">Free help</p>'
+		. '<div class="rm-secld-copy"><p class="rm-eyebrow" style="color:rgba(255,255,255,.7)">Design support</p>'
 		. '<h2 class="rm-secld-h">Planning ' . esc_html( strtolower( $label ) ) . '?</h2>'
-		. '<p class="rm-secld-p">Tell us where to send it and our in-house designers will help you specify the right scheme — beam, output, finish and controls. Prefer to send drawings? <a href="/lighting-design/">Request a free lighting design →</a></p></div>'
+		. '<p class="rm-secld-p">Tell us where to send it and our in-house designers will help you specify the right scheme — beam, output, finish and controls. Prefer to send drawings? <a href="/lighting-design/">Request a lighting design →</a></p></div>'
 		. '<div class="rm-secld-formwrap">' . $form . '</div>'
 		. '</div></div></div>';
 } );

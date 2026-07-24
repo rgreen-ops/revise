@@ -40,10 +40,10 @@
 				<!-- wp:column -->
 				<div class="wp-block-column">
 					<!-- wp:heading {"level":3,"fontSize":"large","textColor":"primary"} -->
-					<h3 class="wp-block-heading has-primary-color has-text-color has-large-font-size">Free scheme design</h3>
+					<h3 class="wp-block-heading has-primary-color has-text-color has-large-font-size">In-house scheme design</h3>
 					<!-- /wp:heading -->
 					<!-- wp:paragraph {"textColor":"muted","fontSize":"small"} -->
-					<p class="has-muted-color has-text-color has-small-font-size">Relux and DIALux layouts, lux-level calcs and product schedules, free of charge.</p>
+					<p class="has-muted-color has-text-color has-small-font-size">Relux and DIALux layouts, lux-level calcs and product schedules — complimentary on commercial projects.</p>
 					<!-- /wp:paragraph -->
 				</div>
 				<!-- /wp:column -->

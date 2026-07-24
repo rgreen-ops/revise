@@ -1,15 +1,15 @@
 <?php
 /**
- * The canonical "Free lighting design" CTA banner — one design used everywhere.
+ * The canonical lighting-design CTA banner — one design used everywhere.
  *
- * A single source of truth for the full-width dark "free design" hook so it is
+ * A single source of truth for the full-width dark lighting-design hook so it is
  * identical on every page: feature pages, sector pages, and anywhere the team
  * drops it. Use it three ways:
  *   - PHP:        echo ricoman_design_cta();           (returns block markup)
  *   - Shortcode:  [ricoman_design_cta]
- *   - Editor:     ＋ → Patterns → Ricoman — Page → "CTA · Free lighting design"
+ *   - Editor:     ＋ → Patterns → Ricoman — Page → "CTA · Lighting design"
  *
- * The buttons are deliberately generic ("Request a free lighting design" /
+ * The buttons are deliberately generic ("Request a lighting design" /
  * "Talk to the team") so the banner reads the same site-wide. Buttons inherit the
  * unified button design (uppercase, outlined) from theme.json + shared.css.
  *
@@ -28,9 +28,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function ricoman_design_cta( $args = array() ) {
 	$a = wp_parse_args( $args, array(
-		'heading' => 'Free lighting design on every project',
-		'text'    => 'Send us your drawings or a finishes schedule and our in-house UK team returns a fully specified, costed scheme &mdash; usually within 3&ndash;5 working days.',
-		'btn1'    => array( 'Request a free lighting design', '/lighting-design/' ),
+		'heading' => 'Lighting design for your commercial project',
+		'text'    => 'Send us your drawings or a finishes schedule and our in-house UK team returns a fully specified, costed scheme &mdash; complimentary on commercial projects, usually within 3&ndash;5 working days.',
+		'btn1'    => array( 'Request a lighting design', '/lighting-design/' ),
 		'btn2'    => array( 'Talk to the team &rarr;', '/contact/' ),
 	) );
 
@@ -64,8 +64,8 @@ add_action( 'init', function () {
 		return;
 	}
 	register_block_pattern( 'ricoman/design-cta', array(
-		'title'       => __( 'CTA · Free lighting design', 'ricoman' ),
-		'description' => __( 'The standard full-width “free lighting design” banner used across the site.', 'ricoman' ),
+		'title'       => __( 'CTA · Lighting design', 'ricoman' ),
+		'description' => __( 'The standard full-width lighting-design banner used across the site.', 'ricoman' ),
 		'categories'  => array( 'ricoman-page' ),
 		'content'     => ricoman_design_cta(),
 	) );

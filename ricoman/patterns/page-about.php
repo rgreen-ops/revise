@@ -21,7 +21,7 @@ $img = function ( $f ) { return esc_url( get_theme_file_uri( 'assets/images/' . 
 
 <section class="sec"><div class="wrap">
   <div class="shead"><div><span class="kick"><span class="n">01</span>Who we are</span><h2>Lighting that works on spec, on time, on budget</h2></div></div>
-  <p style="max-width:60ch;font-size:1.12rem">Ricoman designs and manufactures commercial interior LED lighting from our own facility in Manchester. Because we're the manufacturer — not a reseller — we control quality, lead times and bespoke detail in-house: free scheme design, 2,000+ components stocked ready to build, an average six-day UK-made lead, strong local partnerships and a 5-year warranty.</p>
+  <p style="max-width:60ch;font-size:1.12rem">Ricoman designs and manufactures commercial interior LED lighting from our own facility in Manchester. Because we're the manufacturer — not a reseller — we control quality, lead times and bespoke detail in-house: in-house scheme design (complimentary on commercial projects), 2,000+ components stocked ready to build, an average six-day UK-made lead, strong local partnerships and a 5-year warranty.</p>
 </div></section>
 
 <section class="statband soft"><div class="wrap">
