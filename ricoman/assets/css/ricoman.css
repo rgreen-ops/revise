@@ -2011,3 +2011,22 @@ body:not(.rm-pe-preview){overflow-x:clip}
 	.rm-wiz-nav .btn{width:100%}
 	.rm-wiz-step[data-step="1"] .rm-wiz-nav .btn{width:100%}
 }
+
+/* ============================================================ *
+ * "Apply for a trade account" form ([ricoman_trade_form])
+ * ============================================================ */
+.rm-tradeform{max-width:1180px;margin:0 auto}
+.rm-tradeform-h{font-family:Poppins;font-weight:600;letter-spacing:-.02em;font-size:clamp(1.4rem,2.6vw,2rem);margin:0 0 1.2em}
+.rm-tradeform-label{display:block;margin:0 0 20px;font-family:Poppins;font-weight:600;font-size:.9rem;color:var(--ink)}
+.rm-tradeform-label input{display:block;width:100%;margin-top:8px;padding:14px 16px;border:1px solid #b9b7b2;border-radius:8px;font:inherit;font-weight:400;color:var(--ink);background:transparent}
+.rm-tradeform-label input:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 3px rgba(61,123,237,.15)}
+.rm-tradeform-row{display:grid;grid-template-columns:1fr 1fr;gap:clamp(18px,3vw,40px)}
+.rm-tradeform-actions{text-align:center;margin-top:8px}
+.rm-tradeform-go{min-width:150px}
+.rm-tradeform-msg{margin:0 0 14px;font-size:.92rem;color:var(--ink)}
+.rm-tradeform-msg--err{color:#b32d2e}
+.rm-tradeform-done{text-align:center;padding:20px 0}
+.rm-tradeform-tick{display:inline-flex;width:56px;height:56px;border-radius:50%;border:3px solid #2e9e5b;align-items:center;justify-content:center;margin-bottom:12px}
+.rm-tradeform-tick::after{content:"";width:12px;height:22px;border:solid #2e9e5b;border-width:0 4px 4px 0;transform:rotate(45deg) translateY(-2px)}
+.rm-tradeform-done p{color:var(--muted);margin:.3em 0 0}
+@media(max-width:640px){.rm-tradeform-row{grid-template-columns:1fr}}
