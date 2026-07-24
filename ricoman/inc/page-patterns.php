@@ -953,7 +953,7 @@ add_action( 'init', function () {
 			. '</div><!-- /wp:group --></div><!-- /wp:column -->';
 	}
 	register_block_pattern( 'ricoman/expectations-6col', array(
-		'title'       => 'Lighting · What to expect (6 columns, no line)',
+		'title'       => '6-column content',
 		'description' => 'Six numbered cards in a clean grid (no top rule lines). Edit each card\'s number, heading and text.',
 		'categories'  => array( 'ricoman-page' ),
 		'content'     => '<!-- wp:group {"align":"full","className":"rm-section","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-section">'
