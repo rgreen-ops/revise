@@ -961,6 +961,29 @@ add_action( 'init', function () {
 			. '<!-- wp:columns {"className":"rm-aud-plain"} --><div class="wp-block-columns rm-aud-plain">' . $exp_cols . '</div><!-- /wp:columns -->'
 			. '</div><!-- /wp:group -->',
 	) );
+
+	// FAQ for the Lighting Design page — accordion + FAQ schema (via [ricoman_faq]).
+	$faq_ld = "[ricoman_faq]\n"
+		. "Q: Is the lighting design service really complimentary?\n"
+		. "A: Yes — for commercial projects, send us your drawings or a finishes schedule and our in-house team returns a fully specified, costed scheme at no charge, usually within 3-5 working days.\n"
+		. "Q: What do I get with a lighting design?\n"
+		. "A: A DIALux photometric study (lux, uniformity and UGR), a specified luminaire schedule, a reflected ceiling layout and an itemised costing.\n"
+		. "Q: What do you need from me to start?\n"
+		. "A: A floor plan, RCP or sketch and a finishes schedule - PDF, DWG or photos are all fine.\n"
+		. "Q: How long does a scheme take?\n"
+		. "A: Usually 3-5 working days from receiving your drawings, depending on the size of the project.\n"
+		. "Q: Do I have to buy the products you specify?\n"
+		. "A: No obligation - but as a UK manufacturer we offer fast lead times, bespoke options and a 5-year warranty.\n"
+		. '[/ricoman_faq]';
+	register_block_pattern( 'ricoman/faq-lighting-design', array(
+		'title'       => 'FAQ · Lighting Design',
+		'description' => 'Accordion FAQ pre-filled with lighting-design questions. Also outputs FAQ schema for Google. Edit any Q/A.',
+		'categories'  => array( 'ricoman-page' ),
+		'content'     => '<!-- wp:group {"align":"full","className":"rm-section","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-section">'
+			. '<!-- wp:heading {"textAlign":"center","className":"rm-shead"} --><h2 class="wp-block-heading has-text-align-center rm-shead">Lighting design — your questions answered</h2><!-- /wp:heading -->'
+			. '<!-- wp:shortcode -->' . $faq_ld . '<!-- /wp:shortcode -->'
+			. '</div><!-- /wp:group -->',
+	) );
 }, 12 );
 
 /** Editable block stacks for the content pages. */
