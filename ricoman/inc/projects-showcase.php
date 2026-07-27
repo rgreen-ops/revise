@@ -186,14 +186,14 @@ function ricoman_projects_showcase_sc( $atts ) {
 		. ( $a['link'] ? '<a class="rm-projshow-all" href="' . esc_url( $a['link'] ) . '">' . esc_html( $a['link_label'] ) . ' &rsaquo;</a>' : '' )
 		. '</div>';
 
-	// Wrap in the theme's .wrap container so the row aligns to the same edges as
-	// the header (logo → LOG OUT) and the hero text.
-	return '<div class="rm-section rm-projshow"><div class="wrap">' . $head
+	// The row aligns to the hero text (left) and the header content edge (right)
+	// via the .rm-projshow padding-inline in CSS — see ricoman.css.
+	return '<div class="rm-section rm-projshow">' . $head
 		. '<div class="rm-projshow-view">'
 		. '<button type="button" class="rm-projshow-arrow rm-projshow-prev" aria-label="Previous projects" hidden>&lsaquo;</button>'
 		. '<div class="rm-projshow-track">' . $cards . '</div>'
 		. '<button type="button" class="rm-projshow-arrow rm-projshow-next" aria-label="More projects">&rsaquo;</button>'
-		. '</div></div></div>';
+		. '</div></div>';
 }
 add_shortcode( 'ricoman_projects_showcase', 'ricoman_projects_showcase_sc' );
 

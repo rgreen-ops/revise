@@ -2038,9 +2038,10 @@ body:not(.rm-pe-preview){overflow-x:clip}
 /* ============================================================ *
  * Projects showcase carousel ([ricoman_projects_showcase])
  * ============================================================ */
-/* Break out of the content-width cap so cards run near the page edges (Unios-style)
-   — the pattern wraps this in a full-width group, so we just drop the centring. */
-.rm-projshow{max-width:none;margin-left:0;margin-right:0}
+/* Full-bleed group; pad the row so its left edge lines up with the hero text and
+   its right edge with the header content (logo → LOG OUT). --pad + 20px matches the
+   hero cover's inner padding exactly, so the carousel column tracks the hero above it. */
+.rm-projshow{max-width:none;margin-left:0;margin-right:0;padding-inline:calc(var(--pad) + 20px)}
 .rm-projshow-head{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:1.4em;flex-wrap:wrap}
 .rm-projshow-title{font-family:Poppins;font-weight:600;letter-spacing:-.02em;font-size:clamp(1.4rem,2.6vw,2rem);margin:0}
 .rm-projshow-all{font-family:Poppins;font-weight:600;font-size:.95rem;color:var(--blue);white-space:nowrap;text-decoration:none}
