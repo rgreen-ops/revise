@@ -2045,8 +2045,8 @@ body:not(.rm-pe-preview){overflow-x:clip}
 .rm-projshow-view{position:relative}
 .rm-projshow-track{display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;padding-bottom:6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .rm-projshow-track::-webkit-scrollbar{display:none}
-.rm-projshow-card{flex:0 0 clamp(240px,26vw,320px);scroll-snap-align:start;text-decoration:none;color:var(--ink)}
-.rm-projshow-img{display:block;aspect-ratio:3/4;background:var(--soft);background-size:cover;background-position:center;border-radius:6px;margin-bottom:14px}
+.rm-projshow-card{flex:0 0 clamp(300px,36vw,460px);scroll-snap-align:start;text-decoration:none;color:var(--ink)}
+.rm-projshow-img{display:block;aspect-ratio:4/3;background:var(--soft);background-size:cover;background-position:center;border-radius:6px;margin-bottom:16px}
 .rm-projshow-name{display:block;font-family:Poppins;font-weight:600;font-size:1.05rem;line-height:1.25;color:var(--ink)}
 .rm-projshow-card:hover .rm-projshow-name{color:var(--blue)}
 .rm-projshow-loc{display:block;font-size:.85rem;color:var(--muted);margin-top:5px}
