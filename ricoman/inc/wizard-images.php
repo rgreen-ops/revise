@@ -98,6 +98,14 @@ add_action( 'admin_menu', function () {
 	);
 }, 29 );
 
+/** Load the media picker + layout CSS on our screen only (must run on the
+ *  admin_enqueue_scripts hook so wp.media initialises and the styles attach). */
+add_action( 'admin_enqueue_scripts', function () {
+	if ( isset( $_GET['page'] ) && 'ricoman-wizard-images' === $_GET['page'] ) { // phpcs:ignore WordPress.Security.NonceVerification
+		ricoman_wizard_img_assets();
+	}
+} );
+
 /** Media picker JS + a little layout CSS (admin only). */
 function ricoman_wizard_img_assets() {
 	wp_enqueue_media();
@@ -157,8 +165,7 @@ function ricoman_wizard_images_page() {
 		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Wizard images saved.', 'ricoman' ) . '</p></div>';
 	}
 
-	ricoman_wizard_img_assets();
-
+	// Assets are enqueued on admin_enqueue_scripts for this page (see above).
 	$cfg      = function_exists( 'ricoman_wizard_config' ) ? ricoman_wizard_config() : array(); // effective (override or default).
 	$over     = get_option( 'ricoman_wizard_images', array() );
 	$over     = is_array( $over ) ? $over : array();
