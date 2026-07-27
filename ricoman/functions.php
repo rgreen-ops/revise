@@ -67,6 +67,7 @@ require_once get_theme_file_path( 'inc/trade-form.php' );    // "Apply for a tra
 require_once get_theme_file_path( 'inc/thankyou-pages.php' );// One-time: create the form thank-you pages.
 require_once get_theme_file_path( 'inc/design-call.php' );   // "Request a 30-min call with our lighting designers" form.
 require_once get_theme_file_path( 'inc/projects-showcase.php' );// Projects carousel + hand-pick "Featured Projects" admin.
+require_once get_theme_file_path( 'inc/tabs.php' );          // "Why Ricoman" tabbed image+text pattern.
 require_once get_theme_file_path( 'inc/shortcodes.php' );    // Product spec/variant/datasheet output.
 require_once get_theme_file_path( 'inc/product-builder.php' );// Product Builder: RICOBOT sync + field shortcodes.
 require_once get_theme_file_path( 'inc/product-fields.php' ); // Structured product content (variants/zigzag/paragraphs) as fields.

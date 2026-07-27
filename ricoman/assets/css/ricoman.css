@@ -2080,3 +2080,28 @@ body:not(.rm-pe-preview){overflow-x:clip}
 .rm-oncards .rm-oncard--img>.wp-block-cover__inner-container{padding:clamp(26px,2.6vw,44px)}
 .rm-oncards .rm-oncard--img p{margin:0 0 1em;line-height:1.62}
 @media(max-width:781px){.rm-oncards .rm-oncard--text{min-height:clamp(340px,66vw,460px)}}
+
+/* ============================================================
+ * "Why Ricoman" tabbed band — pattern: Tabs · Image + text.
+ *  A centred row of titles reveals one image-left / text-right panel at a time.
+ *  The .rm-tabs-ready hook is added by tabs.js, so with JS off every panel just
+ *  stacks (nothing hidden). Light background.
+ * ============================================================ */
+.rm-tabs-nav{display:flex;justify-content:center;flex-wrap:wrap;gap:clamp(18px,3vw,42px);border-bottom:1px solid var(--line);margin:0 0 clamp(26px,3vw,48px)}
+.rm-tab{appearance:none;-webkit-appearance:none;background:none;border:0;margin:0;padding:0 0 14px;cursor:pointer;font-family:Poppins;font-weight:600;font-size:clamp(1rem,1.4vw,1.15rem);letter-spacing:-.01em;line-height:1.2;color:var(--muted);position:relative;white-space:nowrap;transition:color .18s ease}
+.rm-tab:hover{color:var(--ink)}
+.rm-tab.is-active{color:var(--ink)}
+.rm-tab.is-active::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--ink);border-radius:2px}
+.rm-tab:focus-visible{outline:2px solid var(--blue);outline-offset:3px;border-radius:2px}
+.rm-tabs-ready .rm-tab-title{display:none}
+.rm-tabs-ready .rm-tabpanel{display:none}
+.rm-tabs-ready .rm-tabpanel.is-active{display:block;animation:rm-tab-fade .28s ease}
+.rm-tabpanel:focus{outline:none}
+@keyframes rm-tab-fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.rm-tabpanel-row{align-items:center;gap:clamp(24px,4vw,64px)}
+.rm-tabpanel-img{margin:0}
+.rm-tabpanel-img img{width:100%;height:auto;display:block;border-radius:14px;aspect-ratio:4/3;object-fit:cover}
+.rm-tabpanel-row p{line-height:1.62;color:var(--ink);margin:0 0 1.4em}
+/* Panels not yet enhanced (no JS): keep each panel's own title visible + spaced. */
+.rm-tabs:not(.rm-tabs-ready) .rm-tabpanel+.rm-tabpanel{margin-top:clamp(32px,4vw,56px)}
+@media(max-width:600px){.rm-tabs-nav{justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;gap:24px;margin-inline:calc(-1*var(--pad));padding-inline:var(--pad)}.rm-tabs-nav::-webkit-scrollbar{display:none}}
