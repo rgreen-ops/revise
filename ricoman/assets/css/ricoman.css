@@ -2062,3 +2062,21 @@ body:not(.rm-pe-preview){overflow-x:clip}
 .rm-projshow-next{right:6px}
 .rm-projshow-arrow[hidden]{display:none}
 @media(max-width:640px){.rm-projshow-arrow{display:none}}
+
+/* ============================================================
+ * "Image + text" cards band — pattern: Cards · Image + text (3-up).
+ *  Two light text cards + one full-bleed photo card, equal height, text
+ *  at the foot of the plain cards / top of the photo card.
+ * ============================================================ */
+.rm-oncards .wp-block-columns{gap:clamp(14px,1.5vw,22px);align-items:stretch}
+.rm-oncards .wp-block-column{display:flex;flex-direction:column;padding:0}
+.rm-oncards .rm-oncard{flex:1 1 auto;border-radius:20px;overflow:hidden;box-sizing:border-box;margin:0}
+.rm-oncards .rm-oncard--text{background:var(--soft);padding:clamp(26px,2.6vw,44px);display:flex;flex-direction:column;justify-content:flex-end;min-height:clamp(460px,46vw,620px)}
+.rm-oncards .rm-oncard--text>*{max-width:none}
+.rm-oncards .rm-oncard .wp-block-heading{font-family:Poppins;font-weight:600;letter-spacing:-.02em;font-size:clamp(1.7rem,2.4vw,2.15rem);line-height:1.04;margin:0 0 .6em}
+.rm-oncards .rm-oncard--text .wp-block-heading{color:var(--ink)}
+.rm-oncards .rm-oncard--text p{margin:0 0 1em;line-height:1.62;color:var(--ink)}
+.rm-oncards .rm-oncard p:last-child{margin-bottom:0}
+.rm-oncards .rm-oncard--img>.wp-block-cover__inner-container{padding:clamp(26px,2.6vw,44px)}
+.rm-oncards .rm-oncard--img p{margin:0 0 1em;line-height:1.62}
+@media(max-width:781px){.rm-oncards .rm-oncard--text{min-height:clamp(340px,66vw,460px)}}

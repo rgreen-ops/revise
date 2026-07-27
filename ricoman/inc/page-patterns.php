@@ -307,6 +307,41 @@ add_action( 'init', function () {
 		. '<!-- wp:shortcode -->[ricoman_callback]<!-- /wp:shortcode -->';
 	$p['contact-form'] = array( 'Contact · Enquiry form', $sec( $twocol( $cf_form, $cf_side ), 'rm-contact-form' ) );
 
+	/* ===== General building block: image + text cards (3-up) =====
+	 * A row of tall cards — light text cards plus a full-bleed photo card with the
+	 * copy over it (the "On budget / On spec / On time" look). Every card is
+	 * click-to-edit: change the text, and swap the middle photo (Cover block →
+	 * replace media). Add a photo to any card by turning its group into a Cover. */
+	$oncard_text = function ( $h, $body ) {
+		return '<!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"rm-oncard rm-oncard--text","style":{"color":{"background":"#f4f3f1"}},"layout":{"type":"constrained"}} --><div class="wp-block-group rm-oncard rm-oncard--text has-background" style="background-color:#f4f3f1">'
+			. '<!-- wp:heading {"level":3} --><h3 class="wp-block-heading">' . $h . '</h3><!-- /wp:heading -->'
+			. $body
+			. '</div><!-- /wp:group --></div><!-- /wp:column -->';
+	};
+	$oncard_img = function ( $url, $h, $body ) {
+		return '<!-- wp:column --><div class="wp-block-column">'
+			. '<!-- wp:cover {"url":"' . $url . '","dimRatio":45,"overlayColor":"ink","minHeight":460,"minHeightUnit":"px","contentPosition":"top left","className":"rm-oncard rm-oncard--img","textColor":"base"} -->'
+			. '<div class="wp-block-cover has-base-color has-text-color has-custom-content-position is-position-top-left rm-oncard rm-oncard--img" style="min-height:460px">'
+			. '<span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-45 has-background-dim"></span>'
+			. '<img class="wp-block-cover__image-background" alt="" src="' . $url . '" data-object-fit="cover"/>'
+			. '<div class="wp-block-cover__inner-container">'
+			. '<!-- wp:heading {"level":3,"textColor":"base"} --><h3 class="wp-block-heading has-base-color has-text-color">' . $h . '</h3><!-- /wp:heading -->'
+			. $body
+			. '</div></div><!-- /wp:cover --></div><!-- /wp:column -->';
+	};
+	$p['cards-image-text'] = array( 'Cards · Image + text (3-up)', $sec(
+		'<!-- wp:columns --><div class="wp-block-columns">'
+		. $oncard_text( 'On budget.',
+			'<!-- wp:paragraph --><p>By working directly with our factories and managing in-house manufacturing, we maintain competitive pricing across our product range.</p><!-- /wp:paragraph -->'
+			. '<!-- wp:paragraph --><p>This allows us to support a wide range of budgets while helping bring your visions to life <strong>without compromising on quality or design.</strong></p><!-- /wp:paragraph -->' )
+		. $oncard_img( $u( 'rico-making.webp' ), 'On spec.',
+			'<!-- wp:paragraph {"textColor":"base"} --><p class="has-base-color has-text-color">Our product development team creates products that boast excellent performance and class-leading technology. We can also make swift and efficient customisations in order to <strong>create products that are truly specification-compliant.</strong></p><!-- /wp:paragraph -->' )
+		. $oncard_text( 'On time.',
+			'<!-- wp:paragraph --><p>A dedicated project coordinator ensures your project is managed with transparency, attention, and clear communication at every stage.</p><!-- /wp:paragraph -->'
+			. '<!-- wp:paragraph --><p>Working with European-based component suppliers, <strong>we achieve fast production turnaround times.</strong></p><!-- /wp:paragraph -->' )
+		. '</div><!-- /wp:columns -->'
+	, 'rm-oncards' ) );
+
 	/* ===== Feature / enhanced landing pages =====
 	 * Rich, editable landing pages for the marketing features (Casambi, Human
 	 * Centric, Antimicrobial, Fire Safety…). One comprehensive pattern each:
