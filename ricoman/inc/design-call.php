@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /** Where the design-call notification is sent. Filterable. */
 function ricoman_design_call_inbox() {
-	return apply_filters( 'ricoman_design_call_inbox', 'lightingdesign@ricomanled.com' );
+	return apply_filters( 'ricoman_design_call_inbox', 'mparker@ricoman.com' );
 }
 
 /** [ricoman_design_call title="…" thankyou="/url/"] */
