@@ -62,6 +62,7 @@ require_once get_theme_file_path( 'inc/ricobot.php' );       // RICOBOT API sett
 require_once get_theme_file_path( 'inc/datasheet.php' );     // Printable / PDF datasheets.
 require_once get_theme_file_path( 'inc/lead-capture.php' );  // Lead form + Sheets webhook.
 require_once get_theme_file_path( 'inc/project-wizard.php' );// Multi-step "Tell us about your project" enquiry wizard.
+require_once get_theme_file_path( 'inc/wizard-images.php' ); // Ricoman → Wizard Images: pick the wizard card pictures.
 require_once get_theme_file_path( 'inc/trade-form.php' );    // "Apply for a trade account" form.
 require_once get_theme_file_path( 'inc/thankyou-pages.php' );// One-time: create the form thank-you pages.
 require_once get_theme_file_path( 'inc/design-call.php' );   // "Request a 30-min call with our lighting designers" form.
