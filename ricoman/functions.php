@@ -63,6 +63,7 @@ require_once get_theme_file_path( 'inc/datasheet.php' );     // Printable / PDF 
 require_once get_theme_file_path( 'inc/lead-capture.php' );  // Lead form + Sheets webhook.
 require_once get_theme_file_path( 'inc/project-wizard.php' );// Multi-step "Tell us about your project" enquiry wizard.
 require_once get_theme_file_path( 'inc/trade-form.php' );    // "Apply for a trade account" form.
+require_once get_theme_file_path( 'inc/thankyou-pages.php' );// One-time: create the form thank-you pages.
 require_once get_theme_file_path( 'inc/shortcodes.php' );    // Product spec/variant/datasheet output.
 require_once get_theme_file_path( 'inc/product-builder.php' );// Product Builder: RICOBOT sync + field shortcodes.
 require_once get_theme_file_path( 'inc/product-fields.php' ); // Structured product content (variants/zigzag/paragraphs) as fields.
