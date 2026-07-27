@@ -76,3 +76,50 @@ add_action( 'init', function () {
 		delete_option( 'ricoman_thankyou_pages_v1' );
 	}
 }, 99 );
+
+/**
+ * v2: nest each thank-you page under its form's page (so the URL reads
+ * /lighting-design/thank-you/ and /new-trade-page/thank-you/) and wire the form
+ * shortcodes to redirect there on success. Create-only / fill-only; idempotent.
+ */
+function ricoman_nest_and_wire_thankyou() {
+	// [ thank-you page slug (v1 top-level), parent page slug, wizard/trade shortcode, shortcode+attr ]
+	$defs = array(
+		array( 'lighting-design-thank-you', 'lighting-design', '[ricoman_project_wizard]', '[ricoman_project_wizard thankyou="/lighting-design/thank-you/"]' ),
+		array( 'trade-account-thank-you', 'new-trade-page', '[ricoman_trade_form]', '[ricoman_trade_form thankyou="/new-trade-page/thank-you/"]' ),
+	);
+	foreach ( $defs as $d ) {
+		list( $ty_slug, $parent_slug, $sc, $sc_attr ) = $d;
+		$parent = get_page_by_path( $parent_slug, OBJECT, 'page' );
+		if ( ! $parent ) {
+			continue; // form page not found — skip.
+		}
+		// Nest the thank-you page (find it top-level, or already nested).
+		$ty = get_page_by_path( $ty_slug, OBJECT, 'page' );
+		if ( ! $ty ) {
+			$ty = get_page_by_path( $parent_slug . '/thank-you', OBJECT, 'page' );
+		}
+		if ( $ty && ( (int) $ty->post_parent !== (int) $parent->ID || 'thank-you' !== $ty->post_name ) ) {
+			wp_update_post( array( 'ID' => (int) $ty->ID, 'post_parent' => (int) $parent->ID, 'post_name' => 'thank-you' ) );
+		}
+		// Wire the form's shortcode on the parent page (add the redirect attribute).
+		$content = (string) $parent->post_content;
+		if ( false !== strpos( $content, $sc ) && false === strpos( $content, $sc_attr ) ) {
+			wp_update_post( array( 'ID' => (int) $parent->ID, 'post_content' => wp_slash( str_replace( $sc, $sc_attr, $content ) ) ) );
+		}
+	}
+}
+add_action( 'init', function () {
+	if ( get_option( 'ricoman_thankyou_pages_v2' ) ) {
+		return;
+	}
+	if ( wp_doing_ajax() || wp_doing_cron() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || ( defined( 'WP_CLI' ) && WP_CLI ) ) {
+		return;
+	}
+	update_option( 'ricoman_thankyou_pages_v2', time(), false );
+	try {
+		ricoman_nest_and_wire_thankyou();
+	} catch ( \Throwable $e ) {
+		delete_option( 'ricoman_thankyou_pages_v2' );
+	}
+}, 101 );
