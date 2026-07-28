@@ -2077,9 +2077,15 @@ body:not(.rm-pe-preview){overflow-x:clip}
 .rm-oncards .rm-oncard--text .wp-block-heading{color:var(--ink)}
 .rm-oncards .rm-oncard--text p{margin:0 0 1em;line-height:1.62;color:var(--ink)}
 .rm-oncards .rm-oncard p:last-child{margin-bottom:0}
-.rm-oncards .rm-oncard--img>.wp-block-cover__inner-container{padding:clamp(26px,2.6vw,44px)}
+/* Photo card: image sits behind heading + text, with a dark scrim for legibility. */
+.rm-oncards .rm-oncard--img{position:relative;isolation:isolate;background:var(--ink);display:flex;flex-direction:column;justify-content:flex-start;padding:clamp(26px,2.6vw,44px);min-height:clamp(460px,46vw,620px)}
+.rm-oncards .rm-oncard--img>.rm-oncard-photo{position:absolute;inset:0;margin:0;z-index:0}
+.rm-oncards .rm-oncard--img>.rm-oncard-photo img{width:100%;height:100%;object-fit:cover;display:block;border-radius:0}
+.rm-oncards .rm-oncard--img::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,.12) 55%,rgba(0,0,0,.42))}
+.rm-oncards .rm-oncard--img>*:not(.rm-oncard-photo){position:relative;z-index:2}
+.rm-oncards .rm-oncard--img .wp-block-heading,.rm-oncards .rm-oncard--img p{color:#fff}
 .rm-oncards .rm-oncard--img p{margin:0 0 1em;line-height:1.62}
-@media(max-width:781px){.rm-oncards .rm-oncard--text{min-height:clamp(340px,66vw,460px)}}
+@media(max-width:781px){.rm-oncards .rm-oncard--text,.rm-oncards .rm-oncard--img{min-height:clamp(340px,66vw,460px)}}
 
 /* ============================================================
  * "Why Ricoman" tabbed band — pattern: Tabs · Image + text.
