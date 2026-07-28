@@ -341,6 +341,27 @@ add_action( 'init', function () {
 		. '</div><!-- /wp:columns -->'
 	, 'rm-oncards' ) );
 
+	/* ===== Suppliers / partners logo wall =====
+	 * A tidy grid of supplier logos, each an editable image that links out to the
+	 * partner's website (new tab). Seeded with a neutral "LOGO" placeholder — select
+	 * a logo → Replace to upload the real one, then set its link. Add more by
+	 * duplicating a logo. Greyscale → colour on hover (see .rm-suppliers in CSS). */
+	$logo = function ( $img, $href ) {
+		return '<!-- wp:image {"linkDestination":"custom","linkTarget":"_blank","rel":"noreferrer noopener","sizeSlug":"large"} -->'
+			. '<figure class="wp-block-image size-large"><a href="' . esc_url( $href ) . '" target="_blank" rel="noreferrer noopener"><img src="' . $img . '" alt="Supplier logo"/></a></figure>'
+			. '<!-- /wp:image -->';
+	};
+	$ph_logo   = $u( 'placeholder-logo.svg' );
+	$logo_wall = '<!-- wp:group {"className":"rm-supp-logos","layout":{"type":"constrained"}} --><div class="wp-block-group rm-supp-logos">'
+		. str_repeat( $logo( $ph_logo, '#' ), 8 )
+		. '</div><!-- /wp:group -->';
+	$p['suppliers-logos'] = array( 'Suppliers · Logo wall', $sec(
+		$eyebrow( 'Our partners' )
+		. $shead( 'The suppliers behind our lighting' )
+		. $para( 'We build with a carefully chosen network of component suppliers and manufacturing partners &mdash; many of them European &mdash; for dependable performance and fast lead times. Each logo links through to the partner&rsquo;s website.', true )
+		. $logo_wall
+	, 'rm-suppliers' ) );
+
 	/* ===== Feature / enhanced landing pages =====
 	 * Rich, editable landing pages for the marketing features (Casambi, Human
 	 * Centric, Antimicrobial, Fire Safety…). One comprehensive pattern each:

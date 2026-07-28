@@ -2093,6 +2093,19 @@ body:not(.rm-pe-preview){overflow-x:clip}
 @media(max-width:781px){.rm-oncards .rm-oncard--text,.rm-oncards .rm-oncard--img{min-height:clamp(340px,66vw,460px)}}
 
 /* ============================================================
+ * Suppliers / partners logo wall — pattern: Suppliers · Logo wall.
+ *  A grid of logo images, each linking to the partner's site; tidy white cells,
+ *  greyscale that turns full-colour on hover.
+ * ============================================================ */
+.rm-suppliers .rm-supp-logos{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:clamp(12px,1.6vw,22px);margin-top:clamp(24px,3vw,42px)}
+.rm-suppliers .rm-supp-logos>*{margin:0;max-width:none}
+.rm-suppliers .rm-supp-logos .wp-block-image{margin:0;background:#fff;border:1px solid var(--line);border-radius:12px;min-height:100px;display:flex;align-items:center;justify-content:center;padding:clamp(14px,1.8vw,24px);transition:box-shadow .2s ease,border-color .2s ease}
+.rm-suppliers .rm-supp-logos .wp-block-image:hover{border-color:#d9d6d1;box-shadow:0 8px 22px rgba(0,0,0,.07)}
+.rm-suppliers .rm-supp-logos .wp-block-image a{display:flex;align-items:center;justify-content:center;width:100%}
+.rm-suppliers .rm-supp-logos img{max-width:100%;max-height:54px;width:auto;height:auto;object-fit:contain;filter:grayscale(1);opacity:.7;transition:filter .25s ease,opacity .25s ease}
+.rm-suppliers .rm-supp-logos .wp-block-image:hover img{filter:none;opacity:1}
+
+/* ============================================================
  * "Why Ricoman" tabbed band — pattern: Tabs · Image + text.
  *  A centred row of titles reveals one image-left / text-right panel at a time.
  *  The .rm-tabs-ready hook is added by tabs.js, so with JS off every panel just
