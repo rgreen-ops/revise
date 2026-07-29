@@ -878,6 +878,18 @@ add_action( 'restrict_manage_posts', function ( $post_type ) {
 		. esc_html__( 'Hide drafts', 'ricoman' ) . '</label>';
 } );
 
+/**
+ * Front-end search: return only real content — products, projects and news.
+ * WordPress' default search also pulls in pages (thank-you, login, form pages,
+ * etc.), which cluttered the results, so we scope search to the content types.
+ */
+add_action( 'pre_get_posts', function ( $q ) {
+	if ( is_admin() || ! $q->is_main_query() || ! $q->is_search() ) {
+		return;
+	}
+	$q->set( 'post_type', array( 'product', 'project', 'news' ) );
+} );
+
 add_action( 'pre_get_posts', function ( $q ) {
 	if ( ! is_admin() || ! $q->is_main_query() || 'product' !== $q->get( 'post_type' ) ) {
 		return;
