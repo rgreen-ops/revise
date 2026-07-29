@@ -26,12 +26,5 @@ echo '<!-- wp:group {"align":"full","className":"rm-section rm-projintro","layou
 // can't wrap the toolbar/grid in stray <p> tags — that was the broken whitespace.
 echo '<div class="rm-projwide-outer">' . do_shortcode( '[ricoman_projects_grid count="-1"]' ) . '</div>';
 
-echo $cover(
-	$u( 'office6.webp' ),
-	'<!-- wp:heading {"textAlign":"center","level":2} --><h2 class="wp-block-heading has-text-align-center">Have a project on the board?</h2><!-- /wp:heading -->' .
-	'<!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">Send us your drawings or a finishes schedule and our in-house lighting designers will return a fully specified scheme — usually within 3–5 days.</p><!-- /wp:paragraph -->' .
-	'<!-- wp:buttons {"layout":{"type":"flex","justifyContent":"center"}} --><div class="wp-block-buttons is-content-justification-center"><!-- wp:button {"className":"is-style-outline-light"} --><div class="wp-block-button is-style-outline-light"><a class="wp-block-button__link wp-element-button" href="/lighting-design/">Start a Project</a></div><!-- /wp:button --><!-- wp:button {"className":"is-style-outline-light"} --><div class="wp-block-button is-style-outline-light"><a class="wp-block-button__link wp-element-button" href="/about/">Talk to the design team →</a></div><!-- /wp:button --></div><!-- /wp:buttons -->',
-	52,
-	'center center',
-	70
-);
+// Full-width closing banner — the shared lead banner used across news + projects.
+echo function_exists( 'ricoman_news_cta' ) ? ricoman_news_cta( 0 ) : '';
