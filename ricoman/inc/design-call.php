@@ -137,6 +137,15 @@ function ricoman_design_call_capture() {
 	);
 	wp_mail( ricoman_design_call_inbox(), $subject, $body, array( 'Reply-To: ' . $name . ' <' . $email . '>' ) );
 
+	// Confirmation to the person who requested the call.
+	if ( function_exists( 'ricoman_send_lead_confirmation' ) ) {
+		ricoman_send_lead_confirmation( $email, $name, array(
+			'subject'  => sprintf( __( 'We’ve received your call request — %s', 'ricoman' ), get_bloginfo( 'name' ) ),
+			'intro'    => __( 'Thanks for requesting a 30-minute call with our lighting designers. We’ll be in touch shortly to arrange a time that suits you.', 'ricoman' ),
+			'reply_to' => ricoman_design_call_inbox(),
+		) );
+	}
+
 	do_action( 'ricoman_lead_captured', $data, is_wp_error( $lead_id ) ? 0 : (int) $lead_id );
 
 	wp_send_json_success( array( 'msg' => __( 'Thanks — your call request has been received. Our lighting design team will be in touch.', 'ricoman' ) ) );

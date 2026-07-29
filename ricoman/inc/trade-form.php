@@ -118,6 +118,15 @@ function ricoman_trade_capture() {
 		array( 'Reply-To: ' . $name . ' <' . $email . '>' )
 	);
 
+	// Confirmation to the applicant.
+	if ( function_exists( 'ricoman_send_lead_confirmation' ) ) {
+		ricoman_send_lead_confirmation( $email, $name, array(
+			'subject'  => sprintf( __( 'We’ve received your trade account application — %s', 'ricoman' ), get_bloginfo( 'name' ) ),
+			'intro'    => __( 'Thanks for applying for a trade account with us. Our team will review your application and be in touch shortly.', 'ricoman' ),
+			'reply_to' => $to,
+		) );
+	}
+
 	do_action( 'ricoman_lead_captured', $data, is_wp_error( $lead_id ) ? 0 : (int) $lead_id );
 
 	wp_send_json_success( array( 'msg' => __( 'Thank you — your application has been received.', 'ricoman' ) ) );

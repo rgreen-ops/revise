@@ -260,6 +260,15 @@ function ricoman_wizard_capture() {
 		array( 'Reply-To: ' . $name . ' <' . $email . '>' )
 	);
 
+	// Confirmation to the person who enquired.
+	if ( function_exists( 'ricoman_send_lead_confirmation' ) ) {
+		ricoman_send_lead_confirmation( $email, $name, array(
+			'subject'  => sprintf( __( 'We’ve received your project enquiry — %s', 'ricoman' ), get_bloginfo( 'name' ) ),
+			'intro'    => __( 'Thanks for telling us about your project. Our in-house lighting designers will review your details and be in touch shortly — usually within 3–5 working days.', 'ricoman' ),
+			'reply_to' => $to,
+		) );
+	}
+
 	/** Same hook every capture point fires (Sheets sync, CRM auto-fill…). */
 	do_action( 'ricoman_lead_captured', $data, is_wp_error( $lead_id ) ? 0 : (int) $lead_id );
 

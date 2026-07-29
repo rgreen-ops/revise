@@ -22,6 +22,38 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Send a plain-text "we've received your enquiry" confirmation to the person who
+ * submitted a form. Skips silently if there's no valid email. Reply-To routes to
+ * the team so a customer's reply reaches Ricoman. Only ever called for genuine
+ * (non-spam) submissions — the capture functions bail on spam before this runs.
+ *
+ * @param string $email Submitter's email address.
+ * @param string $name  Submitter's name.
+ * @param array  $args  Optional overrides: subject, intro, reply_to.
+ */
+function ricoman_send_lead_confirmation( $email, $name, $args = array() ) {
+	$email = sanitize_email( (string) $email );
+	if ( ! is_email( $email ) ) {
+		return;
+	}
+	$site = get_bloginfo( 'name' );
+	$a    = wp_parse_args( $args, array(
+		'subject'  => sprintf( __( 'We’ve received your enquiry — %s', 'ricoman' ), $site ),
+		'intro'    => __( 'Thanks for getting in touch. We’ve received your enquiry and a member of our team will be in touch shortly.', 'ricoman' ),
+		'reply_to' => get_option( 'admin_email' ),
+	) );
+	$name    = trim( (string) $name );
+	$body    = sprintf(
+		"Hi %s,\n\n%s\n\nIf you need anything in the meantime, just reply to this email.\n\n— %s",
+		'' !== $name ? $name : __( 'there', 'ricoman' ),
+		$a['intro'],
+		$site
+	);
+	$headers = ! empty( $a['reply_to'] ) ? array( 'Reply-To: ' . $a['reply_to'] ) : array();
+	wp_mail( $email, $a['subject'], $body, $headers );
+}
+
+/**
  * The visitor's IP (best-effort), used only for short-lived rate-limiting.
  */
 function ricoman_lead_client_ip() {
@@ -309,6 +341,9 @@ function ricoman_handle_lead() {
 		$body,
 		array( 'Reply-To: ' . $name . ' <' . $email . '>' )
 	);
+
+	// Confirmation to the person who enquired.
+	ricoman_send_lead_confirmation( $email, $name, array( 'reply_to' => $admin ) );
 
 	/**
 	 * Fires after a lead is captured. The Sheets sync below hooks here; other
