@@ -656,7 +656,7 @@ add_shortcode( 'ricoman_search_results', function () {
 	$s     = get_search_query();
 	$paged = max( 1, (int) get_query_var( 'paged' ), (int) get_query_var( 'page' ) );
 	$q     = new WP_Query( array(
-		'post_type'      => array_values( array_filter( array( 'product', 'project', 'news', 'page', 'post' ), 'post_type_exists' ) ),
+		'post_type'      => array_values( array_filter( array( 'product', 'project', 'news' ), 'post_type_exists' ) ),
 		's'              => $s,
 		'post_status'    => 'publish',
 		'posts_per_page' => 24,
