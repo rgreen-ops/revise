@@ -258,5 +258,11 @@ add_filter( 'the_content', function ( $content ) {
 		}
 	}
 
+	// Full-width closing banner — the same lead banner used on the news articles
+	// (uses its default copy, since the _rmn_cta_* fields are news-only).
+	if ( function_exists( 'ricoman_news_cta' ) ) {
+		$out .= ricoman_news_cta( $pid );
+	}
+
 	return $out;
 }, 9 );
