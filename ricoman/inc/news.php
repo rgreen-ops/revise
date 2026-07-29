@@ -491,18 +491,22 @@ function ricoman_news_cta( $pid ) {
 	$sub  = (string) get_post_meta( $pid, '_rmn_cta_sub', true );
 	$btn  = (string) get_post_meta( $pid, '_rmn_cta_btn', true );
 	$url  = (string) get_post_meta( $pid, '_rmn_cta_url', true );
-	// Sensible conversion defaults so every article drives an enquiry.
-	if ( '' === trim( $head ) ) { $head = 'Planning a lighting scheme?'; }
-	if ( '' === trim( $sub ) ) { $sub = 'Send us your drawings or a finishes schedule and our in-house designers will return a fully specified scheme — usually within 3–5 days.'; }
-	if ( '' === trim( $btn ) ) { $btn = 'Request a lighting design'; }
+	// Defaults mirror the site-wide closing banner used on the feature / about pages.
+	if ( '' === trim( $head ) ) { $head = 'Let’s light your next project'; }
+	if ( '' === trim( $sub ) ) { $sub = 'Tell us what you’re working on — we’ll design, make and deliver the lighting, start to finish.'; }
+	if ( '' === trim( $btn ) ) { $btn = 'Start a project'; }
 	if ( '' === trim( $url ) ) { $url = '/lighting-design/'; }
-	return '<aside class="rm-news-cta"><div class="rm-news-cta-in">'
+	$img = get_theme_file_uri( 'assets/images/office1.webp' );
+	return '<div class="rm-section rm-news-cta">'
+		. '<span class="rm-news-cta-bg" style="background-image:url(' . esc_url( $img ) . ')" aria-hidden="true"></span>'
+		. '<div class="rm-news-cta-in">'
 		. '<h2 class="rm-news-cta-h">' . esc_html( $head ) . '</h2>'
 		. '<p class="rm-news-cta-p">' . esc_html( $sub ) . '</p>'
+		. '<div class="rm-news-cta-acts">'
 		. '<a class="btn btn-solid" href="' . esc_url( $url ) . '">' . esc_html( $btn ) . '</a>'
-		. ' <a class="btn btn-line-d" href="/products/">Browse the product range →</a>'
-		. '<p class="rm-news-cta-alt"><a href="/contact/">Or talk to the team →</a></p>'
-		. '</div></aside>';
+		. '<a class="btn btn-line-d" href="/contact/">Talk to our team</a>'
+		. '</div>'
+		. '</div></div>';
 }
 
 /** Related products picked on the article (one product name or URL per line). */
@@ -645,8 +649,9 @@ add_filter( 'the_content', function ( $content ) {
 	}
 
 	$out .= ricoman_news_related_products( $pid );
-	$out .= ricoman_news_cta( $pid );
 	$out .= '</div></div>';
+	// Full-width closing banner (its own section, like the feature / about pages).
+	$out .= ricoman_news_cta( $pid );
 
 	$out .= '<div class="rm-section rm-news-moresec"><div class="rm-pp-wrap">' . ricoman_news_related_articles( $pid ) . '</div></div>';
 
@@ -692,8 +697,8 @@ function ricoman_news_metabox( $post ) {
 
 	echo '<hr><p><strong>' . esc_html__( 'Conversion CTA band', 'ricoman' ) . '</strong> <span class="desc">(shown at the end of the article — leave blank to use the sensible defaults)</span></p>';
 	echo '<div class="rmn-grid">';
-	echo '<div class="rmn-fld"><label>CTA heading</label><input type="text" name="_rmn_cta_head" value="' . $v( '_rmn_cta_head' ) . '" placeholder="Planning a lighting scheme?"></div>';
-	echo '<div class="rmn-fld"><label>Button label</label><input type="text" name="_rmn_cta_btn" value="' . $v( '_rmn_cta_btn' ) . '" placeholder="Request a lighting design"></div>';
+	echo '<div class="rmn-fld"><label>CTA heading</label><input type="text" name="_rmn_cta_head" value="' . $v( '_rmn_cta_head' ) . '" placeholder="Let’s light your next project"></div>';
+	echo '<div class="rmn-fld"><label>Button label</label><input type="text" name="_rmn_cta_btn" value="' . $v( '_rmn_cta_btn' ) . '" placeholder="Start a project"></div>';
 	echo '</div>';
 	echo '<div class="rmn-fld"><label>CTA sub-text</label><textarea name="_rmn_cta_sub" rows="2" placeholder="Send us your drawings…">' . $f( '_rmn_cta_sub' ) . '</textarea></div>';
 	echo '<div class="rmn-fld"><label>Button URL</label><input type="text" name="_rmn_cta_url" value="' . $v( '_rmn_cta_url' ) . '" placeholder="/lighting-design/"></div>';

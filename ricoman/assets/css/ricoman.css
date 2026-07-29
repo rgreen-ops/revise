@@ -1610,15 +1610,16 @@ body:not(.rm-pe-preview) .rm-mediapanel{width:100vw;margin-left:calc(50% - 50vw)
 .rm-news-takeaways li{position:relative;padding-left:24px;font-size:1rem;line-height:1.55}
 .rm-news-takeaways li::before{content:"";position:absolute;left:2px;top:.45em;width:6px;height:11px;border:solid var(--ink);border-width:0 2px 2px 0;transform:rotate(45deg)}
 /* Conversion CTA band */
-.rm-news-cta{margin:2.4em 0 0;background:var(--ink);color:#fff;border-radius:18px;padding:clamp(28px,4vw,48px)}
-.rm-news-cta-in{max-width:620px}
-.rm-news-cta-h{color:#fff;font-family:Poppins;font-weight:500;font-size:clamp(1.4rem,2.6vw,2rem);letter-spacing:-.02em;margin:0 0 .4em}
-.rm-news-cta-p{color:rgba(255,255,255,.72);font-size:1rem;line-height:1.6;margin:0 0 1.4em}
-.rm-news-cta .btn-line-d{border-color:rgba(255,255,255,.4);color:#fff}
+/* Full-width closing banner on news articles — matches the feature/about CTA. */
+.rm-news-cta{position:relative;isolation:isolate;overflow:hidden;background:var(--ink);color:#fff;text-align:center;padding:clamp(56px,9vw,120px) var(--pad);margin:0}
+.rm-news-cta-bg{position:absolute;inset:0;z-index:-2;background-size:cover;background-position:center;opacity:.5}
+.rm-news-cta::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(11,11,12,.72),rgba(11,11,12,.88))}
+.rm-news-cta-in{max-width:640px;margin:0 auto}
+.rm-news-cta-h{color:#fff;font-family:Poppins;font-weight:500;font-size:clamp(1.9rem,3.6vw,3rem);letter-spacing:-.02em;line-height:1.04;margin:0 0 .4em}
+.rm-news-cta-p{color:rgba(255,255,255,.82);font-size:clamp(1rem,1.4vw,1.15rem);line-height:1.6;margin:0 0 1.7em}
+.rm-news-cta-acts{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.rm-news-cta .btn-line-d{border-color:rgba(255,255,255,.5);color:#fff}
 .rm-news-cta .btn-line-d:hover{background:#fff;color:var(--ink);border-color:#fff}
-.rm-news-cta-alt{margin:1.1em 0 0}
-.rm-news-cta-alt a{color:rgba(255,255,255,.72);font-size:.92rem;text-decoration:underline;text-underline-offset:3px}
-.rm-news-cta-alt a:hover{color:#fff}
 .rm-news-ilink{color:var(--accent);text-decoration:underline;text-underline-offset:2px}
 .rm-news-prod{margin:2.4em 0 0}
 .rm-news-moresec{padding-block:0 clamp(40px,5vw,72px)!important;border-top:1px solid var(--line);margin-top:clamp(28px,4vw,52px);padding-top:clamp(28px,4vw,52px)!important}
