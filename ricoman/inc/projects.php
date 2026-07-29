@@ -65,6 +65,105 @@ function ricoman_find_product_url( $name ) {
 }
 
 /** Single project body, rendered from ACF (short + long content templates). */
+/**
+ * "Products used" items for a project. Each item = [href, img, name, sub].
+ * Prefers the products picked in the ACF "Products used" relationship; falls back
+ * to the legacy product_use repeater, resolving each row to a real product where
+ * possible so it shows the same auto-populated card.
+ */
+function ricoman_project_products_used_items( $pid ) {
+	$pid   = (int) $pid;
+	$items = array();
+
+	$picked = function_exists( 'get_field' ) ? get_field( 'products_used', $pid ) : get_post_meta( $pid, 'products_used', true );
+	$picked = array_values( array_filter( array_map( 'absint', (array) $picked ) ) );
+	if ( $picked ) {
+		foreach ( $picked as $ppid ) {
+			if ( 'product' === get_post_type( $ppid ) && 'publish' === get_post_status( $ppid ) ) {
+				$items[] = ricoman_project_product_card_data( $ppid );
+			}
+		}
+		return $items;
+	}
+
+	// Legacy fallback: the old manual repeater (auto-upgraded to a product card
+	// when the row resolves to a real product, otherwise shown as entered).
+	if ( function_exists( 'have_rows' ) && have_rows( 'product_use', $pid ) ) {
+		while ( have_rows( 'product_use', $pid ) ) {
+			the_row();
+			$name = trim( (string) get_sub_field( 'name' ) );
+			$link = get_sub_field( 'link' );
+			$href = is_array( $link ) ? ( $link['url'] ?? '' ) : (string) $link;
+			$rurl = '' !== trim( $href ) ? $href : ( function_exists( 'ricoman_find_product_url' ) ? (string) ricoman_find_product_url( $name ) : '' );
+			$rid  = $rurl ? (int) url_to_postid( $rurl ) : 0;
+			if ( $rid && 'product' === get_post_type( $rid ) ) {
+				$items[] = ricoman_project_product_card_data( $rid );
+			} else {
+				$items[] = array(
+					'href' => $rurl,
+					'img'  => function_exists( 'ricoman_pf_imgurl' ) ? (string) ricoman_pf_imgurl( get_sub_field( 'image' ) ) : '',
+					'name' => $name,
+					'sub'  => '',
+				);
+			}
+		}
+	}
+	return $items;
+}
+
+/** Card data (href/img/name/sub) auto-pulled from a product post. */
+function ricoman_project_product_card_data( $ppid ) {
+	$ppid = (int) $ppid;
+	$img  = function_exists( 'ricoman_product_img' ) ? (string) ricoman_product_img( $ppid ) : (string) get_the_post_thumbnail_url( $ppid, 'large' );
+	$sub  = '';
+	if ( function_exists( 'ricoman_pf_metrics' ) ) {
+		$rec = ricoman_pf_metrics( $ppid );
+		if ( is_array( $rec ) && ! empty( $rec['sub'] ) ) {
+			$sub = (string) $rec['sub'];
+		}
+	}
+	if ( '' === $sub && function_exists( 'ricoman_pf_get' ) ) {
+		$sub = (string) ricoman_pf_get( $ppid, 'product_subname' );
+	}
+	return array(
+		'href' => (string) get_permalink( $ppid ),
+		'img'  => $img,
+		'name' => (string) get_the_title( $ppid ),
+		'sub'  => trim( wp_strip_all_tags( $sub ) ),
+	);
+}
+
+/** "Products used" product picker on the project edit screen (auto-fills the cards). */
+add_action( 'acf/init', function () {
+	if ( ! function_exists( 'acf_add_local_field_group' ) ) {
+		return;
+	}
+	acf_add_local_field_group( array(
+		'key'      => 'group_ricoman_products_used',
+		'title'    => 'Products used',
+		'fields'   => array(
+			array(
+				'key'           => 'field_ricoman_products_used',
+				'label'         => 'Products used',
+				'name'          => 'products_used',
+				'type'          => 'relationship',
+				'instructions'  => 'Search and click to add the products featured in this project. Each card’s image, name and tagline are pulled automatically from the product — nothing to upload. Drag to reorder.',
+				'post_type'     => array( 'product' ),
+				'filters'       => array( 'search' ),
+				'return_format' => 'id',
+				'elements'      => array( 'featured_image' ),
+			),
+		),
+		'location'   => array( array( array( 'param' => 'post_type', 'operator' => '==', 'value' => 'project' ) ) ),
+		'menu_order' => 3,
+		'position'   => 'normal',
+	) );
+} );
+
+// Hide the old manual "Products used" repeater — the picker above replaces it.
+// (Any legacy rows still render on the front end as a fallback until re-picked.)
+add_filter( 'acf/prepare_field/name=product_use', '__return_false' );
+
 add_filter( 'the_content', function ( $content ) {
 	if ( is_admin() || ! is_singular( 'project' ) || ! in_the_loop() || ! is_main_query() ) {
 		return $content;
@@ -235,27 +334,22 @@ add_filter( 'the_content', function ( $content ) {
 	}
 
 	// ---- Products used ----------------------------------------------------
-	if ( function_exists( 'have_rows' ) && have_rows( 'product_use', $pid ) ) {
+	// Cards come from the products picked on the project ("Products used" picker);
+	// image, name and tagline are pulled automatically from each product. Legacy
+	// manually-added rows are resolved to real products where possible, else kept.
+	$pu_items = ricoman_project_products_used_items( $pid );
+	if ( $pu_items ) {
 		$cards = '';
-		while ( have_rows( 'product_use', $pid ) ) {
-			the_row();
-			$pu_img  = function_exists( 'ricoman_pf_imgurl' ) ? ricoman_pf_imgurl( get_sub_field( 'image' ) ) : '';
-			$pu_name = (string) get_sub_field( 'name' );
-			$pu_link = get_sub_field( 'link' );
-			$pu_href = is_array( $pu_link ) ? ( $pu_link['url'] ?? '' ) : (string) $pu_link;
-			// Always try to link to the real product page: explicit link first,
-			// otherwise match a product post by name.
-			if ( '' === trim( $pu_href ) ) {
-				$pu_href = ricoman_find_product_url( $pu_name );
-			}
-			$inner   = ( $pu_img ? '<div class="rm-acard-img" style="background-image:url(' . esc_url( $pu_img ) . ')"></div>' : '' )
-				. '<div class="rm-acard-body"><h3>' . esc_html( $pu_name ) . '</h3></div>';
-			$pu_lbl  = function_exists( 'ricoman_acard_label' ) ? ricoman_acard_label( $pu_name, $pu_href ) : ( $pu_name ? $pu_name : 'View product' );
-			$cards  .= $pu_href ? '<a class="rm-acard" href="' . esc_url( $pu_href ) . '" aria-label="' . esc_attr( $pu_lbl ) . '">' . $inner . '</a>' : '<div class="rm-acard">' . $inner . '</div>';
+		foreach ( $pu_items as $it ) {
+			$imgh   = '<span class="rm-pucard-img">' . ( $it['img'] ? '<img src="' . esc_url( $it['img'] ) . '" alt="' . esc_attr( $it['name'] ) . '" loading="lazy">' : '' ) . '</span>';
+			$body   = '<span class="rm-pucard-body"><span class="rm-pucard-title">' . esc_html( $it['name'] ) . '</span>'
+				. ( '' !== $it['sub'] ? '<span class="rm-pucard-sub">' . esc_html( $it['sub'] ) . '</span>' : '' ) . '</span>';
+			$pu_lbl = function_exists( 'ricoman_acard_label' ) ? ricoman_acard_label( $it['name'], $it['href'] ) : ( $it['name'] ? $it['name'] : 'View product' );
+			$cards .= $it['href']
+				? '<a class="rm-pucard" href="' . esc_url( $it['href'] ) . '" aria-label="' . esc_attr( $pu_lbl ) . '">' . $imgh . $body . '</a>'
+				: '<div class="rm-pucard">' . $imgh . $body . '</div>';
 		}
-		if ( $cards ) {
-			$out .= '<div class="rm-section rm-projprod-sec"><div class="rm-pp-wrap"><h2 class="rm-shead">Products used</h2><div class="rm-acards">' . $cards . '</div></div></div>';
-		}
+		$out .= '<div class="rm-section rm-projprod-sec"><div class="rm-pp-wrap"><h2 class="rm-shead">Products used</h2><div class="rm-pugrid">' . $cards . '</div></div></div>';
 	}
 
 	// Full-width closing banner — the same lead banner used on the news articles
