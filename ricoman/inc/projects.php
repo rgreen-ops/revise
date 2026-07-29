@@ -75,7 +75,7 @@ function ricoman_project_products_used_items( $pid ) {
 	$pid   = (int) $pid;
 	$items = array();
 
-	$picked = function_exists( 'get_field' ) ? get_field( 'products_used', $pid ) : get_post_meta( $pid, 'products_used', true );
+	$picked = function_exists( 'get_field' ) ? get_field( 'ricoman_products_used', $pid ) : get_post_meta( $pid, 'ricoman_products_used', true );
 	$picked = array_values( array_filter( array_map( 'absint', (array) $picked ) ) );
 	if ( $picked ) {
 		foreach ( $picked as $ppid ) {
@@ -94,13 +94,12 @@ function ricoman_project_products_used_items( $pid ) {
 			$name = trim( (string) get_sub_field( 'name' ) );
 			$link = get_sub_field( 'link' );
 			$href = is_array( $link ) ? ( $link['url'] ?? '' ) : (string) $link;
-			$rurl = '' !== trim( $href ) ? $href : ( function_exists( 'ricoman_find_product_url' ) ? (string) ricoman_find_product_url( $name ) : '' );
-			$rid  = $rurl ? (int) url_to_postid( $rurl ) : 0;
-			if ( $rid && 'product' === get_post_type( $rid ) ) {
+			$rid  = ricoman_project_resolve_product_id( $name, $href );
+			if ( $rid ) {
 				$items[] = ricoman_project_product_card_data( $rid );
 			} else {
 				$items[] = array(
-					'href' => $rurl,
+					'href' => '' !== trim( $href ) ? $href : ( function_exists( 'ricoman_find_product_url' ) ? (string) ricoman_find_product_url( $name ) : '' ),
 					'img'  => function_exists( 'ricoman_pf_imgurl' ) ? (string) ricoman_pf_imgurl( get_sub_field( 'image' ) ) : '',
 					'name' => $name,
 					'sub'  => '',
@@ -133,6 +132,40 @@ function ricoman_project_product_card_data( $ppid ) {
 	);
 }
 
+/** Best-effort resolve a legacy row (name + link) to a real product ID. Handles
+ *  old-domain links by matching the /product/<slug> segment. Returns 0 if none. */
+function ricoman_project_resolve_product_id( $name, $href ) {
+	$name = trim( (string) $name );
+	$href = trim( (string) $href );
+	$try  = function ( $url ) {
+		if ( '' === $url ) {
+			return 0;
+		}
+		$id = (int) url_to_postid( $url );
+		if ( $id && 'product' === get_post_type( $id ) ) {
+			return $id;
+		}
+		if ( preg_match( '#/product/([^/?\#]+)#', $url, $m ) ) {
+			$p = get_page_by_path( $m[1], OBJECT, 'product' );
+			if ( $p ) {
+				return (int) $p->ID;
+			}
+		}
+		return 0;
+	};
+	$id = $try( $href );
+	if ( $id ) {
+		return $id;
+	}
+	if ( '' !== $name && function_exists( 'ricoman_find_product_url' ) ) {
+		$id = $try( (string) ricoman_find_product_url( $name ) );
+		if ( $id ) {
+			return $id;
+		}
+	}
+	return 0;
+}
+
 /** "Products used" product picker on the project edit screen (auto-fills the cards). */
 add_action( 'acf/init', function () {
 	if ( ! function_exists( 'acf_add_local_field_group' ) ) {
@@ -145,7 +178,7 @@ add_action( 'acf/init', function () {
 			array(
 				'key'           => 'field_ricoman_products_used',
 				'label'         => 'Products used',
-				'name'          => 'products_used',
+				'name'          => 'ricoman_products_used',
 				'type'          => 'relationship',
 				'instructions'  => 'Search and click to add the products featured in this project. Each card’s image, name and tagline are pulled automatically from the product — nothing to upload. Drag to reorder.',
 				'post_type'     => array( 'product' ),
