@@ -655,6 +655,23 @@ function ricoman_product_img_insitu( $pid ) {
 add_shortcode( 'ricoman_search_results', function () {
 	$s     = get_search_query();
 	$paged = max( 1, (int) get_query_var( 'paged' ), (int) get_query_var( 'page' ) );
+
+	// Order results by type: products first, then accessories (products flagged
+	// is_accessories_product), then projects, then news — relevance kept within
+	// each group. Injected as a rank in ORDER BY, scoped to just this query.
+	$rm_order = function ( $clauses ) {
+		global $wpdb;
+		$acc  = "(SELECT pm.meta_value FROM {$wpdb->postmeta} pm WHERE pm.post_id = {$wpdb->posts}.ID AND pm.meta_key = 'is_accessories_product' LIMIT 1)";
+		$rank = 'CASE'
+			. " WHEN {$wpdb->posts}.post_type = 'product' AND {$acc} IN ('1','yes','true') THEN 1"
+			. " WHEN {$wpdb->posts}.post_type = 'product' THEN 0"
+			. " WHEN {$wpdb->posts}.post_type = 'project' THEN 2"
+			. " WHEN {$wpdb->posts}.post_type = 'news' THEN 3"
+			. ' ELSE 4 END';
+		$clauses['orderby'] = $rank . ' ASC' . ( ! empty( $clauses['orderby'] ) ? ', ' . $clauses['orderby'] : '' );
+		return $clauses;
+	};
+	add_filter( 'posts_clauses', $rm_order );
 	$q     = new WP_Query( array(
 		'post_type'      => array_values( array_filter( array( 'product', 'project', 'news' ), 'post_type_exists' ) ),
 		's'              => $s,
@@ -662,6 +679,7 @@ add_shortcode( 'ricoman_search_results', function () {
 		'posts_per_page' => 24,
 		'paged'          => $paged,
 	) );
+	remove_filter( 'posts_clauses', $rm_order );
 	if ( ! $q->have_posts() ) {
 		return '<p class="rm-search-none">' . esc_html( sprintf( __( 'No results for “%s”. Try a different term.', 'ricoman' ), $s ) ) . '</p>';
 	}
