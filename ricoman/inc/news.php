@@ -496,7 +496,10 @@ function ricoman_news_cta( $pid ) {
 	if ( '' === trim( $sub ) ) { $sub = 'Tell us what you’re working on — we’ll design, make and deliver the lighting, start to finish.'; }
 	if ( '' === trim( $btn ) ) { $btn = 'Start a project'; }
 	if ( '' === trim( $url ) ) { $url = '/lighting-design/'; }
-	$img = get_theme_file_uri( 'assets/images/office1.webp' );
+	// Banner image — a Media Library upload, referenced via the uploads base URL so
+	// it stays correct after the staging → live launch (filterable to change later).
+	$up  = wp_get_upload_dir();
+	$img = apply_filters( 'ricoman_news_cta_image', trailingslashit( $up['baseurl'] ) . '2026/07/dubai-presentation-BACKGROUND-09.webp' );
 	return '<div class="rm-section rm-news-cta">'
 		. '<span class="rm-news-cta-bg" style="background-image:url(' . esc_url( $img ) . ')" aria-hidden="true"></span>'
 		. '<div class="rm-news-cta-in">'
