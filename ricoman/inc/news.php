@@ -503,7 +503,7 @@ function ricoman_news_cta( $pid ) {
 		. '<h2 class="rm-news-cta-h">' . esc_html( $head ) . '</h2>'
 		. '<p class="rm-news-cta-p">' . esc_html( $sub ) . '</p>'
 		. '<div class="rm-news-cta-acts">'
-		. '<a class="btn btn-solid" href="' . esc_url( $url ) . '">' . esc_html( $btn ) . '</a>'
+		. '<a class="btn btn-line-d" href="' . esc_url( $url ) . '">' . esc_html( $btn ) . '</a>'
 		. '<a class="btn btn-line-d" href="/contact/">Talk to our team</a>'
 		. '</div>'
 		. '</div></div>';
