@@ -111,7 +111,7 @@ function ricoman_pf_box( $post ) {
 			<div><label><?php esc_html_e( 'Lighting Design button — title', 'ricoman' ); ?></label><input type="text" name="_ricoman_ld_btn" value="<?php echo esc_attr( $m( '_ricoman_ld_btn' ) ); ?>" placeholder="Request a Lighting Design"></div>
 			<div><label><?php esc_html_e( 'Lighting Design button — link', 'ricoman' ); ?></label><input type="url" name="_ricoman_ld_url" value="<?php echo esc_attr( $m( '_ricoman_ld_url' ) ); ?>" placeholder="/lighting-design/"></div>
 			<div><label><?php esc_html_e( 'Trade button — title', 'ricoman' ); ?></label><input type="text" name="_ricoman_trade_btn" value="<?php echo esc_attr( $m( '_ricoman_trade_btn' ) ); ?>" placeholder="Apply for a Trade Account"></div>
-			<div><label><?php esc_html_e( 'Trade button — link', 'ricoman' ); ?></label><input type="url" name="_ricoman_trade_url" value="<?php echo esc_attr( $m( '_ricoman_trade_url' ) ); ?>" placeholder="/contact/"></div>
+			<div><label><?php esc_html_e( 'Trade button — link', 'ricoman' ); ?></label><input type="url" name="_ricoman_trade_url" value="<?php echo esc_attr( $m( '_ricoman_trade_url' ) ); ?>" placeholder="/new-trade-page/"></div>
 		</div>
 	</div>
 	<script>
@@ -270,7 +270,7 @@ add_shortcode( 'ricoman_cta_buttons', function () {
 		$out .= '<a class="btn btn-solid" href="' . esc_url( get_post_meta( $pid, '_ricoman_ld_url', true ) ?: '/lighting-design/' ) . '">' . esc_html( $ld ) . '</a> ';
 	}
 	if ( '' !== trim( (string) $tr ) ) {
-		$out .= '<a class="btn btn-line-d" href="' . esc_url( get_post_meta( $pid, '_ricoman_trade_url', true ) ?: '/contact/' ) . '">' . esc_html( $tr ) . '</a>';
+		$out .= '<a class="btn btn-line-d" href="' . esc_url( get_post_meta( $pid, '_ricoman_trade_url', true ) ?: '/new-trade-page/' ) . '">' . esc_html( $tr ) . '</a>';
 	}
 	return $out ? '<div class="rm-cta-buttons">' . $out . '</div>' : '';
 } );

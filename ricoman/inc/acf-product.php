@@ -1642,7 +1642,7 @@ function ricoman_pf_sections( $pid ) {
 	$ld    = ricoman_pf_get( $pid, '_ricoman_ld_btn', 'Request a Lighting Design' );
 	$ldu   = ricoman_pf_get( $pid, '_ricoman_ld_url', '/lighting-design/' );
 	$tr    = ricoman_pf_get( $pid, '_ricoman_trade_btn', 'Apply for a Trade Account' );
-	$tru   = ricoman_pf_get( $pid, '_ricoman_trade_url', '/contact/' );
+	$tru   = ricoman_pf_get( $pid, '_ricoman_trade_url', '/new-trade-page/' );
 	$enq   = esc_url( home_url( '/my-project/' ) );
 	$add_btn = '<button type="button" class="ricoman-add-project" aria-label="' . esc_attr__( 'Add to My Project', 'ricoman' ) . '" data-add-to-project data-id="' . (int) $pid . '" data-title="' . esc_attr( $title ) . '" data-label="Add to my project"><span class="rm-pico" aria-hidden="true">&#xff0b;</span><span class="rm-plbl">Add to my project</span></button>';
 	$acts  = '<div class="rm-cfg-acts"><a class="btn btn-line-d" href="' . esc_url( $ldu ) . '">' . esc_html( $ld ) . '</a>';
