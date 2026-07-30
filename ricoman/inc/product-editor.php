@@ -100,6 +100,28 @@ function ricoman_pe_patterns() {
 	return $out;
 }
 
+/**
+ * Re-absolutise asset URLs in per-page pattern HTML.
+ *
+ * The page editor's TinyMCE can relativise absolute URLs against the wp-admin
+ * base (e.g. ../wp-content/… or ../../wp-includes/…). Those paths 404 on the
+ * front-end product page, so the image "disappears" after saving. Rewrite any
+ * ../-chained wp-content / wp-includes / uploads URL back to the site root.
+ */
+function ricoman_pe_absolute_urls( $html ) {
+	if ( ! is_string( $html ) || '' === $html || false === strpos( $html, '../' ) ) {
+		return $html;
+	}
+	$root = untrailingslashit( site_url() ); // wp-content / wp-includes hang off the install root.
+	// Anchor on the opening quote or paren so this covers src/href/srcset and
+	// CSS url(); collapse any ../ chain to the site root.
+	return preg_replace(
+		'#(["\'(])(?:\.\./)+(wp-content/|wp-includes/)#i',
+		'$1' . $root . '/$2',
+		$html
+	);
+}
+
 /** Compile a layout list into post_content (section blocks + pattern content). */
 function ricoman_pe_build_content( $layout ) {
 	$reg     = class_exists( 'WP_Block_Patterns_Registry' ) ? WP_Block_Patterns_Registry::get_instance() : null;
@@ -114,7 +136,7 @@ function ricoman_pe_build_content( $layout ) {
 		} elseif ( 'pattern' === $type && ! empty( $item['name'] ) ) {
 			// Per-page edited content wins; otherwise the shared registered template.
 			if ( ! empty( $item['html'] ) ) {
-				$content .= $item['html'] . "\n";
+				$content .= ricoman_pe_absolute_urls( $item['html'] ) . "\n";
 			} elseif ( $reg && $reg->is_registered( $item['name'] ) ) {
 				$pat      = $reg->get_registered( $item['name'] );
 				$content .= ( isset( $pat['content'] ) ? $pat['content'] : '' ) . "\n";
@@ -1120,7 +1142,11 @@ function ricoman_product_editor_render() {
 		function initPatEditor( it ) {
 			if ( ! window.wp || ! wp.editor || ! document.getElementById( 'rmpe-pat' ) ) { return; }
 			wp.editor.initialize( 'rmpe-pat', {
-				tinymce: { toolbar1: 'bold italic bullist numlist link removeformat', toolbar2: '', menubar: false, statusbar: false, height: 360 },
+				// convert_urls:false keeps image / link URLs ABSOLUTE. Left to its
+				// default, TinyMCE relativises them against the wp-admin base
+				// (../wp-content/…); that path then 404s on the front-end product
+				// page and the image "disappears" after saving.
+				tinymce: { toolbar1: 'bold italic bullist numlist link removeformat', toolbar2: '', menubar: false, statusbar: false, height: 360, convert_urls: false, relative_urls: false, remove_script_host: false },
 				quicktags: { buttons: 'strong,em,link,ul,ol,li,img' },
 				mediaButtons: true
 			} );
