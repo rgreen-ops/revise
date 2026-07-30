@@ -1448,6 +1448,14 @@ function ricoman_pf_gallery_block( $pid, $title, $code, $sw_html, $footer = '' )
 		}
 	}
 	$insitu = ricoman_pf_insitu_images( $pid );
+	// Accessories (a diffuser, louvre, driver…) have no meaningful "installed" shots,
+	// so the In-situ tab is dropped for them — automatic once a product is flagged as
+	// an accessory (is_accessories_product). Non-destructive: any photos stay in the DB,
+	// just hidden, so untagging brings the tab back.
+	$is_acc = in_array( (string) get_post_meta( $pid, 'is_accessories_product', true ), array( '1', 'yes', 'true' ), true );
+	if ( $is_acc ) {
+		$insitu = array();
+	}
 	$main   = $studio ? $studio[0] : ( $insitu ? $insitu[0] : esc_url( get_theme_file_uri( 'assets/images/ceiling.webp' ) ) );
 
 	$thumb = function ( $u, $tab, $on ) {
@@ -1463,10 +1471,10 @@ function ricoman_pf_gallery_block( $pid, $title, $code, $sw_html, $footer = '' )
 		$thumbs .= $thumb( $u, 'insitu', false );
 	}
 
-	// Always show the All / Studio / In-situ buttons; grey out any with no images.
+	// Show All / Studio / In-situ; grey out empty tabs. Accessories drop In-situ entirely.
 	$tabs = '<button type="button" class="rm-gtab on" data-tab="all">All</button>'
 		. '<button type="button" class="rm-gtab' . ( $studio ? '' : ' rm-gtab--off' ) . '" data-tab="studio"' . ( $studio ? '' : ' disabled' ) . '>Studio</button>'
-		. '<button type="button" class="rm-gtab' . ( $insitu ? '' : ' rm-gtab--off' ) . '" data-tab="insitu"' . ( $insitu ? '' : ' disabled' ) . '>In-situ</button>';
+		. ( $is_acc ? '' : '<button type="button" class="rm-gtab' . ( $insitu ? '' : ' rm-gtab--off' ) . '" data-tab="insitu"' . ( $insitu ? '' : ' disabled' ) . '>In-situ</button>' );
 
 	// If the main image 404s (a migrated file missing on disk), fall back to the
 	// featured image, then the theme placeholder — never a broken-image icon.
@@ -1534,7 +1542,7 @@ function ricoman_pf_sections( $pid ) {
 	// 'm3' = markup version; bump to invalidate cached sections when section HTML
 	// changes. (Variant thumbnails use native loading="lazy"; the optimiser, not
 	// the theme, was the speed problem.)
-	$tkey      = 'rm_pfsec_m20_' . $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true ) . '_' . get_option( 'rm_cfgimg_ver', '0' );
+	$tkey      = 'rm_pfsec_m21_' . $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true ) . '_' . get_option( 'rm_cfgimg_ver', '0' );
 	if ( $cacheable ) {
 		$pre = get_transient( $tkey );
 		if ( is_array( $pre ) ) {
