@@ -1458,6 +1458,15 @@ add_action( 'admin_post_ricoman_save_product_page', function () {
 		}
 	}
 
+	// Heal any TinyMCE-relativised asset URLs in per-page pattern HTML BEFORE
+	// storing, so both the saved layout and the compiled content are absolute
+	// (front-end + editor both render the image regardless of the page base).
+	foreach ( $layout as $li => $lit ) {
+		if ( is_array( $lit ) && isset( $lit['type'], $lit['html'] ) && 'pattern' === $lit['type'] && is_string( $lit['html'] ) ) {
+			$layout[ $li ]['html'] = ricoman_pe_absolute_urls( $lit['html'] );
+		}
+	}
+
 	// Layout -> meta + compiled content ($layout already parsed above).
 	update_post_meta( $pid, '_ricoman_layout', wp_json_encode( array_values( $layout ) ) );
 	update_post_meta( $pid, '_ricoman_custom', 1 ); // this product now overrides its template.
