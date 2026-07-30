@@ -1180,6 +1180,10 @@ body:not(.rm-pe-preview) .rm-mediapanel{width:100vw;margin-left:calc(50% - 50vw)
 .rm-spechtml{font-size:.98rem;line-height:1.7;color:var(--text);margin:8px 0 4px}
 .rm-spechtml strong{display:block;font-family:Poppins;font-size:.7rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:1.2em 0 .3em}
 .rm-spechtml p{margin:0 0 .6em}
+/* Some migrated spec content wraps the text in a heading (e.g. <h3>) or <b>,
+   which rendered huge/bold. Render headings inside the spec as normal spec text. */
+.rm-spechtml h1,.rm-spechtml h2,.rm-spechtml h3,.rm-spechtml h4,.rm-spechtml h5,.rm-spechtml h6{font-family:inherit;font-size:1rem;font-weight:400;line-height:1.7;letter-spacing:0;margin:0 0 .6em;color:var(--ink)}
+.rm-spechtml b{font-weight:600}
 /* Specification — tidy card grid (accent headers, dot bullets) */
 .rm-specgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:20px 44px;margin:4px 0}
 .rm-speccard{background:none;border:0;border-radius:0;padding:0}
