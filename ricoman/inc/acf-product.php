@@ -1952,6 +1952,27 @@ add_shortcode( 'ricoman_product_page', function () {
 	return $s['hero'] . $s['specs'] . ( isset( $s['downloads'] ) ? $s['downloads'] : '' ) . $s['configure'] . ( isset( $s['range'] ) ? $s['range'] : '' ) . $s['accessories'] . $s['related'] . ( isset( $s['faq'] ) ? $s['faq'] : '' ) . $s['cta'];
 } );
 
+/**
+ * Ensure a product's FAQ section renders even when the page has hand-built /
+ * builder-compiled block content that predates (or omits) the FAQ section.
+ * Appends the FAQ once, only when the FAQ meta is set and it isn't already in
+ * the rendered content. Emits the same markup as the auto-rendered FAQ section.
+ */
+function ricoman_pf_append_faq( $pid, $content ) {
+	if ( false !== strpos( (string) $content, 'ricoman-faq' ) ) {
+		return $content; // already present — don't duplicate.
+	}
+	$faq_raw = (string) ricoman_pf_get( $pid, '_ricoman_faq' );
+	if ( '' === trim( $faq_raw ) || ! function_exists( 'ricoman_faq_shortcode' ) ) {
+		return $content;
+	}
+	$inner = ricoman_faq_shortcode( array(), $faq_raw );
+	if ( ! $inner ) {
+		return $content;
+	}
+	return $content . '<div class="rm-section" id="faq"><div class="rm-pp-wrap"><h2 class="rm-shead">Frequently asked questions</h2>' . $inner . '</div></div>';
+}
+
 /* When a product has no block content (the ACF products), render the field page. */
 add_filter( 'the_content', function ( $content ) {
 	if ( is_admin() || ! is_singular( 'product' ) || ! in_the_loop() || ! is_main_query() ) {
@@ -1961,7 +1982,10 @@ add_filter( 'the_content', function ( $content ) {
 		return $content; // the builder preview filter already rendered the page.
 	}
 	if ( '' !== trim( wp_strip_all_tags( (string) $content ) ) ) {
-		return $content; // has real (block) content — leave it.
+		// Has real (block) content — leave it, but make sure the FAQ still shows:
+		// products built in the editor before the FAQ section existed have compiled
+		// content without it.
+		return ricoman_pf_append_faq( get_the_ID(), $content );
 	}
 	// A product following a template / with custom layout renders that layout.
 	$pid = get_the_ID();
