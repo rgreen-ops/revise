@@ -156,7 +156,7 @@ function ricoman_faq_import_render() {
 			. '<td><strong>' . esc_html( $name ) . '</strong></td>'
 			. '<td>' . implode( '<br>', $targets ) . '</td>'
 			. '<td>' . (int) $count . '</td>'
-			. '<td><em>' . esc_html( mb_strimwidth( $firstq, 0, 90, '…' ) ) . '</em></td>'
+			. '<td><em>' . esc_html( function_exists( 'mb_strimwidth' ) ? mb_strimwidth( $firstq, 0, 90, '…' ) : ( strlen( $firstq ) > 90 ? substr( $firstq, 0, 89 ) . '…' : $firstq ) ) . '</em></td>'
 			. '</tr>';
 	}
 	echo '</tbody></table>';
