@@ -141,6 +141,10 @@ function ricoman_pe_render_layout( $pid, $layout = null ) {
 	// Downloads section isn't in older saved layouts; inject it before configure.
 	$dl_html    = isset( $sections['downloads'] ) ? (string) $sections['downloads'] : '';
 	$dl_done    = '' === $dl_html;
+	// FAQ section isn't in older / custom saved layouts either; inject it before the
+	// closing CTA (or at the end) so imported/edited product FAQs always render.
+	$faq_html   = isset( $sections['faq'] ) ? (string) $sections['faq'] : '';
+	$faq_done   = '' === $faq_html;
 	$out        = '';
 	foreach ( (array) $layout as $it ) {
 		$type = isset( $it['type'] ) ? $it['type'] : '';
@@ -149,6 +153,11 @@ function ricoman_pe_render_layout( $pid, $layout = null ) {
 			if ( 'configure' === $it['key'] && ! $dl_done ) {
 				$out    .= $dl_html;
 				$dl_done = true;
+			}
+			// Inject FAQ just before the closing CTA if not explicitly in the layout.
+			if ( 'cta' === $it['key'] && ! $faq_done ) {
+				$out     .= $faq_html;
+				$faq_done = true;
 			}
 			if ( ! isset( $it['on'] ) || $it['on'] ) {
 				$out .= isset( $sections[ $it['key'] ] ) ? $sections[ $it['key'] ] : '';
@@ -160,6 +169,8 @@ function ricoman_pe_render_layout( $pid, $layout = null ) {
 				$range_done = true;
 			} elseif ( 'downloads' === $it['key'] ) {
 				$dl_done = true; // layout already places it explicitly.
+			} elseif ( 'faq' === $it['key'] ) {
+				$faq_done = true; // layout already places it explicitly.
 			}
 		} elseif ( 'pattern' === $type && ! empty( $it['name'] ) ) {
 			if ( ! empty( $it['html'] ) ) {
@@ -171,6 +182,9 @@ function ricoman_pe_render_layout( $pid, $layout = null ) {
 				$out .= do_blocks( isset( $p['content'] ) ? $p['content'] : '' );
 			}
 		}
+	}
+	if ( ! $faq_done ) {
+		$out .= $faq_html; // no CTA section in the layout, so append FAQ at the end.
 	}
 	if ( ! $range_done ) {
 		$out .= $range_html; // no configure section in the layout — append at the end.
