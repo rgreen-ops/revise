@@ -192,6 +192,12 @@ add_action( 'admin_post_ricoman_faq_import', function () {
 				continue;
 			}
 			update_post_meta( $id, '_ricoman_faq', $clean );
+			// Bust THIS product's section cache so the FAQ appears immediately.
+			// The section-cache key (ricoman_pf_sections) is keyed on _rm_secver +
+			// post-modified time, NOT rm_products_ver — writing meta directly leaves
+			// a stale cached page, so bump _rm_secver like a normal product save does.
+			update_post_meta( $id, '_rm_secver', time() );
+			clean_post_cache( $id );
 			$pages++;
 			$did = true;
 		}
