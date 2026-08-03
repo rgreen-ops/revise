@@ -23,21 +23,6 @@ function ricoman_faq_import_cap() {
 	return 'edit_posts';
 }
 
-// TEMP diagnostic: expose the byte-length of each product's _ricoman_faq via REST
-// (length only, no content) so we can confirm exactly which products the import
-// wrote. Remove once the FAQ import is verified.
-add_action( 'rest_api_init', function () {
-	if ( ! function_exists( 'register_rest_field' ) ) {
-		return;
-	}
-	register_rest_field( 'product', 'rm_faq_len', array(
-		'get_callback' => function ( $obj ) {
-			$id = is_array( $obj ) && isset( $obj['id'] ) ? (int) $obj['id'] : 0;
-			return strlen( (string) get_post_meta( $id, '_ricoman_faq', true ) );
-		},
-	) );
-} );
-
 /** Read + decode the import data file (array of rows). */
 function ricoman_faq_import_data() {
 	$file = get_theme_file_path( 'data/product-faqs.json' );
