@@ -73,6 +73,7 @@ require_once get_theme_file_path( 'inc/product-builder.php' );// Product Builder
 require_once get_theme_file_path( 'inc/product-fields.php' ); // Structured product content (variants/zigzag/paragraphs) as fields.
 require_once get_theme_file_path( 'inc/acf-product.php' );    // Render existing ACF products (empty content) in the new design.
 require_once get_theme_file_path( 'inc/product-sections.php' );// Composable product-page section blocks/patterns.
+require_once get_theme_file_path( 'inc/faq-import.php' );      // Ricoman → Import Product FAQs: bulk-load product FAQ content.
 require_once get_theme_file_path( 'inc/product-editor.php' );  // Custom Product Page Editor (edit + live preview).
 require_once get_theme_file_path( 'inc/product-templates.php' );// Product page templates (Standard/Flow/Estrella) + inheritance.
 require_once get_theme_file_path( 'inc/estrella.php' );       // Estrella range hub: slug, range content, all-optics LDT zip.
