@@ -92,12 +92,26 @@ add_action( 'rest_api_init', function () {
 			$pid     = is_array( $obj ) && isset( $obj['id'] ) ? (int) $obj['id'] : 0;
 			$layout  = (string) get_post_meta( $pid, '_ricoman_layout', true );
 			$content = (string) get_post_field( 'post_content', $pid );
+			$decoded = json_decode( $layout, true );
+			$items   = array();
+			if ( is_array( $decoded ) ) {
+				foreach ( $decoded as $it ) {
+					$html   = isset( $it['html'] ) ? (string) $it['html'] : '';
+					$items[] = array(
+						't'    => isset( $it['type'] ) ? $it['type'] : '?',
+						'k'    => isset( $it['key'] ) ? $it['key'] : ( isset( $it['name'] ) ? $it['name'] : '' ),
+						'hLen' => strlen( $html ),
+						// Sequences that can break the inline <script> or a JS string literal:
+						'endScript' => ( '' !== $html && false !== stripos( $html, '</script' ) ) ? 1 : 0,
+						'u2028'     => ( '' !== $html && ( false !== strpos( $html, "\xE2\x80\xA8" ) || false !== strpos( $html, "\xE2\x80\xA9" ) ) ) ? 1 : 0,
+					);
+				}
+			}
 			return array(
 				'custom'       => get_post_meta( $pid, '_ricoman_custom', true ) ? 1 : 0,
-				'template'     => (int) get_post_meta( $pid, '_ricoman_template', true ),
-				'layoutLen'    => strlen( $layout ),
-				'layoutHasMP'  => ( false !== strpos( $layout, 'mediapanel' ) ) ? 1 : 0,
-				'contentLen'   => strlen( $content ),
+				'jsonOk'       => is_array( $decoded ) ? 1 : 0,
+				'itemCount'    => is_array( $decoded ) ? count( $decoded ) : -1,
+				'items'        => $items,
 				'contentHasMP' => ( false !== strpos( $content, 'mediapanel' ) ) ? 1 : 0,
 			);
 		},
