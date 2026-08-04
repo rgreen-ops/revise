@@ -124,49 +124,6 @@ function ricoman_pe_get_layout( $pid ) {
 	return ricoman_pe_default_layout();
 }
 
-// TEMP diagnostic (remove after fixing the editor-layout issue): expose the key
-// layout flags per product via REST so we can see why the editor loads a
-// different layout than the front end renders.
-add_action( 'rest_api_init', function () {
-	if ( ! function_exists( 'register_rest_field' ) ) {
-		return;
-	}
-	register_rest_field( 'product', 'rm_layout_debug', array(
-		'get_callback' => function ( $obj ) {
-			$pid     = is_array( $obj ) && isset( $obj['id'] ) ? (int) $obj['id'] : 0;
-			$layout  = (string) get_post_meta( $pid, '_ricoman_layout', true );
-			$content = (string) get_post_field( 'post_content', $pid );
-			$decoded = json_decode( $layout, true );
-			$items   = array();
-			if ( is_array( $decoded ) ) {
-				foreach ( $decoded as $it ) {
-					$html   = isset( $it['html'] ) ? (string) $it['html'] : '';
-					$items[] = array(
-						't'    => isset( $it['type'] ) ? $it['type'] : '?',
-						'k'    => isset( $it['key'] ) ? $it['key'] : ( isset( $it['name'] ) ? $it['name'] : '' ),
-						'hLen' => strlen( $html ),
-						// Sequences that can break the inline <script> or a JS string literal:
-						'endScript' => ( '' !== $html && false !== stripos( $html, '</script' ) ) ? 1 : 0,
-						'u2028'     => ( '' !== $html && ( false !== strpos( $html, "\xE2\x80\xA8" ) || false !== strpos( $html, "\xE2\x80\xA9" ) ) ) ? 1 : 0,
-					);
-				}
-			}
-			$resolved = function_exists( 'ricoman_pe_get_layout' ) ? ricoman_pe_get_layout( $pid ) : array();
-			$res      = array();
-			foreach ( (array) $resolved as $it ) {
-				$res[] = ( isset( $it['type'] ) ? $it['type'] : '?' ) . ':' . ( isset( $it['key'] ) ? $it['key'] : ( isset( $it['name'] ) ? $it['name'] : '' ) );
-			}
-			return array(
-				'custom'       => get_post_meta( $pid, '_ricoman_custom', true ) ? 1 : 0,
-				'jsonOk'       => is_array( $decoded ) ? 1 : 0,
-				'itemCount'    => is_array( $decoded ) ? count( $decoded ) : -1,
-				'resolved'     => $res,
-				'contentHasMP' => ( false !== strpos( $content, 'mediapanel' ) ) ? 1 : 0,
-			);
-		},
-	) );
-} );
-
 /** Patterns an admin can drop between sections (the theme's own patterns). */
 function ricoman_pe_patterns() {
 	$out = array();
