@@ -80,6 +80,30 @@ function ricoman_pe_get_layout( $pid ) {
 	return ricoman_pe_default_layout();
 }
 
+// TEMP diagnostic (remove after fixing the editor-layout issue): expose the key
+// layout flags per product via REST so we can see why the editor loads a
+// different layout than the front end renders.
+add_action( 'rest_api_init', function () {
+	if ( ! function_exists( 'register_rest_field' ) ) {
+		return;
+	}
+	register_rest_field( 'product', 'rm_layout_debug', array(
+		'get_callback' => function ( $obj ) {
+			$pid     = is_array( $obj ) && isset( $obj['id'] ) ? (int) $obj['id'] : 0;
+			$layout  = (string) get_post_meta( $pid, '_ricoman_layout', true );
+			$content = (string) get_post_field( 'post_content', $pid );
+			return array(
+				'custom'       => get_post_meta( $pid, '_ricoman_custom', true ) ? 1 : 0,
+				'template'     => (int) get_post_meta( $pid, '_ricoman_template', true ),
+				'layoutLen'    => strlen( $layout ),
+				'layoutHasMP'  => ( false !== strpos( $layout, 'mediapanel' ) ) ? 1 : 0,
+				'contentLen'   => strlen( $content ),
+				'contentHasMP' => ( false !== strpos( $content, 'mediapanel' ) ) ? 1 : 0,
+			);
+		},
+	) );
+} );
+
 /** Patterns an admin can drop between sections (the theme's own patterns). */
 function ricoman_pe_patterns() {
 	$out = array();
