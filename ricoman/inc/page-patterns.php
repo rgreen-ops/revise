@@ -958,9 +958,49 @@ add_action( 'init', function () {
 		'cta_sub'    => 'Tell us what you&rsquo;re working on — we&rsquo;ll design, make and deliver the lighting, start to finish.',
 	) ) );
 
+	/* ===== Home · Feature carousel =====
+	 * Editable intro text (left) + a swipeable carousel of link cards (right),
+	 * like the reference design. Each card is core blocks (image + linked title)
+	 * so it stays click-to-edit and you can add/remove/reorder cards freely; the
+	 * arrows + drag are added at runtime by assets/js/home-carousel.js around the
+	 * .rm-homecaro-track. Whole card is clickable (CSS stretched link). */
+	$caro_card = function ( $img, $title, $href ) {
+		return '<!-- wp:group {"className":"rm-homecaro-card","layout":{"type":"constrained"}} --><div class="wp-block-group rm-homecaro-card">'
+			. '<!-- wp:image {"className":"rm-homecaro-card-img","sizeSlug":"large"} --><figure class="wp-block-image size-large rm-homecaro-card-img"><img src="' . $img . '" alt=""/></figure><!-- /wp:image -->'
+			. '<!-- wp:heading {"level":3,"className":"rm-homecaro-card-title"} --><h3 class="wp-block-heading rm-homecaro-card-title"><a href="' . $href . '">' . $title . '</a></h3><!-- /wp:heading -->'
+			. '</div><!-- /wp:group -->';
+	};
+	$p['home-feature-carousel'] = array( 'Home · Feature carousel', $sec(
+		'<!-- wp:columns {"verticalAlignment":"center","className":"rm-homecaro-cols"} --><div class="wp-block-columns are-vertically-aligned-center rm-homecaro-cols">'
+		. '<!-- wp:column {"width":"32%","verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center" style="flex-basis:32%">'
+		. '<!-- wp:heading {"level":2,"className":"rm-homecaro-lead"} --><h2 class="wp-block-heading rm-homecaro-lead">We design and deliver <strong>UK-made commercial lighting</strong> that empowers our project partners to bring spaces to life &mdash; on spec, on time, and on budget.</h2><!-- /wp:heading -->'
+		. '</div><!-- /wp:column -->'
+		. '<!-- wp:column {"width":"68%"} --><div class="wp-block-column" style="flex-basis:68%">'
+		. '<!-- wp:group {"className":"rm-homecaro-track","layout":{"type":"default"}} --><div class="wp-block-group rm-homecaro-track">'
+		. $caro_card( $u( 'workshop.webp' ), 'Made in Britain', '/made-in-britain/' )
+		. $caro_card( $u( 'ceiling.webp' ), 'Lighting Design Service', '/lighting-design/' )
+		. $caro_card( $u( 'warm-int.webp' ), 'Our Sustainability Commitment', '/sustainability/' )
+		. $caro_card( $u( 'office1.webp' ), 'Resources', '/downloads/' )
+		. '</div><!-- /wp:group -->'
+		. '</div><!-- /wp:column -->'
+		. '</div><!-- /wp:columns -->'
+	, 'rm-homecaro' ) );
+
 	foreach ( $p as $slug => $data ) {
 		register_block_pattern( 'ricoman/' . $slug, array( 'title' => $data[0], 'categories' => array( 'ricoman-page' ), 'content' => $data[1] ) );
 	}
+
+	// Load the carousel enhancer only where the Home · Feature carousel is used.
+	add_action( 'wp_enqueue_scripts', function () {
+		if ( ! is_singular() ) {
+			return;
+		}
+		$post = get_post();
+		if ( $post && false !== strpos( (string) $post->post_content, 'rm-homecaro-track' ) ) {
+			$src = get_theme_file_path( 'assets/js/home-carousel.js' );
+			wp_enqueue_script( 'ricoman-home-carousel', get_theme_file_uri( 'assets/js/home-carousel.js' ), array(), file_exists( $src ) ? (string) filemtime( $src ) : '1', true );
+		}
+	} );
 
 	// Downloads CTA banner — insert after the [ricoman_downloads] shortcode on the Downloads page.
 	register_block_pattern( 'ricoman/downloads-cta', array(
