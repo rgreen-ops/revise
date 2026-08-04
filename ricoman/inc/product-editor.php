@@ -68,6 +68,44 @@ function ricoman_pe_default_layout() {
 	return $items;
 }
 
+/**
+ * Rebuild a layout list from compiled post_content. Recovery path for products
+ * whose stored _ricoman_layout JSON was corrupted by the pre-wp_slash save bug
+ * (undecodable JSON). Maps our section block comments back to section items and
+ * the HTML between them to pattern items, preserving order — so the editor shows
+ * the real layout (incl. patterns) and a re-save writes clean JSON.
+ */
+function ricoman_pe_layout_from_content( $content ) {
+	$content = (string) $content;
+	if ( '' === trim( $content ) || ! function_exists( 'ricoman_section_defs' ) ) {
+		return array();
+	}
+	$keys  = array_keys( ricoman_section_defs() );
+	$out   = array();
+	// Split on our section block comments, capturing the section key.
+	$parts = preg_split( '/<!--\s*wp:ricoman\/product-([a-z0-9_-]+)\s*\/-->/i', $content, -1, PREG_SPLIT_DELIM_CAPTURE );
+	foreach ( (array) $parts as $i => $part ) {
+		if ( 1 === $i % 2 ) { // captured section key
+			if ( in_array( $part, $keys, true ) ) {
+				$out[] = array( 'type' => 'section', 'key' => $part, 'on' => true );
+			}
+			continue;
+		}
+		$html = trim( (string) $part ); // HTML between sections = a dropped-in pattern
+		if ( '' === $html ) {
+			continue;
+		}
+		$name = 'ricoman/product-mediapanel';
+		if ( false !== strpos( $html, 'rm-mediapanel--right' ) ) {
+			$name = 'ricoman/product-mediapanel-rev';
+		} elseif ( false === strpos( $html, 'rm-mediapanel' ) ) {
+			$name = 'ricoman/product-block'; // unknown block; keep html so it still renders + edits.
+		}
+		$out[] = array( 'type' => 'pattern', 'name' => $name, 'html' => $html );
+	}
+	return $out;
+}
+
 /** Read a product's saved layout (or the default). */
 function ricoman_pe_get_layout( $pid ) {
 	$raw = get_post_meta( $pid, '_ricoman_layout', true );
@@ -75,6 +113,12 @@ function ricoman_pe_get_layout( $pid ) {
 		$data = json_decode( $raw, true );
 		if ( is_array( $data ) && $data ) {
 			return $data;
+		}
+		// Corrupt/invalid JSON (legacy pre-wp_slash save): rebuild from the
+		// compiled post_content so the real layout still loads in the editor.
+		$rebuilt = ricoman_pe_layout_from_content( get_post_field( 'post_content', $pid ) );
+		if ( $rebuilt ) {
+			return $rebuilt;
 		}
 	}
 	return ricoman_pe_default_layout();
@@ -107,11 +151,16 @@ add_action( 'rest_api_init', function () {
 					);
 				}
 			}
+			$resolved = function_exists( 'ricoman_pe_get_layout' ) ? ricoman_pe_get_layout( $pid ) : array();
+			$res      = array();
+			foreach ( (array) $resolved as $it ) {
+				$res[] = ( isset( $it['type'] ) ? $it['type'] : '?' ) . ':' . ( isset( $it['key'] ) ? $it['key'] : ( isset( $it['name'] ) ? $it['name'] : '' ) );
+			}
 			return array(
 				'custom'       => get_post_meta( $pid, '_ricoman_custom', true ) ? 1 : 0,
 				'jsonOk'       => is_array( $decoded ) ? 1 : 0,
 				'itemCount'    => is_array( $decoded ) ? count( $decoded ) : -1,
-				'items'        => $items,
+				'resolved'     => $res,
 				'contentHasMP' => ( false !== strpos( $content, 'mediapanel' ) ) ? 1 : 0,
 			);
 		},
@@ -1400,7 +1449,7 @@ add_action( 'admin_post_ricoman_save_product_page', function () {
 	// Template mode: save the layout to the template, not the product.
 	$tpl = isset( $_POST['template'] ) ? absint( $_POST['template'] ) : 0;
 	if ( $tpl && 'rm_ptemplate' === get_post_type( $tpl ) && current_user_can( 'edit_post', $tpl ) ) {
-		update_post_meta( $tpl, '_ricoman_layout', wp_json_encode( array_values( $layout ) ) );
+		update_post_meta( $tpl, '_ricoman_layout', wp_slash( wp_json_encode( array_values( $layout ) ) ) ); // wp_slash: see product save below.
 		delete_transient( ricoman_pe_draft_key( $pid ) );
 		wp_safe_redirect( admin_url( 'admin.php?page=ricoman-product-editor&template=' . $tpl . '&saved=1' ) );
 		exit;
@@ -1506,7 +1555,11 @@ add_action( 'admin_post_ricoman_save_product_page', function () {
 	}
 
 	// Layout -> meta + compiled content ($layout already parsed above).
-	update_post_meta( $pid, '_ricoman_layout', wp_json_encode( array_values( $layout ) ) );
+	// wp_slash: update_post_meta() unslashes internally, which would strip the
+	// backslashes JSON uses to escape quotes inside per-page pattern HTML and
+	// corrupt the stored JSON (get_layout would then fail to parse it and the
+	// pattern would vanish from the editor). Slash it so it round-trips intact.
+	update_post_meta( $pid, '_ricoman_layout', wp_slash( wp_json_encode( array_values( $layout ) ) ) );
 	update_post_meta( $pid, '_ricoman_custom', 1 ); // this product now overrides its template.
 
 	wp_update_post( array(
