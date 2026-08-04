@@ -977,7 +977,7 @@ add_action( 'init', function () {
 		. '</div><!-- /wp:column -->'
 		. '<!-- wp:column {"width":"68%"} --><div class="wp-block-column" style="flex-basis:68%">'
 		. '<!-- wp:group {"className":"rm-homecaro-track","layout":{"type":"default"}} --><div class="wp-block-group rm-homecaro-track">'
-		. $caro_card( $u( 'workshop.webp' ), 'Made in Britain', '/made-in-britain/' )
+		. $caro_card( $u( 'workshop.webp' ), 'Made in Britain', '/manufacturing/' )
 		. $caro_card( $u( 'ceiling.webp' ), 'Lighting Design Service', '/lighting-design/' )
 		. $caro_card( $u( 'warm-int.webp' ), 'Our Sustainability Commitment', '/sustainability/' )
 		. $caro_card( $u( 'office1.webp' ), 'Resources', '/downloads/' )
