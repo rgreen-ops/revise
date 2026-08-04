@@ -272,6 +272,37 @@ function ricoman_path_resolves( $path ) {
 	return false;
 }
 
+/**
+ * Obvious bot / scanner / junk 404s that aren't real links on the site — used to
+ * keep the Links & Redirects list to genuine issues only. Matches secret/config
+ * file probes (.env, .git, wp-config, backups…), admin-panel guesses, malformed
+ * paths (wildcards, emails stuck in a URL) and crawler .well-known conventions.
+ * Real page slugs (about, product-warranty, modern-slavery-statement…) never hit
+ * these, so genuine broken links are preserved.
+ */
+function ricoman_404_is_noise( $path ) {
+	$p = strtolower( (string) $path );
+	if ( '' === $p ) {
+		return false;
+	}
+	if ( false !== strpos( $p, '@' ) || false !== strpos( $p, '*' ) ) {
+		return true; // email or wildcard in the path = bot/junk.
+	}
+	if ( 0 === strpos( $p, '.well-known/' ) ) {
+		return true; // protocol/crawler conventions, never site content.
+	}
+	if ( 'admin' === $p || 0 === strpos( $p, 'admin/' ) || 0 === strpos( $p, 'administrator' ) ) {
+		return true; // admin-panel guesses (our real admin is /wp-admin/).
+	}
+	$needles = array( '.env', '.git', '.svn', '.htaccess', '.aws', '.ssh', 'wp-config', 'phpinfo', 'phpunit', 'phpmyadmin', 'vendor/', 'eval-stdin', 'xmlrpc', '.sql', '.bak', '.old', '.backup' );
+	foreach ( $needles as $n ) {
+		if ( false !== strpos( $p, $n ) ) {
+			return true;
+		}
+	}
+	return false;
+}
+
 /* ---------------------------------------------------------- 404 watch (logger) */
 add_action( 'template_redirect', function () {
 	if ( is_admin() || ! is_404() ) {
@@ -287,6 +318,9 @@ add_action( 'template_redirect', function () {
 	}
 	if ( 0 === strpos( $path, 'wp-' ) || false !== strpos( $path, 'wp-content' ) || false !== strpos( $path, 'wp-json' ) ) {
 		return;
+	}
+	if ( ricoman_404_is_noise( $path ) ) {
+		return; // don't log bot/scanner junk.
 	}
 	if ( in_array( $path, (array) get_option( 'ricoman_404_ignored', array() ), true ) ) {
 		return;
@@ -318,11 +352,22 @@ function ricoman_404_prune_resolved( $force = false ) {
 	if ( ! $log ) {
 		return 0;
 	}
+	$changed = false;
+	// Always drop bot/scanner noise (cheap; not gated by the resolve throttle),
+	// so junk clears from the list immediately and never accumulates.
+	foreach ( array_keys( $log ) as $path ) {
+		if ( ricoman_404_is_noise( $path ) ) {
+			unset( $log[ $path ] );
+			$changed = true;
+		}
+	}
 	if ( ! $force && get_transient( 'ricoman_404_pruned' ) ) {
 		// Recently pruned — trust the stored log without re-resolving.
+		if ( $changed ) {
+			update_option( 'ricoman_404_log', $log, false );
+		}
 		return count( $log );
 	}
-	$changed = false;
 	foreach ( array_keys( $log ) as $path ) {
 		if ( ricoman_path_resolves( $path ) ) {
 			unset( $log[ $path ] );
