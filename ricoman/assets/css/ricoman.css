@@ -2154,6 +2154,7 @@ body:not(.rm-pe-preview){overflow-x:clip}
 .rm-homecaro--news > *{max-width:none;margin-inline:0}
 .rm-homecaro--news > .rm-shead{margin:0 0 22px}
 .rm-homecaro-card-img:empty{aspect-ratio:1/1;background:var(--soft);border-radius:6px}
+.rm-homecaro-card-date{margin:5px 0 0;font-size:.82rem;color:var(--muted);letter-spacing:.01em}
 
 /* ============================================================
  * "Image + text" cards band — pattern: Cards · Image + text (3-up).

@@ -95,7 +95,8 @@ add_shortcode( 'ricoman_news_carousel', function ( $atts ) {
 		$img    = function_exists( 'ricoman_news_img' ) ? ricoman_news_img( $pid, 'large' ) : get_the_post_thumbnail_url( $pid, 'large' );
 		$imgtag = $img ? '<img src="' . esc_url( $img ) . '" alt="' . esc_attr( $title ) . '" loading="lazy"/>' : '';
 		$cards .= '<div class="rm-homecaro-card"><figure class="rm-homecaro-card-img">' . $imgtag . '</figure>'
-			. '<h3 class="rm-homecaro-card-title"><a href="' . esc_url( $href ) . '">' . esc_html( $title ) . '</a></h3></div>';
+			. '<h3 class="rm-homecaro-card-title"><a href="' . esc_url( $href ) . '">' . esc_html( $title ) . '</a></h3>'
+			. '<p class="rm-homecaro-card-date"><time datetime="' . esc_attr( get_the_date( 'c', $pid ) ) . '">' . esc_html( get_the_date( 'j M Y', $pid ) ) . '</time></p></div>';
 	}
 	wp_reset_postdata();
 	// Enhance into a carousel — same footer script as the block carousels.
