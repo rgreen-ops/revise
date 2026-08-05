@@ -343,27 +343,21 @@ function ricoman_dl_type_icon( $type ) {
  * Return all non-accessory products + a grouped accessories entry.
  */
 function ricoman_dl_get_products() {
-	$ctax = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
-	$args = array(
+	$q   = new WP_Query( array(
 		'post_type'      => 'product',
 		'post_status'    => 'publish',
 		'posts_per_page' => -1,
 		'orderby'        => 'title',
 		'order'          => 'ASC',
-		'meta_query'     => array(
-			array(
-				'key'     => 'is_accessories_product',
-				'compare' => 'NOT EXISTS',
-			),
-		),
-	);
-	// Exclude accessory products (flagged via meta).
-	$q = new WP_Query( $args );
+	) );
 	$out = array();
 	foreach ( $q->posts as $p ) {
-		// Skip if flagged as accessory.
-		$flag = get_post_meta( $p->ID, 'is_accessories_product', true );
-		if ( $flag && 'no' !== strtolower( (string) $flag ) ) {
+		// Skip accessories — flagged via the is_accessories_product meta OR in the
+		// "Accessories" product-cat term. They're reachable via the grouped
+		// "Accessories" entry, not listed individually. Uses the same detection as
+		// the archive + product pages, so term-tagged accessories (mounting kits,
+		// clamps, diffusers, suspension sets…) no longer leak into the list.
+		if ( function_exists( 'ricoman_pf_is_accessory' ) && ricoman_pf_is_accessory( $p->ID ) ) {
 			continue;
 		}
 		$out[ $p->ID ] = $p->post_title;
@@ -428,13 +422,14 @@ function ricoman_dl_ajax_product() {
 
 	// Query products.
 	if ( 'accessories' === $product_id ) {
+		// All accessories (meta flag OR "Accessories" term) — the loop filters each
+		// product via ricoman_pf_is_accessory() so term-tagged ones are included.
 		$query_args = array(
 			'post_type'      => 'product',
 			'post_status'    => 'publish',
 			'posts_per_page' => -1,
-			'meta_query'     => array(
-				array( 'key' => 'is_accessories_product', 'value' => array( '1', 'yes', 'true' ), 'compare' => 'IN' ),
-			),
+			'orderby'        => 'title',
+			'order'          => 'ASC',
 		);
 	} elseif ( $product_id ) {
 		$query_args = array(
@@ -459,6 +454,10 @@ function ricoman_dl_ajax_product() {
 
 	foreach ( $q->posts as $p ) {
 		$pid = $p->ID;
+		// Accessories view: only show accessory products (meta OR "Accessories" term).
+		if ( 'accessories' === $product_id && function_exists( 'ricoman_pf_is_accessory' ) && ! ricoman_pf_is_accessory( $pid ) ) {
+			continue;
+		}
 
 		if ( in_array( 'datasheet', $types, true ) ) {
 			$ds = ricoman_pf_fileurl( ricoman_pf_get( $pid, 'download_family_datasheet' ) );
