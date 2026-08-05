@@ -1981,16 +1981,27 @@ add_filter( 'the_content', function ( $content ) {
 	if ( ! empty( $GLOBALS['rm_pe_preview'] ) ) {
 		return $content; // the builder preview filter already rendered the page.
 	}
-	if ( '' !== trim( wp_strip_all_tags( (string) $content ) ) ) {
-		// Has real (block) content — leave it, but make sure the FAQ still shows:
-		// products built in the editor before the FAQ section existed have compiled
-		// content without it.
-		return ricoman_pf_append_faq( get_the_ID(), $content );
-	}
-	// A product following a template / with custom layout renders that layout.
 	$pid = get_the_ID();
+	// A product with a managed layout (custom edits or a template) renders FROM its
+	// layout via ricoman_pe_render_layout — the same renderer the editor preview
+	// uses. That renderer INJECTS the Downloads / Range / FAQ sections in the right
+	// place for older layouts saved before those sections existed. The stored
+	// post_content, by contrast, is a one-off compile from build_content() that does
+	// NOT inject, so returning it directly can silently drop those sections — which
+	// is why Downloads went missing on builder-edited products. Rendering from the
+	// layout keeps the live page identical to the preview and self-heals the gap.
 	if ( function_exists( 'ricoman_pe_has_managed_layout' ) && ricoman_pe_has_managed_layout( $pid ) ) {
-		return ricoman_pe_render_layout( $pid );
+		$rendered = ricoman_pe_render_layout( $pid );
+		if ( '' !== trim( (string) $rendered ) ) {
+			return $rendered;
+		}
+		// Layout resolved to nothing (shouldn't happen) — fall through to the
+		// stored content / auto render below rather than showing a blank page.
+	}
+	if ( '' !== trim( wp_strip_all_tags( (string) $content ) ) ) {
+		// Hand-built block content that isn't a managed layout — leave it as-is,
+		// but make sure the FAQ still shows.
+		return ricoman_pf_append_faq( $pid, $content );
 	}
 	return do_shortcode( '[ricoman_product_page]' );
 	// Priority 11: render AFTER wpautop (priority 10) so it can't wrap our
