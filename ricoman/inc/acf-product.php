@@ -2009,3 +2009,38 @@ add_filter( 'the_content', function ( $content ) {
 	// which broke the gallery image height on mobile. The injected HTML already
 	// has its shortcodes expanded, so running late is safe.
 }, 11 );
+
+/* TEMP-DLCHECK — structural diagnosis for the Downloads/media-panel switch. REMOVE. */
+add_action( 'rest_api_init', function () {
+	register_rest_field( 'product', 'rm_dlcheck', array(
+		'get_callback' => function ( $arr ) {
+			$pid = $arr['id'];
+			$pc  = (string) get_post_field( 'post_content', $pid );
+			$lay = (string) get_post_meta( $pid, '_ricoman_layout', true );
+			$dec = json_decode( $lay, true );
+			$resolved = function_exists( 'ricoman_pe_resolve_layout' ) ? ricoman_pe_resolve_layout( $pid ) : array();
+			$items = array();
+			foreach ( (array) $resolved as $it ) {
+				$items[] = array(
+					'type' => isset( $it['type'] ) ? $it['type'] : '',
+					'key'  => isset( $it['key'] ) ? $it['key'] : '',
+					'name' => isset( $it['name'] ) ? $it['name'] : '',
+					'mp'   => ( ! empty( $it['html'] ) && false !== strpos( $it['html'], 'rm-mediapanel' ) ) ? 1 : 0,
+					'hl'   => ! empty( $it['html'] ) ? strlen( $it['html'] ) : 0,
+				);
+			}
+			$rl = function_exists( 'ricoman_pe_render_layout' ) ? (string) ricoman_pe_render_layout( $pid ) : '';
+			return array(
+				'pc_has_mp'     => false !== strpos( $pc, 'rm-mediapanel' ) ? 1 : 0,
+				'pc_len'        => strlen( $pc ),
+				'lay_ok'        => is_array( $dec ) ? 1 : 0,
+				'lay_len'       => strlen( $lay ),
+				'lay_has_mp'    => false !== strpos( $lay, 'rm-mediapanel' ) ? 1 : 0,
+				'items'         => $items,
+				'render_has_mp' => false !== strpos( $rl, 'rm-mediapanel' ) ? 1 : 0,
+				'render_len'    => strlen( $rl ),
+			);
+		},
+		'schema' => null,
+	) );
+} );
