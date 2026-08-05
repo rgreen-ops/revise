@@ -1005,6 +1005,33 @@ add_action( 'init', function () {
 		. '</div><!-- /wp:group -->'
 	, 'rm-homecaro rm-homecaro--range' ) );
 
+	/* ===== Home · Product shoutout =====
+	 * Two flush, full-bleed image panels (like the old homepage split band),
+	 * repurposed as a product shoutout: each panel is an editable Cover block —
+	 * swap the background image, edit the eyebrow / product name / blurb, and set
+	 * the button link. Add a third column to shout out another product, or delete
+	 * one. Outline-light button + white text sit over a dark image overlay. */
+	$shout_panel = function ( $img, $eyb, $title, $blurb, $label, $href ) use ( $btn, $buttons ) {
+		return '<!-- wp:column --><div class="wp-block-column">'
+			. '<!-- wp:cover {"url":"' . $img . '","dimRatio":55,"overlayColor":"ink","minHeight":62,"minHeightUnit":"vh","contentPosition":"center left","textColor":"base"} -->'
+			. '<div class="wp-block-cover has-custom-content-position is-position-center-left has-base-color has-text-color" style="min-height:62vh">'
+			. '<span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-55 has-background-dim"></span>'
+			. '<img class="wp-block-cover__image-background" alt="" src="' . $img . '" data-object-fit="cover"/>'
+			. '<div class="wp-block-cover__inner-container">'
+			. '<!-- wp:paragraph {"className":"rm-eyebrow","textColor":"base"} --><p class="rm-eyebrow has-base-color has-text-color">' . $eyb . '</p><!-- /wp:paragraph -->'
+			. '<!-- wp:heading {"level":3,"textColor":"base"} --><h3 class="wp-block-heading has-base-color has-text-color">' . $title . '</h3><!-- /wp:heading -->'
+			. '<!-- wp:paragraph {"className":"rm-shout-blurb","textColor":"base"} --><p class="rm-shout-blurb has-base-color has-text-color">' . $blurb . '</p><!-- /wp:paragraph -->'
+			. $buttons( $btn( $label, $href, true ) )
+			. '</div></div><!-- /wp:cover -->'
+			. '</div><!-- /wp:column -->';
+	};
+	$p['home-shoutout'] = array( 'Home · Product shoutout',
+		'<!-- wp:columns {"align":"full","className":"rm-shout","style":{"spacing":{"blockGap":"0"}}} --><div class="wp-block-columns alignfull rm-shout">'
+		. $shout_panel( $u( 'ceiling.webp' ), 'Featured', 'Zodiac &mdash; 48V Magnetic Track', 'One modular rail, endless configurations &mdash; spots, linear and pendants for retail, gallery and hospitality.', 'Explore the range &rarr;', '/product-category/48v-track/' )
+		. $shout_panel( $u( 'warm-int.webp' ), 'Featured', 'Estrella Pro &mdash; Linear', 'Architectural linear light for offices and workspaces &mdash; recessed, surface or suspended.', 'Explore the range &rarr;', '/product-category/led-linear-lighting/' )
+		. '</div><!-- /wp:columns -->'
+	);
+
 	foreach ( $p as $slug => $data ) {
 		register_block_pattern( 'ricoman/' . $slug, array( 'title' => $data[0], 'categories' => array( 'ricoman-page' ), 'content' => $data[1] ) );
 	}

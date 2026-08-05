@@ -2140,6 +2140,14 @@ body:not(.rm-pe-preview){overflow-x:clip}
    past the edge (the "cut" look from the feature carousel). */
 .rm-homecaro--range .rm-homecaro-card{flex:0 0 min(460px,82vw)}
 .rm-homecaro--range .rm-homecaro-card-img img{aspect-ratio:4/5}
+/* Product shoutout: two flush, full-bleed image panels, each copy + button. */
+.rm-shout{gap:0;margin-block:0}
+.rm-shout > .wp-block-column{margin:0}
+.rm-shout .wp-block-cover{border-radius:0}
+.rm-shout .wp-block-cover__inner-container{max-width:none;padding:clamp(28px,5vw,68px)}
+.rm-shout h3.wp-block-heading{font-size:clamp(1.5rem,2.4vw,2.1rem);line-height:1.15;margin:6px 0 10px}
+.rm-shout .rm-shout-blurb{max-width:42ch;font-size:1.05rem;line-height:1.55;margin:0 0 22px}
+@media(max-width:781px){.rm-shout .wp-block-cover{min-height:48vh}}
 
 /* ============================================================
  * "Image + text" cards band — pattern: Cards · Image + text (3-up).
