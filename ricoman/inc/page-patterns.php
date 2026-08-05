@@ -1036,6 +1036,16 @@ add_action( 'init', function () {
 		. '</div><!-- /wp:columns -->'
 	);
 
+	/* ===== Home · Latest news =====
+	 * Editable heading + a dynamic carousel of the latest news articles. The
+	 * [ricoman_news_carousel] shortcode renders square cards into a
+	 * .rm-homecaro-track (enhanced by home-carousel.js) — square like the feature
+	 * carousel, and always current since it pulls the most recent articles. */
+	$p['home-news'] = array( 'Home · Latest news', $sec(
+		$shead( 'Latest news' )
+		. '<!-- wp:shortcode -->[ricoman_news_carousel count="8"]<!-- /wp:shortcode -->'
+	, 'rm-homecaro rm-homecaro--news' ) );
+
 	foreach ( $p as $slug => $data ) {
 		register_block_pattern( 'ricoman/' . $slug, array( 'title' => $data[0], 'categories' => array( 'ricoman-page' ), 'content' => $data[1] ) );
 	}

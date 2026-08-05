@@ -64,6 +64,46 @@ function ricoman_news_readtime( $pid ) {
 	return max( 1, (int) round( $words / 200 ) );
 }
 
+/**
+ * [ricoman_news_carousel count="8"] — the latest published news as square cards
+ * in a swipeable carousel. Emits a .rm-homecaro-track that home-carousel.js
+ * enhances with prev/next arrows + drag (same as the block carousels). Dynamic:
+ * always shows the most recent articles, so it never needs editing. The heading
+ * lives in the "Home · Latest news" pattern so it stays editable.
+ */
+add_shortcode( 'ricoman_news_carousel', function ( $atts ) {
+	$atts = shortcode_atts( array( 'count' => 8 ), $atts, 'ricoman_news_carousel' );
+	$q    = new WP_Query( array(
+		'post_type'           => 'news',
+		'post_status'         => 'publish',
+		'posts_per_page'      => max( 1, (int) $atts['count'] ),
+		'orderby'             => 'date',
+		'order'               => 'DESC',
+		'no_found_rows'       => true,
+		'ignore_sticky_posts' => true,
+	) );
+	if ( ! $q->have_posts() ) {
+		wp_reset_postdata();
+		return '';
+	}
+	$cards = '';
+	while ( $q->have_posts() ) {
+		$q->the_post();
+		$pid    = get_the_ID();
+		$title  = get_the_title( $pid );
+		$href   = get_permalink( $pid );
+		$img    = function_exists( 'ricoman_news_img' ) ? ricoman_news_img( $pid, 'large' ) : get_the_post_thumbnail_url( $pid, 'large' );
+		$imgtag = $img ? '<img src="' . esc_url( $img ) . '" alt="' . esc_attr( $title ) . '" loading="lazy"/>' : '';
+		$cards .= '<div class="rm-homecaro-card"><figure class="rm-homecaro-card-img">' . $imgtag . '</figure>'
+			. '<h3 class="rm-homecaro-card-title"><a href="' . esc_url( $href ) . '">' . esc_html( $title ) . '</a></h3></div>';
+	}
+	wp_reset_postdata();
+	// Enhance into a carousel — same footer script as the block carousels.
+	$src = get_theme_file_path( 'assets/js/home-carousel.js' );
+	wp_enqueue_script( 'ricoman-home-carousel', get_theme_file_uri( 'assets/js/home-carousel.js' ), array(), file_exists( $src ) ? (string) filemtime( $src ) : '1', true );
+	return '<div class="rm-homecaro-track">' . $cards . '</div>';
+} );
+
 /** Topic chips are derived from each article's title + body (no manual tagging
  * needed). slug => [ label, keywords[] ]. Filterable. */
 function ricoman_news_topic_map() {

@@ -2149,6 +2149,11 @@ body:not(.rm-pe-preview){overflow-x:clip}
 .rm-shout .rm-shout-blurb{max-width:42ch;font-size:1.05rem;line-height:1.55;margin:0 0 22px}
 .rm-shout .wp-block-button__link::after{content:" \2192";display:inline-block}
 @media(max-width:781px){.rm-shout .wp-block-cover{min-height:440px!important}}
+/* Latest-news carousel: full-width heading-on-top layout like the range carousel,
+   but keeps the square feature-carousel cards (base 1/1 sizing, no override). */
+.rm-homecaro--news > *{max-width:none;margin-inline:0}
+.rm-homecaro--news > .rm-shead{margin:0 0 22px}
+.rm-homecaro-card-img:empty{aspect-ratio:1/1;background:var(--soft);border-radius:6px}
 
 /* ============================================================
  * "Image + text" cards band — pattern: Cards · Image + text (3-up).
