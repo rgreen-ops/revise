@@ -986,6 +986,25 @@ add_action( 'init', function () {
 		. '</div><!-- /wp:columns -->'
 	, 'rm-homecaro' ) );
 
+	/* ===== Home · Range carousel (Option 2) =====
+	 * A section heading on top, then a full-width swipeable carousel of editable
+	 * link cards (image + name + arrow) — same card blocks + runtime enhancer
+	 * (home-carousel.js around .rm-homecaro-track) as the feature carousel, so each
+	 * card stays click-to-edit: change the image, edit the name/link, and add /
+	 * remove / reorder cards to build the collection you want. Seeded with the main
+	 * ranges + placeholder photos — swap them for your own. */
+	$p['home-range-carousel'] = array( 'Home · Range carousel', $sec(
+		$shead( 'A luminaire for every commercial interior' )
+		. '<!-- wp:group {"className":"rm-homecaro-track","layout":{"type":"default"}} --><div class="wp-block-group rm-homecaro-track">'
+		. $caro_card( $u( 'workshop.webp' ), 'Downlights', '/product-category/led-downlights/' )
+		. $caro_card( $u( 'ceiling.webp' ), 'Linear Lighting', '/product-category/led-linear-lighting/' )
+		. $caro_card( $u( 'warm-int.webp' ), 'Panels', '/product-category/led-panel-lights/' )
+		. $caro_card( $u( 'office1.webp' ), 'Track', '/product-category/48v-track/' )
+		. $caro_card( $u( 'workshop.webp' ), 'Exterior', '/product-category/outdoor-exterior-lighting/' )
+		. $caro_card( $u( 'ceiling.webp' ), 'Emergency', '/product-category/led-emergency/' )
+		. '</div><!-- /wp:group -->'
+	, 'rm-homecaro rm-homecaro--range' ) );
+
 	foreach ( $p as $slug => $data ) {
 		register_block_pattern( 'ricoman/' . $slug, array( 'title' => $data[0], 'categories' => array( 'ricoman-page' ), 'content' => $data[1] ) );
 	}

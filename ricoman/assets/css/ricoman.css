@@ -2132,6 +2132,10 @@ body:not(.rm-pe-preview){overflow-x:clip}
 .rm-homecaro-card:hover .rm-homecaro-card-title{color:var(--blue)}
 .rm-homecaro-card:hover .rm-homecaro-card-title::after{transform:translateX(4px)}
 @media(max-width:781px){.rm-homecaro-bar{justify-content:flex-start;margin-top:6px}}
+/* Range carousel (Option 2): section heading on top, full-width card track (no
+   intro column). Un-constrain the direct children so they span the padded width. */
+.rm-homecaro--range > *{max-width:none;margin-inline:0}
+.rm-homecaro--range > .rm-shead{margin:0 0 22px}
 
 /* ============================================================
  * "Image + text" cards band — pattern: Cards · Image + text (3-up).
