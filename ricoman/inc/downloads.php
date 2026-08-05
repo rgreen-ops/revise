@@ -488,26 +488,36 @@ function ricoman_dl_ajax_product() {
 			}
 		}
 
-		if ( in_array( 'installation', $types, true ) ) {
-			// Installation lives in the download_section repeater.
-			$dls = ricoman_pf_get( $pid, 'download_section', array() );
-			if ( is_array( $dls ) ) {
-				foreach ( $dls as $row ) {
-					if ( ! is_array( $row ) ) continue;
-					$dtitle = '';
-					$dfile  = null;
-					foreach ( $row as $k => $v ) {
-						if ( false !== strpos( strtolower( (string) $k ), 'title' ) ) $dtitle = $v;
-						elseif ( false !== strpos( strtolower( (string) $k ), 'file' ) ) $dfile = $v;
-					}
-					if ( $dfile && false !== stripos( (string) $dtitle, 'install' ) ) {
-						$url = ricoman_pf_fileurl( $dfile );
-						if ( $url ) {
-							$html .= ricoman_dl_product_card( $p->post_title . ' — ' . ( $dtitle ?: 'Installation Instructions' ), 'installation', $url, $pid );
-							$found = true;
-						}
+		// download_section repeater — per-product files (datasheet / instructions /
+		// LDT / IES): exactly what the product page lists. Classify each row by its
+		// title + file extension and show it under the matching type. Previously
+		// only "install*" rows were read here, so datasheets and LDT/IES files
+		// stored in the repeater (e.g. Mosaic's) never appeared on the Downloads page.
+		$dls = ricoman_pf_get( $pid, 'download_section', array() );
+		if ( is_array( $dls ) ) {
+			foreach ( $dls as $row ) {
+				if ( ! is_array( $row ) ) {
+					continue;
+				}
+				$dtitle = '';
+				$dfile  = null;
+				foreach ( $row as $k => $v ) {
+					if ( false !== strpos( strtolower( (string) $k ), 'title' ) ) {
+						$dtitle = $v;
+					} elseif ( false !== strpos( strtolower( (string) $k ), 'file' ) ) {
+						$dfile = $v;
 					}
 				}
+				$url = $dfile ? ricoman_pf_fileurl( $dfile ) : '';
+				if ( ! $url ) {
+					continue;
+				}
+				$dtype = ricoman_dl_classify( $dtitle, $url );
+				if ( ! in_array( $dtype, $types, true ) ) {
+					continue;
+				}
+				$html .= ricoman_dl_product_card( $p->post_title . ' — ' . ( $dtitle ? $dtitle : ucfirst( $dtype ) ), $dtype, $url, $pid );
+				$found = true;
 			}
 		}
 	}
@@ -518,6 +528,25 @@ function ricoman_dl_ajax_product() {
 
 	$html .= '</div>';
 	wp_send_json_success( array( 'html' => $html ) );
+}
+
+/**
+ * Classify a download_section row into a Downloads-page type (datasheet /
+ * installation / ldt) from its file extension + title, so per-product files
+ * surface under the right filter — mirroring what the product page shows.
+ * Defaults to datasheet (the common per-product doc). Note a "…LDT files.zip"
+ * is caught by the title even though the extension is .zip.
+ */
+function ricoman_dl_classify( $title, $url ) {
+	$ext = strtolower( (string) pathinfo( (string) wp_parse_url( (string) $url, PHP_URL_PATH ), PATHINFO_EXTENSION ) );
+	$t   = strtolower( (string) $title );
+	if ( in_array( $ext, array( 'ldt', 'ies' ), true ) || preg_match( '/\bldt\b|\bies\b|photometr/', $t ) ) {
+		return 'ldt';
+	}
+	if ( preg_match( '/instal|instruct|fitting|guide|manual/', $t ) ) {
+		return 'installation';
+	}
+	return 'datasheet';
 }
 
 function ricoman_dl_product_card( $title, $type, $url, $pid ) {
