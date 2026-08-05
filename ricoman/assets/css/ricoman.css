@@ -2136,6 +2136,10 @@ body:not(.rm-pe-preview){overflow-x:clip}
    intro column). Un-constrain the direct children so they span the padded width. */
 .rm-homecaro--range > *{max-width:none;margin-inline:0}
 .rm-homecaro--range > .rm-shead{margin:0 0 22px}
+/* Bigger, taller (portrait) range tiles — fewer fit across, so the next one peeks
+   past the edge (the "cut" look from the feature carousel). */
+.rm-homecaro--range .rm-homecaro-card{flex:0 0 min(460px,82vw)}
+.rm-homecaro--range .rm-homecaro-card-img img{aspect-ratio:4/5}
 
 /* ============================================================
  * "Image + text" cards band — pattern: Cards · Image + text (3-up).
