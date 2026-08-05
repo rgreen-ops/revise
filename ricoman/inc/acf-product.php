@@ -143,6 +143,20 @@ function ricoman_pf_carousel( $title, $cards, $plain = false ) {
 }
 
 /**
+ * Is this product itself an accessory? Matches the /products/ archive logic:
+ * the `is_accessories_product` flag OR membership of the "Accessories"
+ * (product-cat) category. Used to suppress the "Accessories" section on an
+ * accessory's own page (listing accessories on an accessory is redundant).
+ */
+function ricoman_pf_is_accessory( $pid ) {
+	if ( in_array( (string) get_post_meta( $pid, 'is_accessories_product', true ), array( '1', 'yes', 'true' ), true ) ) {
+		return true;
+	}
+	$tax = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
+	return (bool) has_term( 'accessories', $tax, $pid );
+}
+
+/**
  * Accessory products for a product — products flagged `is_accessories_product`,
  * preferring the same category (the relevant accessories), falling back to all
  * accessory products. Same grey-card carousel as "You may also like".
@@ -1542,7 +1556,7 @@ function ricoman_pf_sections( $pid ) {
 	// 'm3' = markup version; bump to invalidate cached sections when section HTML
 	// changes. (Variant thumbnails use native loading="lazy"; the optimiser, not
 	// the theme, was the speed problem.)
-	$tkey      = 'rm_pfsec_m22_' . $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true ) . '_' . get_option( 'rm_cfgimg_ver', '0' );
+	$tkey      = 'rm_pfsec_m23_' . $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true ) . '_' . get_option( 'rm_cfgimg_ver', '0' );
 	if ( $cacheable ) {
 		$pre = get_transient( $tkey );
 		if ( is_array( $pre ) ) {
@@ -1768,13 +1782,19 @@ function ricoman_pf_sections( $pid ) {
 		: '';
 
 	// ---- Accessories — accessory products (toggle/remove per product in builder) ----
-	$acc_grid  = ricoman_pf_accessories( $pid );
-	if ( $acc_grid ) {
-		$acc_block = '<div class="rm-section"><div class="rm-pp-wrap">' . $acc_grid . '</div></div>';
+	// An accessory's own page doesn't get an "Accessories" section — listing other
+	// accessories on an accessory is redundant, so suppress the whole block.
+	if ( ricoman_pf_is_accessory( $pid ) ) {
+		$acc_block = '';
 	} else {
-		$acc_live  = do_shortcode( '[ricoman_accessories_live]' );
-		$acc_block = ( $acc_live && false === strpos( $acc_live, 'rm-config-note' ) )
-			? '<div class="rm-section"><div class="rm-pp-wrap">' . $acc_live . '</div></div>' : '';
+		$acc_grid = ricoman_pf_accessories( $pid );
+		if ( $acc_grid ) {
+			$acc_block = '<div class="rm-section"><div class="rm-pp-wrap">' . $acc_grid . '</div></div>';
+		} else {
+			$acc_live  = do_shortcode( '[ricoman_accessories_live]' );
+			$acc_block = ( $acc_live && false === strpos( $acc_live, 'rm-config-note' ) )
+				? '<div class="rm-section"><div class="rm-pp-wrap">' . $acc_live . '</div></div>' : '';
+		}
 	}
 
 	// ---- Product FAQs (edited via the Product FAQs metabox; emits FAQPage schema) ----
