@@ -104,7 +104,7 @@ add_shortcode( 'ricoman_sector_intro', function () {
 	if ( '' === $desc ) {
 		$name = strtolower( $term->name );
 		$desc = '<p>' . esc_html( sprintf( 'Lighting for %s has to perform — the right output and comfort for the people using the space, low glare, and fittings that last. As a UK manufacturer, Ricoman designs, makes and delivers complete %s schemes: photometrically specified, delivered on short lead times and backed by a 5-year warranty.', $name, $name ) ) . '</p>'
-			. '<p>' . esc_html( sprintf( 'Explore the ranges and real %s projects below — or tell us about your scheme and our in-house designers will spec it for you, complimentary on commercial projects.', $name ) ) . '</p>';
+			. '<p>' . esc_html( sprintf( 'Explore real %s projects below — or tell us about your scheme and our in-house designers will spec it for you, complimentary on commercial projects.', $name ) ) . '</p>';
 	}
 	return '<div class="rm-section rm-sectorintro"><div class="rm-pp-wrap rm-sectorintro-in">'
 		. '<div class="rm-sector-desc">' . wp_kses_post( $desc ) . '</div>'
