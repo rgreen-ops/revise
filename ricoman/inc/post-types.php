@@ -656,14 +656,20 @@ add_shortcode( 'ricoman_search_results', function () {
 	$s     = get_search_query();
 	$paged = max( 1, (int) get_query_var( 'paged' ), (int) get_query_var( 'page' ) );
 
-	// Order results by type: products first, then accessories (products flagged
-	// is_accessories_product), then projects, then news — relevance kept within
-	// each group. Injected as a rank in ORDER BY, scoped to just this query.
+	// Order results by type: products first, then accessories, then projects, then
+	// news — relevance kept within each group. An accessory is a product flagged
+	// is_accessories_product OR (crucially) one in the "accessories" product-cat
+	// term — the term is how they're tagged from the editor, so meta-only detection
+	// let term-tagged accessories rank as real products and surface first.
 	$rm_order = function ( $clauses ) {
 		global $wpdb;
-		$acc  = "(SELECT pm.meta_value FROM {$wpdb->postmeta} pm WHERE pm.post_id = {$wpdb->posts}.ID AND pm.meta_key = 'is_accessories_product' LIMIT 1)";
+		$acc_meta = "EXISTS (SELECT 1 FROM {$wpdb->postmeta} pm WHERE pm.post_id = {$wpdb->posts}.ID AND pm.meta_key = 'is_accessories_product' AND pm.meta_value IN ('1','yes','true'))";
+		$acc_term = "EXISTS (SELECT 1 FROM {$wpdb->term_relationships} rtr"
+			. " INNER JOIN {$wpdb->term_taxonomy} rtt ON rtr.term_taxonomy_id = rtt.term_taxonomy_id"
+			. " INNER JOIN {$wpdb->terms} rt ON rtt.term_id = rt.term_id"
+			. " WHERE rtr.object_id = {$wpdb->posts}.ID AND rtt.taxonomy = 'product-cat' AND rt.slug = 'accessories')";
 		$rank = 'CASE'
-			. " WHEN {$wpdb->posts}.post_type = 'product' AND {$acc} IN ('1','yes','true') THEN 1"
+			. " WHEN {$wpdb->posts}.post_type = 'product' AND ({$acc_meta} OR {$acc_term}) THEN 1"
 			. " WHEN {$wpdb->posts}.post_type = 'product' THEN 0"
 			. " WHEN {$wpdb->posts}.post_type = 'project' THEN 2"
 			. " WHEN {$wpdb->posts}.post_type = 'news' THEN 3"
@@ -907,29 +913,6 @@ add_action( 'pre_get_posts', function ( $q ) {
 	}
 	$q->set( 'post_type', array( 'product', 'project', 'news' ) );
 } );
-
-/**
- * Rank accessories LAST in search results. Real products (plus projects / news)
- * keep their relevance order; accessory products drop to the bottom — otherwise a
- * query like "flow" surfaces a wall of Flow+ clips/kits above the actual Flow+
- * luminaire. An accessory = a product in the "accessories" product-cat term OR
- * flagged is_accessories_product (matches the archive + product-page logic).
- */
-add_filter( 'posts_clauses', function ( $clauses, $q ) {
-	if ( is_admin() || ! $q->is_main_query() || ! $q->is_search() ) {
-		return $clauses;
-	}
-	global $wpdb;
-	$acc = "( EXISTS ( SELECT 1 FROM {$wpdb->term_relationships} rtr"
-		. " INNER JOIN {$wpdb->term_taxonomy} rtt ON rtr.term_taxonomy_id = rtt.term_taxonomy_id"
-		. " INNER JOIN {$wpdb->terms} rt ON rtt.term_id = rt.term_id"
-		. " WHERE rtr.object_id = {$wpdb->posts}.ID AND rtt.taxonomy = 'product-cat' AND rt.slug = 'accessories' )"
-		. " OR EXISTS ( SELECT 1 FROM {$wpdb->postmeta} rpm"
-		. " WHERE rpm.post_id = {$wpdb->posts}.ID AND rpm.meta_key = 'is_accessories_product'"
-		. " AND rpm.meta_value IN ( '1', 'yes', 'true' ) ) )";
-	$clauses['orderby'] = $acc . ' ASC' . ( ! empty( $clauses['orderby'] ) ? ', ' . $clauses['orderby'] : '' );
-	return $clauses;
-}, 10, 2 );
 
 add_action( 'pre_get_posts', function ( $q ) {
 	if ( ! is_admin() || ! $q->is_main_query() || 'product' !== $q->get( 'post_type' ) ) {
