@@ -96,7 +96,7 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 	$wslider  = $maxw ? '<div class="rm-frange rm-dual"><label>Power <b class="rm-w-lo">0</b> &#8211; <b class="rm-w-hi">' . $maxw . '</b> W</label>'
 		. '<div class="rm-dual-track"><input type="range" class="rm-w-min" aria-label="Minimum power (watts)" min="0" max="' . $maxw . '" step="1" value="0">'
 		. '<input type="range" class="rm-w-max" aria-label="Maximum power (watts)" min="0" max="' . $maxw . '" step="1" value="' . $maxw . '"></div></div>' : '';
-	$coslider = $maxco ? '<div class="rm-frange rm-dual"><label>Cut-out <b class="rm-co-lo">0</b> &#8211; <b class="rm-co-hi">' . $maxco . '</b> mm</label>'
+	$coslider = ( $maxco && ( $maxlm || $maxw ) ) ? '<div class="rm-frange rm-dual"><label>Cut-out <b class="rm-co-lo">0</b> &#8211; <b class="rm-co-hi">' . $maxco . '</b> mm</label>'
 		. '<div class="rm-dual-track"><input type="range" class="rm-co-min" aria-label="Minimum cut-out (mm)" min="0" max="' . $maxco . '" step="1" value="0">'
 		. '<input type="range" class="rm-co-max" aria-label="Maximum cut-out (mm)" min="0" max="' . $maxco . '" step="1" value="' . $maxco . '"></div></div>' : '';
 
@@ -132,12 +132,18 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 	$out .= '<div class="rm-pp-crumb">' . $crumb . '</div>';
 	$out .= '<h1 class="rm-catarch-title">' . esc_html( $title ) . ' <span class="rm-catarch-count" aria-hidden="true">' . (int) $total . '</span></h1>';
 	$out .= $seo_intro;
-	$out .= '<div class="rm-catgrid-wrap"><aside class="rm-facets">'
-		. ( $lmslider || $wslider || $coslider || $ticks ? '<p class="rm-facets-head">Filter</p>' : '' )
-		. $lmslider . $wslider . $coslider
-		. ( $ticks ? '<div class="rm-fgroup"><p class="rm-facets-sub">Features</p>' . $ticks . '</div>' : '' )
-		. ( $lmslider || $wslider || $coslider || $ticks ? '<button type="button" class="rm-fclear">Clear filters</button>' : '' )
-		. '</aside>';
+	// Only show the filter sidebar when there's something to filter by; categories
+	// with no luminaire specs (e.g. Accessories) get a clean full-width grid.
+	$has_filters = ( $lmslider || $wslider || $coslider || $ticks );
+	$out .= '<div class="rm-catgrid-wrap' . ( $has_filters ? '' : ' rm-catgrid-wrap--nofilters' ) . '">';
+	if ( $has_filters ) {
+		$out .= '<aside class="rm-facets">'
+			. '<p class="rm-facets-head">Filter</p>'
+			. $lmslider . $wslider . $coslider
+			. ( $ticks ? '<div class="rm-fgroup"><p class="rm-facets-sub">Features</p>' . $ticks . '</div>' : '' )
+			. '<button type="button" class="rm-fclear">Clear filters</button>'
+			. '</aside>';
+	}
 	$out .= '<div class="rm-catgrid">';
 	$out .= '<div class="rm-catgrid-top"><p class="rm-fcount"><b>' . (int) $total . '</b> products</p><div class="rm-pgn rm-pgn-top" aria-label="Products pagination top"></div></div>';
 	$out .= '<div class="rm-allpgrid rm-fgrid" style="display:grid;gap:24px">' . $cards . '</div>';
