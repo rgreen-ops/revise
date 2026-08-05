@@ -1017,8 +1017,8 @@ add_action( 'init', function () {
 	// validation); the button arrow is added via CSS instead.
 	$shout_panel = function ( $img, $eyb, $title, $blurb, $label, $href ) use ( $btn, $buttons ) {
 		return '<!-- wp:column --><div class="wp-block-column">'
-			. '<!-- wp:cover {"url":"' . $img . '","dimRatio":50,"overlayColor":"ink","minHeight":600,"contentPosition":"center left"} -->'
-			. '<div class="wp-block-cover has-custom-content-position is-position-center-left" style="min-height:600px">'
+			. '<!-- wp:cover {"url":"' . $img . '","dimRatio":50,"overlayColor":"ink","minHeight":780,"contentPosition":"center left"} -->'
+			. '<div class="wp-block-cover has-custom-content-position is-position-center-left" style="min-height:780px">'
 			. '<span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-50 has-background-dim"></span>'
 			. '<img class="wp-block-cover__image-background" alt="" src="' . $img . '" data-object-fit="cover"/>'
 			. '<div class="wp-block-cover__inner-container">'
