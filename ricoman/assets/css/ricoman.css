@@ -1920,6 +1920,23 @@ body:not(.rm-pe-preview){overflow-x:clip}
 @media(max-width:760px){.rm-catcards-wide{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:460px){.rm-catcards-wide{grid-template-columns:1fr}}
 
+/* Homepage range grid — Option 4: bigger portrait tiles (name + arrow underneath)
+   at the feature-carousel edge margins. Scoped via :has() to the section that has
+   .rm-catcards as a DIRECT child (only the homepage grid), so the products-archive
+   category browser and any other use stay exactly as they are. */
+.rm-section:has(> .rm-catcards){padding-inline:calc(max(0px,(100vw - var(--wide)) / 2) + var(--pad))}
+.rm-section:has(> .rm-catcards).is-layout-constrained{max-width:none}
+.rm-section:has(> .rm-catcards) > .rm-catcards{max-width:none;margin-inline:0;grid-template-columns:repeat(3,1fr);gap:clamp(18px,2vw,30px)}
+.rm-section:has(> .rm-catcards) .rm-catcard-img{aspect-ratio:3/4}
+.rm-section:has(> .rm-catcards) .rm-catcard:hover .rm-catcard-img{transform:scale(1.03)}
+.rm-section:has(> .rm-catcards) .rm-catcard-meta{flex-direction:column;align-items:stretch;gap:3px;margin-top:14px}
+.rm-section:has(> .rm-catcards) .rm-catcard-t{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:1.15rem}
+.rm-section:has(> .rm-catcards) .rm-catcard-t::after{content:"\2192";font-weight:400;transition:transform .2s}
+.rm-section:has(> .rm-catcards) .rm-catcard:hover .rm-catcard-t{color:var(--blue)}
+.rm-section:has(> .rm-catcards) .rm-catcard:hover .rm-catcard-t::after{transform:translateX(4px)}
+@media(max-width:900px){.rm-section:has(> .rm-catcards) > .rm-catcards{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.rm-section:has(> .rm-catcards) > .rm-catcards{grid-template-columns:1fr}}
+
 /* Studio / In-situ image toggle on the /products/ archive. */
 .rm-cattoggle{display:inline-flex;gap:0;border:1px solid var(--line);border-radius:999px;padding:3px;margin:0 0 clamp(16px,2.4vw,26px);background:#fff}
 .rm-cattoggle button{appearance:none;border:0;background:none;cursor:pointer;font-family:Poppins;font-size:.82rem;font-weight:600;color:var(--muted);padding:8px 18px;border-radius:999px;transition:background .15s,color .15s}
