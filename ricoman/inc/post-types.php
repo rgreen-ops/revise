@@ -908,6 +908,29 @@ add_action( 'pre_get_posts', function ( $q ) {
 	$q->set( 'post_type', array( 'product', 'project', 'news' ) );
 } );
 
+/**
+ * Rank accessories LAST in search results. Real products (plus projects / news)
+ * keep their relevance order; accessory products drop to the bottom — otherwise a
+ * query like "flow" surfaces a wall of Flow+ clips/kits above the actual Flow+
+ * luminaire. An accessory = a product in the "accessories" product-cat term OR
+ * flagged is_accessories_product (matches the archive + product-page logic).
+ */
+add_filter( 'posts_clauses', function ( $clauses, $q ) {
+	if ( is_admin() || ! $q->is_main_query() || ! $q->is_search() ) {
+		return $clauses;
+	}
+	global $wpdb;
+	$acc = "( EXISTS ( SELECT 1 FROM {$wpdb->term_relationships} rtr"
+		. " INNER JOIN {$wpdb->term_taxonomy} rtt ON rtr.term_taxonomy_id = rtt.term_taxonomy_id"
+		. " INNER JOIN {$wpdb->terms} rt ON rtt.term_id = rt.term_id"
+		. " WHERE rtr.object_id = {$wpdb->posts}.ID AND rtt.taxonomy = 'product-cat' AND rt.slug = 'accessories' )"
+		. " OR EXISTS ( SELECT 1 FROM {$wpdb->postmeta} rpm"
+		. " WHERE rpm.post_id = {$wpdb->posts}.ID AND rpm.meta_key = 'is_accessories_product'"
+		. " AND rpm.meta_value IN ( '1', 'yes', 'true' ) ) )";
+	$clauses['orderby'] = $acc . ' ASC' . ( ! empty( $clauses['orderby'] ) ? ', ' . $clauses['orderby'] : '' );
+	return $clauses;
+}, 10, 2 );
+
 add_action( 'pre_get_posts', function ( $q ) {
 	if ( ! is_admin() || ! $q->is_main_query() || 'product' !== $q->get( 'post_type' ) ) {
 		return;
