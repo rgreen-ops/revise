@@ -1,1 +1,1 @@
-deploy: clean-import-text tool (mojibake repair)
+deploy: remove Explore-the-ranges from By Application (sector) pages

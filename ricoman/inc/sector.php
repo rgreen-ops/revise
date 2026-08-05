@@ -323,29 +323,9 @@ add_shortcode( 'ricoman_sector_products', function ( $atts ) {
 			. '<div class="rm-secprod-grid">' . $cards . '</div></div></div>';
 	}
 
-	// 2) Recommended ranges (product categories) — always shown as a quick way in.
-	$ptax  = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
-	$cards = '';
-	foreach ( ricoman_sector_product_cats( $term->slug ) as $slug ) {
-		$pterm = get_term_by( 'slug', $slug, $ptax );
-		if ( ! $pterm || is_wp_error( $pterm ) ) {
-			continue;
-		}
-		$img   = ricoman_pcat_image( $pterm );
-		$style = $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '';
-		$cards .= '<a class="rm-secprod-card" href="' . esc_url( get_term_link( $pterm ) ) . '">'
-			. '<span class="rm-secprod-img"' . $style . '></span>'
-			. '<span class="rm-secprod-body"><span class="rm-secprod-t">' . esc_html( $pterm->name ) . '</span>'
-			. '<span class="rm-secprod-go">View range →</span></span></a>';
-	}
-	if ( '' !== $cards ) {
-		$out .= '<div class="rm-section rm-secprod' . ( $pq->have_posts() ? ' rm-secprod--alt' : '' ) . '"><div class="rm-pp-wrap">'
-			. '<p class="rm-eyebrow">Specify with confidence</p>'
-			. '<h2 class="rm-shead">' . esc_html( $pq->have_posts() ? 'Explore the ranges' : 'Recommended ranges for ' . $term->name ) . '</h2>'
-			. '<div class="rm-secprod-grid">' . $cards . '</div>'
-			. '<p class="rm-secprod-all"><a href="/products/">Browse the full product range →</a></p>'
-			. '</div></div>';
-	}
+	// The "Specify with confidence · Explore the ranges" product-category grid was
+	// removed from the sector (By Application) pages on request. The recommended
+	// PRODUCTS above (when a sector has tagged products) stay.
 	return $out;
 } );
 
