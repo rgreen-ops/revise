@@ -608,6 +608,22 @@ function ricoman_product_editor_render() {
 		}
 	}
 
+	// Product categories (product-cat) for the editor's Categories picker.
+	// Templates don't carry categories, so only build the list for real products.
+	$cat_opts = array();
+	$cur_cats = array();
+	if ( ! $is_tpl ) {
+		$ctax  = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
+		$terms = get_terms( array( 'taxonomy' => $ctax, 'hide_empty' => false, 'orderby' => 'name', 'order' => 'ASC' ) );
+		if ( ! is_wp_error( $terms ) ) {
+			foreach ( $terms as $t ) {
+				$cat_opts[] = array( 'id' => (int) $t->term_id, 'name' => $t->name );
+			}
+		}
+		$cur = wp_get_object_terms( $pid, $ctax, array( 'fields' => 'ids' ) );
+		$cur_cats = is_wp_error( $cur ) ? array() : array_map( 'intval', $cur );
+	}
+
 	$boot = array(
 		'pid'      => $pid,
 		'isTpl'    => $is_tpl,
@@ -623,6 +639,8 @@ function ricoman_product_editor_render() {
 		'specFields' => $fgroups['specs'],
 		'faqFields'        => isset( $fgroups['faq'] ) ? $fgroups['faq'] : array(),
 		'accessoriesData'  => $acc_data,
+		'allCats'  => $cat_opts,
+		'cats'     => $cur_cats,
 		'values'   => $fieldvals,
 		'gallery'  => $gallery,
 		'insitu'   => $insitu,
@@ -729,6 +747,12 @@ function ricoman_product_editor_render() {
 		.rmpe-filt.off{color:var(--faint);text-decoration:line-through;opacity:.7}
 		.rmpe-filt:disabled{visibility:hidden}
 		.rmpe-colrow input{margin:0}
+		.rmpe-cat-q{width:100%;border:1px solid #d8dbe4;border-radius:var(--r-sm);padding:9px 11px;font-size:12.5px;font-family:inherit;background:#fff;color:var(--ink);margin:0 0 7px;transition:.14s}
+		.rmpe-cat-q:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px rgba(0,72,153,.14)}
+		.rmpe-cats{display:flex;flex-direction:column;gap:2px;max-height:230px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:0 0 16px}
+		.rmpe-cats .rmpe-catcb{display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:500;color:var(--ink);margin:0;padding:3px 2px;cursor:pointer;text-transform:none;letter-spacing:0}
+		.rmpe-cats .rmpe-catcb input{margin:0;flex:0 0 auto}
+		.rmpe-cats .rmpe-catcb.hide{display:none}
 		.rmpe-colglobal{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:600;color:var(--muted);margin:0 0 14px;cursor:pointer}
 		.rmpe-gallery{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 16px}
 		.rmpe-gthumb{position:relative;width:46px;height:46px;border-radius:7px;background:#eef0f5 center/cover no-repeat;border:1px solid var(--line);cursor:pointer}
@@ -847,6 +871,7 @@ function ricoman_product_editor_render() {
 			<input type="hidden" name="gallery_json" id="rmpe-save-gallery">
 			<input type="hidden" name="insitu_json" id="rmpe-save-insitu">
 			<input type="hidden" name="accessories_json" id="rmpe-save-accessories">
+			<input type="hidden" name="cats_json" id="rmpe-save-cats">
 		</form>
 
 		<form id="rmpe-resetform" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:none">
@@ -859,7 +884,7 @@ function ricoman_product_editor_render() {
 	<script>
 	( function () {
 		var B = <?php echo wp_json_encode( $boot ); ?>;
-		var state = { layout: B.layout.slice(), fields: Object.assign( {}, B.values ), cols: ( B.cols || [] ).slice(), filterOff: ( B.filterOff || [] ).slice(), configVisual: !! B.configVisual, colsGlobal: false, gallery: ( B.gallery || [] ).slice(), insitu: ( B.insitu || [] ).slice(), accessories: ( B.accessoriesData || [] ).slice(), sel: 0, device: 'desktop' };
+		var state = { layout: B.layout.slice(), fields: Object.assign( {}, B.values ), cols: ( B.cols || [] ).slice(), filterOff: ( B.filterOff || [] ).slice(), configVisual: !! B.configVisual, colsGlobal: false, gallery: ( B.gallery || [] ).slice(), insitu: ( B.insitu || [] ).slice(), accessories: ( B.accessoriesData || [] ).slice(), cats: ( B.cats || [] ).slice(), sel: 0, device: 'desktop' };
 		var $ = function ( id ) { return document.getElementById( id ); };
 		var iframe = $( 'rmpe-iframe' ), load = $( 'rmpe-load' );
 
@@ -1121,6 +1146,7 @@ function ricoman_product_editor_render() {
 				( B.heroFields || [] ).forEach( function ( f ) { html += field( f[0], f[1], f[2] ); } );
 				html += galleryControl( 'Studio gallery', 'gallery' );
 				html += galleryControl( 'In-situ photos', 'insitu' );
+				html += categoryControl();
 				html += visRow( it );
 			} else if ( it.type === 'section' && it.key === 'specs' && ! B.isTpl ) {
 				html += '<p class="ttl">Specification &amp; details</p><p class="hint">Edit the specification shown in this section.</p>';
@@ -1229,6 +1255,17 @@ function ricoman_product_editor_render() {
 			return '<label><span>' + label + ' <em style="font-weight:400;color:var(--faint);text-transform:none;letter-spacing:0">(drag to reorder · click to remove)</em></span></label><div class="rmpe-gallery">' + thumbs
 				+ '<button type="button" class="rmpe-gbtn" data-gal="' + key + '">＋ Add images</button></div>';
 		}
+		function categoryControl() {
+			if ( B.isTpl || ! ( B.allCats && B.allCats.length ) ) { return ''; }
+			var sel = state.cats || [];
+			var boxes = B.allCats.map( function ( t ) {
+				var on = sel.indexOf( t.id ) > -1;
+				return '<label class="rmpe-catcb"><input type="checkbox" data-cat-id="' + t.id + '"' + ( on ? ' checked' : '' ) + '> ' + String( t.name ).replace( /</g, '&lt;' ) + '</label>';
+			} ).join( '' );
+			return '<label><span>Categories <em style="font-weight:400;color:var(--faint);text-transform:none;letter-spacing:0">— controls where this shows on the site (e.g. Accessories)</em></span></label>'
+				+ '<input type="search" class="rmpe-cat-q" data-catq="1" placeholder="Filter categories…" autocomplete="off">'
+				+ '<div class="rmpe-cats">' + boxes + '</div>';
+		}
 		function openMedia( cb ) {
 			if ( ! window.wp || ! wp.media ) { return; }
 			var frame = wp.media( { title: 'Add images', multiple: 'add', library: { type: 'image' }, button: { text: 'Add to gallery' } } );
@@ -1246,6 +1283,16 @@ function ricoman_product_editor_render() {
 			return '<div class="row"><span>Visible</span><label class="sw"><input type="checkbox" data-act="vis"' + ( it.on === false ? '' : ' checked' ) + '><span class="sl"></span></label></div>';
 		}
 		$( 'rmpe-set' ).addEventListener( 'input', function ( e ) {
+			if ( 'catq' in e.target.dataset ) {
+				var q = ( e.target.value || '' ).toLowerCase();
+				var cbox = e.target.parentNode.querySelector( '.rmpe-cats' );
+				if ( cbox ) {
+					cbox.querySelectorAll( '.rmpe-catcb' ).forEach( function ( l ) {
+						l.classList.toggle( 'hide', !! q && l.textContent.toLowerCase().indexOf( q ) < 0 );
+					} );
+				}
+				return;
+			}
 			var f = e.target.dataset.f; if ( ! f ) { return; }
 			state.fields[ f ] = e.target.value;
 			if ( f === 'title' ) { /* title shows in preview hero */ }
@@ -1256,6 +1303,15 @@ function ricoman_product_editor_render() {
 			if ( act === 'vis' ) { state.layout[ state.sel ].on = e.target.checked; renderList(); pushDraft(); return; }
 			if ( act === 'colsglobal' ) { state.colsGlobal = e.target.checked; return; }
 			if ( act === 'cfgmode' ) { state.configVisual = e.target.value === '1'; renderSettings(); pushDraft(); return; }
+			if ( 'catId' in e.target.dataset ) {
+				var cid = parseInt( e.target.dataset.catId, 10 );
+				if ( ! state.cats ) { state.cats = []; }
+				var kci = state.cats.indexOf( cid );
+				if ( e.target.checked ) { if ( kci < 0 ) { state.cats.push( cid ); } }
+				else if ( kci > -1 ) { state.cats.splice( kci, 1 ); }
+				pushDraft(); // no re-render: keeps the filter box + scroll position
+				return;
+			}
 			if ( e.target.dataset.col ) {
 				var c = e.target.dataset.col;
 				var i = state.cols.indexOf( c );
@@ -1350,6 +1406,7 @@ function ricoman_product_editor_render() {
 			$( 'rmpe-save-gallery' ).value = JSON.stringify( state.gallery.map( function ( i ) { return i.id; } ) );
 			$( 'rmpe-save-insitu' ).value = JSON.stringify( state.insitu.map( function ( i ) { return i.id; } ) );
 			$( 'rmpe-save-accessories' ).value = JSON.stringify( state.accessories.map( function ( i ) { return i.id; } ) );
+			$( 'rmpe-save-cats' ).value = JSON.stringify( state.cats || [] );
 			$( 'rmpe-saveform' ).submit();
 		} );
 		$( 'rmpe-exit' ).addEventListener( 'click', function () { window.location.href = B.exitUrl; } );
@@ -1493,6 +1550,19 @@ add_action( 'admin_post_ricoman_save_product_page', function () {
 		}
 	}
 
+	// Product categories (product-cat) — from the editor's Categories picker. The
+	// picker is authoritative, so this REPLACES the product's terms. Guarded by
+	// isset(): an older cached editor page that submits without cats_json leaves
+	// the existing categories untouched rather than wiping them.
+	if ( isset( $_POST['cats_json'] ) ) {
+		$cats = json_decode( wp_unslash( $_POST['cats_json'] ), true );
+		if ( is_array( $cats ) ) {
+			$ctax = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
+			$cids = array_values( array_unique( array_filter( array_map( 'absint', $cats ) ) ) );
+			wp_set_object_terms( $pid, $cids, $ctax, false );
+		}
+	}
+
 	// Configure display style (table vs visual configurator).
 	if ( isset( $_POST['config_visual_json'] ) ) {
 		if ( '1' === (string) wp_unslash( $_POST['config_visual_json'] ) ) {
@@ -1524,6 +1594,18 @@ add_action( 'admin_post_ricoman_save_product_page', function () {
 		'post_title'   => $title ? $title : get_the_title( $pid ),
 		'post_content' => ricoman_pe_build_content( $layout ),
 	) );
+
+	// Repair a placeholder permalink: products created but never saved through the
+	// normal publish flow can keep the "auto-draft" (or empty) slug, which yields a
+	// /products/auto-draft/ URL. Regenerate it once from the title. Only touches the
+	// two known placeholder states, so real slugs are never changed.
+	$po = get_post( $pid );
+	if ( $po && ( '' === $po->post_name || 'auto-draft' === $po->post_name ) ) {
+		$newslug = sanitize_title( $title ? $title : $po->post_title );
+		if ( $newslug ) {
+			wp_update_post( array( 'ID' => $pid, 'post_name' => $newslug ) );
+		}
+	}
 
 	delete_transient( ricoman_pe_draft_key( $pid ) );
 	wp_safe_redirect( admin_url( 'admin.php?page=ricoman-product-editor&product=' . $pid . '&saved=1' ) );
