@@ -235,31 +235,18 @@ add_filter( 'wp_robots', function ( $robots ) {
 	return $robots;
 } );
 
-// Force Yoast's robots meta to noindex on staging (only if Yoast is active).
+// Force Yoast's robots meta to noindex on staging. Yoast applies a final STRING
+// filter to the assembled robots value (independent of its internal array keys and
+// its precomputed indexables), plus the older array filter — cover both. Host-gated.
+add_filter( 'wpseo_robots', function ( $robots ) {
+	return ricoman_is_staging_site() ? 'noindex, nofollow' : $robots;
+}, 99 );
 add_filter( 'wpseo_robots_array', function ( $robots ) {
 	if ( ricoman_is_staging_site() && is_array( $robots ) ) {
 		$robots['index']  = 'noindex';
 		$robots['follow'] = 'nofollow';
 	}
 	return $robots;
-} );
-
-// Most reliable of all: report the staging site as "not public" (the same switch
-// as Settings -> Reading -> "Discourage search engines"). WordPress core AND Yoast
-// both emit a noindex robots meta via their own native logic when this is off, so
-// the on-page meta matches the header regardless of which plugin renders it. This
-// is a read-time filter only (nothing is written to the database) and is strictly
-// host-gated, so the live site is never affected.
-add_filter( 'pre_option_blog_public', function ( $pre ) {
-	return ricoman_is_staging_site() ? '0' : $pre;
-} );
-
-// ...but keep staging CRAWLABLE. blog_public=0 would otherwise make WordPress serve
-// a "Disallow: /" robots.txt, which blocks search engines from fetching the page,
-// seeing the noindex, and dropping any existing listing. Allow crawling so the
-// noindex can actually do its job.
-add_filter( 'robots_txt', function ( $output ) {
-	return ricoman_is_staging_site() ? "User-agent: *\nAllow: /\n" : $output;
 }, 99 );
 
 /* ---------------------------------------------------------------------------
