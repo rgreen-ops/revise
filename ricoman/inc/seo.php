@@ -244,6 +244,24 @@ add_filter( 'wpseo_robots_array', function ( $robots ) {
 	return $robots;
 } );
 
+// Most reliable of all: report the staging site as "not public" (the same switch
+// as Settings -> Reading -> "Discourage search engines"). WordPress core AND Yoast
+// both emit a noindex robots meta via their own native logic when this is off, so
+// the on-page meta matches the header regardless of which plugin renders it. This
+// is a read-time filter only (nothing is written to the database) and is strictly
+// host-gated, so the live site is never affected.
+add_filter( 'pre_option_blog_public', function ( $pre ) {
+	return ricoman_is_staging_site() ? '0' : $pre;
+} );
+
+// ...but keep staging CRAWLABLE. blog_public=0 would otherwise make WordPress serve
+// a "Disallow: /" robots.txt, which blocks search engines from fetching the page,
+// seeing the noindex, and dropping any existing listing. Allow crawling so the
+// noindex can actually do its job.
+add_filter( 'robots_txt', function ( $output ) {
+	return ricoman_is_staging_site() ? "User-agent: *\nAllow: /\n" : $output;
+}, 99 );
+
 /* ---------------------------------------------------------------------------
  * Document title
  * ------------------------------------------------------------------------- */
