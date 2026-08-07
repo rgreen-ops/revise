@@ -138,7 +138,10 @@ function ricoman_lead_form( $atts = array() ) {
 	ob_start();
 
 	if ( 'sent' === $sent ) {
-		echo '<div class="ricoman-lead-success"><strong>' . esc_html__( 'Thanks — your enquiry is on its way.', 'ricoman' ) . '</strong><br>' . esc_html__( 'Our lighting team will be in touch within one working day.', 'ricoman' ) . '</div>';
+		echo '<div id="ricoman-lead-sent" class="ricoman-lead-success" tabindex="-1"><strong>' . esc_html__( 'Thanks — your enquiry is on its way.', 'ricoman' ) . '</strong><br>' . esc_html__( 'Our lighting team will be in touch within one working day.', 'ricoman' ) . '</div>';
+		// The post-submit redirect lands at the top of the page; bring the
+		// confirmation into view so it isn't missed.
+		echo '<script>(function(){var el=document.getElementById("ricoman-lead-sent");if(!el)return;requestAnimationFrame(function(){el.scrollIntoView({behavior:"smooth",block:"center"});el.focus({preventScroll:true});});})();</script>';
 		return (string) ob_get_clean();
 	}
 	if ( 'error' === $sent ) {
@@ -596,11 +599,11 @@ function ricoman_callback_form( $atts = array() ) {
 	ob_start();
 	?>
 	<div class="rm-callback">
-		<?php if ( $atts['title'] ) : ?><h2 class="rm-news-h"><?php echo esc_html( $atts['title'] ); ?></h2><?php endif; ?>
-		<?php if ( $atts['sub'] ) : ?><p class="rm-news-sub"><?php echo esc_html( $atts['sub'] ); ?></p><?php endif; ?>
-		<form class="rm-callback-form" data-ajax="<?php echo $ajax; // phpcs:ignore WordPress.Security.EscapeOutput ?>" data-nonce="<?php echo esc_attr( $nonce ); ?>" data-source="<?php echo esc_attr( $source ); ?>" data-ts="<?php echo (int) time(); ?>">
+		<form class="ricoman-lead-form rm-callback-form" data-ajax="<?php echo $ajax; // phpcs:ignore WordPress.Security.EscapeOutput ?>" data-nonce="<?php echo esc_attr( $nonce ); ?>" data-source="<?php echo esc_attr( $source ); ?>" data-ts="<?php echo (int) time(); ?>">
+			<?php if ( $atts['title'] ) : ?><p class="ricoman-lead-title"><?php echo esc_html( $atts['title'] ); ?></p><?php endif; ?>
+			<?php if ( $atts['sub'] ) : ?><p class="rm-callback-sub"><?php echo esc_html( $atts['sub'] ); ?></p><?php endif; ?>
 			<div aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px"><label>Website<input type="text" name="rm_hp" tabindex="-1" autocomplete="off"></label></div>
-			<div class="rm-cb-row">
+			<div class="ricoman-field-row">
 				<label><span><?php esc_html_e( 'Name', 'ricoman' ); ?> *</span><input type="text" name="name" required></label>
 				<label><span><?php esc_html_e( 'Phone', 'ricoman' ); ?> *</span><input type="tel" name="phone" required></label>
 			</div>
@@ -611,7 +614,7 @@ function ricoman_callback_form( $atts = array() ) {
 					<option><?php esc_html_e( 'Afternoon', 'ricoman' ); ?></option>
 				</select>
 			</label>
-			<button type="submit" class="btn btn-solid rm-cb-go"><?php esc_html_e( 'Request a callback', 'ricoman' ); ?></button>
+			<button type="submit" class="ricoman-lead-submit rm-cb-go"><?php esc_html_e( 'Request a callback', 'ricoman' ); ?></button>
 			<p class="rm-news-msg" role="status" hidden></p>
 		</form>
 	</div>

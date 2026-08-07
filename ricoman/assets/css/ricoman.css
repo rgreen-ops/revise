@@ -735,14 +735,10 @@ body:not(.rm-pe-preview) .rm-mediapanel{width:100vw;margin-left:calc(50% - 50vw)
 .rm-contact-ways .rm-aud-card h3 a:hover{color:var(--blue)}
 .rm-contact-form .rm-flist li{margin-bottom:.7em}
 .rm-contact-form .rm-soft{background:#f7f7f7;border:1px solid var(--line)}
-.rm-callback{background:var(--rm-soft,#f5f6f8);border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:clamp(22px,3vw,34px)}
-.rm-callback-form{max-width:560px}
-.rm-callback-form .rm-cb-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.rm-callback-form label{display:block;margin:0 0 12px}
-.rm-callback-form .rm-cb-row label{margin:0}
-.rm-callback-form label span{display:block;font-size:.82rem;font-weight:600;margin:0 0 4px;color:var(--ink,#16161a)}
-.rm-callback-form input,.rm-callback-form select{width:100%;box-sizing:border-box;max-width:100%;padding:11px 13px;border-radius:10px;border:1px solid rgba(0,0,0,.18);background:#fff;color:var(--ink,#16161a);font-size:.95rem}
-@media(max-width:520px){.rm-callback-form .rm-cb-row{grid-template-columns:1fr}}
+/* Callback form now reuses the enquiry form's .ricoman-lead-form styling so the
+   two contact-page forms match exactly. Keep only a plain wrapper + sub line. */
+.rm-callback{background:none;border:0;padding:0}
+.rm-callback-sub{color:var(--muted,#5b6068);font-size:.9rem;line-height:1.5;margin:0 0 1rem;max-width:54ch}
 /* Footer (dark) override */
 .rm-foot-news{margin-top:clamp(32px,4vw,56px);padding-top:28px;border-top:1px solid rgba(255,255,255,.12)}
 .rm-foot-news .rm-news{background:none;border:0;border-radius:0;padding:0}
