@@ -197,6 +197,54 @@ function ricoman_seo_is_noindex() {
 }
 
 /* ---------------------------------------------------------------------------
+ * Keep NON-PRODUCTION hosts (e.g. staging.ricoman.com) out of search engines
+ * without ever affecting the live site.
+ * ------------------------------------------------------------------------- */
+
+/**
+ * True on a staging / non-production host. Gated on the host containing
+ * "staging" so the LIVE site (ricoman.com) can NEVER match — its indexing is
+ * left completely untouched. Adjustable via the `ricoman_is_staging` filter.
+ */
+function ricoman_is_staging_site() {
+	$host = isset( $_SERVER['HTTP_HOST'] ) ? strtolower( (string) $_SERVER['HTTP_HOST'] ) : '';
+	$is   = ( '' !== $host && false !== strpos( $host, 'staging' ) );
+	return (bool) apply_filters( 'ricoman_is_staging', $is );
+}
+
+// Universal, plugin-independent noindex header on every staging response
+// (covers HTML, PDFs, feeds — everything — and works even with an SEO plugin).
+add_action( 'send_headers', function () {
+	if ( ricoman_is_staging_site() && ! headers_sent() ) {
+		header( 'X-Robots-Tag: noindex, nofollow', true );
+	}
+} );
+
+// Force the theme's own robots meta to noindex on staging.
+add_filter( 'ricoman_seo_is_noindex', function ( $v ) {
+	return ricoman_is_staging_site() ? true : $v;
+} );
+
+// Force WordPress core's wp_robots() meta to noindex on staging.
+add_filter( 'wp_robots', function ( $robots ) {
+	if ( ricoman_is_staging_site() ) {
+		unset( $robots['index'], $robots['follow'], $robots['max-image-preview'], $robots['max-snippet'] );
+		$robots['noindex']  = true;
+		$robots['nofollow'] = true;
+	}
+	return $robots;
+} );
+
+// Force Yoast's robots meta to noindex on staging (only if Yoast is active).
+add_filter( 'wpseo_robots_array', function ( $robots ) {
+	if ( ricoman_is_staging_site() && is_array( $robots ) ) {
+		$robots['index']  = 'noindex';
+		$robots['follow'] = 'nofollow';
+	}
+	return $robots;
+} );
+
+/* ---------------------------------------------------------------------------
  * Document title
  * ------------------------------------------------------------------------- */
 
