@@ -250,6 +250,36 @@ add_filter( 'wpseo_robots_array', function ( $robots ) {
 }, 99 );
 
 /* ---------------------------------------------------------------------------
+ * Product canonicals — force self-canonical on the live /products/ URL.
+ *
+ * Many migrated products carry a STALE per-post Yoast canonical pointing at the
+ * old URL bases (/track-lighting/{slug}/, /product-category/{slug}/, …) which
+ * now 301-redirect to /products/{slug}/. A canonical that points at a redirect
+ * makes Google skip/duplicate the page. Overriding to the product's own
+ * permalink fixes every affected product at once with no per-page editing.
+ * Covers Yoast's canonical + core's rel-canonical, product singles only.
+ * ------------------------------------------------------------------------- */
+add_filter( 'wpseo_canonical', function ( $canonical ) {
+	if ( is_singular( 'product' ) ) {
+		$self = get_permalink( get_queried_object_id() );
+		if ( $self ) {
+			return $self;
+		}
+	}
+	return $canonical;
+}, 20 );
+// Core rel_canonical (when Yoast isn't emitting it) — same guard.
+add_filter( 'get_canonical_url', function ( $canonical, $post ) {
+	if ( $post && 'product' === get_post_type( $post ) ) {
+		$self = get_permalink( $post );
+		if ( $self ) {
+			return $self;
+		}
+	}
+	return $canonical;
+}, 20, 2 );
+
+/* ---------------------------------------------------------------------------
  * Document title
  * ------------------------------------------------------------------------- */
 
