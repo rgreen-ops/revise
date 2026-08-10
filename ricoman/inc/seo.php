@@ -280,6 +280,54 @@ add_filter( 'get_canonical_url', function ( $canonical, $post ) {
 }, 20, 2 );
 
 /* ---------------------------------------------------------------------------
+ * Noindex leftover utility / duplicate / template pages.
+ *
+ * Real pages that should stay live but NOT compete in search: the trade-portal
+ * and form-confirmation pages, plus migration left-overs (duplicate/backup
+ * homepages, an Elementor scratch page, an old HTML site-map, a stray dup).
+ * Keyed on the full page path so nested confirmation pages match too, and the
+ * default "Uncategorized" category ("Hello world!") is dropped as well.
+ * "follow" keeps any link equity flowing. Ambiguous old landing pages are left
+ * alone on purpose (reviewed separately).
+ * ------------------------------------------------------------------------- */
+function ricoman_seo_noindex_page_uris() {
+	return array(
+		// Trade portal + utility + form confirmations (functional — keep live).
+		'dashboard', 'my-project', 'create-project', 'login', 'registration',
+		'thank-you', 'lighting-design/thank-you', 'new-trade-page/thank-you',
+		'site-map', 'e-mail-notice',
+		// Migration left-overs (duplicate / backup / template).
+		'home-page', 'home-duplicate-bkp', 'updated-home-page',
+		'product-mega-menu', 'elementor-88702', 'registration-duplicate-1',
+	);
+}
+function ricoman_seo_is_noindex_target() {
+	if ( is_page() ) {
+		$uri = get_page_uri( get_queried_object_id() );
+		if ( $uri && in_array( strtolower( (string) $uri ), ricoman_seo_noindex_page_uris(), true ) ) {
+			return true;
+		}
+	}
+	return (bool) is_category( 'uncategorized' );
+}
+add_filter( 'ricoman_seo_is_noindex', function ( $v ) {
+	return $v ? $v : ricoman_seo_is_noindex_target();
+} );
+// Yoast robots string — run before the staging-wide override (priority 99).
+add_filter( 'wpseo_robots', function ( $robots ) {
+	return ( ! ricoman_is_staging_site() && ricoman_seo_is_noindex_target() ) ? 'noindex, follow' : $robots;
+}, 98 );
+// WordPress core robots (no-Yoast fallback).
+add_filter( 'wp_robots', function ( $robots ) {
+	if ( ricoman_seo_is_noindex_target() ) {
+		unset( $robots['index'] );
+		$robots['noindex'] = true;
+		$robots['follow']  = true;
+	}
+	return $robots;
+}, 11 );
+
+/* ---------------------------------------------------------------------------
  * Document title
  * ------------------------------------------------------------------------- */
 
