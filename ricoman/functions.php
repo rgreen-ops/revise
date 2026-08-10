@@ -337,8 +337,3 @@ add_filter( 'render_block', function ( $html, $block ) {
 	}
 	return $html;
 }, 20, 2 );
-
-/* TEMP deploy-pipeline test marker — proves staging auto-deploy works. Safe to remove. */
-add_action( 'wp_head', function () {
-	echo "\n<!-- ricoman-deploy-test-2026-08-10-OK -->\n";
-}, 99 );
