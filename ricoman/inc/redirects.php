@@ -53,6 +53,31 @@ add_action( 'template_redirect', function () {
 	exit;
 }, 0 );
 
+/* ---- Old-site "/back-end/" prefix repair ----------------------------------
+ * The previous ricoman.com served ALL wp-content under a /back-end/ prefix, e.g.
+ * /back-end/wp-content/uploads/2020/01/Modus-Installation-Instructions.pdf.
+ * PRINTED QR codes on product packaging (installation manuals) point at those
+ * old URLs, so they 404 after the move. The new site serves the identical files
+ * at the standard path with no prefix, so strip "/back-end" and 301 to the real
+ * file. One rule repairs every label + any legacy /back-end/ link (PDFs, images,
+ * datasheets…). Runs at a very early priority so it beats the page cache and the
+ * 404 resolver. */
+add_action( 'template_redirect', function () {
+	if ( is_admin() ) {
+		return;
+	}
+	$uri = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+	if ( '' === $uri || 0 !== strpos( $uri, '/back-end/' ) ) {
+		return;
+	}
+	$target = substr( $uri, strlen( '/back-end' ) ); // keeps the leading slash → "/wp-content/..."
+	if ( '' === $target || '/' !== $target[0] ) {
+		$target = '/' . ltrim( (string) $target, '/' );
+	}
+	wp_safe_redirect( $target, 301 );
+	exit;
+}, -999 );
+
 /* ---- Old permalinks → current destination (general 404 resolver) ----------
  * The old site used different URL bases: /product/ (singular), category-prefixed
  * product URLs like /track-lighting/{slug}/, and older project/news slugs that
