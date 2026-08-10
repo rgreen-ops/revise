@@ -300,6 +300,29 @@ function ricoman_404_is_noise( $path ) {
 			return true;
 		}
 	}
+	// Ahrefs / SEO-crawler verification tokens (e.g. /ahrefs_<hash>/).
+	if ( 0 === strpos( $p, 'ahrefs' ) || false !== strpos( $p, '/ahrefs' ) ) {
+		return true;
+	}
+	// App-server exploit probes (Spring Boot Actuator, Jenkins, Solr, …).
+	if ( false !== strpos( $p, 'actuator' ) || false !== strpos( $p, 'jenkins' ) || false !== strpos( $p, '/solr' ) ) {
+		return true;
+	}
+	// Old feed / tag archive URLs left over from the previous site.
+	if ( preg_match( '#(^|/)(feed|tag)(/|$)#', $p ) || preg_match( '#\.(feed|rss)$#', $p ) ) {
+		return true;
+	}
+	// Old paginated archive URLs (…/page/2/) — the live archives paginate fine,
+	// so a 404 here is always a stale link, not a real page.
+	if ( preg_match( '#/page/[0-9]+$#', $p ) ) {
+		return true;
+	}
+	// A long hex-only path segment = a scanner/verification token, never a slug.
+	foreach ( explode( '/', $p ) as $seg ) {
+		if ( preg_match( '#^[a-f0-9]{24,}$#', $seg ) ) {
+			return true;
+		}
+	}
 	return false;
 }
 
