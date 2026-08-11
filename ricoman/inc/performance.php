@@ -144,6 +144,45 @@ add_action( 'wp_head', function () {
 	echo '<style id="rm-cls-guard">img{max-width:100%;height:auto}</style>' . "\n";
 }, 1 );
 
+/* ---- Long-cache uploaded media (repeat visits + PageSpeed) ----
+ * wp-content/uploads is served straight by Apache with NO Cache-Control, so
+ * every visit re-downloads every product/content image. Mirror the theme's
+ * own proven bundled-asset .htaccess (which already caches for a year on this
+ * server) into the uploads folder. IfModule-guarded, so it's a safe no-op where
+ * mod_expires/mod_headers are absent. Written once, idempotently, on admin load.
+ * (No "immutable" here — unlike versioned theme assets, an image could be
+ * replaced at the same URL, so allow revalidation.) */
+add_action( 'admin_init', function () {
+	$up   = wp_get_upload_dir();
+	$base = isset( $up['basedir'] ) ? $up['basedir'] : '';
+	if ( ! $base || ! is_dir( $base ) ) {
+		return;
+	}
+	$file     = trailingslashit( $base ) . '.htaccess';
+	$marker   = '# BEGIN Ricoman media cache';
+	$existing = is_readable( $file ) ? (string) file_get_contents( $file ) : '';
+	if ( false !== strpos( $existing, $marker ) || ! wp_is_writable( $base ) ) {
+		return; // already in place, or can't write — leave it.
+	}
+	$rules = $marker . "\n"
+		. "<IfModule mod_expires.c>\n"
+		. "  ExpiresActive On\n"
+		. "  ExpiresByType image/jpeg \"access plus 1 year\"\n"
+		. "  ExpiresByType image/png \"access plus 1 year\"\n"
+		. "  ExpiresByType image/webp \"access plus 1 year\"\n"
+		. "  ExpiresByType image/avif \"access plus 1 year\"\n"
+		. "  ExpiresByType image/gif \"access plus 1 year\"\n"
+		. "  ExpiresByType image/svg+xml \"access plus 1 year\"\n"
+		. "</IfModule>\n"
+		. "<IfModule mod_headers.c>\n"
+		. "  <FilesMatch \"\\.(jpe?g|png|webp|avif|gif|svg)$\">\n"
+		. "    Header set Cache-Control \"public, max-age=31536000\"\n"
+		. "  </FilesMatch>\n"
+		. "</IfModule>\n"
+		. "# END Ricoman media cache\n";
+	@file_put_contents( $file, ( '' !== $existing ? rtrim( $existing ) . "\n\n" : '' ) . $rules ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+} );
+
 /* ---- Remove front-end bloat ---- */
 add_action( 'init', function () {
 	// Emoji.
