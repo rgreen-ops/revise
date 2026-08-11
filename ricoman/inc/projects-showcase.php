@@ -174,7 +174,7 @@ function ricoman_projects_showcase_sc( $atts ) {
 		$loc = trim( wp_strip_all_tags( (string) get_post_meta( $pid, 'area', true ) ) );
 		$sec = function_exists( 'ricoman_first_term_name' ) ? ricoman_first_term_name( $pid, array( 'project-cat', 'application' ) ) : '';
 		$cards .= '<a class="rm-projshow-card" href="' . esc_url( get_permalink( $pid ) ) . '">'
-			. '<span class="rm-projshow-img"' . ( $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '' ) . '></span>'
+			. '<span class="rm-projshow-img"' . ( $img ? ' data-bg="' . esc_url( $img ) . '"' : '' ) . '></span>'
 			. '<span class="rm-projshow-name">' . esc_html( $title ) . '</span>'
 			. ( '' !== $loc ? '<span class="rm-projshow-loc">' . esc_html( $loc ) . '</span>' : '' )
 			. ( '' !== $sec ? '<span class="rm-projshow-sector">' . esc_html( $sec ) . '</span>' : '' )

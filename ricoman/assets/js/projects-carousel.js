@@ -5,6 +5,34 @@
 (function () {
 	'use strict';
 
+	// Load a card's background only when it's needed. The showcase sits well
+	// below the fold, and one project's image is a very heavy GIF, so eager
+	// backgrounds bloated the initial load (worst on mobile). Images ship as
+	// data-bg and are hydrated as they near the viewport.
+	function hydrateBg(el) {
+		var u = el && el.getAttribute('data-bg');
+		if (u) { el.style.backgroundImage = 'url("' + u + '")'; el.removeAttribute('data-bg'); }
+	}
+	function hydrateNear(track) {
+		var r = track.getBoundingClientRect();
+		Array.prototype.forEach.call(track.querySelectorAll('.rm-projshow-img[data-bg]'), function (el) {
+			var c = el.getBoundingClientRect();
+			if (c.right > r.left - 400 && c.left < r.right + 400) { hydrateBg(el); }
+		});
+	}
+	function lazyBackgrounds() {
+		var imgs = document.querySelectorAll('.rm-projshow-img[data-bg]');
+		if (!imgs.length) { return; }
+		if (!('IntersectionObserver' in window)) {
+			Array.prototype.forEach.call(imgs, hydrateBg); // no IO support — just load them.
+			return;
+		}
+		var io = new IntersectionObserver(function (entries) {
+			entries.forEach(function (e) { if (e.isIntersecting) { hydrateBg(e.target); io.unobserve(e.target); } });
+		}, { rootMargin: '400px' });
+		Array.prototype.forEach.call(imgs, function (el) { io.observe(el); });
+	}
+
 	function init(view) {
 		if (view.__pcInit) { return; }
 		view.__pcInit = true;
@@ -21,6 +49,7 @@
 		function update() {
 			if (prev) { prev.hidden = track.scrollLeft <= 4; }
 			if (next) { next.hidden = (track.scrollLeft + track.clientWidth) >= (track.scrollWidth - 4); }
+			hydrateNear(track); // load backgrounds as cards scroll into the carousel's view
 		}
 		if (prev) { prev.addEventListener('click', function () { track.scrollBy({ left: -stepPx() * 1.5, behavior: 'smooth' }); }); }
 		if (next) { next.addEventListener('click', function () { track.scrollBy({ left: stepPx() * 1.5, behavior: 'smooth' }); }); }
@@ -29,6 +58,6 @@
 		update();
 	}
 
-	function boot() { Array.prototype.forEach.call(document.querySelectorAll('.rm-projshow-view'), init); }
+	function boot() { lazyBackgrounds(); Array.prototype.forEach.call(document.querySelectorAll('.rm-projshow-view'), init); }
 	if (document.readyState !== 'loading') { boot(); } else { document.addEventListener('DOMContentLoaded', boot); }
 })();
