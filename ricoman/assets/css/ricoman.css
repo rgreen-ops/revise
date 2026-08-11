@@ -776,6 +776,17 @@ body:not(.rm-pe-preview) .rm-mediapanel{width:100vw;margin-left:calc(50% - 50vw)
   .rm-navtoggle:checked ~ ul{padding-top:228px;justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch}
   .nav>ul>li{padding:5px 0}
   .rm-search{flex:0 0 auto;width:auto;min-width:0}
+  /* --- One-column mobile menu -----------------------------------------------
+     Previously the search/account block was pinned as a separate fixed panel
+     and the links scrolled underneath it, offset by a hard-coded 228px gap —
+     which clipped the top "Products" heading and left a large empty void below.
+     When the menu is open, make the whole thing a single scrolling column:
+     search + account first, then the links, all flowing naturally. Scoped to
+     the open state (:has); browsers without :has() keep the previous layout. */
+  .nav:has(#rm-navtoggle:checked){position:fixed;inset:0;height:100dvh;z-index:55;background:var(--ink);display:flex;flex-direction:column;align-items:stretch;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:14px var(--pad) 48px}
+  .nav:has(#rm-navtoggle:checked)>.rm-burger{position:fixed;top:10px;right:16px;z-index:61}
+  .nav:has(#rm-navtoggle:checked)>.rm-nav-right{position:static;transform:none!important;max-height:none;width:100%;overflow:visible;order:1;margin:4px 0 2px;padding:0 0 6px;border-bottom:1px solid rgba(255,255,255,.14)}
+  .nav:has(#rm-navtoggle:checked)>ul.rm-nav{position:static;height:auto;width:100%;transform:none!important;padding-top:0!important;margin:0;justify-content:flex-start;overflow:visible;order:2}
 }
 
 /* brand film video block */
