@@ -25,16 +25,38 @@
 		});
 	}
 	function lazyBackgrounds() {
-		var imgs = document.querySelectorAll('.rm-projshow-img[data-bg]');
-		if (!imgs.length) { return; }
-		if (!('IntersectionObserver' in window)) {
-			Array.prototype.forEach.call(imgs, hydrateBg); // no IO support — just load them.
-			return;
+		if (!document.querySelector('.rm-projshow-img[data-bg]')) { return; }
+		// Load any pending card whose box is vertically near the viewport.
+		function scan() {
+			var vh = window.innerHeight || document.documentElement.clientHeight || 0;
+			Array.prototype.forEach.call(document.querySelectorAll('.rm-projshow-img[data-bg]'), function (el) {
+				var r = el.getBoundingClientRect();
+				if (r.top < vh + 400 && r.bottom > -400) { hydrateBg(el); }
+			});
+			if (!document.querySelector('.rm-projshow-img[data-bg]')) {
+				window.removeEventListener('scroll', onScroll);
+				window.removeEventListener('resize', onScroll);
+			}
 		}
-		var io = new IntersectionObserver(function (entries) {
-			entries.forEach(function (e) { if (e.isIntersecting) { hydrateBg(e.target); io.unobserve(e.target); } });
-		}, { rootMargin: '400px' });
-		Array.prototype.forEach.call(imgs, function (el) { io.observe(el); });
+		var ticking = false;
+		function onScroll() {
+			if (ticking) { return; }
+			ticking = true;
+			var raf = window.requestAnimationFrame || function (cb) { return setTimeout(cb, 16); };
+			raf(function () { ticking = false; scan(); });
+		}
+		// Primary path: IntersectionObserver where available…
+		if ('IntersectionObserver' in window) {
+			var io = new IntersectionObserver(function (entries) {
+				entries.forEach(function (e) { if (e.isIntersecting) { hydrateBg(e.target); io.unobserve(e.target); } });
+			}, { rootMargin: '400px' });
+			Array.prototype.forEach.call(document.querySelectorAll('.rm-projshow-img[data-bg]'), function (el) { io.observe(el); });
+		}
+		// …plus a passive scroll/resize scan as a bulletproof fallback, and one
+		// scan now for anything already near the viewport.
+		window.addEventListener('scroll', onScroll, { passive: true });
+		window.addEventListener('resize', onScroll);
+		scan();
 	}
 
 	function init(view) {
