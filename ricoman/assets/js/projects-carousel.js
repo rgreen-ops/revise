@@ -15,6 +15,10 @@
 	}
 	function hydrateNear(track) {
 		var r = track.getBoundingClientRect();
+		var vh = window.innerHeight || document.documentElement.clientHeight || 0;
+		// Skip unless the carousel is genuinely near the vertical viewport — else a
+		// below-the-fold track would hydrate its horizontally-visible cards on init.
+		if (r.bottom < -400 || r.top > vh + 400) { return; }
 		Array.prototype.forEach.call(track.querySelectorAll('.rm-projshow-img[data-bg]'), function (el) {
 			var c = el.getBoundingClientRect();
 			if (c.right > r.left - 400 && c.left < r.right + 400) { hydrateBg(el); }
