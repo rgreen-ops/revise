@@ -101,6 +101,49 @@ add_filter( 'render_block', function ( $content ) {
 	}, $content );
 }, 11 );
 
+/* ---- Stop layout shift (CLS): reserve image space up front ----
+ * Google flagged CLS > 0.1 on the homepage + news articles — images that
+ * arrive without intrinsic dimensions reflow the page as they load. WordPress
+ * names its scaled files name-WIDTHxHEIGHT.ext, so we can restore width/height
+ * on any <img> missing them (content images, card thumbnails, featured images)
+ * and the browser reserves the box before the pixels arrive. Paired with the
+ * `img{height:auto}` rule below so the reserved box scales with the layout
+ * instead of distorting. Idempotent; images that already carry a dimension,
+ * or whose file name has no size suffix, are left untouched. */
+function ricoman_img_reserve_space( $html ) {
+	if ( ! is_string( $html ) || false === strpos( $html, '<img' ) ) {
+		return $html;
+	}
+	return preg_replace_callback( '/<img\b[^>]*>/i', function ( $m ) {
+		$tag = $m[0];
+		if ( preg_match( '/\b(width|height)=/i', $tag ) ) {
+			return $tag; // already dimensioned — leave as-is.
+		}
+		$src = '';
+		if ( preg_match( '/\ssrc="([^"]+)"/i', $tag, $s ) ) {
+			$src = $s[1];
+		}
+		// Lazy markup can park a placeholder in src and the real file in data-src.
+		if ( ( '' === $src || 0 === strpos( $src, 'data:' ) ) && preg_match( '/\sdata-src="([^"]+)"/i', $tag, $d ) ) {
+			$src = $d[1];
+		}
+		if ( preg_match( '/-(\d{2,4})x(\d{2,4})\.(?:jpe?g|png|webp|gif|avif)/i', $src, $wh ) ) {
+			return str_replace( '<img', '<img width="' . (int) $wh[1] . '" height="' . (int) $wh[2] . '"', $tag );
+		}
+		return $tag;
+	}, $html );
+}
+add_filter( 'render_block', 'ricoman_img_reserve_space', 12 );
+add_filter( 'the_content', 'ricoman_img_reserve_space', 12 );
+add_filter( 'post_thumbnail_html', 'ricoman_img_reserve_space', 12 );
+add_filter( 'get_avatar', 'ricoman_img_reserve_space', 12 );
+// Low-specificity default so a width/height'd image scales to its column and
+// keeps its ratio (reserving the box) rather than rendering at a fixed height.
+// Theme rules with real selectors still win. Emitted very early.
+add_action( 'wp_head', function () {
+	echo '<style id="rm-cls-guard">img{max-width:100%;height:auto}</style>' . "\n";
+}, 1 );
+
 /* ---- Remove front-end bloat ---- */
 add_action( 'init', function () {
 	// Emoji.
