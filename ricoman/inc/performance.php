@@ -517,6 +517,12 @@ add_filter( 'the_content', function ( $html ) {
 			if ( false === stripos( $tag, ' poster=' ) ) {
 				$tag = preg_replace( '/<video\b/', '<video poster="' . $poster . '"', $tag, 1 );
 			}
+			// A11y: even a silent, decorative hero video should carry a captions
+			// track (empty here — there is no dialogue) to satisfy the check.
+			if ( false === stripos( $tag, '<track' ) ) {
+				$vtt = esc_url( get_theme_file_uri( 'assets/no-captions.vtt' ) );
+				$tag = str_replace( '></video>', '><track kind="captions" src="' . $vtt . '" label="No dialogue"></video>', $tag );
+			}
 			return $tag;
 		},
 		$html

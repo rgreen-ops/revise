@@ -67,9 +67,12 @@
 			if ( moved ) { e.preventDefault(); e.stopPropagation(); }
 		}, true );
 
-		// Nothing to scroll (everything fits) → hide the controls.
-		if ( track.scrollWidth <= track.clientWidth + 4 ) { bar.style.display = 'none'; }
-		update();
+		// Defer the first layout read to after paint, so init doesn't force a
+		// synchronous reflow immediately after the DOM restructuring above.
+		( window.requestAnimationFrame || function ( cb ) { cb(); } )( function () {
+			if ( track.scrollWidth <= track.clientWidth + 4 ) { bar.style.display = 'none'; } // nothing to scroll → hide controls
+			update();
+		} );
 	}
 
 	function boot() { Array.prototype.forEach.call( document.querySelectorAll( '.rm-homecaro-track' ), init ); }

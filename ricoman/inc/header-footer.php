@@ -78,11 +78,45 @@ function ricoman_render_links( $key ) {
 	return $out;
 }
 
+/** Cached ' width="…" height="…"' for the logo, read from the file so it always
+ * reserves its space (no layout shift) whatever image is set as the brand logo. */
+function ricoman_logo_dim_attr( $url ) {
+	if ( ! $url ) {
+		return '';
+	}
+	static $memo = array();
+	$key = md5( (string) $url );
+	if ( isset( $memo[ $key ] ) ) {
+		return $memo[ $key ];
+	}
+	$cached = get_transient( 'rm_logo_dims_' . $key );
+	if ( is_string( $cached ) ) {
+		return $memo[ $key ] = $cached;
+	}
+	$attr = '';
+	$clean = strtok( (string) $url, '?' );
+	$up    = wp_get_upload_dir();
+	$path  = '';
+	if ( ! empty( $up['baseurl'] ) && 0 === strpos( $clean, $up['baseurl'] ) ) {
+		$path = $up['basedir'] . substr( $clean, strlen( $up['baseurl'] ) );
+	} elseif ( 0 === strpos( $clean, content_url() ) ) {
+		$path = WP_CONTENT_DIR . substr( $clean, strlen( content_url() ) );
+	}
+	if ( $path && is_readable( $path ) ) {
+		$sz = @getimagesize( $path ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
+		if ( $sz && ! empty( $sz[0] ) && ! empty( $sz[1] ) ) {
+			$attr = ' width="' . (int) $sz[0] . '" height="' . (int) $sz[1] . '"';
+		}
+	}
+	set_transient( 'rm_logo_dims_' . $key, $attr, WEEK_IN_SECONDS );
+	return $memo[ $key ] = $attr;
+}
+
 /* ------------------------------------------------------------------ header */
 add_shortcode( 'ricoman_header', function () {
 	$logo  = ricoman_opt( 'brand_logo' );
 	$brand = $logo
-		? '<a class="brand" href="' . esc_url( home_url( '/' ) ) . '"><img src="' . esc_url( $logo ) . '" alt="Ricoman" class="rm-logo"></a>'
+		? '<a class="brand" href="' . esc_url( home_url( '/' ) ) . '"><img src="' . esc_url( $logo ) . '"' . ricoman_logo_dim_attr( $logo ) . ' alt="Ricoman" class="rm-logo"></a>'
 		: '<a class="brand" href="' . esc_url( home_url( '/' ) ) . '">RICOMAN<sup>&reg;</sup></a>';
 
 	// Mega panel (Products). Auto-list the real product categories so the menu
@@ -232,7 +266,7 @@ add_shortcode( 'ricoman_header', function () {
 add_shortcode( 'ricoman_footer', function () {
 	$logo  = ricoman_opt( 'brand_logo' );
 	$brand = $logo
-		? '<img src="' . esc_url( $logo ) . '" alt="Ricoman" class="rm-logo">'
+		? '<img src="' . esc_url( $logo ) . '"' . ricoman_logo_dim_attr( $logo ) . ' alt="Ricoman" class="rm-logo">'
 		: 'RICOMAN<sup style="font-size:.5em">&reg;</sup>';
 
 	// Contact block.

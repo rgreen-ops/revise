@@ -13,30 +13,26 @@
 		var u = el && el.getAttribute('data-bg');
 		if (u) { el.style.backgroundImage = 'url("' + u + '")'; el.removeAttribute('data-bg'); }
 	}
-	function hydrateNear(track) {
-		var r = track.getBoundingClientRect();
-		var vh = window.innerHeight || document.documentElement.clientHeight || 0;
-		// Skip unless the carousel is genuinely near the vertical viewport — else a
-		// below-the-fold track would hydrate its horizontally-visible cards on init.
-		if (r.bottom < -400 || r.top > vh + 400) { return; }
-		Array.prototype.forEach.call(track.querySelectorAll('.rm-projshow-img[data-bg]'), function (el) {
-			var c = el.getBoundingClientRect();
-			if (c.right > r.left - 400 && c.left < r.right + 400) { hydrateBg(el); }
-		});
-	}
 	function lazyBackgrounds() {
 		if (!document.querySelector('.rm-projshow-img[data-bg]')) { return; }
-		// Load any pending card whose box is vertically near the viewport.
+		// Load any pending card whose box is vertically near the viewport. Reads
+		// (getBoundingClientRect) are batched BEFORE writes (hydrateBg sets a
+		// style), so we never thrash layout inside the loop — that was a forced
+		// reflow on scroll. Once the section is scrolled to, all its cards hydrate.
 		function scan() {
-			var vh = window.innerHeight || document.documentElement.clientHeight || 0;
-			Array.prototype.forEach.call(document.querySelectorAll('.rm-projshow-img[data-bg]'), function (el) {
-				var r = el.getBoundingClientRect();
-				if (r.top < vh + 400 && r.bottom > -400) { hydrateBg(el); }
-			});
-			if (!document.querySelector('.rm-projshow-img[data-bg]')) {
+			var pending = document.querySelectorAll('.rm-projshow-img[data-bg]');
+			if (!pending.length) {
 				window.removeEventListener('scroll', onScroll);
 				window.removeEventListener('resize', onScroll);
+				return;
 			}
+			var vh = window.innerHeight || document.documentElement.clientHeight || 0;
+			var hit = [];
+			for (var i = 0; i < pending.length; i++) {            // read phase
+				var r = pending[i].getBoundingClientRect();
+				if (r.top < vh + 400 && r.bottom > -400) { hit.push(pending[i]); }
+			}
+			for (var j = 0; j < hit.length; j++) { hydrateBg(hit[j]); } // write phase
 		}
 		var ticking = false;
 		function onScroll() {
@@ -75,7 +71,6 @@
 		function update() {
 			if (prev) { prev.hidden = track.scrollLeft <= 4; }
 			if (next) { next.hidden = (track.scrollLeft + track.clientWidth) >= (track.scrollWidth - 4); }
-			hydrateNear(track); // load backgrounds as cards scroll into the carousel's view
 		}
 		if (prev) { prev.addEventListener('click', function () { track.scrollBy({ left: -stepPx() * 1.5, behavior: 'smooth' }); }); }
 		if (next) { next.addEventListener('click', function () { track.scrollBy({ left: stepPx() * 1.5, behavior: 'smooth' }); }); }
