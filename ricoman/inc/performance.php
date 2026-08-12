@@ -89,9 +89,30 @@ add_filter( 'render_block', function ( $content ) {
 		return $content;
 	}
 	return preg_replace_callback( '/<img\b[^>]*>/i', function ( $m ) {
+		static $hero_set = false;
 		$tag = $m[0];
 		if ( preg_match( '/\bloading=|\bfetchpriority=|data-no-lazy|data-skip-lazy|skip-lazy|no-lazy/i', $tag ) ) {
+			$hero_set = true; // an explicitly-marked hero already exists this render.
 			return $tag;
+		}
+		// LCP: the first SIZEABLE image is the largest-contentful-paint candidate,
+		// so load it eagerly + high-priority instead of lazily. Lazy-loading the
+		// LCP image is a top cause of slow mobile LCP — pages that don't use an FSE
+		// "cover" hero (e.g. news articles) had their lead image lazied. Small
+		// chrome (logo/icons) never qualifies, so it stays lazy.
+		if ( ! $hero_set ) {
+			$w = 0; $h = 0;
+			if ( preg_match( '/\bwidth=["\']?(\d+)/i', $tag, $wm ) ) { $w = (int) $wm[1]; }
+			if ( preg_match( '/\bheight=["\']?(\d+)/i', $tag, $hm ) ) { $h = (int) $hm[1]; }
+			if ( 0 === $w && preg_match( '/-(\d{2,4})x(\d{2,4})\.(?:jpe?g|png|webp|gif|avif)/i', $tag, $dm ) ) {
+				$w = (int) $dm[1]; $h = (int) $dm[2];
+			}
+			if ( $w >= 300 || $h >= 300 ) {
+				$hero_set = true;
+				$add = ' fetchpriority="high" loading="eager"';
+				if ( false === stripos( $tag, 'decoding=' ) ) { $add .= ' decoding="async"'; }
+				return str_replace( '<img', '<img' . $add, $tag );
+			}
 		}
 		$add = ' loading="lazy"';
 		if ( false === stripos( $tag, 'decoding=' ) ) {
@@ -130,8 +151,40 @@ function ricoman_img_reserve_space( $html ) {
 		if ( preg_match( '/-(\d{2,4})x(\d{2,4})\.(?:jpe?g|png|webp|gif|avif)/i', $src, $wh ) ) {
 			return str_replace( '<img', '<img width="' . (int) $wh[1] . '" height="' . (int) $wh[2] . '"', $tag );
 		}
+		// Full-size uploads with no -WxH suffix (theme-rendered product/banner
+		// images): look up the attachment's real dimensions once (cached, capped).
+		$dims = ricoman_img_dims_for_url( $src );
+		if ( $dims ) {
+			return str_replace( '<img', '<img width="' . $dims[0] . '" height="' . $dims[1] . '"', $tag );
+		}
 		return $tag;
 	}, $html );
+}
+
+/**
+ * Real pixel dimensions for an uploads image URL, cached and budget-capped so a
+ * large grid never hammers the database. Returns array( width, height ) or null.
+ */
+function ricoman_img_dims_for_url( $url ) {
+	static $cache  = array();
+	static $budget = 80;
+	$key = strtok( (string) $url, '?' );
+	if ( isset( $cache[ $key ] ) ) {
+		return $cache[ $key ];
+	}
+	if ( $budget <= 0 || false === strpos( $key, '/wp-content/uploads/' ) ) {
+		return $cache[ $key ] = null;
+	}
+	$budget--;
+	$out = null;
+	$id  = attachment_url_to_postid( $key );
+	if ( $id ) {
+		$meta = wp_get_attachment_metadata( $id );
+		if ( ! empty( $meta['width'] ) && ! empty( $meta['height'] ) ) {
+			$out = array( (int) $meta['width'], (int) $meta['height'] );
+		}
+	}
+	return $cache[ $key ] = $out;
 }
 add_filter( 'render_block', 'ricoman_img_reserve_space', 12 );
 add_filter( 'the_content', 'ricoman_img_reserve_space', 12 );
