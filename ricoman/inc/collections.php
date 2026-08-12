@@ -117,17 +117,37 @@ function ricoman_collection_products( $term_id ) {
 function ricoman_collection_counts( $term_id ) {
 	$term_id = (int) $term_id;
 	$ver     = (string) get_option( 'rm_products_ver', '1' );
-	$key     = 'rm_colcnt_' . $ver . '_' . $term_id;
+	$key     = 'rm_colcnt2_' . $ver . '_' . $term_id;
 	$cached  = get_transient( $key );
 	if ( is_array( $cached ) ) {
 		return $cached;
 	}
-	$prods    = ricoman_collection_products( $term_id );
-	$variants = 0;
-	if ( function_exists( 'ricoman_pf_variant_count' ) ) {
-		foreach ( $prods as $pid ) {
-			$variants += (int) ricoman_pf_variant_count( $pid );
+	$prods = ricoman_collection_products( $term_id );
+	// Distinct variant count across the whole collection. Expand each product to
+	// its configure-family and dedupe FIRST, so family-grouped ranges (e.g.
+	// Estrella, whose members share one variant pool) aren't counted multiple
+	// times. Then one query counts the unique variant posts.
+	$parent_ids = array();
+	foreach ( $prods as $pid ) {
+		if ( function_exists( 'ricoman_pf_family_products' ) ) {
+			foreach ( (array) ricoman_pf_family_products( $pid ) as $f ) {
+				$parent_ids[ (int) $f ] = true;
+			}
+		} else {
+			$parent_ids[ (int) $pid ] = true;
 		}
+	}
+	$parent_ids = array_keys( $parent_ids );
+	$variants   = 0;
+	if ( ! empty( $parent_ids ) && post_type_exists( 'variant-product' ) ) {
+		$vq = new WP_Query( array(
+			'post_type'      => 'variant-product',
+			'post_status'    => 'publish',
+			'posts_per_page' => 1,
+			'fields'         => 'ids',
+			'meta_query'     => array( array( 'key' => 'parent_product', 'value' => array_map( 'strval', $parent_ids ), 'compare' => 'IN' ) ), // phpcs:ignore WordPress.DB.SlowDBQuery
+		) );
+		$variants = (int) $vq->found_posts;
 	}
 	$out = array( 'products' => count( $prods ), 'variants' => $variants );
 	set_transient( $key, $out, DAY_IN_SECONDS );
