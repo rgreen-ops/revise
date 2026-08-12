@@ -200,6 +200,40 @@ function ricoman_img_dims_for_url( $url ) {
 	}
 	return $cache[ $key ] = $out;
 }
+
+/* ---- Serve hand-optimised WebP for the heavy homepage hero photos ----
+ * Betfred-Flow-1/2 were uploaded as ~700KB PNG *photos* (the mobile LCP element
+ * + the bulk of the homepage weight). This server's own WebP is unreliable, so
+ * we ship pre-optimised WebP twins with the theme (~110KB each, 85% smaller)
+ * and swap them in for those specific images: src replaced, the PNG srcset/sizes
+ * dropped. Scoped by filename AND file existence, so nothing else is touched.
+ * Same aspect ratio, so width/height (and thus CLS) are unaffected. Runs before
+ * the hero/lazy filters so the LCP marking still applies to the swapped tag. */
+function ricoman_hero_webp_swap( $html ) {
+	if ( ! is_string( $html ) || false === strpos( $html, 'Betfred-Flow-' ) ) {
+		return $html;
+	}
+	$map = array(
+		'Betfred-Flow-1' => 'assets/images/hero-betfred-1.webp',
+		'Betfred-Flow-2' => 'assets/images/hero-betfred-2.webp',
+	);
+	return preg_replace_callback( '/<img\b[^>]*>/i', function ( $m ) use ( $map ) {
+		$tag = $m[0];
+		foreach ( $map as $needle => $rel ) {
+			if ( false !== strpos( $tag, $needle ) && file_exists( get_theme_file_path( $rel ) ) ) {
+				$webp = esc_url( get_theme_file_uri( $rel ) );
+				$tag  = preg_replace( '/\s(?:srcset|sizes)="[^"]*"/i', '', $tag );
+				if ( preg_match( '/\ssrc="([^"]*)"/i', $tag, $sm ) ) {
+					$tag = str_replace( 'src="' . $sm[1] . '"', 'src="' . $webp . '"', $tag );
+				}
+				return $tag;
+			}
+		}
+		return $tag;
+	}, $html );
+}
+add_filter( 'render_block', 'ricoman_hero_webp_swap', 9 );
+add_filter( 'the_content', 'ricoman_hero_webp_swap', 9 );
 add_filter( 'render_block', 'ricoman_img_reserve_space', 12 );
 add_filter( 'the_content', 'ricoman_img_reserve_space', 12 );
 add_filter( 'post_thumbnail_html', 'ricoman_img_reserve_space', 12 );
