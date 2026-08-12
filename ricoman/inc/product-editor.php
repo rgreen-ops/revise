@@ -624,6 +624,20 @@ function ricoman_product_editor_render() {
 		$cur_cats = is_wp_error( $cur ) ? array() : array_map( 'intval', $cur );
 	}
 
+	// Collection (range grouping) for the editor's single-select Collection picker.
+	$col_opts = array();
+	$cur_col  = 0;
+	if ( ! $is_tpl && taxonomy_exists( 'collection' ) ) {
+		$cterms = get_terms( array( 'taxonomy' => 'collection', 'hide_empty' => false, 'orderby' => 'name', 'order' => 'ASC' ) );
+		if ( ! is_wp_error( $cterms ) ) {
+			foreach ( $cterms as $t ) {
+				$col_opts[] = array( 'id' => (int) $t->term_id, 'name' => $t->name );
+			}
+		}
+		$curc    = wp_get_object_terms( $pid, 'collection', array( 'fields' => 'ids' ) );
+		$cur_col = ( ! is_wp_error( $curc ) && ! empty( $curc ) ) ? (int) $curc[0] : 0;
+	}
+
 	$boot = array(
 		'pid'      => $pid,
 		'isTpl'    => $is_tpl,
@@ -641,6 +655,8 @@ function ricoman_product_editor_render() {
 		'accessoriesData'  => $acc_data,
 		'allCats'  => $cat_opts,
 		'cats'     => $cur_cats,
+		'allCollections' => $col_opts,
+		'collection'     => $cur_col,
 		'values'   => $fieldvals,
 		'gallery'  => $gallery,
 		'insitu'   => $insitu,
@@ -872,6 +888,7 @@ function ricoman_product_editor_render() {
 			<input type="hidden" name="insitu_json" id="rmpe-save-insitu">
 			<input type="hidden" name="accessories_json" id="rmpe-save-accessories">
 			<input type="hidden" name="cats_json" id="rmpe-save-cats">
+			<input type="hidden" name="collection_id" id="rmpe-save-collection">
 		</form>
 
 		<form id="rmpe-resetform" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:none">
@@ -884,7 +901,7 @@ function ricoman_product_editor_render() {
 	<script>
 	( function () {
 		var B = <?php echo wp_json_encode( $boot ); ?>;
-		var state = { layout: B.layout.slice(), fields: Object.assign( {}, B.values ), cols: ( B.cols || [] ).slice(), filterOff: ( B.filterOff || [] ).slice(), configVisual: !! B.configVisual, colsGlobal: false, gallery: ( B.gallery || [] ).slice(), insitu: ( B.insitu || [] ).slice(), accessories: ( B.accessoriesData || [] ).slice(), cats: ( B.cats || [] ).slice(), sel: 0, device: 'desktop' };
+		var state = { layout: B.layout.slice(), fields: Object.assign( {}, B.values ), cols: ( B.cols || [] ).slice(), filterOff: ( B.filterOff || [] ).slice(), configVisual: !! B.configVisual, colsGlobal: false, gallery: ( B.gallery || [] ).slice(), insitu: ( B.insitu || [] ).slice(), accessories: ( B.accessoriesData || [] ).slice(), cats: ( B.cats || [] ).slice(), collection: ( B.collection || 0 ), sel: 0, device: 'desktop' };
 		var $ = function ( id ) { return document.getElementById( id ); };
 		var iframe = $( 'rmpe-iframe' ), load = $( 'rmpe-load' );
 
@@ -1147,6 +1164,7 @@ function ricoman_product_editor_render() {
 				html += galleryControl( 'Studio gallery', 'gallery' );
 				html += galleryControl( 'In-situ photos', 'insitu' );
 				html += categoryControl();
+				html += collectionControl();
 				html += visRow( it );
 			} else if ( it.type === 'section' && it.key === 'specs' && ! B.isTpl ) {
 				html += '<p class="ttl">Specification &amp; details</p><p class="hint">Edit the specification shown in this section.</p>';
@@ -1266,6 +1284,17 @@ function ricoman_product_editor_render() {
 				+ '<input type="search" class="rmpe-cat-q" data-catq="1" placeholder="Filter categories…" autocomplete="off">'
 				+ '<div class="rmpe-cats">' + boxes + '</div>';
 		}
+		function collectionControl() {
+			if ( B.isTpl || ! ( B.allCollections && B.allCollections.length ) ) { return ''; }
+			var sel = state.collection || 0;
+			var none = '<label class="rmpe-catcb"><input type="radio" name="rmpe-collection" data-col-id="0"' + ( ! sel ? ' checked' : '' ) + '> <em style="color:var(--faint)">None</em></label>';
+			var boxes = B.allCollections.map( function ( t ) {
+				var on = ( t.id === sel );
+				return '<label class="rmpe-catcb"><input type="radio" name="rmpe-collection" data-col-id="' + t.id + '"' + ( on ? ' checked' : '' ) + '> ' + String( t.name ).replace( /</g, '&lt;' ) + '</label>';
+			} ).join( '' );
+			return '<label><span>Collection <em style="font-weight:400;color:var(--faint);text-transform:none;letter-spacing:0">— the range this belongs to (shows on the Collections page)</em></span></label>'
+				+ '<div class="rmpe-cats">' + none + boxes + '</div>';
+		}
 		function openMedia( cb ) {
 			if ( ! window.wp || ! wp.media ) { return; }
 			var frame = wp.media( { title: 'Add images', multiple: 'add', library: { type: 'image' }, button: { text: 'Add to gallery' } } );
@@ -1310,6 +1339,11 @@ function ricoman_product_editor_render() {
 				if ( e.target.checked ) { if ( kci < 0 ) { state.cats.push( cid ); } }
 				else if ( kci > -1 ) { state.cats.splice( kci, 1 ); }
 				pushDraft(); // no re-render: keeps the filter box + scroll position
+				return;
+			}
+			if ( 'colId' in e.target.dataset ) {
+				state.collection = parseInt( e.target.dataset.colId, 10 ) || 0;
+				pushDraft();
 				return;
 			}
 			if ( e.target.dataset.col ) {
@@ -1407,6 +1441,7 @@ function ricoman_product_editor_render() {
 			$( 'rmpe-save-insitu' ).value = JSON.stringify( state.insitu.map( function ( i ) { return i.id; } ) );
 			$( 'rmpe-save-accessories' ).value = JSON.stringify( state.accessories.map( function ( i ) { return i.id; } ) );
 			$( 'rmpe-save-cats' ).value = JSON.stringify( state.cats || [] );
+			$( 'rmpe-save-collection' ).value = String( state.collection || 0 );
 			$( 'rmpe-saveform' ).submit();
 		} );
 		$( 'rmpe-exit' ).addEventListener( 'click', function () { window.location.href = B.exitUrl; } );
@@ -1561,6 +1596,13 @@ add_action( 'admin_post_ricoman_save_product_page', function () {
 			$cids = array_values( array_unique( array_filter( array_map( 'absint', $cats ) ) ) );
 			wp_set_object_terms( $pid, $cids, $ctax, false );
 		}
+	}
+
+	// Collection (range grouping) — single-select picker; REPLACES the product's
+	// collection. Guarded by isset() like the categories above.
+	if ( isset( $_POST['collection_id'] ) && taxonomy_exists( 'collection' ) ) {
+		$col_id = absint( wp_unslash( $_POST['collection_id'] ) );
+		wp_set_object_terms( $pid, $col_id ? array( $col_id ) : array(), 'collection', false );
 	}
 
 	// Configure display style (table vs visual configurator).
