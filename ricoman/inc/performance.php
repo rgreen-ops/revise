@@ -184,6 +184,20 @@ function ricoman_img_dims_for_url( $url ) {
 			$out = array( (int) $meta['width'], (int) $meta['height'] );
 		}
 	}
+	// Fallback for images not tracked as a clean attachment (e.g. oddly-named
+	// imports): read the real dimensions from the local file header. Cheap.
+	if ( ! $out ) {
+		$up = wp_get_upload_dir();
+		if ( ! empty( $up['baseurl'] ) && ! empty( $up['basedir'] ) && 0 === strpos( $key, $up['baseurl'] ) ) {
+			$path = $up['basedir'] . substr( $key, strlen( $up['baseurl'] ) );
+			if ( is_readable( $path ) ) {
+				$sz = @getimagesize( $path ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
+				if ( $sz && ! empty( $sz[0] ) && ! empty( $sz[1] ) ) {
+					$out = array( (int) $sz[0], (int) $sz[1] );
+				}
+			}
+		}
+	}
 	return $cache[ $key ] = $out;
 }
 add_filter( 'render_block', 'ricoman_img_reserve_space', 12 );
