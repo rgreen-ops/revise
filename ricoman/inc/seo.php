@@ -418,6 +418,92 @@ if ( ! function_exists( 'ricoman_catarch_h1' ) ) {
 }
 
 /* ---------------------------------------------------------------------------
+ * Structured data — Product node + richer Organization (rich results + AI/GEO).
+ * Every product page becomes a machine-readable Product made by the Ricoman
+ * manufacturer entity; the sitewide Organization gains a postal address and
+ * contact point. Hooked onto Yoast's schema graph so it merges with Yoast's
+ * existing WebPage / Breadcrumb / Organization nodes. B2B: no offers/price.
+ * ------------------------------------------------------------------------- */
+add_filter( 'wpseo_schema_organization', function ( $data ) {
+	if ( ! is_array( $data ) ) {
+		return $data;
+	}
+	$data['address'] = array(
+		'@type'           => 'PostalAddress',
+		'streetAddress'   => 'Metroplex Business Park, 520 Broadway',
+		'addressLocality' => 'Salford',
+		'addressRegion'   => 'Greater Manchester',
+		'postalCode'      => 'M50 2UE',
+		'addressCountry'  => 'GB',
+	);
+	$data['contactPoint'] = array(
+		'@type'       => 'ContactPoint',
+		'contactType' => 'sales',
+		'email'       => 'purchasing@ricoman.com',
+		'areaServed'  => 'GB',
+	);
+	return $data;
+} );
+
+add_filter( 'wpseo_schema_graph', function ( $graph, $context ) {
+	if ( ! is_array( $graph ) || ! is_singular( 'product' ) ) {
+		return $graph;
+	}
+	$id = get_queried_object_id();
+	if ( ! $id ) {
+		return $graph;
+	}
+	$img = get_the_post_thumbnail_url( $id, 'large' );
+	if ( ! $img && function_exists( 'ricoman_product_img' ) ) {
+		$img = ricoman_product_img( $id );
+	}
+	$desc = wp_strip_all_tags( (string) get_the_excerpt( $id ) );
+	if ( '' === trim( $desc ) ) {
+		$desc = wp_strip_all_tags( (string) get_post_field( 'post_content', $id ) );
+	}
+	$desc = trim( preg_replace( '/\s+/', ' ', $desc ) );
+	if ( strlen( $desc ) > 320 ) {
+		$desc = rtrim( mb_substr( $desc, 0, 300 ) ) . '…';
+	}
+	$cat = '';
+	foreach ( array( 'product-category', 'product_cat', 'application' ) as $tx ) {
+		if ( taxonomy_exists( $tx ) ) {
+			$terms = get_the_terms( $id, $tx );
+			if ( $terms && ! is_wp_error( $terms ) ) {
+				$cat = $terms[0]->name;
+				break;
+			}
+		}
+	}
+	$node = array(
+		'@type'           => 'Product',
+		'@id'             => get_permalink( $id ) . '#product',
+		'name'            => get_the_title( $id ),
+		'url'             => get_permalink( $id ),
+		'brand'           => array( '@type' => 'Brand', 'name' => 'Ricoman Lighting' ),
+		'manufacturer'    => array( '@type' => 'Organization', 'name' => 'Ricoman Lighting' ),
+		'countryOfOrigin' => 'GB',
+		'category'        => $cat ? $cat : 'Commercial LED Lighting',
+	);
+	if ( $img ) {
+		$node['image'] = $img;
+	}
+	if ( '' !== $desc ) {
+		$node['description'] = $desc;
+	}
+	foreach ( array( 'sku', 'product_code', 'order_code', 'mpn' ) as $mk ) {
+		$v = get_post_meta( $id, $mk, true );
+		if ( is_string( $v ) && '' !== $v ) {
+			$node['sku'] = $v;
+			$node['mpn'] = $v;
+			break;
+		}
+	}
+	$graph[] = $node;
+	return $graph;
+}, 11, 2 );
+
+/* ---------------------------------------------------------------------------
  * Document title
  * ------------------------------------------------------------------------- */
 
