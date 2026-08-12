@@ -329,8 +329,10 @@ add_shortcode( 'ricoman_all_products', function () {
 	$out .= '<div class="rm-pp-wrap rm-catarch rm-allprods" data-acy-cat="' . esc_attr( $acy_slug ) . '">';
 	$out .= '<div class="rm-pp-crumb">' . $crumb . '</div>';
 	$out .= '<h1 class="rm-catarch-title">' . esc_html( ricoman_catarch_h1( 'All Products' ) ) . '</h1>';
+	$out .= function_exists( 'ricoman_collections_tabbar' ) ? ricoman_collections_tabbar() : '';
 	$out .= '<div class="rm-catgrid-wrap"><aside class="rm-facets">' . $sidebar . '</aside>';
 	$out .= '<div class="rm-catgrid">';
+	$out .= function_exists( 'ricoman_collections_panel' ) ? ricoman_collections_panel() : '';
 	$out .= '<div class="rm-catgrid-top"><p class="rm-fcount"><b>' . (int) $total . '</b> products</p>'
 		. '<div class="rm-imgmode" role="group" aria-label="Photo style">'
 		. '<button type="button" class="rm-imgmode-btn on" data-mode="studio">Studio</button>'

@@ -287,3 +287,178 @@ add_action( 'admin_enqueue_scripts', function ( $hook ) {
 JS;
 	wp_add_inline_script( 'jquery-core', $js );
 } );
+
+/* ---------------------------------------------------------------------------
+ * Front-end: "Collections" tab + cards on the /products/ archive
+ * (injected by ricoman_all_products in inc/product-filter-fix.php). All output
+ * is guarded — if there are no collections, these return '' and the products
+ * page is completely unchanged (important: keeps LIVE untouched until
+ * collections exist there).
+ * ------------------------------------------------------------------------- */
+
+/** One dark collection card (image bg + gradient + title/desc/counts/buttons). */
+function ricoman_collection_card_html( $term ) {
+	$img = ricoman_collection_image( $term->term_id, 'large' );
+	if ( '' === $img ) {
+		$prods = ricoman_collection_products( $term->term_id );
+		if ( ! empty( $prods ) ) {
+			$img = function_exists( 'ricoman_product_img' ) ? ricoman_product_img( $prods[0] ) : (string) get_the_post_thumbnail_url( $prods[0], 'large' );
+		}
+	}
+	$c    = ricoman_collection_counts( $term->term_id );
+	$desc = ricoman_collection_desc( $term->term_id );
+	$link = get_term_link( $term );
+	$link = is_wp_error( $link ) ? '#' : $link;
+
+	$h  = '<div class="rm-collcard">';
+	if ( $img ) {
+		$h .= '<span class="rm-collcard-media" style="background-image:url(' . esc_url( $img ) . ')" aria-hidden="true"></span>';
+	}
+	$h .= '<div class="rm-collcard-body">';
+	$h .= '<h3 class="rm-collcard-title">' . esc_html( $term->name ) . '</h3>';
+	if ( '' !== $desc ) {
+		$h .= '<p class="rm-collcard-desc">' . esc_html( $desc ) . '</p>';
+	}
+	$h .= '<p class="rm-collcard-meta">' . (int) $c['products'] . ' products &middot; ' . (int) $c['variants'] . ' variants</p>';
+	$h .= '<div class="rm-collcard-btns">';
+	$h .= '<a class="rm-cbtn-primary" href="' . esc_url( $link ) . '">' . esc_html__( 'Know more', 'ricoman' ) . '</a>';
+	$h .= '<a class="rm-cbtn-outline" href="' . esc_url( $link ) . '#rm-browse">' . esc_html__( 'Browse products', 'ricoman' ) . '</a>';
+	$h .= '</div></div></div>';
+	return $h;
+}
+
+/** The Products / Collections tab bar. '' when there are no collections. */
+function ricoman_collections_tabbar() {
+	if ( empty( ricoman_collections_all() ) ) {
+		return '';
+	}
+	return '<div class="rm-pp-tabs" role="tablist">'
+		. '<button type="button" class="rm-pp-tab on" data-view="products">' . esc_html__( 'Products', 'ricoman' ) . '</button>'
+		. '<button type="button" class="rm-pp-tab" data-view="collections">' . esc_html__( 'Collections', 'ricoman' ) . '</button>'
+		. '</div>';
+}
+
+/** Collections cards panel + CSS + tab-switch JS. '' when there are no collections. */
+function ricoman_collections_panel() {
+	$terms = ricoman_collections_all();
+	if ( empty( $terms ) ) {
+		return '';
+	}
+	$cards = '';
+	foreach ( $terms as $t ) {
+		$cards .= ricoman_collection_card_html( $t );
+	}
+	$css = <<<'CSS'
+<style id="rm-collections-css">
+.rm-pp-tabs{display:flex;gap:26px;border-bottom:1px solid #e3e3e3;margin:0 0 22px}
+.rm-pp-tab{background:none;border:0;padding:0 0 12px;font-family:Poppins;font-weight:600;font-size:1rem;color:#8a8a8a;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;line-height:1.2}
+.rm-pp-tab.on{color:var(--ink,#111);border-bottom-color:var(--ink,#111)}
+.rm-collgrid{display:none;grid-template-columns:repeat(3,1fr);gap:22px}
+.rm-view-coll .rm-collgrid{display:grid}
+.rm-view-coll .rm-catgrid-top,.rm-view-coll .rm-allpgrid,.rm-view-coll .rm-pgn,.rm-view-coll .rm-fnone{display:none!important}
+.rm-view-coll .rm-facets{display:none}
+.rm-view-coll .rm-catgrid-wrap{grid-template-columns:1fr}
+.rm-collcard{position:relative;display:flex;flex-direction:column;justify-content:flex-end;min-height:430px;border-radius:14px;overflow:hidden;background:#0e0e10;color:#fff}
+.rm-collcard-media{position:absolute;inset:0;background-size:cover;background-position:center;z-index:0}
+.rm-collcard::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.9),rgba(0,0,0,.25) 55%,rgba(0,0,0,0));z-index:1}
+.rm-collcard-body{position:relative;z-index:2;padding:24px}
+.rm-collcard-title{font-family:Poppins;font-weight:600;font-size:1.5rem;line-height:1.2;margin:0 0 8px;color:#fff}
+.rm-collcard-desc{font-size:.92rem;line-height:1.5;color:rgba(255,255,255,.85);margin:0 0 12px}
+.rm-collcard-meta{font-size:.78rem;letter-spacing:.04em;color:rgba(255,255,255,.7);margin:0 0 18px}
+.rm-collcard-btns{display:flex;gap:10px;flex-wrap:wrap}
+.rm-collcard-btns a{font-family:Poppins;font-weight:600;font-size:.82rem;padding:10px 18px;border-radius:8px;text-decoration:none;transition:.2s}
+.rm-cbtn-primary{background:#2f6df6;color:#fff}
+.rm-cbtn-primary:hover{background:#255ad6}
+.rm-cbtn-outline{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.5)}
+.rm-cbtn-outline:hover{background:rgba(255,255,255,.22)}
+@media(max-width:1100px){.rm-collgrid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.rm-collgrid{grid-template-columns:1fr}}
+</style>
+CSS;
+	$js = <<<'JS'
+<script>(function(){
+  var tabs = document.querySelectorAll('.rm-pp-tabs .rm-pp-tab');
+  if(!tabs.length) return;
+  Array.prototype.forEach.call(tabs, function(tab){
+    tab.addEventListener('click', function(){
+      var view = tab.getAttribute('data-view');
+      var wrap = tab.closest('.rm-allprods');
+      if(!wrap) return;
+      wrap.classList.toggle('rm-view-coll', view === 'collections');
+      Array.prototype.forEach.call(wrap.querySelectorAll('.rm-pp-tab'), function(t){ t.classList.toggle('on', t === tab); });
+    });
+  });
+})();</script>
+JS;
+	return $css . '<div class="rm-collgrid">' . $cards . '</div>' . $js;
+}
+
+/* ---------------------------------------------------------------------------
+ * Front-end: the collection landing + browse page ([ricoman_collection_page],
+ * placed by templates/taxonomy-collection.html). Renders the "Know more" hero
+ * (image + title + description + body) then the products in the collection.
+ * ------------------------------------------------------------------------- */
+add_shortcode( 'ricoman_collection_page', function () {
+	$term = get_queried_object();
+	if ( ! ( $term instanceof WP_Term ) || 'collection' !== $term->taxonomy ) {
+		return '';
+	}
+	$img   = ricoman_collection_image( $term->term_id, 'large' );
+	$desc  = ricoman_collection_desc( $term->term_id );
+	$body  = ricoman_collection_body( $term->term_id );
+	$c     = ricoman_collection_counts( $term->term_id );
+	$prods = ricoman_collection_products( $term->term_id );
+	$crumb = do_shortcode( '[ricoman_breadcrumbs]' );
+	if ( '' === $img && ! empty( $prods ) ) {
+		$img = function_exists( 'ricoman_product_img' ) ? ricoman_product_img( $prods[0] ) : (string) get_the_post_thumbnail_url( $prods[0], 'large' );
+	}
+
+	$cards = '';
+	foreach ( $prods as $pid ) {
+		$pimg = function_exists( 'ricoman_product_img' ) ? ricoman_product_img( $pid ) : (string) get_the_post_thumbnail_url( $pid, 'large' );
+		$sub  = function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( $pid, 'product_subname' ) : '';
+		$mx   = function_exists( 'ricoman_pf_metrics' ) ? ricoman_pf_metrics( $pid ) : array( 'lm' => 0, 'w' => 0, 'co' => 0, 'feats' => array() );
+		$fins = function_exists( 'ricoman_pcard_finish_slugs' ) ? ricoman_pcard_finish_slugs( $pid ) : array();
+		if ( function_exists( 'ricoman_pcard_html' ) ) {
+			$cards .= ricoman_pcard_html( get_permalink( $pid ), $pid, $pimg, $sub, $mx, (int) ( $mx['co'] ?? 0 ), array(), array(), array(), $fins );
+		}
+	}
+
+	$css = <<<'CSS'
+<style>
+.rm-colpage-hero{position:relative;background:#0e0e10;background-size:cover;background-position:center;color:#fff}
+.rm-colpage-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.85),rgba(0,0,0,.35));z-index:0}
+.rm-colpage-hero-in{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:60px 24px}
+.rm-colpage-crumb a{color:rgba(255,255,255,.85)}
+.rm-colpage-title{font-family:Poppins;font-weight:700;font-size:clamp(2rem,4vw,3rem);line-height:1.1;margin:.2em 0 .25em;color:#fff}
+.rm-colpage-desc{font-size:1.05rem;max-width:62ch;color:rgba(255,255,255,.9);margin:0 0 .6em}
+.rm-colpage-meta{font-size:.85rem;letter-spacing:.04em;color:rgba(255,255,255,.75);margin:0}
+.rm-colpage-body{max-width:820px;margin:34px auto;padding:0 24px;font-size:1.02rem;line-height:1.7}
+.rm-colpage-grid-wrap{max-width:1200px;margin:34px auto 64px;padding:0 24px;scroll-margin-top:80px}
+.rm-colpage-gridh{font-family:Poppins;font-weight:600;font-size:1.4rem;margin:0 0 20px}
+.rm-colpage-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.rm-colpage .rm-pcard{display:flex;flex-direction:column;text-decoration:none;color:inherit}
+.rm-colpage .rm-pcard-img{position:relative;aspect-ratio:4/5;background:#f2f2f2;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.rm-colpage .rm-pcard-img img{width:82%;height:82%;object-fit:contain;display:block;mix-blend-mode:multiply}
+.rm-colpage .rm-pcard-body{padding:14px 4px 0;text-align:center}
+.rm-colpage .rm-pcard-eyebrow{display:block;font-size:.82rem;font-family:Poppins;color:#888;margin-top:6px}
+.rm-colpage .rm-pcard-title{display:block;font-size:1.1rem;font-weight:600;font-family:Poppins;line-height:1.3}
+.rm-colpage .rm-pcard-noimg{font-family:Poppins;font-size:1.1rem;font-weight:600;color:#c9c9c9;text-align:center}
+@media(max-width:1100px){.rm-colpage-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:600px){.rm-colpage-grid{grid-template-columns:1fr 1fr}}
+</style>
+CSS;
+
+	$hero = '<div class="rm-colpage-hero"' . ( $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '' ) . '>'
+		. '<div class="rm-colpage-hero-in">'
+		. '<div class="rm-pp-crumb rm-colpage-crumb">' . $crumb . '</div>'
+		. '<h1 class="rm-colpage-title">' . esc_html( $term->name ) . '</h1>'
+		. ( '' !== $desc ? '<p class="rm-colpage-desc">' . esc_html( $desc ) . '</p>' : '' )
+		. '<p class="rm-colpage-meta">' . (int) $c['products'] . ' products &middot; ' . (int) $c['variants'] . ' variants</p>'
+		. '</div></div>';
+	$bodyhtml = ( '' !== trim( (string) $body ) ) ? '<div class="rm-colpage-body">' . wpautop( wp_kses_post( $body ) ) . '</div>' : '';
+	$grid = '<div class="rm-colpage-grid-wrap" id="rm-browse"><h2 class="rm-colpage-gridh">' . esc_html__( 'Products in this collection', 'ricoman' ) . '</h2>'
+		. '<div class="rm-colpage-grid">' . $cards . '</div></div>';
+
+	return $css . '<div class="rm-pp-wrap rm-colpage">' . $hero . $bodyhtml . $grid . '</div>';
+} );
