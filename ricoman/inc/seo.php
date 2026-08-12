@@ -381,6 +381,42 @@ add_action( 'init', function () {
 	exit;
 }, 0 );
 
+/**
+ * Keyword-optimised H1 for the product archive / category pages. Maps the raw
+ * category name (or "All Products") to a search-friendly heading so the biggest
+ * on-page signal targets the real query ("Commercial LED Downlights" not
+ * "Downlight"); unmapped categories keep their own name. Used by the
+ * product-filter archive templates, which also drop the redundant count that was
+ * baked into the <h1> ("Downlight 21").
+ */
+if ( ! function_exists( 'ricoman_catarch_h1' ) ) {
+	function ricoman_catarch_h1( $title ) {
+		$t   = strtolower( trim( (string) $title ) );
+		$map = array(
+			'all products'        => 'Commercial Lighting',
+			'downlight'           => 'Commercial LED Downlights',
+			'downlights'          => 'Commercial LED Downlights',
+			'led downlights'      => 'Commercial LED Downlights',
+			'linear lighting'     => 'Linear Lighting',
+			'led linear lighting' => 'Linear Lighting',
+			'panel light'         => 'LED Panel Lights',
+			'panel lights'        => 'LED Panel Lights',
+			'track light'         => 'Track Lighting',
+			'track'               => 'Track Lighting',
+			'48v track'           => '48V Track Lighting',
+			'emergency'           => 'Emergency Lighting',
+			'acoustic lighting'   => 'Acoustic Lighting',
+			'exterior'            => 'Exterior & Outdoor Lighting',
+			'bulkhead'            => 'LED Bulkheads',
+			'led strip'           => 'LED Strip Lighting',
+			'industrial'          => 'Industrial Lighting',
+			'pendants'            => 'Pendant Lighting',
+			'biophilic lighting'  => 'Biophilic Lighting',
+		);
+		return isset( $map[ $t ] ) ? $map[ $t ] : (string) $title;
+	}
+}
+
 /* ---------------------------------------------------------------------------
  * Document title
  * ------------------------------------------------------------------------- */

@@ -130,7 +130,7 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 		. '</style>';
 	$out .= '<div class="rm-pp-wrap rm-catarch rm-allprods">';
 	$out .= '<div class="rm-pp-crumb">' . $crumb . '</div>';
-	$out .= '<h1 class="rm-catarch-title">' . esc_html( $title ) . ' <span class="rm-catarch-count" aria-hidden="true">' . (int) $total . '</span></h1>';
+	$out .= '<h1 class="rm-catarch-title">' . esc_html( ricoman_catarch_h1( $title ) ) . '</h1>';
 	$out .= $seo_intro;
 	// Only show the filter sidebar when there's something to filter by; categories
 	// with no luminaire specs (e.g. Accessories) get a clean full-width grid.
@@ -328,7 +328,7 @@ add_shortcode( 'ricoman_all_products', function () {
 		. '</style>';
 	$out .= '<div class="rm-pp-wrap rm-catarch rm-allprods" data-acy-cat="' . esc_attr( $acy_slug ) . '">';
 	$out .= '<div class="rm-pp-crumb">' . $crumb . '</div>';
-	$out .= '<h1 class="rm-catarch-title">All Products <span class="rm-catarch-count" aria-hidden="true">' . (int) $total . '</span></h1>';
+	$out .= '<h1 class="rm-catarch-title">' . esc_html( ricoman_catarch_h1( 'All Products' ) ) . '</h1>';
 	$out .= '<div class="rm-catgrid-wrap"><aside class="rm-facets">' . $sidebar . '</aside>';
 	$out .= '<div class="rm-catgrid">';
 	$out .= '<div class="rm-catgrid-top"><p class="rm-fcount"><b>' . (int) $total . '</b> products</p>'
