@@ -328,6 +328,60 @@ add_filter( 'wp_robots', function ( $robots ) {
 }, 11 );
 
 /* ---------------------------------------------------------------------------
+ * /llms.txt — Generative/Answer Engine Optimisation.
+ *
+ * A concise, machine-readable map of who Ricoman is and its key pages, served
+ * at /llms.txt (the emerging convention) as text/plain markdown. Helps AI answer
+ * engines (Google AI Overviews, ChatGPT, Perplexity, Gemini) understand the
+ * brand as the UK-manufacturer entity and cite the right pages for lighting
+ * queries. Links use final (non-redirecting) URLs.
+ * ------------------------------------------------------------------------- */
+add_action( 'init', function () {
+	$path = strtolower( trim( (string) wp_parse_url( $_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH ), '/' ) );
+	if ( 'llms.txt' !== $path ) {
+		return;
+	}
+	header( 'Content-Type: text/plain; charset=utf-8' );
+	header( 'X-Robots-Tag: noindex' );
+	header( 'Cache-Control: public, max-age=86400' );
+	$h = untrailingslashit( home_url() );
+	$lines = array(
+		'# Ricoman Lighting',
+		'',
+		'> Ricoman is a UK (Manchester) manufacturer of commercial and architectural interior LED lighting, established 2013. We design and manufacture linear lighting, curved/bespoke linear lighting, downlights, track, emergency, acoustic and biophilic luminaires for office, workplace, retail, education, healthcare, industrial, warehouse and hospitality projects — made in Britain, delivered on spec, on time and on budget. Free in-house lighting design service (Relux/DIALux) and full technical support for specifiers, contractors and architects.',
+		'',
+		'## Products',
+		"- [All products]($h/products/): full commercial LED luminaire range",
+		"- [Linear lighting]($h/product-category/led-linear-lighting/): suspended, recessed and surface linear systems",
+		"- [Flow+ curved linear lighting]($h/products/flowplus/): bespoke curved and arc linear — custom shapes and profile sizes",
+		"- [Commercial LED downlights]($h/product-category/led-downlights/): recessed, fire-rated and low-glare downlights",
+		"- [Suspended linear lighting]($h/suspended-linear-lighting/)",
+		'',
+		'## Sectors & applications',
+		"- [Office & workplace lighting]($h/sector/office-lighting/)",
+		"- [Retail lighting]($h/retail-lighting/)",
+		"- [Education lighting]($h/education-lighting/)",
+		"- [Warehouse & high-bay lighting]($h/warehouse-high-bay-lighting/)",
+		"- [Gym & sports-hall lighting]($h/gym-sports-hall-lighting/)",
+		"- [Feature lighting]($h/feature-lighting/)",
+		"- [Lighting by sector]($h/sectors/)",
+		'',
+		'## Services & company',
+		"- [Free lighting design service]($h/lighting-design/)",
+		"- [Custom / bespoke lighting]($h/custom-lighting/)",
+		"- [Made in Britain]($h/made-in-britain/)",
+		"- [UK manufacturing]($h/manufacturing/)",
+		"- [Projects & case studies]($h/projects/)",
+		"- [News, guides & specifier resources]($h/news/)",
+		"- [About Ricoman]($h/about-lighting-manufacturer/)",
+		"- [Contact]($h/contact/)",
+		'',
+	);
+	echo implode( "\n", $lines ) . "\n";
+	exit;
+}, 0 );
+
+/* ---------------------------------------------------------------------------
  * Document title
  * ------------------------------------------------------------------------- */
 
