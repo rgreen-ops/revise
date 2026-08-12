@@ -503,6 +503,95 @@ add_filter( 'wpseo_schema_graph', function ( $graph, $context ) {
 	return $graph;
 }, 11, 2 );
 
+// Article node on news posts (custom CPT → Yoast emits WebPage by default).
+add_filter( 'wpseo_schema_graph', function ( $graph, $context ) {
+	if ( ! is_array( $graph ) || ! is_singular( 'news' ) ) {
+		return $graph;
+	}
+	$id = get_queried_object_id();
+	if ( ! $id ) {
+		return $graph;
+	}
+	$org  = array( '@type' => 'Organization', 'name' => 'Ricoman Lighting' );
+	$node = array(
+		'@type'         => 'Article',
+		'@id'           => get_permalink( $id ) . '#article',
+		'headline'      => get_the_title( $id ),
+		'url'           => get_permalink( $id ),
+		'datePublished' => get_the_date( 'c', $id ),
+		'dateModified'  => get_the_modified_date( 'c', $id ),
+		'author'        => $org,
+		'publisher'     => $org,
+		'inLanguage'    => 'en-GB',
+	);
+	$img = get_the_post_thumbnail_url( $id, 'large' );
+	if ( $img ) {
+		$node['image'] = $img;
+	}
+	$graph[] = $node;
+	return $graph;
+}, 11, 2 );
+
+/* ---------------------------------------------------------------------------
+ * Title-tag + meta-description overrides for the key "money" pages — lead each
+ * with its target keyword in the single strongest on-page element. Keyed to the
+ * queried object's slug so it's robust to URL structure; every other page keeps
+ * Yoast's default. A null title keeps Yoast's title but still sets the meta.
+ * ------------------------------------------------------------------------- */
+function ricoman_seo_page_overrides() {
+	$slug = '';
+	if ( is_front_page() ) {
+		$slug = '__front__';
+	} elseif ( is_singular() ) {
+		$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
+	} elseif ( is_tax() || is_category() || is_tag() ) {
+		$t    = get_queried_object();
+		$slug = ( $t && isset( $t->slug ) ) ? $t->slug : '';
+	}
+	if ( '' === $slug ) {
+		return null;
+	}
+	$map = array(
+		'__front__' => array(
+			'Commercial Lighting Manufacturer UK | RICOMAN Lighting',
+			'UK-made commercial & architectural LED lighting from manufacturer Ricoman (Salford). Linear, downlights, track, acoustic & bespoke luminaires — free lighting design.',
+		),
+		'flowplus' => array(
+			'Flow+ Curved Linear Lighting | Bespoke Curved LED | Ricoman',
+			'Flow+ curved linear lighting from UK manufacturer Ricoman — bespoke arcs, radii and profile sizes for offices, retail & hospitality. Custom-made, made in Britain.',
+		),
+		'office-lighting' => array(
+			'Office Lighting | Commercial LED Office Lights | Ricoman',
+			'Commercial LED office lighting from UK manufacturer Ricoman. Low-glare, LG7/UGR<19-compliant linear, panel & pendant fittings. Free lighting design service.',
+		),
+		'led-downlights' => array(
+			'Commercial LED Downlights | Fire-Rated, Recessed & Adjustable | Ricoman',
+			'Commercial LED downlights from UK manufacturer Ricoman — fire-rated, recessed, IP65 and low-glare (UGR<19) fittings for offices, retail & healthcare.',
+		),
+		'led-linear-lighting' => array(
+			'Linear Lighting | Commercial & Architectural LED Linear | Ricoman',
+			'Commercial & architectural LED linear lighting from UK manufacturer Ricoman — suspended, recessed & surface systems for continuous runs. Made in Britain.',
+		),
+		'retail-lighting' => array(
+			null,
+			'Retail lighting from UK manufacturer Ricoman — track, accent, display & shopfit LED lighting with high CRI for true-colour merchandise. Free lighting design.',
+		),
+		'warehouse-high-bay-lighting' => array(
+			'Warehouse & High Bay Lighting | UK LED Manufacturer | Ricoman',
+			'Warehouse high bay lighting from UK manufacturer Ricoman — energy-efficient LED high bay & linear schemes designed to CIBSE lux levels, with payback modelling.',
+		),
+	);
+	return isset( $map[ $slug ] ) ? $map[ $slug ] : null;
+}
+add_filter( 'wpseo_title', function ( $title ) {
+	$o = ricoman_seo_page_overrides();
+	return ( $o && ! empty( $o[0] ) ) ? $o[0] : $title;
+}, 20 );
+add_filter( 'wpseo_metadesc', function ( $desc ) {
+	$o = ricoman_seo_page_overrides();
+	return ( $o && ! empty( $o[1] ) ) ? $o[1] : $desc;
+}, 20 );
+
 /* ---------------------------------------------------------------------------
  * Document title
  * ------------------------------------------------------------------------- */
