@@ -24,6 +24,12 @@ function ricoman_home_slider_assets() {
 	$css = '.rm-hslider{position:relative;overflow:hidden;background:#16161a}'
 		. '.rm-hslider>.wp-block-cover{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .8s ease}'
 		. '.rm-hslider>.wp-block-cover.is-active{position:relative;opacity:1;visibility:visible}'
+		// Show the FIRST slide immediately (before JS boots) so the hero never
+		// collapses to zero height and snaps open — kills the layout shift (CLS)
+		// and lets the LCP hero paint straight away. JS adds .rm-ready once it has
+		// taken control, after which .is-active drives visibility as normal. Also
+		// covers the single-slide case (JS returns early → this rule keeps it shown).
+		. '.rm-hslider:not(.rm-ready)>.wp-block-cover:first-child{position:relative;opacity:1;visibility:visible}'
 		. '.rm-hslider .wp-block-cover__inner-container{max-width:1180px;margin-left:auto;margin-right:auto;width:100%;padding:0 24px}'
 		. '.rm-hslider .rm-eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:.8rem;font-weight:700;opacity:.9;margin:0 0 .6em}'
 		. '.rm-hslider .rm-hslide-text{font-size:1.1rem;line-height:1.55;max-width:60ch;opacity:.94;margin:0 0 1.4em}'
@@ -40,6 +46,7 @@ function ricoman_home_slider_assets() {
 		. 'var k=[].slice.call(s.children).filter(function(c){return c.matches&&c.matches(".wp-block-cover");});'
 		. 'if(k.length<2)return;'
 		. 'k.forEach(function(x,i){if(i===0){x.classList.add("is-active");}else{x.setAttribute("aria-hidden","true");}});'
+		. 's.classList.add("rm-ready");' // hand off from the CSS first-slide fallback to JS control.
 		. 'function mk(c,h,l){var b=document.createElement("button");b.type="button";b.className=c;b.setAttribute("aria-label",l);b.innerHTML=h;return b;}'
 		. 'var prev=mk("rm-hslider-arrow rm-hslider-prev","&lsaquo;","Previous slide");'
 		. 'var next=mk("rm-hslider-arrow rm-hslider-next","&rsaquo;","Next slide");'
