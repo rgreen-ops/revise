@@ -141,55 +141,7 @@ foreach ( array(
 	'field_68f43367b452d', // content_zic_zac_section.
 ) as $ricoman_hidden_field ) {
 	add_filter( 'acf/prepare_field/key=' . $ricoman_hidden_field, '__return_false' );
-	// A force-hidden field must NEVER block a save (you can't fill what you can't
-	// see). Without this, a hidden `required` field silently fails ACF's
-	// whole-group validation and discards edits to every OTHER field in the group.
-	add_filter( 'acf/validate_value/key=' . $ricoman_hidden_field, '__return_true', 20 );
 }
-
-/**
- * Relax stale `required` flags in the "Product General Information" group. Several
- * legacy fields are still marked required, but migrated products routinely leave
- * them empty (e.g. "Show on product list", added late). Because ACF validates the
- * WHOLE group on Update, one empty required field bounces the save and reverts
- * every field in the group — which is why edits to the Downloads fields wouldn't
- * stick. These aren't business-critical to enforce, so drop the requirement.
- */
-foreach ( array(
-	'field_649572bb8b88e', // show_on_product_list.
-	'field_5c4ae724b9b4c', // key_features.
-	'field_64477ac36a1aa', // family_product_type (also force-hidden above).
-) as $ricoman_relax_field ) {
-	add_filter( 'acf/load_field/key=' . $ricoman_relax_field, function ( $field ) {
-		$field['required'] = 0;
-		return $field;
-	} );
-}
-
-/**
- * Definitive unblock: never let ACF field validation bounce a PRODUCT save.
- * Migrated products have assorted legacy `required` fields left empty, and ACF
- * validates the whole form on Update — so ANY one empty required field silently
- * discards the entire save (including Downloads edits). Rather than chase every
- * offending field, clear ACF's validation errors on product saves. Runs during
- * ACF's own AJAX validation too, so it works without needing a page reload.
- * Scoped to the `product` post type — other forms keep their validation.
- */
-add_action( 'acf/validate_save_post', function () {
-	if ( ! function_exists( 'acf_reset_validation_errors' ) ) {
-		return;
-	}
-	$pid = 0;
-	foreach ( array( 'post_id', 'post_ID', '_acf_post_id' ) as $k ) {
-		if ( ! empty( $_POST[ $k ] ) && is_numeric( $_POST[ $k ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
-			$pid = (int) $_POST[ $k ]; // phpcs:ignore WordPress.Security.NonceVerification
-			break;
-		}
-	}
-	if ( $pid && 'product' === get_post_type( $pid ) ) {
-		acf_reset_validation_errors();
-	}
-}, 999 );
 
 /**
  * Add an "In-situ Photos" gallery to products, so an admin can tag real-world /
