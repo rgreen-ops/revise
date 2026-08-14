@@ -287,6 +287,13 @@ add_action( 'load-post.php', function () {
 	if ( isset( $_GET['classic'] ) ) {
 		return; // escape hatch to the classic editor.
 	}
+	// Do NOT hijack the block editor's hidden meta-box loader/saver request. The
+	// block editor fetches AND submits its metaboxes via post.php?…&meta-box-loader=1
+	// (no classic flag), and redirecting that away silently broke saving of the ACF
+	// fields (Downloads, etc.) — the edit appeared to save but reverted on reload.
+	if ( isset( $_GET['meta-box-loader'] ) || isset( $_GET['meta_box'] ) ) {
+		return;
+	}
 	$pid = (int) $_GET['post'];
 	if ( 'product' !== get_post_type( $pid ) || ! current_user_can( 'edit_post', $pid ) ) {
 		return;
