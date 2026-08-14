@@ -303,10 +303,11 @@ add_action( 'load-post.php', function () {
  * why edits to the Downloads fields reverted to the old file on reload.
  */
 add_filter( 'use_block_editor_for_post_type', function ( $use, $post_type ) {
-	if ( 'product' === $post_type && is_admin() && isset( $_GET['classic'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		return false;
-	}
-	return $use;
+	// The only time a product opens in the native WP editor is the "All fields"
+	// escape hatch (every other product edit is redirected to the visual builder
+	// above). Force that screen to the CLASSIC editor unconditionally — the block
+	// editor silently fails to persist product ACF metaboxes (Downloads etc.).
+	return ( 'product' === $post_type ) ? false : $use;
 }, 10, 2 );
 
 /** Row action on the product list. */
