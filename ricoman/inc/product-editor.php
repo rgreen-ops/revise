@@ -13,6 +13,8 @@
  * + chosen pattern content), so the live site renders exactly what you build.
  * Untouched products keep auto-rendering the default layout.
  *
+ * Includes the in-editor Downloads manager (files + family datasheet).
+ *
  * Reached via admin.php?page=ricoman-product-editor&product=ID.
  *
  * @package Ricoman
