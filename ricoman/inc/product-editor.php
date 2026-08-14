@@ -295,6 +295,20 @@ add_action( 'load-post.php', function () {
 	exit;
 } );
 
+/**
+ * The "All fields" escape hatch (?classic=1) must open the TRUE classic editor,
+ * not the block editor. ACF's metaboxes (e.g. the Download Section repeater) save
+ * reliably through the classic editor's standard POST, whereas in the block editor
+ * they can appear to save ("Post updated") yet silently fail to persist — which is
+ * why edits to the Downloads fields reverted to the old file on reload.
+ */
+add_filter( 'use_block_editor_for_post_type', function ( $use, $post_type ) {
+	if ( 'product' === $post_type && is_admin() && isset( $_GET['classic'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		return false;
+	}
+	return $use;
+}, 10, 2 );
+
 /** Row action on the product list. */
 add_filter( 'post_row_actions', function ( $actions, $post ) {
 	if ( 'product' === $post->post_type && current_user_can( 'edit_post', $post->ID ) ) {
