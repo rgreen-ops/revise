@@ -141,6 +141,29 @@ foreach ( array(
 	'field_68f43367b452d', // content_zic_zac_section.
 ) as $ricoman_hidden_field ) {
 	add_filter( 'acf/prepare_field/key=' . $ricoman_hidden_field, '__return_false' );
+	// A force-hidden field must NEVER block a save (you can't fill what you can't
+	// see). Without this, a hidden `required` field silently fails ACF's
+	// whole-group validation and discards edits to every OTHER field in the group.
+	add_filter( 'acf/validate_value/key=' . $ricoman_hidden_field, '__return_true', 20 );
+}
+
+/**
+ * Relax stale `required` flags in the "Product General Information" group. Several
+ * legacy fields are still marked required, but migrated products routinely leave
+ * them empty (e.g. "Show on product list", added late). Because ACF validates the
+ * WHOLE group on Update, one empty required field bounces the save and reverts
+ * every field in the group — which is why edits to the Downloads fields wouldn't
+ * stick. These aren't business-critical to enforce, so drop the requirement.
+ */
+foreach ( array(
+	'field_649572bb8b88e', // show_on_product_list.
+	'field_5c4ae724b9b4c', // key_features.
+	'field_64477ac36a1aa', // family_product_type (also force-hidden above).
+) as $ricoman_relax_field ) {
+	add_filter( 'acf/load_field/key=' . $ricoman_relax_field, function ( $field ) {
+		$field['required'] = 0;
+		return $field;
+	} );
 }
 
 /**
