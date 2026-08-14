@@ -645,6 +645,26 @@ function ricoman_product_editor_render() {
 		$cur_col = ( ! is_wp_error( $curc ) && ! empty( $curc ) ) ? (int) $curc[0] : 0;
 	}
 
+	// Downloads (download_section repeater + family datasheet) for the editor's
+	// Downloads manager. Read raw values = attachment ids (not formatted URLs).
+	$dl_rows = array();
+	$dl_fam  = 0;
+	if ( ! $is_tpl && function_exists( 'get_field' ) ) {
+		$raw_dl = get_field( 'download_section', $pid, false );
+		if ( is_array( $raw_dl ) ) {
+			foreach ( $raw_dl as $r ) {
+				$fid       = isset( $r['download-file'] ) ? (int) $r['download-file'] : 0;
+				$dl_rows[] = array(
+					'title' => isset( $r['download-title'] ) ? (string) $r['download-title'] : '',
+					'id'    => $fid,
+					'name'  => $fid ? basename( (string) get_attached_file( $fid ) ) : '',
+				);
+			}
+		}
+		$dl_fam = (int) get_field( 'download_family_datasheet', $pid, false );
+	}
+	$dl_fam_name = $dl_fam ? basename( (string) get_attached_file( $dl_fam ) ) : '';
+
 	$boot = array(
 		'pid'      => $pid,
 		'isTpl'    => $is_tpl,
@@ -664,6 +684,9 @@ function ricoman_product_editor_render() {
 		'cats'     => $cur_cats,
 		'allCollections' => $col_opts,
 		'collection'     => $cur_col,
+		'downloads'      => $dl_rows,
+		'familyDs'       => $dl_fam,
+		'familyDsName'   => $dl_fam_name,
 		'values'   => $fieldvals,
 		'gallery'  => $gallery,
 		'insitu'   => $insitu,
@@ -896,6 +919,8 @@ function ricoman_product_editor_render() {
 			<input type="hidden" name="accessories_json" id="rmpe-save-accessories">
 			<input type="hidden" name="cats_json" id="rmpe-save-cats">
 			<input type="hidden" name="collection_id" id="rmpe-save-collection">
+			<input type="hidden" name="downloads_json" id="rmpe-save-downloads">
+			<input type="hidden" name="family_ds_id" id="rmpe-save-familyds">
 		</form>
 
 		<form id="rmpe-resetform" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:none">
@@ -908,7 +933,7 @@ function ricoman_product_editor_render() {
 	<script>
 	( function () {
 		var B = <?php echo wp_json_encode( $boot ); ?>;
-		var state = { layout: B.layout.slice(), fields: Object.assign( {}, B.values ), cols: ( B.cols || [] ).slice(), filterOff: ( B.filterOff || [] ).slice(), configVisual: !! B.configVisual, colsGlobal: false, gallery: ( B.gallery || [] ).slice(), insitu: ( B.insitu || [] ).slice(), accessories: ( B.accessoriesData || [] ).slice(), cats: ( B.cats || [] ).slice(), collection: ( B.collection || 0 ), sel: 0, device: 'desktop' };
+		var state = { layout: B.layout.slice(), fields: Object.assign( {}, B.values ), cols: ( B.cols || [] ).slice(), filterOff: ( B.filterOff || [] ).slice(), configVisual: !! B.configVisual, colsGlobal: false, gallery: ( B.gallery || [] ).slice(), insitu: ( B.insitu || [] ).slice(), accessories: ( B.accessoriesData || [] ).slice(), cats: ( B.cats || [] ).slice(), collection: ( B.collection || 0 ), downloads: ( B.downloads || [] ).map( function ( r ) { return { title: r.title, id: r.id, name: r.name }; } ), familyDs: ( B.familyDs || 0 ), familyDsName: ( B.familyDsName || '' ), sel: 0, device: 'desktop' };
 		var $ = function ( id ) { return document.getElementById( id ); };
 		var iframe = $( 'rmpe-iframe' ), load = $( 'rmpe-load' );
 
@@ -1172,6 +1197,7 @@ function ricoman_product_editor_render() {
 				html += galleryControl( 'In-situ photos', 'insitu' );
 				html += categoryControl();
 				html += collectionControl();
+				html += downloadsControl();
 				html += visRow( it );
 			} else if ( it.type === 'section' && it.key === 'specs' && ! B.isTpl ) {
 				html += '<p class="ttl">Specification &amp; details</p><p class="hint">Edit the specification shown in this section.</p>';
@@ -1315,6 +1341,36 @@ function ricoman_product_editor_render() {
 			} );
 			frame.open();
 		}
+		function openFile( cb ) {
+			if ( ! window.wp || ! wp.media ) { return; }
+			var frame = wp.media( { title: 'Select file', multiple: false, button: { text: 'Use file' } } );
+			frame.on( 'select', function () {
+				var a = frame.state().get( 'selection' ).first().toJSON();
+				cb( { id: a.id, name: a.filename || a.title || ( '#' + a.id ) } );
+			} );
+			frame.open();
+		}
+		function downloadsControl() {
+			if ( B.isTpl ) { return ''; }
+			var dls = state.downloads || [];
+			var rows = dls.map( function ( r, i ) {
+				var nm = r.name ? String( r.name ).replace( /</g, '&lt;' ) : '<em style="color:var(--faint)">no file</em>';
+				return '<div class="rmpe-dl-row" style="display:flex;gap:6px;align-items:center;margin:4px 0;flex-wrap:wrap">'
+					+ '<input type="text" data-dlt="' + i + '" value="' + String( r.title || '' ).replace( /"/g, '&quot;' ) + '" placeholder="Title" style="flex:1 1 110px;min-width:90px">'
+					+ '<span class="rmpe-dl-nm" style="flex:1 1 110px;font-size:.82em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + nm + '</span>'
+					+ '<button type="button" class="rmpe-btn rmpe-btn-ghost" data-dlf="' + i + '">File</button>'
+					+ '<button type="button" class="rmpe-btn rmpe-btn-ghost" data-dld="' + i + '" title="Remove">✕</button>'
+					+ '</div>';
+			} ).join( '' );
+			var famNm = state.familyDsName ? String( state.familyDsName ).replace( /</g, '&lt;' ) : '<em style="color:var(--faint)">no file</em>';
+			return '<label><span>Downloads <em style="font-weight:400;color:var(--faint);text-transform:none;letter-spacing:0">— files shown in the product’s Downloads section</em></span></label>'
+				+ '<div class="rmpe-dls">' + rows + '</div>'
+				+ '<button type="button" class="rmpe-btn rmpe-btn-ghost" data-dladd="1" style="margin:2px 0 12px">＋ Add download</button>'
+				+ '<label><span>Family datasheet</span></label>'
+				+ '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span class="rmpe-fam-nm" style="flex:1 1 110px;font-size:.82em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + famNm + '</span>'
+				+ '<button type="button" class="rmpe-btn rmpe-btn-ghost" data-famf="1">File</button>'
+				+ '<button type="button" class="rmpe-btn rmpe-btn-ghost" data-famx="1">Remove</button></div>';
+		}
 		function visRow( it ) {
 			return '<div class="row"><span>Visible</span><label class="sw"><input type="checkbox" data-act="vis"' + ( it.on === false ? '' : ' checked' ) + '><span class="sl"></span></label></div>';
 		}
@@ -1328,6 +1384,11 @@ function ricoman_product_editor_render() {
 					} );
 				}
 				return;
+			}
+			if ( 'dlt' in e.target.dataset ) {
+				var di = parseInt( e.target.dataset.dlt, 10 );
+				if ( state.downloads && state.downloads[ di ] ) { state.downloads[ di ].title = e.target.value; pushDraft(); }
+				return; // no re-render: keeps focus in the title box while typing.
 			}
 			var f = e.target.dataset.f; if ( ! f ) { return; }
 			state.fields[ f ] = e.target.value;
@@ -1399,6 +1460,35 @@ function ricoman_product_editor_render() {
 				} );
 				return;
 			}
+			var dlf = e.target.closest( '[data-dlf]' );
+			if ( dlf ) {
+				var dfi = parseInt( dlf.getAttribute( 'data-dlf' ), 10 );
+				openFile( function ( fobj ) {
+					if ( ! state.downloads || ! state.downloads[ dfi ] ) { return; }
+					state.downloads[ dfi ].id = fobj.id; state.downloads[ dfi ].name = fobj.name;
+					renderSettings(); pushDraft();
+				} );
+				return;
+			}
+			var dld = e.target.closest( '[data-dld]' );
+			if ( dld ) {
+				var ddi = parseInt( dld.getAttribute( 'data-dld' ), 10 );
+				if ( state.downloads ) { state.downloads.splice( ddi, 1 ); renderSettings(); pushDraft(); }
+				return;
+			}
+			if ( e.target.closest( '[data-dladd]' ) ) {
+				if ( ! state.downloads ) { state.downloads = []; }
+				state.downloads.push( { title: '', id: 0, name: '' } ); renderSettings(); pushDraft();
+				return;
+			}
+			if ( e.target.closest( '[data-famf]' ) ) {
+				openFile( function ( fobj ) { state.familyDs = fobj.id; state.familyDsName = fobj.name; renderSettings(); pushDraft(); } );
+				return;
+			}
+			if ( e.target.closest( '[data-famx]' ) ) {
+				state.familyDs = 0; state.familyDsName = ''; renderSettings(); pushDraft();
+				return;
+			}
 			var btn = e.target.closest( '[data-act=remove]' ); if ( ! btn ) { return; }
 			state.layout.splice( state.sel, 1 ); state.sel = Math.max( 0, state.sel - 1 );
 			renderList(); renderAdd(); renderSettings(); pushDraft();
@@ -1449,6 +1539,8 @@ function ricoman_product_editor_render() {
 			$( 'rmpe-save-accessories' ).value = JSON.stringify( state.accessories.map( function ( i ) { return i.id; } ) );
 			$( 'rmpe-save-cats' ).value = JSON.stringify( state.cats || [] );
 			$( 'rmpe-save-collection' ).value = String( state.collection || 0 );
+			$( 'rmpe-save-downloads' ).value = JSON.stringify( state.downloads || [] );
+			$( 'rmpe-save-familyds' ).value = String( state.familyDs || 0 );
 			$( 'rmpe-saveform' ).submit();
 		} );
 		$( 'rmpe-exit' ).addEventListener( 'click', function () { window.location.href = B.exitUrl; } );
@@ -1610,6 +1702,36 @@ add_action( 'admin_post_ricoman_save_product_page', function () {
 	if ( isset( $_POST['collection_id'] ) && taxonomy_exists( 'collection' ) ) {
 		$col_id = absint( wp_unslash( $_POST['collection_id'] ) );
 		wp_set_object_terms( $pid, $col_id ? array( $col_id ) : array(), 'collection', false );
+	}
+
+	// Downloads — edited here in the builder because the WP metabox editor won't
+	// persist these fields on this install. update_field() is reliable in this
+	// admin-post context (same as the field values + categories above).
+	if ( isset( $_POST['downloads_json'] ) && function_exists( 'update_field' ) ) {
+		$dl_in = json_decode( wp_unslash( $_POST['downloads_json'] ), true );
+		$dl_rows_save = array();
+		if ( is_array( $dl_in ) ) {
+			foreach ( $dl_in as $r ) {
+				$t = isset( $r['title'] ) ? sanitize_text_field( $r['title'] ) : '';
+				$f = isset( $r['id'] ) ? absint( $r['id'] ) : 0;
+				if ( '' === $t && ! $f ) {
+					continue;
+				}
+				$dl_rows_save[] = array( 'download-title' => $t, 'download-file' => $f ? $f : '' );
+			}
+		}
+		update_field( 'download_section', $dl_rows_save, $pid );
+	}
+	if ( isset( $_POST['family_ds_id'] ) && function_exists( 'update_field' ) ) {
+		$fam_id = absint( wp_unslash( $_POST['family_ds_id'] ) );
+		update_field( 'download_family_datasheet', $fam_id ? $fam_id : '', $pid );
+	}
+	// Bust caches so the product page + Downloads page reflect the new files now.
+	if ( isset( $_POST['downloads_json'] ) || isset( $_POST['family_ds_id'] ) ) {
+		update_post_meta( $pid, '_rm_secver', (string) time() );
+		update_option( 'rm_products_ver', ( (int) get_option( 'rm_products_ver', 1 ) ) + 1, false );
+		update_option( 'rm_pagecache_ver', (string) time(), false );
+		clean_post_cache( $pid );
 	}
 
 	// Configure display style (table vs visual configurator).
