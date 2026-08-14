@@ -848,6 +848,7 @@ function ricoman_product_editor_render() {
 			<button class="rmpe-btn rmpe-btn-ghost" id="rmpe-tleft" title="<?php esc_attr_e( 'Hide / show the sections panel', 'ricoman' ); ?>"><span class="dashicons dashicons-align-pull-left"></span></button>
 			<button class="rmpe-btn rmpe-btn-ghost" id="rmpe-tright" title="<?php esc_attr_e( 'Hide / show the settings panel', 'ricoman' ); ?>"><span class="dashicons dashicons-align-pull-right"></span></button>
 			<?php if ( ! $is_tpl ) : ?>
+				<a class="rmpe-btn rmpe-btn-ghost" href="<?php echo esc_url( admin_url( 'admin.php?page=ricoman-product-downloads&product=' . $pid ) ); ?>"><?php esc_html_e( 'Downloads', 'ricoman' ); ?></a>
 				<a class="rmpe-btn rmpe-btn-ghost" href="<?php echo esc_url( admin_url( 'post.php?post=' . $pid . '&action=edit&classic=1' ) ); ?>"><?php esc_html_e( 'All fields', 'ricoman' ); ?></a>
 				<button class="rmpe-btn rmpe-btn-ghost" id="rmpe-reset"><?php esc_html_e( 'Reset', 'ricoman' ); ?></button>
 			<?php endif; ?>
