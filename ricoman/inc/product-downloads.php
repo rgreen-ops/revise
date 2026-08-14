@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /** Register the (hidden) admin screen. */
 add_action( 'admin_menu', function () {
 	add_submenu_page(
-		'', // hidden — reached via the direct link only.
+		'ricoman-hub', // under the Ricoman menu (like Configurator Images) so access is granted.
 		__( 'Product Downloads', 'ricoman' ),
 		__( 'Product Downloads', 'ricoman' ),
 		'edit_posts',
