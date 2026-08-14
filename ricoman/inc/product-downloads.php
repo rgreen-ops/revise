@@ -29,7 +29,7 @@ add_action( 'admin_menu', function () {
 		'ricoman-product-downloads',
 		'ricoman_product_downloads_screen'
 	);
-} );
+}, 30 ); // priority 30: after the 'ricoman-hub' parent menu is registered (else access is denied).
 
 /** Filename/label for a stored attachment id (for display). */
 function ricoman_pd_file_label( $id ) {
