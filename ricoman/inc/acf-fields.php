@@ -167,6 +167,31 @@ foreach ( array(
 }
 
 /**
+ * Definitive unblock: never let ACF field validation bounce a PRODUCT save.
+ * Migrated products have assorted legacy `required` fields left empty, and ACF
+ * validates the whole form on Update — so ANY one empty required field silently
+ * discards the entire save (including Downloads edits). Rather than chase every
+ * offending field, clear ACF's validation errors on product saves. Runs during
+ * ACF's own AJAX validation too, so it works without needing a page reload.
+ * Scoped to the `product` post type — other forms keep their validation.
+ */
+add_action( 'acf/validate_save_post', function () {
+	if ( ! function_exists( 'acf_reset_validation_errors' ) ) {
+		return;
+	}
+	$pid = 0;
+	foreach ( array( 'post_id', 'post_ID', '_acf_post_id' ) as $k ) {
+		if ( ! empty( $_POST[ $k ] ) && is_numeric( $_POST[ $k ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+			$pid = (int) $_POST[ $k ]; // phpcs:ignore WordPress.Security.NonceVerification
+			break;
+		}
+	}
+	if ( $pid && 'product' === get_post_type( $pid ) ) {
+		acf_reset_validation_errors();
+	}
+}, 999 );
+
+/**
  * Add an "In-situ Photos" gallery to products, so an admin can tag real-world /
  * installed shots directly on the product (separate from the studio shots in
  * "Product Gallery Image"). These fill the In-situ tab of the product gallery,
