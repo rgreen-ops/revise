@@ -712,6 +712,71 @@ add_action( 'admin_post_ricoman_404_recheck', function () {
 	exit;
 } );
 
+/* ---- Launch 301 map (from the migrated old-URL list) ----------------------
+ * Products renamed / merged during the rebuild to slugs the general resolver
+ * can't guess (e.g. /product/twisted-linear-lighting → Flowplus), plus a few
+ * old category-prefixed bases. Old→new confirmed by the Ricoman team from
+ * Search Console. Seeded ONCE per site into the editable redirect map (below),
+ * add-only — so they appear in Ricoman → Links & Redirects, can be edited or
+ * removed there, and a manual edit is never overwritten. Because the manual
+ * engine runs before the general 404 resolver, an entry here also overrides a
+ * wrong auto-guess (e.g. estrella-pro-round-aperture). Keys are bare paths (no
+ * leading/trailing slash); destinations are root-relative. */
+function ricoman_launch_redirect_map() {
+	return array(
+		// Renamed / merged products — old singular /product/ base.
+		'product/e-pro-recessed-linear-downlight'        => '/products/surface-cellular-downlight/',
+		'product/twisted-linear-lighting'                => '/products/flowplus/',
+		'product/abstract-suspended-curved-luminaire'    => '/products/flowplus/',
+		'product/flow-arc-inwards'                       => '/products/flowplus/',
+		'product/flow-2-5m-straight-line'                => '/products/flowplus/',
+		'product/downwards-ring-led-light'               => '/products/flowplus/',
+		'product/flow-ring-downwards'                    => '/products/flowplus/',
+		'product/easy-installation-bulkhead'             => '/products/nexus-switchable-wattage-bulkhead/',
+		'product/wall-wash-modular-panel-o2-wallwasher'  => '/products/duoline/',
+		'product/estrella-rgb-linear'                    => '/products/rgb-linear-light-estrella-pro/',
+		'product/estrella-pro-round-aperture'            => '/products/architectural-linear-lighting-estrella-pro-square-aperture/',
+		'product/r3-firerated-ip65-tunable-downlight'    => '/products/tunable-white-ip65-downlight/',
+		'product/verve-panel-1200x300-ugr'               => '/products/core-ugr-1200x300/',
+		// Old category-prefixed / old-base URLs.
+		'led-panel-lights/pure-panel-1200x600-led-panel' => '/products/core-ugr-1200x600/',
+		'led-panel-lights/pure-panel-600x600'            => '/products/pure-panel-500x500-led-panel/',
+		'linear-lighting/estrella-recessed'              => '/products/linear-led-lighting-system-estrella-pro-opal/',
+		'product-cat/tunable-white-lighting'             => '/products/',
+		// Slugs renamed again / retired under the new /products/ base.
+		'products/estrella'                              => '/products/estrella-linear-lighting/',
+		'products/square-led-wallwasher-vela'            => '/product-category/led-downlights/',
+		'products/kontor-free-standing-light'            => '/products/',
+		'products/fusion-ii'                             => '/products/ugr19-tpa-backlit-panel-core-ugr/',
+	);
+}
+add_action( 'admin_init', function () {
+	if ( get_option( 'ricoman_launch_redirects_v1' ) ) {
+		return;
+	}
+	$launch = ricoman_launch_redirect_map();
+	$map    = ricoman_redirects_get();
+	foreach ( $launch as $from => $to ) {
+		if ( ! isset( $map[ $from ] ) ) { // add-only: never clobber a manual edit.
+			$map[ $from ] = $to;
+		}
+	}
+	update_option( 'ricoman_redirects', $map );
+	// These are handled now — clear them from the 404 watch log if present.
+	$log     = (array) get_option( 'ricoman_404_log', array() );
+	$changed = false;
+	foreach ( array_keys( $launch ) as $from ) {
+		if ( isset( $log[ $from ] ) ) {
+			unset( $log[ $from ] );
+			$changed = true;
+		}
+	}
+	if ( $changed ) {
+		update_option( 'ricoman_404_log', $log, false );
+	}
+	update_option( 'ricoman_launch_redirects_v1', 1 );
+} );
+
 /* Daily: auto-prune the 404 log of links that now resolve, so the admin
    warning count stays accurate without anyone opening the page. */
 add_action( 'init', function () {
