@@ -112,17 +112,44 @@ add_filter( 'show_admin_bar', function ( $show ) {
 	return current_user_can( 'edit_posts' ) ? $show : false;
 } );
 
-/** Customers: honour a same-site redirect (e.g. back to the product they were
- *  adding), otherwise send them to the homepage rather than wp-admin. */
+/** Where a customer (front-end-only account) lands after login / when bounced
+ *  out of wp-admin. Filterable so it can point at a front-end account page. */
+function ricoman_customer_home() {
+	return apply_filters( 'ricoman_customer_home', home_url( '/' ) );
+}
+
+/** Customers: honour a same-site FRONT-END redirect (e.g. back to the product
+ *  they were adding), but NEVER drop them in wp-admin / wp-login — send them to
+ *  the front end instead. */
 add_filter( 'login_redirect', function ( $redirect_to, $requested, $user ) {
 	if ( $user instanceof WP_User && ! user_can( $user, 'edit_posts' ) ) {
 		if ( $requested ) {
 			$safe = wp_validate_redirect( $requested, '' );
-			if ( $safe ) {
+			// Only honour a front-end destination — an admin/login URL means the
+			// customer would land in the back end, which we never want.
+			if ( $safe && false === strpos( $safe, '/wp-admin' ) && false === strpos( $safe, 'wp-login.php' ) ) {
 				return $safe;
 			}
 		}
-		return home_url( '/' );
+		return ricoman_customer_home();
 	}
 	return $redirect_to;
 }, 10, 3 );
+
+/** Belt-and-braces: if a customer (anyone who can't edit content) ever opens a
+ *  wp-admin screen directly, bounce them to the front end. Leaves AJAX and
+ *  admin-post form handlers alone so front-end features (saved projects, the
+ *  download gate, newsletter, etc.) keep working. Staff are unaffected. */
+add_action( 'admin_init', function () {
+	if ( wp_doing_ajax() ) {
+		return;
+	}
+	$GLOBALS['pagenow'] = $GLOBALS['pagenow'] ?? '';
+	if ( 'admin-post.php' === $GLOBALS['pagenow'] || 'admin-ajax.php' === $GLOBALS['pagenow'] ) {
+		return;
+	}
+	if ( is_user_logged_in() && ! current_user_can( 'edit_posts' ) ) {
+		wp_safe_redirect( ricoman_customer_home() );
+		exit;
+	}
+} );
