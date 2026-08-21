@@ -23,13 +23,31 @@ if ( ! defined( 'ABSPATH' ) ) {
  *  Won / Lost, set by hand. */
 function ricoman_lead_statuses() {
 	return array(
-		'unactioned' => array( __( 'Unactioned', 'ricoman' ), '#cc5500' ),
-		'logged'     => array( __( 'Logged', 'ricoman' ), '#646970' ),
-		'contacted'  => array( __( 'Contacted', 'ricoman' ), '#2271b1' ),
-		'quoted'     => array( __( 'Quoted', 'ricoman' ), '#8a6d00' ),
-		'won'        => array( __( 'Won', 'ricoman' ), '#1a7f37' ),
-		'lost'       => array( __( 'Lost', 'ricoman' ), '#b32d2e' ),
+		'unactioned'     => array( __( 'Unactioned', 'ricoman' ), '#cc5500' ),
+		'logged'         => array( __( 'Logged', 'ricoman' ), '#646970' ),
+		'contacted'      => array( __( 'Contacted', 'ricoman' ), '#2271b1' ),
+		'quoted'         => array( __( 'Quoted', 'ricoman' ), '#8a6d00' ),
+		'won'            => array( __( 'Won', 'ricoman' ), '#1a7f37' ),
+		'lost'           => array( __( 'Lost', 'ricoman' ), '#b32d2e' ),
+		'internal'       => array( __( 'Internal', 'ricoman' ), '#7c3aed' ),      // Ricoman email — auto-tagged.
+		'not_applicable' => array( __( 'Not applicable', 'ricoman' ), '#a7aaad' ), // Fake / junk — set by hand.
 	);
+}
+
+/** Is this a Ricoman (internal) email address? Used to auto-tag internal
+ *  downloads/enquiries as "Internal" so they don't clutter the sales pipeline.
+ *  Matches the site's own domain by default; filter to add more internal domains. */
+function ricoman_lead_is_internal_email( $email ) {
+	$email = strtolower( trim( (string) $email ) );
+	$at    = strrpos( $email, '@' );
+	if ( false === $at ) {
+		return false;
+	}
+	$domain  = substr( $email, $at + 1 );
+	$home    = strtolower( (string) wp_parse_url( home_url(), PHP_URL_HOST ) );
+	$home    = preg_replace( '/^www\./', '', $home );
+	$domains = array_map( 'strtolower', (array) apply_filters( 'ricoman_lead_internal_domains', array_filter( array( $home ) ) ) );
+	return in_array( $domain, $domains, true );
 }
 
 /** A lead's status key. New leads are stored as 'unactioned'. Legacy leads with
@@ -67,16 +85,16 @@ function ricoman_lead_autofill_crm( $data, $lead_id ) {
 	if ( ! $lead_id ) {
 		return;
 	}
-
-	// Default status for a freshly captured lead = "Unactioned", so an untouched
-	// lead is visually distinct from one the team has already logged/worked. Only
-	// set when no status is stored yet, so it's idempotent and never overrides a
-	// status set elsewhere.
-	if ( '' === (string) get_post_meta( $lead_id, '_lead_status', true ) ) {
-		update_post_meta( $lead_id, '_lead_status', 'unactioned' );
-	}
-
 	$email = (string) get_post_meta( $lead_id, '_lead_email', true );
+
+	// Default status for a freshly captured lead. A Ricoman (internal) email is
+	// auto-tagged "Internal" so staff downloads don't clutter the sales pipeline;
+	// everything else starts as "Unactioned" so the team sees what needs picking
+	// up. Only set when no status is stored yet (idempotent, never overrides).
+	if ( '' === (string) get_post_meta( $lead_id, '_lead_status', true ) ) {
+		$default_status = ( '' !== $email && ricoman_lead_is_internal_email( $email ) ) ? 'internal' : 'unactioned';
+		update_post_meta( $lead_id, '_lead_status', $default_status );
+	}
 
 	// New lead? = we've not seen this customer (email) before in our list — i.e.
 	// they've never enquired or downloaded with us. (No email → treat as new.)
