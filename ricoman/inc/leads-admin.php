@@ -23,14 +23,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  *  Won / Lost, set by hand. */
 function ricoman_lead_statuses() {
 	return array(
-		'unactioned'     => array( __( 'Unactioned', 'ricoman' ), '#cc5500' ),
-		'logged'         => array( __( 'Logged', 'ricoman' ), '#646970' ),
-		'contacted'      => array( __( 'Contacted', 'ricoman' ), '#2271b1' ),
-		'quoted'         => array( __( 'Quoted', 'ricoman' ), '#8a6d00' ),
-		'won'            => array( __( 'Won', 'ricoman' ), '#1a7f37' ),
-		'lost'           => array( __( 'Lost', 'ricoman' ), '#b32d2e' ),
-		'internal'       => array( __( 'Internal', 'ricoman' ), '#7c3aed' ),      // Ricoman email — auto-tagged.
-		'not_applicable' => array( __( 'Not applicable', 'ricoman' ), '#a7aaad' ), // Fake / junk — set by hand.
+		'unactioned'         => array( __( 'Unactioned', 'ricoman' ), '#cc5500' ),
+		'logged'             => array( __( 'Logged', 'ricoman' ), '#646970' ),
+		'contacted'          => array( __( 'Contacted', 'ricoman' ), '#2271b1' ),
+		'recently_contacted' => array( __( 'Recently Contacted', 'ricoman' ), '#0e9594' ),
+		'quoted'             => array( __( 'Quoted', 'ricoman' ), '#8a6d00' ),
+		'ongoing_deal'       => array( __( 'Ongoing Deal', 'ricoman' ), '#c2185b' ),
+		'won'                => array( __( 'Won', 'ricoman' ), '#1a7f37' ),
+		'lost'               => array( __( 'Lost', 'ricoman' ), '#b32d2e' ),
+		'internal'           => array( __( 'Internal', 'ricoman' ), '#7c3aed' ),      // Ricoman email — auto-tagged.
+		'not_applicable'     => array( __( 'Not applicable', 'ricoman' ), '#a7aaad' ), // Fake / junk — set by hand.
 	);
 }
 
