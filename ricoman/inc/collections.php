@@ -377,8 +377,6 @@ function ricoman_collections_panel() {
 .rm-collgrid{display:none;grid-template-columns:repeat(3,1fr);gap:22px}
 .rm-view-coll .rm-collgrid{display:grid}
 .rm-view-coll .rm-catgrid-top,.rm-view-coll .rm-allpgrid,.rm-view-coll .rm-pgn,.rm-view-coll .rm-fnone{display:none!important}
-.rm-view-coll .rm-facets{display:none}
-.rm-view-coll .rm-catgrid-wrap{grid-template-columns:1fr}
 .rm-collcard{position:relative;display:flex;flex-direction:column;justify-content:flex-end;min-height:430px;border-radius:14px;overflow:hidden;background:#0e0e10;color:#fff}
 .rm-collcard-media{position:absolute;inset:0;background-size:cover;background-position:center;z-index:0}
 .rm-collcard::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.9),rgba(0,0,0,.25) 55%,rgba(0,0,0,0));z-index:1}
@@ -397,8 +395,6 @@ function ricoman_collections_panel() {
 .rm-skufind{display:none}
 .rm-view-sku .rm-skufind{display:block}
 .rm-view-sku .rm-catgrid-top,.rm-view-sku .rm-allpgrid,.rm-view-sku .rm-pgn,.rm-view-sku .rm-fnone,.rm-view-sku .rm-collgrid{display:none!important}
-.rm-view-sku .rm-facets{display:none}
-.rm-view-sku .rm-catgrid-wrap{grid-template-columns:1fr}
 .rm-skufind-lbl{display:block;font-family:Poppins;font-weight:600;font-size:1.05rem;margin:0 0 10px}
 .rm-skufind-in{width:100%;max-width:520px;font-size:1rem;padding:13px 16px;border:1px solid #d9d9d9;border-radius:10px;font-family:inherit;box-sizing:border-box}
 .rm-skufind-in:focus{outline:0;border-color:var(--ink,#111);box-shadow:0 0 0 1px var(--ink,#111)}
