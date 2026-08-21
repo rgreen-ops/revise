@@ -283,7 +283,7 @@ add_action( 'admin_enqueue_scripts', function ( $hook ) {
 	foreach ( ricoman_lead_statuses() as $k => $info ) {
 		$colours[ $k ] = array( 'label' => $info[0], 'colour' => $info[1] );
 	}
-	$css = '.rm-lead-text{width:100%;max-width:150px;font-size:12px;padding:3px 6px}'
+	$css = '.rm-lead-text{width:150px;max-width:100%;box-sizing:border-box;font-size:12px;padding:3px 6px;vertical-align:middle}'
 		. '.rm-lead-field.rm-saved{outline:2px solid #1a7f37;outline-offset:1px;transition:outline .2s}'
 		. '.rm-lead-toggle{display:inline-flex;cursor:pointer}.rm-lead-toggle input{position:absolute;opacity:0}'
 		. '.rm-lead-toggle-ui{width:34px;height:18px;border-radius:999px;background:#c3c4c7;position:relative;transition:background .15s}'
