@@ -325,6 +325,8 @@ add_shortcode( 'ricoman_all_products', function () {
 		. '.rm-imgmode-btn{font-family:Poppins;font-size:.74rem;font-weight:600;letter-spacing:.04em;padding:7px 16px;border:0;background:#fff;color:#666;cursor:pointer}'
 		. '.rm-imgmode-btn.on{background:var(--ink,#111);color:#fff}'
 		. '.rm-pcard-img img.is-insitu{width:100%;height:100%;object-fit:cover;mix-blend-mode:normal}'
+		. '.rm-catgrid-tools{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-left:auto}'
+		. '.rm-catgrid-tools .rm-pgn-top{padding:0;margin:0}'
 		. '</style>';
 	$out .= '<div class="rm-pp-wrap rm-catarch rm-allprods" data-acy-cat="' . esc_attr( $acy_slug ) . '">';
 	$out .= '<div class="rm-pp-crumb">' . $crumb . '</div>';
@@ -334,11 +336,13 @@ add_shortcode( 'ricoman_all_products', function () {
 	$out .= '<div class="rm-catgrid">';
 	$out .= function_exists( 'ricoman_collections_panel' ) ? ricoman_collections_panel() : '';
 	$out .= '<div class="rm-catgrid-top"><p class="rm-fcount"><b>' . (int) $total . '</b> products</p>'
+		. '<div class="rm-catgrid-tools">'
 		. '<div class="rm-imgmode" role="group" aria-label="Photo style">'
 		. '<button type="button" class="rm-imgmode-btn on" data-mode="studio">Studio</button>'
 		. '<button type="button" class="rm-imgmode-btn" data-mode="insitu">In situ</button>'
 		. '</div>'
-		. '<div class="rm-pgn rm-pgn-top" aria-label="Products pagination top"></div></div>';
+		. '<div class="rm-pgn rm-pgn-top" aria-label="Products pagination top"></div>'
+		. '</div></div>';
 	$out .= '<div class="rm-allpgrid" style="display:grid;grid-auto-rows:auto;gap:24px">' . $cards . '</div>';
 	$out .= '<p class="rm-fnone" hidden>No products match those filters. <button type="button" class="rm-fclear">Clear filters</button></p>';
 	$out .= '<div class="rm-pgn rm-pgn-bot" aria-label="Products pagination"></div>';
