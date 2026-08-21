@@ -355,6 +355,7 @@ function ricoman_collections_tabbar() {
 	return '<div class="rm-pp-tabs" role="tablist">'
 		. '<button type="button" class="rm-pp-tab on" data-view="products">' . esc_html__( 'Products', 'ricoman' ) . '</button>'
 		. '<button type="button" class="rm-pp-tab" data-view="collections">' . esc_html__( 'Collections', 'ricoman' ) . '</button>'
+		. '<button type="button" class="rm-pp-tab" data-view="sku">' . esc_html__( 'SKU Finder', 'ricoman' ) . '</button>'
 		. '</div>';
 }
 
@@ -393,24 +394,78 @@ function ricoman_collections_panel() {
 .rm-cbtn-outline:hover{background:rgba(255,255,255,.22)}
 @media(max-width:1100px){.rm-collgrid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:600px){.rm-collgrid{grid-template-columns:1fr}}
+.rm-skufind{display:none}
+.rm-view-sku .rm-skufind{display:block}
+.rm-view-sku .rm-catgrid-top,.rm-view-sku .rm-allpgrid,.rm-view-sku .rm-pgn,.rm-view-sku .rm-fnone,.rm-view-sku .rm-collgrid{display:none!important}
+.rm-view-sku .rm-facets{display:none}
+.rm-view-sku .rm-catgrid-wrap{grid-template-columns:1fr}
+.rm-skufind-lbl{display:block;font-family:Poppins;font-weight:600;font-size:1.05rem;margin:0 0 10px}
+.rm-skufind-in{width:100%;max-width:520px;font-size:1rem;padding:13px 16px;border:1px solid #d9d9d9;border-radius:10px;font-family:inherit;box-sizing:border-box}
+.rm-skufind-in:focus{outline:0;border-color:var(--ink,#111);box-shadow:0 0 0 1px var(--ink,#111)}
+.rm-skufind-hint{color:#8a8a8a;font-size:.85rem;margin:10px 0 18px}
+.rm-skufind-res{display:flex;flex-direction:column;gap:8px;max-width:640px}
+.rm-skures{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 16px;border:1px solid #ececec;border-radius:10px;text-decoration:none;color:inherit;transition:.15s}
+.rm-skures:hover{border-color:var(--ink,#111);background:#fafafa}
+.rm-skures-code{font-family:Poppins;font-weight:600;font-size:.92rem;color:var(--ink,#111)}
+.rm-skures-prod{font-size:.85rem;color:#666}
+.rm-skures-go{font-size:.8rem;color:#2f6df6;font-weight:600;white-space:nowrap}
 </style>
 CSS;
 	$js = <<<'JS'
 <script>(function(){
   var tabs = document.querySelectorAll('.rm-pp-tabs .rm-pp-tab');
-  if(!tabs.length) return;
-  Array.prototype.forEach.call(tabs, function(tab){
-    tab.addEventListener('click', function(){
-      var view = tab.getAttribute('data-view');
-      var wrap = tab.closest('.rm-allprods');
-      if(!wrap) return;
-      wrap.classList.toggle('rm-view-coll', view === 'collections');
-      Array.prototype.forEach.call(wrap.querySelectorAll('.rm-pp-tab'), function(t){ t.classList.toggle('on', t === tab); });
+  if(tabs.length){
+    Array.prototype.forEach.call(tabs, function(tab){
+      tab.addEventListener('click', function(){
+        var view = tab.getAttribute('data-view');
+        var wrap = tab.closest('.rm-allprods');
+        if(!wrap) return;
+        wrap.classList.toggle('rm-view-coll', view === 'collections');
+        wrap.classList.toggle('rm-view-sku', view === 'sku');
+        Array.prototype.forEach.call(wrap.querySelectorAll('.rm-pp-tab'), function(t){ t.classList.toggle('on', t === tab); });
+        if(view === 'sku'){ var i = wrap.querySelector('.rm-skufind-in'); if(i){ setTimeout(function(){ i.focus(); }, 30); } }
+      });
     });
-  });
+  }
+  var input = document.querySelector('.rm-skufind-in');
+  if(input){
+    var box = input.closest('.rm-skufind');
+    var res = box ? box.querySelector('.rm-skufind-res') : null;
+    var ajax = input.getAttribute('data-ajax') || '/wp-admin/admin-ajax.php';
+    var t, last = '';
+    function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+    input.addEventListener('input', function(){
+      var q = input.value.trim();
+      clearTimeout(t);
+      if(q.length < 2){ if(res){ res.innerHTML = ''; } last = ''; return; }
+      t = setTimeout(function(){
+        if(q === last) return; last = q;
+        if(res){ res.innerHTML = '<p class="rm-skufind-hint">Searching…</p>'; }
+        fetch(ajax + '?action=rm_sku_find&q=' + encodeURIComponent(q), {credentials:'same-origin'})
+          .then(function(r){ return r.json(); })
+          .then(function(d){
+            if(!res) return;
+            var items = (d && d.success && d.data) ? d.data : [];
+            if(!items.length){ res.innerHTML = '<p class="rm-skufind-hint">No matches for &ldquo;' + esc(q) + '&rdquo;.</p>'; return; }
+            res.innerHTML = items.map(function(it){
+              var code = it.sku ? it.sku : it.product;
+              var sub  = it.sku ? it.product : 'Product page';
+              return '<a class="rm-skures" href="' + it.url + '"><span><span class="rm-skures-code">' + esc(code) + '</span><br><span class="rm-skures-prod">' + esc(sub) + '</span></span><span class="rm-skures-go">View &rarr;</span></a>';
+            }).join('');
+          })
+          .catch(function(){ if(res){ res.innerHTML = '<p class="rm-skufind-hint">Something went wrong — please try again.</p>'; } });
+      }, 250);
+    });
+  }
 })();</script>
 JS;
-	return $css . '<div class="rm-collgrid">' . $cards . '</div>' . $js;
+	$sku = '<div class="rm-skufind">'
+		. '<label class="rm-skufind-lbl" for="rm-sku-q">' . esc_html__( 'Find a product by order code / SKU', 'ricoman' ) . '</label>'
+		. '<input type="search" id="rm-sku-q" class="rm-skufind-in" autocomplete="off" placeholder="' . esc_attr__( 'e.g. an order code or part number…', 'ricoman' ) . '" data-ajax="/wp-admin/admin-ajax.php">'
+		. '<p class="rm-skufind-hint">' . esc_html__( 'Type at least 2 characters — matching order codes and products appear below.', 'ricoman' ) . '</p>'
+		. '<div class="rm-skufind-res" aria-live="polite"></div>'
+		. '</div>';
+	return $css . '<div class="rm-collgrid">' . $cards . '</div>' . $sku . $js;
 }
 
 /* ---------------------------------------------------------------------------
@@ -482,3 +537,75 @@ CSS;
 
 	return $css . '<div class="rm-pp-wrap rm-colpage">' . $hero . $bodyhtml . $grid . '</div>';
 } );
+
+/* ---------------------------------------------------------------------------
+ * SKU Finder (AJAX) — search order codes (variant-product titles) + product
+ * names, returning matches with a link to the product page. Powers the
+ * "SKU Finder" tab on the All Products page. Read-only public search.
+ * ------------------------------------------------------------------------- */
+function ricoman_sku_find_ajax() {
+	$q = isset( $_GET['q'] ) ? trim( sanitize_text_field( wp_unslash( $_GET['q'] ) ) ) : '';
+	if ( strlen( $q ) < 2 ) {
+		wp_send_json_success( array() );
+	}
+	global $wpdb;
+	$like      = '%' . $wpdb->esc_like( $q ) . '%';
+	$out       = array();
+	$seen      = array();
+	$pids_seen = array();
+
+	// 1) Order codes = variant-product post titles → link to the parent product.
+	if ( post_type_exists( 'variant-product' ) ) {
+		$rows = $wpdb->get_results( $wpdb->prepare(
+			"SELECT ID, post_title FROM {$wpdb->posts} WHERE post_type = 'variant-product' AND post_status = 'publish' AND post_title LIKE %s ORDER BY post_title ASC LIMIT 60",
+			$like
+		) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		foreach ( (array) $rows as $r ) {
+			$parent = function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( $r->ID, 'parent_product' ) : get_post_meta( $r->ID, 'parent_product', true );
+			$pid    = is_array( $parent ) ? ( isset( $parent['ID'] ) ? (int) $parent['ID'] : 0 ) : (int) $parent;
+			if ( ! $pid || 'publish' !== get_post_status( $pid ) ) {
+				continue;
+			}
+			$key = $r->post_title . '|' . $pid;
+			if ( isset( $seen[ $key ] ) ) {
+				continue;
+			}
+			$seen[ $key ]        = 1;
+			$pids_seen[ $pid ]   = 1;
+			$out[]               = array(
+				'sku'     => $r->post_title,
+				'product' => get_the_title( $pid ),
+				'url'     => get_permalink( $pid ),
+			);
+			if ( count( $out ) >= 25 ) {
+				break;
+			}
+		}
+	}
+
+	// 2) Also match product names directly, so a product / range name works too.
+	if ( count( $out ) < 25 ) {
+		$prods = get_posts( array(
+			'post_type'      => 'product',
+			'post_status'    => 'publish',
+			'posts_per_page' => 25 - count( $out ),
+			's'              => $q,
+			'no_found_rows'  => true,
+		) );
+		foreach ( (array) $prods as $p ) {
+			if ( isset( $pids_seen[ $p->ID ] ) ) {
+				continue;
+			}
+			$pids_seen[ $p->ID ] = 1;
+			$out[]               = array(
+				'sku'     => '',
+				'product' => get_the_title( $p ),
+				'url'     => get_permalink( $p ),
+			);
+		}
+	}
+
+	wp_send_json_success( array_values( $out ) );
+}
+add_action( 'wp_ajax_rm_sku_find', 'ricoman_sku_find_ajax' );
+add_action( 'wp_ajax_nopriv_rm_sku_find', 'ricoman_sku_find_ajax' );
