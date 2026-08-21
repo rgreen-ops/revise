@@ -17,18 +17,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/** The lead statuses: key => [ label, colour ]. 'logged' is the default. */
+/** The lead statuses: key => [ label, colour ]. New leads are captured as
+ *  'unactioned' (see ricoman_lead_autofill_crm) so the team can see what still
+ *  needs picking up; the rest of the workflow is Logged → Contacted → Quoted →
+ *  Won / Lost, set by hand. */
 function ricoman_lead_statuses() {
 	return array(
-		'logged'    => array( __( 'Logged', 'ricoman' ), '#646970' ),
-		'contacted' => array( __( 'Contacted', 'ricoman' ), '#2271b1' ),
-		'quoted'    => array( __( 'Quoted', 'ricoman' ), '#8a6d00' ),
-		'won'       => array( __( 'Won', 'ricoman' ), '#1a7f37' ),
-		'lost'      => array( __( 'Lost', 'ricoman' ), '#b32d2e' ),
+		'unactioned' => array( __( 'Unactioned', 'ricoman' ), '#cc5500' ),
+		'logged'     => array( __( 'Logged', 'ricoman' ), '#646970' ),
+		'contacted'  => array( __( 'Contacted', 'ricoman' ), '#2271b1' ),
+		'quoted'     => array( __( 'Quoted', 'ricoman' ), '#8a6d00' ),
+		'won'        => array( __( 'Won', 'ricoman' ), '#1a7f37' ),
+		'lost'       => array( __( 'Lost', 'ricoman' ), '#b32d2e' ),
 	);
 }
 
-/** A lead's status key (defaults to 'logged'). */
+/** A lead's status key. New leads are stored as 'unactioned'. Legacy leads with
+ *  no stored status fall back to 'logged' (so the existing list is unchanged). */
 function ricoman_lead_status( $post_id ) {
 	$s = (string) get_post_meta( $post_id, '_lead_status', true );
 	return ( $s && array_key_exists( $s, ricoman_lead_statuses() ) ) ? $s : 'logged';
@@ -62,6 +67,15 @@ function ricoman_lead_autofill_crm( $data, $lead_id ) {
 	if ( ! $lead_id ) {
 		return;
 	}
+
+	// Default status for a freshly captured lead = "Unactioned", so an untouched
+	// lead is visually distinct from one the team has already logged/worked. Only
+	// set when no status is stored yet, so it's idempotent and never overrides a
+	// status set elsewhere.
+	if ( '' === (string) get_post_meta( $lead_id, '_lead_status', true ) ) {
+		update_post_meta( $lead_id, '_lead_status', 'unactioned' );
+	}
+
 	$email = (string) get_post_meta( $lead_id, '_lead_email', true );
 
 	// New lead? = we've not seen this customer (email) before in our list — i.e.
