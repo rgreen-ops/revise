@@ -24,9 +24,11 @@ function ricoman_customer_types() {
 	return apply_filters( 'ricoman_customer_types', array(
 		'Architect',
 		'Specifier / Consultant',
-		'Contractor / Installer',
-		'Wholesaler / Distributor',
+		'Lighting Designer',
 		'Interior Designer',
+		'Contractor / Installer',
+		'Electrician',
+		'Wholesaler / Distributor',
 		'End user / Other',
 	) );
 }
