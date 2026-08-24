@@ -292,7 +292,7 @@ add_shortcode( 'ricoman_footer', function () {
 	foreach ( $icons as $k => $name ) {
 		$url = ricoman_opt( $k );
 		if ( '' !== trim( (string) $url ) ) {
-			$social .= '<a href="' . esc_url( $url ) . '" aria-label="' . esc_attr( $name ) . '" target="_blank" rel="noopener">' . esc_html( $name[0] ) . '</a>';
+			$social .= '<a href="' . esc_url( $url ) . '" aria-label="' . esc_attr( $name ) . '" target="_blank" rel="noopener">' . ricoman_social_icon( $k ) . '</a>';
 		}
 	}
 
@@ -362,3 +362,21 @@ add_shortcode( 'ricoman_flow_banner', function () {
 	$out .= '<script>(function(){var b=document.currentScript.previousElementSibling;if(!b||b.dataset.rmInit)return;b.dataset.rmInit=1;var s=b.querySelectorAll(".rm-banner-slide"),d=b.querySelectorAll(".rm-banner-dot"),n=s.length,cur=0,t=parseInt(b.dataset.rotate,10)||6000,timer;if(n<2)return;function go(i){s[cur].classList.remove("on");d[cur]&&d[cur].classList.remove("on");cur=(i+n)%n;s[cur].classList.add("on");d[cur]&&d[cur].classList.add("on");}function start(){timer=setInterval(function(){go(cur+1);},t);}d.forEach(function(x){x.addEventListener("click",function(){clearInterval(timer);go(parseInt(x.dataset.i,10));start();});});start();})();</script>';
 	return $out;
 } );
+
+/**
+ * Brand SVG icon for a footer social link (replaces the old first-letter glyph).
+ * Inline SVG (no external requests), fill:currentColor so it inherits the link
+ * colour. Falls back to the platform's first letter for any unknown key.
+ */
+function ricoman_social_icon( $key ) {
+	$svgs = array(
+		'soc_instagram' => '<path d="M12 2.2c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.22.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.05.41 2.22.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.22-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.42.16-1.05.36-2.22.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.22-.41a3.7 3.7 0 0 1-1.38-.9 3.7 3.7 0 0 1-.9-1.38c-.16-.42-.36-1.05-.41-2.22C2.21 15.58 2.2 15.2 2.2 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.22.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.05-.36 2.22-.41C8.42 2.21 8.8 2.2 12 2.2zm0 1.8c-3.15 0-3.52.01-4.76.07-.9.04-1.38.19-1.7.32-.43.16-.73.36-1.05.68-.32.32-.52.62-.68 1.05-.13.32-.28.8-.32 1.7C3.21 8.48 3.2 8.85 3.2 12s.01 3.52.07 4.76c.04.9.19 1.38.32 1.7.16.43.36.73.68 1.05.32.32.62.52 1.05.68.32.13.8.28 1.7.32 1.24.06 1.61.07 4.76.07s3.52-.01 4.76-.07c.9-.04 1.38-.19 1.7-.32.43-.16.73-.36 1.05-.68.32-.32.52-.62.68-1.05.13-.32.28-.8.32-1.7.06-1.24.07-1.61.07-4.76s-.01-3.52-.07-4.76c-.04-.9-.19-1.38-.32-1.7a2.8 2.8 0 0 0-.68-1.05 2.8 2.8 0 0 0-1.05-.68c-.32-.13-.8-.28-1.7-.32C15.52 4.01 15.15 4 12 4zm0 3.06A4.94 4.94 0 1 1 7.06 12 4.94 4.94 0 0 1 12 7.06zm0 8.14A3.2 3.2 0 1 0 8.8 12a3.2 3.2 0 0 0 3.2 3.2zm6.28-8.34a1.15 1.15 0 1 1-1.15-1.15 1.15 1.15 0 0 1 1.15 1.15z"/>',
+		'soc_facebook'  => '<path d="M13.5 21v-8h2.7l.4-3.13h-3.1V7.87c0-.9.25-1.52 1.55-1.52h1.66V3.55c-.29-.04-1.27-.12-2.42-.12-2.4 0-4.04 1.46-4.04 4.15v2.29H7.5V13h2.75v8h3.25z"/>',
+		'soc_linkedin'  => '<path d="M6.94 5.5a1.94 1.94 0 1 1-3.88 0 1.94 1.94 0 0 1 3.88 0zM3.4 8.4h3.1V21H3.4V8.4zm5.06 0h2.97v1.72h.04c.41-.78 1.42-1.6 2.93-1.6 3.13 0 3.71 2.06 3.71 4.74V21h-3.09v-5.6c0-1.34-.03-3.06-1.86-3.06-1.87 0-2.15 1.46-2.15 2.96V21H8.46V8.4z"/>',
+		'soc_youtube'   => '<path d="M23 12s0-3.2-.4-4.73a2.46 2.46 0 0 0-1.73-1.74C19.34 5.13 12 5.13 12 5.13s-7.34 0-8.87.4A2.46 2.46 0 0 0 1.4 7.27C1 8.8 1 12 1 12s0 3.2.4 4.73a2.46 2.46 0 0 0 1.73 1.74c1.53.4 8.87.4 8.87.4s7.34 0 8.87-.4a2.46 2.46 0 0 0 1.73-1.74C23 15.2 23 12 23 12zM9.75 15.02V8.98L15 12l-5.25 3.02z"/>',
+	);
+	if ( isset( $svgs[ $key ] ) ) {
+		return '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">' . $svgs[ $key ] . '</svg>';
+	}
+	return '';
+}

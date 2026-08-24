@@ -707,6 +707,7 @@ body:not(.rm-pe-preview) .rm-mediapanel{width:100vw;margin-left:calc(50% - 50vw)
 .rm-foot-social{display:flex;gap:12px}
 .rm-foot-social a{width:34px;height:34px;border:1px solid rgba(255,255,255,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-family:Poppins;font-weight:600;font-size:.85rem}
 .rm-foot-social a:hover{background:#fff;color:var(--ink)}
+.rm-foot-social a svg{width:17px;height:17px;display:block}
 .ricoman-site-footer .rm-foot-col ul{list-style:none;margin:0 0 4px;padding:0;display:grid;gap:8px}
 .ricoman-site-footer .rm-foot-col li{margin:0;line-height:1.2}
 .ricoman-site-footer .rm-foot-col a{font-size:.9rem;color:rgba(255,255,255,.62);line-height:1.2}
