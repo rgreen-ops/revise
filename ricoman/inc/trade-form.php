@@ -15,6 +15,30 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Resolve a form's success-redirect to a URL that actually exists. Honours the
+ * given URL when it resolves to a real page (supports custom / ad-tracking
+ * pages); otherwise falls back to a "thank-you" child of the CURRENT page — so
+ * the redirect keeps working even if the form's page is later renamed (which is
+ * exactly what broke the trade form: page renamed new-trade-page →
+ * apply-trade-account, leaving the old hardcoded URL 404-ing to /thank-you/).
+ * Returns '' when there's no dedicated page (the form then shows inline thanks).
+ */
+function ricoman_form_thankyou_url( $given ) {
+	$given = trim( (string) $given );
+	if ( '' !== $given && url_to_postid( $given ) ) {
+		return $given;
+	}
+	$here = get_permalink();
+	if ( $here ) {
+		$child = trailingslashit( $here ) . 'thank-you/';
+		if ( url_to_postid( $child ) ) {
+			return $child;
+		}
+	}
+	return $given;
+}
+
 /** [ricoman_trade_form title="Apply for a trade account"] */
 function ricoman_trade_form_sc( $atts ) {
 	$a = shortcode_atts( array(
@@ -27,7 +51,7 @@ function ricoman_trade_form_sc( $atts ) {
 
 	ob_start();
 	?>
-	<form class="rm-tradeform" method="post" data-ajax="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" data-nonce="<?php echo esc_attr( wp_create_nonce( 'rm_trade' ) ); ?>" data-ts="<?php echo (int) time(); ?>" data-redirect="<?php echo esc_url( $a['thankyou'] ); ?>" novalidate>
+	<form class="rm-tradeform" method="post" data-ajax="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" data-nonce="<?php echo esc_attr( wp_create_nonce( 'rm_trade' ) ); ?>" data-ts="<?php echo (int) time(); ?>" data-redirect="<?php echo esc_url( ricoman_form_thankyou_url( $a['thankyou'] ) ); ?>" novalidate>
 		<div aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px"><label>Website<input type="text" name="rm_hp" tabindex="-1" autocomplete="off"></label></div>
 		<?php if ( $a['title'] ) : ?><h2 class="rm-tradeform-h"><?php echo esc_html( $a['title'] ); ?></h2><?php endif; ?>
 		<label class="rm-tradeform-label">Name *
