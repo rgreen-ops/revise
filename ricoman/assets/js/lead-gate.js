@@ -194,6 +194,10 @@
 						if ( msg ) { msg.textContent = ( j && j.data && j.data.msg ) || 'Something went wrong — please try again.'; msg.hidden = false; }
 						return;
 					}
+					// Conversion tracking: tell Google Tag Manager the gated-download
+					// form completed successfully (GTM -> GA4 -> Google Ads conversion).
+					window.dataLayer = window.dataLayer || [];
+					window.dataLayer.push( { event: 'download_form_complete' } );
 					document.cookie = 'rm_dl_gate=1; max-age=' + ( 60 * 60 * 24 * 30 ) + '; path=/';
 					closeGate();
 					proceed();
