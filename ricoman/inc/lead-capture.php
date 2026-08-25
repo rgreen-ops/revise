@@ -113,6 +113,37 @@ function ricoman_lead_is_spam( $args = array() ) {
 		}
 	}
 
+	// 4. Identity blocklist — known spam names / terms (filterable; seeded with
+	// the current "RobertWaics" bot). Matched with whitespace removed so
+	// "Robert Waics", "RobertWaics" and "robertwaics" all match.
+	$squashed = preg_replace( '/\s+/', '', $blob );
+	if ( '' !== $squashed ) {
+		foreach ( (array) apply_filters( 'ricoman_lead_blocklist', array( 'robertwaics' ) ) as $needle ) {
+			$needle = preg_replace( '/\s+/', '', strtolower( (string) $needle ) );
+			if ( '' !== $needle && false !== strpos( $squashed, $needle ) ) {
+				return true;
+			}
+		}
+	}
+
+	// 5. Same-identity flood — a bot hammering the form under one name with many
+	// different emails. The first field is the submitter's name at every call
+	// site; if the same (normalised) name submits more than a few times within
+	// the window, treat further ones as spam. Legit exact-name duplicates in a
+	// day are rare; a run of ~100 is unmistakable. All thresholds filterable.
+	$fields = isset( $args['fields'] ) ? array_values( (array) $args['fields'] ) : array();
+	$name   = isset( $fields[0] ) ? trim( (string) $fields[0] ) : '';
+	if ( '' !== $name ) {
+		$nkey   = 'rm_lead_nm_' . md5( strtolower( preg_replace( '/\s+/', ' ', $name ) ) );
+		$ncount = (int) get_transient( $nkey );
+		$nmax   = (int) apply_filters( 'ricoman_lead_name_limit', 4 );
+		$nwin   = (int) apply_filters( 'ricoman_lead_name_window', DAY_IN_SECONDS );
+		if ( $ncount >= $nmax ) {
+			return true;
+		}
+		set_transient( $nkey, $ncount + 1, $nwin );
+	}
+
 	return false;
 }
 
