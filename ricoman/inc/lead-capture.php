@@ -207,6 +207,103 @@ function ricoman_turnstile_verify( $token ) {
 	return ! empty( $data['success'] );
 }
 
+/* ------------------------------------------------------ Mailchimp sync ------ */
+
+/** Mailchimp sync is active only when both the API key and Audience ID are set
+ *  (Ricoman → Header & Menu). */
+function ricoman_mailchimp_enabled() {
+	return '' !== trim( (string) ricoman_opt( 'mailchimp_api' ) ) && '' !== trim( (string) ricoman_opt( 'mailchimp_audience' ) );
+}
+
+/**
+ * Add / update a contact in the Mailchimp audience (single opt-in — new contacts
+ * are set 'subscribed' so your journey fires; existing contacts keep their status,
+ * so people who unsubscribed are never re-subscribed). Applies the optional tag.
+ * Returns true on success. Safe no-op when not configured.
+ */
+function ricoman_mailchimp_subscribe( $email, $args = array() ) {
+	if ( ! ricoman_mailchimp_enabled() ) {
+		return false;
+	}
+	$email = trim( (string) $email );
+	if ( '' === $email || ! is_email( $email ) ) {
+		return false;
+	}
+	$key  = trim( (string) ricoman_opt( 'mailchimp_api' ) );
+	$list = trim( (string) ricoman_opt( 'mailchimp_audience' ) );
+	$dc   = ( false !== strpos( $key, '-' ) ) ? substr( $key, strpos( $key, '-' ) + 1 ) : '';
+	if ( '' === $dc ) {
+		return false; // malformed key (no data-centre suffix).
+	}
+	$hash = md5( strtolower( $email ) );
+	$auth = array(
+		'Authorization' => 'Basic ' . base64_encode( 'anystring:' . $key ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		'Content-Type'  => 'application/json',
+	);
+
+	// Split a "First Last" name into merge fields.
+	$name = trim( (string) ( isset( $args['name'] ) ? $args['name'] : '' ) );
+	$fn   = $name;
+	$ln   = '';
+	if ( false !== strpos( $name, ' ' ) ) {
+		list( $fn, $ln ) = explode( ' ', $name, 2 );
+	}
+	$body = array(
+		'email_address' => $email,
+		'status_if_new' => 'subscribed',
+		'merge_fields'  => array( 'FNAME' => $fn, 'LNAME' => $ln ),
+	);
+	$resp = wp_remote_request( 'https://' . $dc . '.api.mailchimp.com/3.0/lists/' . rawurlencode( $list ) . '/members/' . $hash, array(
+		'method'  => 'PUT',
+		'timeout' => 10,
+		'headers' => $auth,
+		'body'    => wp_json_encode( $body ),
+	) );
+	if ( is_wp_error( $resp ) || (int) wp_remote_retrieve_response_code( $resp ) >= 300 ) {
+		return false;
+	}
+
+	// Optional tag (separate endpoint) — handy when a journey is tag-triggered.
+	$tag = trim( (string) ricoman_opt( 'mailchimp_tag' ) );
+	if ( '' !== $tag ) {
+		wp_remote_request( 'https://' . $dc . '.api.mailchimp.com/3.0/lists/' . rawurlencode( $list ) . '/members/' . $hash . '/tags', array(
+			'method'  => 'POST',
+			'timeout' => 10,
+			'headers' => $auth,
+			'body'    => wp_json_encode( array( 'tags' => array( array( 'name' => $tag, 'status' => 'active' ) ) ) ),
+		) );
+	}
+	return true;
+}
+
+/**
+ * On any lead capture, add the right people to Mailchimp: newsletter subscribers
+ * always (subscribing IS the consent), and downloaders only if they ticked the
+ * "email me" box. Other lead types (enquiries, callbacks) are NOT added.
+ */
+add_action( 'ricoman_lead_captured', 'ricoman_mailchimp_on_capture', 20, 2 );
+function ricoman_mailchimp_on_capture( $data, $lead_id ) {
+	if ( ! $lead_id || ! ricoman_mailchimp_enabled() ) {
+		return;
+	}
+	$email = (string) get_post_meta( $lead_id, '_lead_email', true );
+	if ( '' === $email ) {
+		return;
+	}
+	$type = strtolower( (string) get_post_meta( $lead_id, '_lead_type', true ) );
+	$add  = false;
+	if ( false !== strpos( $type, 'newsletter' ) ) {
+		$add = true; // explicit subscribe.
+	} elseif ( false !== strpos( $type, 'download' ) ) {
+		$add = ( '1' === (string) get_post_meta( $lead_id, '_lead_optin', true ) ); // only if opted in.
+	}
+	/** Let this be overridden/extended (e.g. to add enquiries) without code edits. */
+	$add = (bool) apply_filters( 'ricoman_mailchimp_should_add', $add, $type, $lead_id, $data );
+	if ( $add ) {
+		ricoman_mailchimp_subscribe( $email, array( 'name' => (string) get_post_meta( $lead_id, '_lead_name', true ) ) );
+	}
+}
+
 /**
  * Render the lead capture form.
  *

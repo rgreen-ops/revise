@@ -43,6 +43,9 @@ function ricoman_settings_defaults() {
 		'soc_youtube'      => '',
 		'turnstile_site'   => '',
 		'turnstile_secret' => '',
+		'mailchimp_api'    => '',
+		'mailchimp_audience' => '',
+		'mailchimp_tag'    => '',
 		'foot_col_about'   => "Made in Britain | /made-in-britain/\nManufacturing | /manufacturing/\nOur Services | /our-services/\nSustainability | /sustainability/\nLighting Design | /lighting-design/\nCustom Lighting Solutions | /customisation/",
 		'foot_col_products'=> "Linear Lighting | /products/\nAcoustic Solutions | /products/\nBiophilic Lighting | /products/\nDownlights | /products/\nTrack Lighting | /products/\nRecessed Modular | /products/\nOutdoor | /products/\nPendants | /products/",
 		'foot_col_projects'=> "Office | /sector/office-lighting/\nRetail | /sector/retail-lighting/\nHospitality | /sector/hospitality-leisure-lighting/\nIndustrial | /sector/industrial-warehouse-lighting/\nHealthcare | /sector/healthcare-lighting/\nAll sectors | /sectors/",
@@ -228,6 +231,9 @@ function ricoman_settings_page() {
 				ricoman_field( 'soc_youtube', __( 'YouTube URL', 'ricoman' ), 'text' );
 				ricoman_field( 'turnstile_site', __( 'Spam protection — Turnstile Site Key', 'ricoman' ), 'text', __( 'Cloudflare → Turnstile → your widget. Paste the SITE key (public). Adds an invisible anti-bot check to the enquiry form.', 'ricoman' ) );
 				ricoman_field( 'turnstile_secret', __( 'Spam protection — Turnstile Secret Key', 'ricoman' ), 'text', __( 'Paste the SECRET key from the same Turnstile widget. Keep private. Both keys must be set for protection to switch on.', 'ricoman' ) );
+				ricoman_field( 'mailchimp_api', __( 'Mailchimp — API Key', 'ricoman' ), 'text', __( 'Mailchimp → Account & billing → Extras → API keys. Adds newsletter subscribers + opted-in downloaders to your audience (triggers your journey). Keep private.', 'ricoman' ) );
+				ricoman_field( 'mailchimp_audience', __( 'Mailchimp — Audience ID', 'ricoman' ), 'text', __( 'Mailchimp → Audience → Settings → “Audience name and defaults” → Audience ID (e.g. a1b2c3d4e5). Needed with the API key for the sync to switch on.', 'ricoman' ) );
+				ricoman_field( 'mailchimp_tag', __( 'Mailchimp — Tag (optional)', 'ricoman' ), 'text', __( 'Optional. A tag to apply to added contacts (e.g. “Website”) — handy if your journey is triggered by a tag.', 'ricoman' ) );
 				?>
 			</table>
 

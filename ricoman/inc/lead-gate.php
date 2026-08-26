@@ -155,6 +155,7 @@ add_action( 'wp_footer', function () {
 				<label><span><?php esc_html_e( 'Name', 'ricoman' ); ?> *</span><input type="text" name="name" required></label>
 				<label><span><?php esc_html_e( 'Email', 'ricoman' ); ?> *</span><input type="email" name="email" required></label>
 				<label><span><?php esc_html_e( 'I am a…', 'ricoman' ); ?> *</span><select name="ctype" required><?php echo $opts; // phpcs:ignore WordPress.Security.EscapeOutput ?></select></label>
+				<label class="rm-gate-optin" style="display:flex;gap:8px;align-items:flex-start;font-weight:400;font-size:.85rem;margin-top:2px"><input type="checkbox" name="optin" value="1" style="width:auto;margin-top:3px"><span><?php esc_html_e( 'Email me occasional new products & lighting guides. You can unsubscribe anytime.', 'ricoman' ); ?></span></label>
 				<button type="submit" class="btn btn-solid rm-gate-go"><?php esc_html_e( 'Get the download', 'ricoman' ); ?> &darr;</button>
 				<p class="rm-gate-msg" hidden></p>
 			</form>
@@ -177,6 +178,7 @@ function ricoman_gate_capture() {
 	$email = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
 	$type  = isset( $_POST['ctype'] ) ? sanitize_text_field( wp_unslash( $_POST['ctype'] ) ) : '';
 	$src   = isset( $_POST['source'] ) ? sanitize_text_field( wp_unslash( $_POST['source'] ) ) : 'Download gate';
+	$optin = ( isset( $_POST['optin'] ) && '1' === (string) wp_unslash( $_POST['optin'] ) ) ? '1' : ''; // newsletter opt-in checkbox.
 	if ( '' === $name || ! is_email( $email ) ) {
 		wp_send_json_error( array( 'msg' => __( 'Please enter your name and a valid email.', 'ricoman' ) ) );
 	}
@@ -206,6 +208,7 @@ function ricoman_gate_capture() {
 			'_lead_role'   => $type,
 			'_lead_type'   => __( 'Download', 'ricoman' ),
 			'_lead_source' => $src,
+			'_lead_optin'  => $optin,
 		), ricoman_lead_attribution() ),
 	) );
 

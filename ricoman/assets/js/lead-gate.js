@@ -182,7 +182,8 @@
 				name: form.name.value,
 				email: form.email.value,
 				ctype: form.ctype.value,
-				source: ( pending && pending.getAttribute( 'href' ) ) || document.title
+				source: ( pending && pending.getAttribute( 'href' ) ) || document.title,
+				optin: ( form.optin && form.optin.checked ) ? '1' : ''
 			} );
 			if ( btn ) { btn.disabled = true; }
 			if ( msg ) { msg.hidden = true; }
