@@ -81,7 +81,7 @@ function ricoman_lead_client_ip() {
 function ricoman_lead_is_spam( $args = array() ) {
 	// 0. Cloudflare Turnstile — when configured and this form opted in, a failed
 	// or missing token means it wasn't a real browser challenge → spam.
-	if ( ! empty( $args['turnstile'] ) && ricoman_turnstile_enabled() ) {
+	if ( ! empty( $args['turnstile'] ) && ricoman_turnstile_enabled() && ! empty( $_POST['rm_ts'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$tok = isset( $_POST['cf-turnstile-response'] ) ? sanitize_text_field( wp_unslash( $_POST['cf-turnstile-response'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		if ( ! ricoman_turnstile_verify( $tok ) ) {
 			return true;
@@ -169,7 +169,12 @@ function ricoman_turnstile_widget() {
 		return '';
 	}
 	$site = esc_attr( trim( (string) ricoman_opt( 'turnstile_site' ) ) );
+	// rm_ts marks that this form actually rendered the widget, so the server only
+	// ENFORCES the token when it was really offered — a stale-cached or
+	// failed-to-load form (no widget, no rm_ts) falls back to the other spam
+	// checks instead of silently dropping a genuine enquiry.
 	return '<div class="cf-turnstile rm-turnstile" data-sitekey="' . $site . '" data-theme="auto" style="margin:14px 0"></div>'
+		. '<input type="hidden" name="rm_ts" value="1">'
 		. '<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>';
 }
 
