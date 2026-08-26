@@ -79,6 +79,15 @@ function ricoman_lead_client_ip() {
  * @return bool
  */
 function ricoman_lead_is_spam( $args = array() ) {
+	// 0. Cloudflare Turnstile — when configured and this form opted in, a failed
+	// or missing token means it wasn't a real browser challenge → spam.
+	if ( ! empty( $args['turnstile'] ) && ricoman_turnstile_enabled() ) {
+		$tok = isset( $_POST['cf-turnstile-response'] ) ? sanitize_text_field( wp_unslash( $_POST['cf-turnstile-response'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( ! ricoman_turnstile_verify( $tok ) ) {
+			return true;
+		}
+	}
+
 	// 1. Per-IP rate limit over a short window.
 	$ip = ricoman_lead_client_ip();
 	if ( $ip ) {
@@ -145,6 +154,52 @@ function ricoman_lead_is_spam( $args = array() ) {
 	}
 
 	return false;
+}
+
+/* -------------------------------------------------- Cloudflare Turnstile ---- */
+
+/** Turnstile is active only when BOTH keys are configured (Ricoman → Header & Menu). */
+function ricoman_turnstile_enabled() {
+	return '' !== trim( (string) ricoman_opt( 'turnstile_site' ) ) && '' !== trim( (string) ricoman_opt( 'turnstile_secret' ) );
+}
+
+/** Widget markup + loader script for a lead form ('' when not configured). */
+function ricoman_turnstile_widget() {
+	if ( ! ricoman_turnstile_enabled() ) {
+		return '';
+	}
+	$site = esc_attr( trim( (string) ricoman_opt( 'turnstile_site' ) ) );
+	return '<div class="cf-turnstile rm-turnstile" data-sitekey="' . $site . '" data-theme="auto" style="margin:14px 0"></div>'
+		. '<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>';
+}
+
+/**
+ * Verify a Turnstile token server-side. true = passed (human). Returns false for
+ * a missing/failed token. Fails OPEN (true) when Turnstile isn't configured or
+ * Cloudflare is unreachable, so a network blip never locks real visitors out —
+ * the other spam checks still run in that case.
+ */
+function ricoman_turnstile_verify( $token ) {
+	if ( ! ricoman_turnstile_enabled() ) {
+		return true;
+	}
+	$token = trim( (string) $token );
+	if ( '' === $token ) {
+		return false;
+	}
+	$resp = wp_remote_post( 'https://challenges.cloudflare.com/turnstile/v0/siteverify', array(
+		'timeout' => 8,
+		'body'    => array(
+			'secret'   => trim( (string) ricoman_opt( 'turnstile_secret' ) ),
+			'response' => $token,
+			'remoteip' => ricoman_lead_client_ip(),
+		),
+	) );
+	if ( is_wp_error( $resp ) ) {
+		return true;
+	}
+	$data = json_decode( (string) wp_remote_retrieve_body( $resp ), true );
+	return ! empty( $data['success'] );
 }
 
 /**
@@ -229,6 +284,7 @@ function ricoman_lead_form( $atts = array() ) {
 			<textarea name="lead_message" rows="4"></textarea>
 		</label>
 
+		<?php echo ricoman_turnstile_widget(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 		<button type="submit" class="ricoman-lead-submit"><?php esc_html_e( 'Send enquiry', 'ricoman' ); ?></button>
 	</form>
 	<?php
@@ -309,7 +365,7 @@ function ricoman_handle_lead() {
 	// Spam screen (rate limit / time-trap / link-stuffing). Silently accept so we
 	// don't train bots, but store nothing and fire no integrations.
 	$ts = isset( $_POST['rm_t'] ) ? (int) $_POST['rm_t'] : 0;
-	if ( ricoman_lead_is_spam( array( 'ts' => $ts, 'fields' => array( $name, $company, $message ) ) ) ) {
+	if ( ricoman_lead_is_spam( array( 'ts' => $ts, 'fields' => array( $name, $company, $message ), 'turnstile' => true ) ) ) {
 		wp_safe_redirect( add_query_arg( 'lead', 'sent', $redirect ) );
 		exit;
 	}

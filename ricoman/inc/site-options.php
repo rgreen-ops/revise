@@ -41,6 +41,8 @@ function ricoman_settings_defaults() {
 		'soc_facebook'     => '',
 		'soc_linkedin'     => '',
 		'soc_youtube'      => '',
+		'turnstile_site'   => '',
+		'turnstile_secret' => '',
 		'foot_col_about'   => "Made in Britain | /made-in-britain/\nManufacturing | /manufacturing/\nOur Services | /our-services/\nSustainability | /sustainability/\nLighting Design | /lighting-design/\nCustom Lighting Solutions | /customisation/",
 		'foot_col_products'=> "Linear Lighting | /products/\nAcoustic Solutions | /products/\nBiophilic Lighting | /products/\nDownlights | /products/\nTrack Lighting | /products/\nRecessed Modular | /products/\nOutdoor | /products/\nPendants | /products/",
 		'foot_col_projects'=> "Office | /sector/office-lighting/\nRetail | /sector/retail-lighting/\nHospitality | /sector/hospitality-leisure-lighting/\nIndustrial | /sector/industrial-warehouse-lighting/\nHealthcare | /sector/healthcare-lighting/\nAll sectors | /sectors/",
@@ -224,6 +226,8 @@ function ricoman_settings_page() {
 				ricoman_field( 'soc_facebook', __( 'Facebook URL', 'ricoman' ), 'text' );
 				ricoman_field( 'soc_linkedin', __( 'LinkedIn URL', 'ricoman' ), 'text' );
 				ricoman_field( 'soc_youtube', __( 'YouTube URL', 'ricoman' ), 'text' );
+				ricoman_field( 'turnstile_site', __( 'Spam protection — Turnstile Site Key', 'ricoman' ), 'text', __( 'Cloudflare → Turnstile → your widget. Paste the SITE key (public). Adds an invisible anti-bot check to the enquiry form.', 'ricoman' ) );
+				ricoman_field( 'turnstile_secret', __( 'Spam protection — Turnstile Secret Key', 'ricoman' ), 'text', __( 'Paste the SECRET key from the same Turnstile widget. Keep private. Both keys must be set for protection to switch on.', 'ricoman' ) );
 				?>
 			</table>
 
