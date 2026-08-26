@@ -155,7 +155,7 @@ add_action( 'wp_footer', function () {
 				<label><span><?php esc_html_e( 'Name', 'ricoman' ); ?> *</span><input type="text" name="name" required></label>
 				<label><span><?php esc_html_e( 'Email', 'ricoman' ); ?> *</span><input type="email" name="email" required></label>
 				<label><span><?php esc_html_e( 'I am a…', 'ricoman' ); ?> *</span><select name="ctype" required><?php echo $opts; // phpcs:ignore WordPress.Security.EscapeOutput ?></select></label>
-				<label class="rm-gate-optin" style="display:flex;gap:8px;align-items:flex-start;font-weight:400;font-size:.85rem;margin-top:2px"><input type="checkbox" name="optin" value="1" style="width:auto;margin-top:3px"><span><?php esc_html_e( 'Email me occasional new products & lighting guides. You can unsubscribe anytime.', 'ricoman' ); ?></span></label>
+				<label class="rm-gate-optin" style="display:flex;gap:8px;align-items:flex-start;font-weight:400;font-size:.85rem;margin-top:2px"><input type="checkbox" name="optin" value="1" style="width:auto;margin-top:3px"><span><?php esc_html_e( 'Subscribe to our newsletter and get notified of new launches and lighting guides. You can unsubscribe anytime.', 'ricoman' ); ?></span></label>
 				<button type="submit" class="btn btn-solid rm-gate-go"><?php esc_html_e( 'Get the download', 'ricoman' ); ?> &darr;</button>
 				<p class="rm-gate-msg" hidden></p>
 			</form>
