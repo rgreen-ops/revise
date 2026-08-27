@@ -67,8 +67,11 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 			$allfeat[ $f ] = true;
 			$fslug[]       = sanitize_title( $f );
 		}
-		$img  = function_exists( 'ricoman_product_img' ) ? ricoman_product_img( $pid ) : get_the_post_thumbnail_url( $pid, 'large' );
-		$sub  = function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( $pid, 'product_subname' ) : '';
+		// Use the precomputed image + subtitle from the metrics record (zero ACF
+		// calls — the record exists for that reason). Fall back to a live read only
+		// for a product whose record isn't built yet.
+		$img  = ( ! empty( $mx['img'] ) ) ? $mx['img'] : ( function_exists( 'ricoman_product_img' ) ? ricoman_product_img( $pid ) : get_the_post_thumbnail_url( $pid, 'large' ) );
+		$sub  = isset( $mx['sub'] ) ? $mx['sub'] : ( function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( $pid, 'product_subname' ) : '' );
 		// get_the_terms() (unlike wp_get_post_terms) reads the primed cache above.
 		$ct   = get_the_terms( $pid, $tax );
 		$cats = is_array( $ct ) ? wp_list_pluck( $ct, 'slug' ) : array();
@@ -211,8 +214,11 @@ add_shortcode( 'ricoman_all_products', function () {
 			$allfeat[ $f ] = true;
 			$fslug[]       = sanitize_title( $f );
 		}
-		$img  = function_exists( 'ricoman_product_img' ) ? ricoman_product_img( $pid ) : get_the_post_thumbnail_url( $pid, 'large' );
-		$sub  = function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( $pid, 'product_subname' ) : '';
+		// Use the precomputed image + subtitle from the metrics record (zero ACF
+		// calls — the record exists for that reason). Fall back to a live read only
+		// for a product whose record isn't built yet.
+		$img  = ( ! empty( $mx['img'] ) ) ? $mx['img'] : ( function_exists( 'ricoman_product_img' ) ? ricoman_product_img( $pid ) : get_the_post_thumbnail_url( $pid, 'large' ) );
+		$sub  = isset( $mx['sub'] ) ? $mx['sub'] : ( function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( $pid, 'product_subname' ) : '' );
 		$ct   = get_the_terms( $pid, $pcat_tax );
 		$cats = is_array( $ct ) ? wp_list_pluck( $ct, 'slug' ) : array();
 		$mt   = get_the_terms( $pid, 'mounting-method' );
