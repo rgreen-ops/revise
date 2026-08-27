@@ -646,6 +646,7 @@ function ricoman_newsletter_form( $atts = array() ) {
 			<div aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px"><label>Website<input type="text" name="rm_hp" tabindex="-1" autocomplete="off"></label></div>
 			<label class="screen-reader-text" for="rm-news-email-<?php echo (int) get_the_ID(); ?>"><?php esc_html_e( 'Email address', 'ricoman' ); ?></label>
 			<input type="email" id="rm-news-email-<?php echo (int) get_the_ID(); ?>" name="email" placeholder="<?php esc_attr_e( 'you@company.com', 'ricoman' ); ?>" required>
+			<?php echo ricoman_turnstile_widget(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			<button type="submit" class="btn btn-solid rm-news-go"><?php esc_html_e( 'Subscribe', 'ricoman' ); ?></button>
 			<p class="rm-news-msg" role="status" hidden></p>
 		</form>
@@ -678,6 +679,8 @@ function ricoman_newsletter_script() {
 			body.set('source', f.dataset.source || '');
 			body.set('ts', f.dataset.ts || '');
 			body.set('email', (f.querySelector('[name=email]')||{}).value || '');
+			var cf = f.querySelector('[name="cf-turnstile-response"]'); if (cf) body.set('cf-turnstile-response', cf.value);
+			var mk = f.querySelector('[name="rm_ts"]'); if (mk) body.set('rm_ts', mk.value);
 			if (btn) btn.disabled = true;
 			fetch(f.dataset.ajax, {method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: body.toString()})
 				.then(function(r){return r.json();})
@@ -706,7 +709,7 @@ function ricoman_newsletter_capture() {
 		wp_send_json_error( array( 'msg' => __( 'Please enter a valid email address.', 'ricoman' ) ) );
 	}
 	// Honeypot + shared spam screen — silently acknowledge, store nothing.
-	if ( '' !== $hp || ricoman_lead_is_spam( array( 'ts' => $ts, 'fields' => array( $email ) ) ) ) {
+	if ( '' !== $hp || ricoman_lead_is_spam( array( 'ts' => $ts, 'fields' => array( $email ), 'turnstile' => true ) ) ) {
 		wp_send_json_success( array( 'msg' => __( 'Thanks — you’re subscribed.', 'ricoman' ) ) );
 	}
 
