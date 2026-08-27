@@ -40,6 +40,15 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 	}
 	$posts = array_filter( array_map( 'get_post', $ids ) );
 
+	// Perf: prime the meta + term object caches for the whole set in a couple of
+	// bulk queries up front. Without this the per-card lookups below each hit the
+	// database — and across ~250 products the two wp_get_post_terms() calls alone
+	// fired ~500 uncached queries, which was the bulk of the slow cold render.
+	if ( ! empty( $ids ) ) {
+		update_meta_cache( 'post', $ids );
+		update_object_term_cache( $ids, 'product' );
+	}
+
 	$cards   = '';
 	$maxlm   = 0;
 	$maxw    = 0;
@@ -60,10 +69,11 @@ add_shortcode( 'ricoman_cat_filter', function ( $atts ) {
 		}
 		$img  = function_exists( 'ricoman_product_img' ) ? ricoman_product_img( $pid ) : get_the_post_thumbnail_url( $pid, 'large' );
 		$sub  = function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( $pid, 'product_subname' ) : '';
-		$cats = wp_get_post_terms( $pid, $tax, array( 'fields' => 'slugs' ) );
-		$cats = is_wp_error( $cats ) ? array() : $cats;
-		$mts  = wp_get_post_terms( $pid, 'mounting-method', array( 'fields' => 'slugs' ) );
-		$mts  = is_wp_error( $mts ) ? array() : $mts;
+		// get_the_terms() (unlike wp_get_post_terms) reads the primed cache above.
+		$ct   = get_the_terms( $pid, $tax );
+		$cats = is_array( $ct ) ? wp_list_pluck( $ct, 'slug' ) : array();
+		$mt   = get_the_terms( $pid, 'mounting-method' );
+		$mts  = is_array( $mt ) ? wp_list_pluck( $mt, 'slug' ) : array();
 		$fins = ricoman_pcard_finish_slugs( $pid );
 		$isnw = get_post_meta( $pid, '_ricoman_is_new', true ) ? true : false;
 		$cards .= ricoman_pcard_html( get_permalink( $pid ), $pid, $img, $sub, $mx, $co, $fslug, $cats, $mts, $fins, $isnw );
@@ -174,6 +184,11 @@ add_shortcode( 'ricoman_all_products', function () {
 		return '<div class="rm-pp-wrap"><p class="rm-config-note">No products yet.</p></div>';
 	}
 
+	// Perf: prime meta + term object caches in bulk so the per-card lookups below
+	// don't each hit the database (see the same note on the all-products loop).
+	update_meta_cache( 'post', $ids );
+	update_object_term_cache( $ids, 'product' );
+
 	$cards    = '';
 	$maxlm    = 0;
 	$maxw     = 0;
@@ -198,10 +213,10 @@ add_shortcode( 'ricoman_all_products', function () {
 		}
 		$img  = function_exists( 'ricoman_product_img' ) ? ricoman_product_img( $pid ) : get_the_post_thumbnail_url( $pid, 'large' );
 		$sub  = function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( $pid, 'product_subname' ) : '';
-		$cats = wp_get_post_terms( $pid, $pcat_tax, array( 'fields' => 'slugs' ) );
-		$cats = is_wp_error( $cats ) ? array() : $cats;
-		$mts  = wp_get_post_terms( $pid, 'mounting-method', array( 'fields' => 'slugs' ) );
-		$mts  = is_wp_error( $mts ) ? array() : $mts;
+		$ct   = get_the_terms( $pid, $pcat_tax );
+		$cats = is_array( $ct ) ? wp_list_pluck( $ct, 'slug' ) : array();
+		$mt   = get_the_terms( $pid, 'mounting-method' );
+		$mts  = is_array( $mt ) ? wp_list_pluck( $mt, 'slug' ) : array();
 		$fins  = ricoman_pcard_finish_slugs( $pid );
 		$isnw  = get_post_meta( $pid, '_ricoman_is_new', true ) ? true : false;
 		$isacy = in_array( get_post_meta( $pid, 'is_accessories_product', true ), array( '1', 'yes', 'true' ), true );
