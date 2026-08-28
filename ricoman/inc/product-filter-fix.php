@@ -182,15 +182,18 @@ add_shortcode( 'ricoman_all_products', function () {
 		 WHERE post_type = 'product' AND post_status = 'publish'
 		 ORDER BY menu_order ASC, post_title ASC"
 	);
+	$rm_t0 = microtime( true );
+	if ( ! empty( $ids ) ) {
+		// Bulk-load posts + meta + terms in a few queries. The raw $wpdb ID query
+		// above bypasses WP's cache priming, so without this get_post() below would
+		// fire a separate query per product (N+1) across ~250 products.
+		_prime_post_caches( $ids, true, true );
+	}
 	$posts = array_filter( array_map( 'get_post', $ids ) );
 	if ( empty( $posts ) ) {
 		return '<div class="rm-pp-wrap"><p class="rm-config-note">No products yet.</p></div>';
 	}
-
-	// Perf: prime meta + term object caches in bulk so the per-card lookups below
-	// don't each hit the database (see the same note on the all-products loop).
-	update_meta_cache( 'post', $ids );
-	update_object_term_cache( $ids, 'product' );
+	$rm_tload = round( microtime( true ) - $rm_t0, 3 );
 
 	$cards    = '';
 	$maxlm    = 0;
@@ -369,6 +372,7 @@ add_shortcode( 'ricoman_all_products', function () {
 	$out .= '<div class="rm-pgn rm-pgn-bot" aria-label="Products pagination"></div>';
 	$out .= '<script>(function(){var w=document.currentScript&&document.currentScript.closest?document.currentScript.closest(".rm-allprods"):null;if(!w)w=document.querySelector(".rm-allprods:not([data-rmpgn])");if(!w||w.dataset.rmpgn)return;w.dataset.rmpgn="1";var g=w.querySelector(".rm-allpgrid");if(g){[].slice.call(g.children).forEach(function(p){if(p.tagName==="P"){while(p.firstChild){g.insertBefore(p.firstChild,p);}g.removeChild(p);}});}var P=20,pg=1,acy=w.dataset.acyCat||"",every=[].slice.call(w.querySelectorAll(".rm-fcard")),all=every.filter(function(c){if(!acy)return true;var inAcyCat=(" "+(c.dataset.cat||"")+" ").indexOf(" "+acy+" ")>=0;return !inAcyCat&&c.dataset.accessory!=="1";});every.forEach(function(c){if(all.indexOf(c)<0){c.style.display="none";}});if(acy){var cnt=w.querySelector(".rm-fcount b");if(cnt){cnt.textContent=all.length;}var hc=w.querySelector(".rm-catarch-count");if(hc){hc.textContent=all.length;}}if(!all.length)return;function show(){var s=(pg-1)*P;all.forEach(function(c){c.style.display="none";});all.slice(s,s+P).forEach(function(c){c.style.display="";});render();}function render(){var pages=Math.ceil(all.length/P);[".rm-pgn-top",".rm-pgn-bot"].forEach(function(sel){var el=w.querySelector(sel);if(!el)return;if(pages<=1){el.innerHTML="";return;}var h="";if(pg>1)h+="<button class=\"rm-pgn-btn\" data-p=\""+(pg-1)+"\">&#8592; Prev</button>";h+="<span class=\"rm-pgn-info\">Page "+pg+" of "+pages+"</span>";if(pg<pages)h+="<button class=\"rm-pgn-btn\" data-p=\""+(pg+1)+"\">Next &#8594;</button>";el.innerHTML=h;el.querySelectorAll(".rm-pgn-btn").forEach(function(b){b.addEventListener("click",function(){pg=+b.dataset.p;show();w.scrollIntoView({behavior:"smooth",block:"start"});});});});}show();w.querySelectorAll(".rm-imgmode-btn").forEach(function(b){b.addEventListener("click",function(){var m=b.dataset.mode;w.querySelectorAll(".rm-imgmode-btn").forEach(function(x){x.classList.toggle("on",x===b);});every.forEach(function(c){var img=c.querySelector(".rm-pcard-img img");if(!img)return;var alt=c.getAttribute("data-img2")||"";if(m==="insitu"&&alt){if(!img.dataset.std){img.dataset.std=img.getAttribute("src");}img.src=alt;img.classList.add("is-insitu");}else if(img.dataset.std){img.src=img.dataset.std;img.classList.remove("is-insitu");}});});});})()</script>';
 	$out .= '</div></div></div>';
+	$out .= "\n<!-- rmperf load={$rm_tload}s total=" . round( microtime( true ) - $rm_t0, 3 ) . 's n=' . count( $posts ) . " -->";
 
 	return $out;
 } );
