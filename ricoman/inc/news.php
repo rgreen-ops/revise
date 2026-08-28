@@ -630,10 +630,25 @@ add_filter( 'the_content', function ( $content ) {
 		$out .= '<p class="rm-news-standfirst">' . esc_html( $dek ) . '</p>';
 	}
 	$writer = trim( (string) get_post_meta( $pid, '_rmn_author', true ) );
+	$wrole  = trim( (string) get_post_meta( $pid, '_rmn_author_role', true ) );
 	if ( '' === $writer ) {
-		$writer = (string) get_the_author_meta( 'display_name', (int) get_post_field( 'post_author', $pid ) );
+		// Fall back to the first tagged Ricoman staff member (name + their job title).
+		$staff_ids = array_filter( array_map( 'intval', (array) get_post_meta( $pid, '_ricoman_staff', false ) ) );
+		if ( ! empty( $staff_ids ) ) {
+			$sid    = (int) reset( $staff_ids );
+			$writer = (string) get_the_title( $sid );
+			if ( '' === $wrole ) {
+				$wrole = trim( (string) get_post_meta( $sid, '_rms_role', true ) );
+			}
+		}
 	}
-	$wrole   = trim( (string) get_post_meta( $pid, '_rmn_author_role', true ) );
+	if ( '' === $writer ) {
+		// Last resort: the WP post author — but never expose the raw "admin" account.
+		$a = (string) get_the_author_meta( 'display_name', (int) get_post_field( 'post_author', $pid ) );
+		if ( '' !== $a && 'admin' !== strtolower( $a ) ) {
+			$writer = $a;
+		}
+	}
 	$contrib = trim( (string) get_post_meta( $pid, '_rmn_contributor', true ) );
 	$out    .= '<p class="rm-news-byline">';
 	if ( '' !== $writer ) {
