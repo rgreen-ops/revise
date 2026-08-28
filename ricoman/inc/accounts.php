@@ -76,6 +76,19 @@ add_filter( 'registration_errors', function ( $errors ) {
 	return $errors;
 }, 10, 1 );
 
+/**
+ * Send the "New User Registered" admin notification to marketing (not the site
+ * admin address / support). Only this notification is redirected — password
+ * resets and other system mail still use the main admin email. Filterable.
+ */
+add_filter( 'wp_new_user_notification_email_admin', function ( $mail ) {
+	$to = apply_filters( 'ricoman_new_user_notify_email', 'marketing@ricoman.com' );
+	if ( $to ) {
+		$mail['to'] = $to;
+	}
+	return $mail;
+}, 10, 1 );
+
 add_action( 'user_register', function ( $user_id ) {
 	$first = isset( $_POST['first_name'] ) ? sanitize_text_field( wp_unslash( $_POST['first_name'] ) ) : '';
 	$last  = isset( $_POST['last_name'] ) ? sanitize_text_field( wp_unslash( $_POST['last_name'] ) ) : '';
