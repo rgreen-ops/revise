@@ -53,6 +53,10 @@ add_action( 'register_form', function () {
 	echo '<p><label>' . esc_html__( 'First name', 'ricoman' ) . '<br><input type="text" name="first_name" class="input" value="' . $first . '" size="25"></label></p>';
 	echo '<p><label>' . esc_html__( 'Last name', 'ricoman' ) . '<br><input type="text" name="last_name" class="input" value="' . $last . '" size="25"></label></p>';
 	echo '<p><label>' . esc_html__( 'I am a…', 'ricoman' ) . '<br><select name="rm_ctype" class="input">' . ricoman_ctype_options( $type ) . '</select></label></p>'; // phpcs:ignore WordPress.Security.EscapeOutput
+	// Anti-spam: show the Cloudflare Turnstile check on the registration form.
+	if ( function_exists( 'ricoman_turnstile_widget' ) ) {
+		echo ricoman_turnstile_widget(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
 } );
 
 add_filter( 'registration_errors', function ( $errors ) {
@@ -61,6 +65,13 @@ add_filter( 'registration_errors', function ( $errors ) {
 	}
 	if ( empty( $_POST['rm_ctype'] ) ) {
 		$errors->add( 'rm_ctype_error', __( 'Please tell us your customer type.', 'ricoman' ) );
+	}
+	// Anti-spam: reject bot registrations that fail Cloudflare Turnstile.
+	if ( function_exists( 'ricoman_turnstile_enabled' ) && ricoman_turnstile_enabled() ) {
+		$tok = isset( $_POST['cf-turnstile-response'] ) ? sanitize_text_field( wp_unslash( $_POST['cf-turnstile-response'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( ! ricoman_turnstile_verify( $tok ) ) {
+			$errors->add( 'rm_turnstile', __( 'Please complete the anti-spam check and try again.', 'ricoman' ) );
+		}
 	}
 	return $errors;
 }, 10, 1 );
