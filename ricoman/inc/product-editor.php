@@ -655,11 +655,28 @@ function ricoman_product_editor_render() {
 		$raw_dl = get_field( 'download_section', $pid, false );
 		if ( is_array( $raw_dl ) ) {
 			foreach ( $raw_dl as $r ) {
-				$fid       = isset( $r['download-file'] ) ? (int) $r['download-file'] : 0;
+				$rawfile = isset( $r['download-file'] ) ? $r['download-file'] : '';
+				$fid  = 0;
+				$furl = '';
+				if ( is_numeric( $rawfile ) ) {
+					$fid = (int) $rawfile;
+				} elseif ( is_string( $rawfile ) && '' !== trim( $rawfile ) ) {
+					// Migrated file stored as a URL. Match it to a Media Library item if
+					// possible; otherwise keep the URL so the row still shows + persists.
+					$maybe = attachment_url_to_postid( $rawfile );
+					if ( $maybe ) {
+						$fid = (int) $maybe;
+					} else {
+						$furl = $rawfile;
+					}
+				}
+				$fname = $fid ? basename( (string) get_attached_file( $fid ) )
+					: ( '' !== $furl ? basename( (string) wp_parse_url( $furl, PHP_URL_PATH ) ) : '' );
 				$dl_rows[] = array(
 					'title' => isset( $r['download-title'] ) ? (string) $r['download-title'] : '',
 					'id'    => $fid,
-					'name'  => $fid ? basename( (string) get_attached_file( $fid ) ) : '',
+					'url'   => $furl,
+					'name'  => $fname,
 				);
 			}
 		}
@@ -935,7 +952,7 @@ function ricoman_product_editor_render() {
 	<script>
 	( function () {
 		var B = <?php echo wp_json_encode( $boot ); ?>;
-		var state = { layout: B.layout.slice(), fields: Object.assign( {}, B.values ), cols: ( B.cols || [] ).slice(), filterOff: ( B.filterOff || [] ).slice(), configVisual: !! B.configVisual, colsGlobal: false, gallery: ( B.gallery || [] ).slice(), insitu: ( B.insitu || [] ).slice(), accessories: ( B.accessoriesData || [] ).slice(), cats: ( B.cats || [] ).slice(), collection: ( B.collection || 0 ), downloads: ( B.downloads || [] ).map( function ( r ) { return { title: r.title, id: r.id, name: r.name }; } ), familyDs: ( B.familyDs || 0 ), familyDsName: ( B.familyDsName || '' ), sel: 0, device: 'desktop' };
+		var state = { layout: B.layout.slice(), fields: Object.assign( {}, B.values ), cols: ( B.cols || [] ).slice(), filterOff: ( B.filterOff || [] ).slice(), configVisual: !! B.configVisual, colsGlobal: false, gallery: ( B.gallery || [] ).slice(), insitu: ( B.insitu || [] ).slice(), accessories: ( B.accessoriesData || [] ).slice(), cats: ( B.cats || [] ).slice(), collection: ( B.collection || 0 ), downloads: ( B.downloads || [] ).map( function ( r ) { return { title: r.title, id: r.id, name: r.name, url: r.url || '' }; } ), familyDs: ( B.familyDs || 0 ), familyDsName: ( B.familyDsName || '' ), sel: 0, device: 'desktop' };
 		var $ = function ( id ) { return document.getElementById( id ); };
 		var iframe = $( 'rmpe-iframe' ), load = $( 'rmpe-load' );
 
@@ -1467,7 +1484,7 @@ function ricoman_product_editor_render() {
 				var dfi = parseInt( dlf.getAttribute( 'data-dlf' ), 10 );
 				openFile( function ( fobj ) {
 					if ( ! state.downloads || ! state.downloads[ dfi ] ) { return; }
-					state.downloads[ dfi ].id = fobj.id; state.downloads[ dfi ].name = fobj.name;
+					state.downloads[ dfi ].id = fobj.id; state.downloads[ dfi ].name = fobj.name; state.downloads[ dfi ].url = '';
 					renderSettings(); pushDraft();
 				} );
 				return;
@@ -1480,7 +1497,7 @@ function ricoman_product_editor_render() {
 			}
 			if ( e.target.closest( '[data-dladd]' ) ) {
 				if ( ! state.downloads ) { state.downloads = []; }
-				state.downloads.push( { title: '', id: 0, name: '' } ); renderSettings(); pushDraft();
+				state.downloads.push( { title: '', id: 0, name: '', url: '' } ); renderSettings(); pushDraft();
 				return;
 			}
 			if ( e.target.closest( '[data-famf]' ) ) {
@@ -1716,10 +1733,16 @@ add_action( 'admin_post_ricoman_save_product_page', function () {
 			foreach ( $dl_in as $r ) {
 				$t = isset( $r['title'] ) ? sanitize_text_field( $r['title'] ) : '';
 				$f = isset( $r['id'] ) ? absint( $r['id'] ) : 0;
-				if ( '' === $t && ! $f ) {
+				$u = isset( $r['url'] ) ? esc_url_raw( (string) $r['url'] ) : '';
+				if ( '' === $t && ! $f && '' === $u ) {
 					continue;
 				}
-				$dl_rows_save[] = array( 'download-title' => $t, 'download-file' => $f ? $f : '' );
+				// Prefer an attachment id; keep a migrated URL when there's no id so
+				// existing (imported) files survive an editor save.
+				$dl_rows_save[] = array(
+					'download-title' => $t,
+					'download-file'  => $f ? $f : ( '' !== $u ? $u : '' ),
+				);
 			}
 		}
 		update_field( 'download_section', $dl_rows_save, $pid );
