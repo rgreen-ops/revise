@@ -276,13 +276,13 @@ add_action( 'init', function () {
 	// About/home banners, so the team edit the image/text/buttons inline exactly
 	// like every other page (rather than a bespoke hero). Sits flush under the
 	// header when the page uses the "No title" template.
-	$hero = '<!-- wp:cover {"url":"' . $hero_img . '","dimRatio":55,"overlayColor":"ink","minHeight":72,"minHeightUnit":"vh","contentPosition":"bottom left","align":"full","textColor":"base"} -->'
+	$hero = '<!-- wp:cover {"url":"' . $hero_img . '","dimRatio":60,"overlayColor":"ink","minHeight":72,"minHeightUnit":"vh","contentPosition":"bottom left","align":"full","textColor":"base"} -->'
 		. '<div class="wp-block-cover alignfull has-base-color has-text-color has-custom-content-position is-position-bottom-left" style="min-height:72vh">'
-		. '<span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-55 has-background-dim"></span>'
+		. '<span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-60 has-background-dim"></span>'
 		. '<img class="wp-block-cover__image-background" alt="" src="' . $hero_img . '" data-object-fit="cover"/>'
 		. '<div class="wp-block-cover__inner-container">'
 		. '<!-- wp:paragraph {"className":"rm-eyebrow","textColor":"base"} --><p class="rm-eyebrow has-base-color has-text-color">North West</p><!-- /wp:paragraph -->'
-		. '<!-- wp:heading {"level":1,"style":{"typography":{"fontSize":"clamp(2.4rem, 5vw, 4.5rem)","fontWeight":"500","lineHeight":"1"}}} --><h1 class="wp-block-heading" style="font-size:clamp(2.4rem, 5vw, 4.5rem);font-weight:500;line-height:1">Your lighting partner in the North West</h1><!-- /wp:heading -->'
+		. '<!-- wp:heading {"level":1,"fontSize":"huge"} --><h1 class="wp-block-heading has-huge-font-size">Your lighting partner in the North West</h1><!-- /wp:heading -->'
 		. '<!-- wp:paragraph --><p>UK-manufactured LED lighting, specified and supported by your local team. See recent projects in the region and talk to the person who covers your area.</p><!-- /wp:paragraph -->'
 		. '<!-- wp:buttons --><div class="wp-block-buttons">'
 		. '<!-- wp:button {"className":"is-style-outline-light"} --><div class="wp-block-button is-style-outline-light"><a class="wp-block-button__link wp-element-button" href="#agent">Talk to your local team</a></div><!-- /wp:button -->'
