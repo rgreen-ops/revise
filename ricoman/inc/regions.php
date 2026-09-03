@@ -313,7 +313,7 @@ add_action( 'init', function () {
 
 	register_block_pattern( 'ricoman/region-landing', array(
 		'title'       => __( 'Region · Landing page', 'ricoman' ),
-		'description' => __( 'A regional ad landing page: an editable banner (change the image, text and buttons like any page), intro, trust bar, that region’s projects and local agent (set the region slug in those two shortcode blocks, e.g. region="north-west"), and a CTA. Tip: set the page template to “No title” so the banner sits flush under the header.', 'ricoman' ),
+		'description' => __( 'A regional ad landing page: an editable banner (change the image, text and buttons like any page), intro, trust bar, that region’s projects and local agent (set the region slug in those two shortcode blocks, e.g. region="north-west"), and a CTA. IMPORTANT: set the page template to “Page, Full-bleed (no title)” so the title is hidden and the banner runs to the page edges.', 'ricoman' ),
 		'categories'  => array( 'ricoman-page' ),
 		'content'     => $content,
 	) );
