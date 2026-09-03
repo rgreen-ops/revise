@@ -270,16 +270,42 @@ add_action( 'init', function () {
 	if ( $defaults ) {
 		$slug = key( $defaults );
 	}
-	// Each section is wrapped in a full-width group so it breaks out of the page's
-	// content column and runs edge-to-edge (the banner + backgrounds match the
-	// About page); the inner rm-pp-wrap keeps the text itself nicely constrained.
+	$hero_img = esc_url( get_theme_file_uri( 'assets/images/office1.webp' ) );
+
+	// A NATIVE, fully-editable Cover banner — same block, style and buttons as the
+	// About/home banners, so the team edit the image/text/buttons inline exactly
+	// like every other page (rather than a bespoke hero). Sits flush under the
+	// header when the page uses the "No title" template.
+	$hero = '<!-- wp:cover {"url":"' . $hero_img . '","dimRatio":55,"overlayColor":"ink","minHeight":72,"minHeightUnit":"vh","contentPosition":"bottom left","align":"full","textColor":"base"} -->'
+		. '<div class="wp-block-cover alignfull has-base-color has-text-color has-custom-content-position is-position-bottom-left" style="min-height:72vh">'
+		. '<span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-55 has-background-dim"></span>'
+		. '<img class="wp-block-cover__image-background" alt="" src="' . $hero_img . '" data-object-fit="cover"/>'
+		. '<div class="wp-block-cover__inner-container">'
+		. '<!-- wp:paragraph {"className":"rm-eyebrow","textColor":"base"} --><p class="rm-eyebrow has-base-color has-text-color">North West</p><!-- /wp:paragraph -->'
+		. '<!-- wp:heading {"level":1,"style":{"typography":{"fontSize":"clamp(2.4rem, 5vw, 4.5rem)","fontWeight":"500","lineHeight":"1"}}} --><h1 class="wp-block-heading" style="font-size:clamp(2.4rem, 5vw, 4.5rem);font-weight:500;line-height:1">Your lighting partner in the North West</h1><!-- /wp:heading -->'
+		. '<!-- wp:paragraph --><p>UK-manufactured LED lighting, specified and supported by your local team. See recent projects in the region and talk to the person who covers your area.</p><!-- /wp:paragraph -->'
+		. '<!-- wp:buttons --><div class="wp-block-buttons">'
+		. '<!-- wp:button {"className":"is-style-outline-light"} --><div class="wp-block-button is-style-outline-light"><a class="wp-block-button__link wp-element-button" href="#agent">Talk to your local team</a></div><!-- /wp:button -->'
+		. '<!-- wp:button {"className":"is-style-outline-light"} --><div class="wp-block-button is-style-outline-light"><a class="wp-block-button__link wp-element-button" href="#projects">See the projects</a></div><!-- /wp:button -->'
+		. '</div><!-- /wp:buttons -->'
+		. '</div></div><!-- /wp:cover -->';
+
+	// Editable intro copy (native blocks, full-width section like the About page).
+	$intro = '<!-- wp:group {"align":"full","className":"rm-section","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-section">'
+		. '<!-- wp:heading {"level":2,"className":"rm-shead"} --><h2 class="wp-block-heading rm-shead">Local lighting expertise, UK-made</h2><!-- /wp:heading -->'
+		. '<!-- wp:paragraph {"textColor":"muted"} --><p class="has-muted-color has-text-color">Ricoman supplies specifiers, contractors and end users across the region. As a UK manufacturer we design, make and deliver complete LED lighting schemes — photometrically specified, held in UK stock on short lead times, and backed by a 5-year warranty.</p><!-- /wp:paragraph -->'
+		. '</div><!-- /wp:group -->';
+
+	// The dynamic pieces stay as shortcodes, each wrapped full-width so the section
+	// backgrounds run edge-to-edge (inner rm-pp-wrap keeps text constrained).
 	$full = function ( $shortcode ) {
 		return '<!-- wp:group {"align":"full","layout":{"type":"default"}} --><div class="wp-block-group alignfull">'
 			. '<!-- wp:shortcode -->' . $shortcode . '<!-- /wp:shortcode -->'
 			. '</div><!-- /wp:group -->';
 	};
-	$content  = $full( '[ricoman_region_hero region="' . esc_attr( $slug ) . '"]' );
-	$content .= "\n\n" . $full( '[ricoman_region_intro region="' . esc_attr( $slug ) . '"]' );
+
+	$content  = $hero;
+	$content .= "\n\n" . $intro;
 	$content .= "\n\n" . $full( '[ricoman_sector_trust]' );
 	$content .= "\n\n" . $full( '[ricoman_region_projects region="' . esc_attr( $slug ) . '"]' );
 	$content .= "\n\n" . $full( '[ricoman_region_agents region="' . esc_attr( $slug ) . '"]' );
@@ -287,7 +313,7 @@ add_action( 'init', function () {
 
 	register_block_pattern( 'ricoman/region-landing', array(
 		'title'       => __( 'Region · Landing page', 'ricoman' ),
-		'description' => __( 'A regional ad landing page: hero, intro, trust bar, that region’s projects, the local agent, and a CTA. Set the region slug in each shortcode block (e.g. region="north-west").', 'ricoman' ),
+		'description' => __( 'A regional ad landing page: an editable banner (change the image, text and buttons like any page), intro, trust bar, that region’s projects and local agent (set the region slug in those two shortcode blocks, e.g. region="north-west"), and a CTA. Tip: set the page template to “No title” so the banner sits flush under the header.', 'ricoman' ),
 		'categories'  => array( 'ricoman-page' ),
 		'content'     => $content,
 	) );
