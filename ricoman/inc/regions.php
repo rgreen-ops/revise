@@ -137,12 +137,25 @@ function ricoman_region_agent_ids( $term ) {
 
 /** Project-led hero for a region. [ricoman_region_hero region="north-west" title="…" hook="…"] */
 add_shortcode( 'ricoman_region_hero', function ( $atts ) {
-	$atts = shortcode_atts( array( 'region' => '', 'title' => '', 'hook' => '' ), $atts, 'ricoman_region_hero' );
+	$atts = shortcode_atts( array( 'region' => '', 'title' => '', 'hook' => '', 'image' => '' ), $atts, 'ricoman_region_hero' );
 	$term = ricoman_region_term( $atts['region'] );
 	$name = $term ? $term->name : ( $atts['title'] ? $atts['title'] : 'the UK' );
 
 	$img = '';
-	if ( $term ) {
+	// 1) Explicit image attribute (a media URL or an attachment ID).
+	$iv = trim( (string) $atts['image'] );
+	if ( '' !== $iv ) {
+		$img = is_numeric( $iv ) ? (string) wp_get_attachment_image_url( (int) $iv, 'full' ) : $iv;
+	}
+	// 2) The page's own Featured image — the easiest way for the team to set it.
+	if ( ! $img ) {
+		$pid = get_the_ID();
+		if ( $pid && has_post_thumbnail( $pid ) ) {
+			$img = (string) get_the_post_thumbnail_url( $pid, 'full' );
+		}
+	}
+	// 3) A project photo from this region.
+	if ( ! $img && $term ) {
 		$q = new WP_Query( array(
 			'post_type'      => 'project',
 			'posts_per_page' => 1,
@@ -155,6 +168,7 @@ add_shortcode( 'ricoman_region_hero', function ( $atts ) {
 			$img = ricoman_project_img( (int) $q->posts[0] );
 		}
 	}
+	// 4) Theme default.
 	if ( ! $img ) {
 		$img = get_theme_file_uri( 'assets/images/office1.webp' );
 	}
@@ -166,7 +180,7 @@ add_shortcode( 'ricoman_region_hero', function ( $atts ) {
 		. '<span class="rm-sechero-scrim" aria-hidden="true"></span>'
 		. '<div class="rm-pp-wrap rm-sechero-in">'
 		. '<p class="rm-eyebrow rm-sechero-eyebrow">' . esc_html( $name ) . '</p>'
-		. '<h1 class="rm-sechero-title">' . esc_html( $title ) . '</h1>'
+		. '<h2 class="rm-sechero-title">' . esc_html( $title ) . '</h2>'
 		. '<p class="rm-sechero-hook">' . esc_html( $hook ) . '</p>'
 		. '<div class="rm-sechero-cta"><a class="btn btn-solid" href="#agent">Talk to your local team</a> '
 		. '<a class="btn btn-line" href="#projects">See the projects ↓</a></div>'
@@ -256,12 +270,20 @@ add_action( 'init', function () {
 	if ( $defaults ) {
 		$slug = key( $defaults );
 	}
-	$content  = '<!-- wp:shortcode -->[ricoman_region_hero region="' . esc_attr( $slug ) . '"]<!-- /wp:shortcode -->';
-	$content .= "\n\n" . '<!-- wp:shortcode -->[ricoman_region_intro region="' . esc_attr( $slug ) . '"]<!-- /wp:shortcode -->';
-	$content .= "\n\n" . '<!-- wp:shortcode -->[ricoman_sector_trust]<!-- /wp:shortcode -->';
-	$content .= "\n\n" . '<!-- wp:shortcode -->[ricoman_region_projects region="' . esc_attr( $slug ) . '"]<!-- /wp:shortcode -->';
-	$content .= "\n\n" . '<!-- wp:shortcode -->[ricoman_region_agents region="' . esc_attr( $slug ) . '"]<!-- /wp:shortcode -->';
-	$content .= "\n\n" . '<!-- wp:shortcode -->[ricoman_design_cta]<!-- /wp:shortcode -->';
+	// Each section is wrapped in a full-width group so it breaks out of the page's
+	// content column and runs edge-to-edge (the banner + backgrounds match the
+	// About page); the inner rm-pp-wrap keeps the text itself nicely constrained.
+	$full = function ( $shortcode ) {
+		return '<!-- wp:group {"align":"full","layout":{"type":"default"}} --><div class="wp-block-group alignfull">'
+			. '<!-- wp:shortcode -->' . $shortcode . '<!-- /wp:shortcode -->'
+			. '</div><!-- /wp:group -->';
+	};
+	$content  = $full( '[ricoman_region_hero region="' . esc_attr( $slug ) . '"]' );
+	$content .= "\n\n" . $full( '[ricoman_region_intro region="' . esc_attr( $slug ) . '"]' );
+	$content .= "\n\n" . $full( '[ricoman_sector_trust]' );
+	$content .= "\n\n" . $full( '[ricoman_region_projects region="' . esc_attr( $slug ) . '"]' );
+	$content .= "\n\n" . $full( '[ricoman_region_agents region="' . esc_attr( $slug ) . '"]' );
+	$content .= "\n\n" . $full( '[ricoman_design_cta]' );
 
 	register_block_pattern( 'ricoman/region-landing', array(
 		'title'       => __( 'Region · Landing page', 'ricoman' ),
