@@ -268,9 +268,11 @@ add_shortcode( 'ricoman_region_agents', function ( $atts ) {
 	if ( '' === $cards ) {
 		return '';
 	}
-	return '<div class="rm-section rm-staff-credit" id="agent"><div class="rm-pp-wrap">'
-		. '<h2 class="rm-shead">' . esc_html( $heading ) . '</h2>'
-		. '<div class="rm-team-grid">' . $cards . '</div></div></div>';
+	// Use the same wrapper + title style as the projects showcase so the two
+	// section headings line up on the same left edge and share the smaller font.
+	return '<div class="rm-section rm-projshow rm-staff-credit" id="agent">'
+		. '<div class="rm-projshow-head"><h2 class="rm-projshow-title">' . esc_html( $heading ) . '</h2></div>'
+		. '<div class="rm-team-grid">' . $cards . '</div></div>';
 } );
 
 /* ---------------------------------------------------------------------------
