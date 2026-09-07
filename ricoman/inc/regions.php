@@ -275,6 +275,41 @@ add_shortcode( 'ricoman_region_agents', function ( $atts ) {
 		. '<div class="rm-team-grid">' . $cards . '</div></div>';
 } );
 
+/** Region contact form — the same enquiry form as the contact page, with a
+ *  region heading and the lead tagged to the region. [ricoman_region_contact region="north-west" heading="…" intro="…"] */
+add_shortcode( 'ricoman_region_contact', function ( $atts ) {
+	$atts = shortcode_atts( array( 'region' => '', 'heading' => '', 'intro' => '' ), $atts, 'ricoman_region_contact' );
+	if ( ! function_exists( 'ricoman_lead_form' ) ) {
+		return '';
+	}
+	$term    = ricoman_region_term( $atts['region'] );
+	$name    = $term ? $term->name : '';
+	$heading = '' !== $atts['heading'] ? $atts['heading'] : ( $name ? sprintf( 'Have a project in the %s?', $name ) : 'Have a project on the board?' );
+	$intro   = '' !== $atts['intro'] ? $atts['intro'] : ( $name
+		? sprintf( 'Tell us about your project and your local %s team will get back to you within one working day — with advice, samples or a fully specified scheme.', $name )
+		: 'Tell us about your project and our team will get back to you within one working day.' );
+	$source  = $name ? sprintf( '%s landing page', $name ) : 'Region landing page';
+	$form    = ricoman_lead_form( array( 'title' => '', 'source' => $source ) );
+
+	return '<div class="rm-section rm-region-contact" id="enquire"><div class="rm-pp-wrap rm-region-contact-in">'
+		. '<div class="rm-region-contact-copy">'
+		. '<h2 class="rm-projshow-title">' . esc_html( $heading ) . '</h2>'
+		. '<p class="rm-region-contact-intro">' . esc_html( $intro ) . '</p>'
+		. '</div>'
+		. '<div class="rm-region-contact-form">' . $form . '</div>'
+		. '</div></div>';
+} );
+
+/** Layout for the region contact band (form CSS is loaded site-wide already). */
+add_action( 'wp_head', function () {
+	echo '<style id="rm-regions-css">'
+		. '.rm-region-contact-in{display:grid;grid-template-columns:1fr 1.1fr;gap:clamp(28px,5vw,64px);align-items:start}'
+		. '.rm-region-contact-copy .rm-projshow-title{margin:0 0 .5em}'
+		. '.rm-region-contact-intro{color:var(--muted);max-width:44ch}'
+		. '@media(max-width:820px){.rm-region-contact-in{grid-template-columns:1fr;gap:22px}}'
+		. '</style>';
+} );
+
 /* ---------------------------------------------------------------------------
  * Insertable landing-page pattern.
  * ------------------------------------------------------------------------- */
@@ -321,18 +356,46 @@ add_action( 'init', function () {
 			. '</div><!-- /wp:group -->';
 	};
 
+	// Editable "meet your local contact" image + short intro (native blocks).
+	$teamintro = '<!-- wp:group {"align":"full","className":"rm-section","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-section">'
+		. '<!-- wp:columns {"verticalAlignment":"center"} --><div class="wp-block-columns are-vertically-aligned-center">'
+		. '<!-- wp:column {"verticalAlignment":"center","width":"40%"} --><div class="wp-block-column is-vertically-aligned-center" style="flex-basis:40%">'
+		. '<!-- wp:image {"sizeSlug":"large"} --><figure class="wp-block-image size-large"><img src="' . $hero_img . '" alt=""/></figure><!-- /wp:image -->'
+		. '</div><!-- /wp:column -->'
+		. '<!-- wp:column {"verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center">'
+		. '<!-- wp:heading {"level":2,"className":"rm-projshow-title"} --><h2 class="wp-block-heading rm-projshow-title">Meet your local contact</h2><!-- /wp:heading -->'
+		. '<!-- wp:paragraph --><p>A short introduction to your team member — who they are, their experience, and how they help specifiers, contractors and clients with projects in the region. Swap the photo and edit this copy.</p><!-- /wp:paragraph -->'
+		. '</div><!-- /wp:column -->'
+		. '</div><!-- /wp:columns -->'
+		. '</div><!-- /wp:group -->';
+
 	$content  = $hero;
 	$content .= "\n\n" . $intro;
 	$content .= "\n\n" . $full( '[ricoman_sector_trust]' );
 	$content .= "\n\n" . $full( '[ricoman_region_projects region="' . esc_attr( $slug ) . '"]' );
 	$content .= "\n\n" . $full( '[ricoman_region_agents region="' . esc_attr( $slug ) . '"]' );
-	$content .= "\n\n" . $full( '[ricoman_design_cta]' );
+	$content .= "\n\n" . $teamintro;
+	$content .= "\n\n" . $full( '[ricoman_region_contact region="' . esc_attr( $slug ) . '"]' );
 
 	register_block_pattern( 'ricoman/region-landing', array(
 		'title'       => __( 'Region · Landing page', 'ricoman' ),
-		'description' => __( 'A regional ad landing page: an editable banner (change the image, text and buttons like any page), intro, trust bar, that region’s projects and local agent (set the region slug in those two shortcode blocks, e.g. region="north-west"), and a CTA. The full-bleed, no-title layout is applied automatically.', 'ricoman' ),
+		'description' => __( 'A regional ad landing page: an editable banner (image, text, buttons), intro, trust bar, that region’s projects, the local agent, an editable “meet your contact” image+text, and a contact form (set the region slug in the shortcode blocks, e.g. region="north-west"). The full-bleed, no-title layout is applied automatically.', 'ricoman' ),
 		'categories'  => array( 'ricoman-page' ),
 		'content'     => $content,
+	) );
+
+	// Standalone pieces so they can be dropped onto an existing region page.
+	register_block_pattern( 'ricoman/region-team-intro', array(
+		'title'       => __( 'Region · Team intro (image + text)', 'ricoman' ),
+		'description' => __( 'An editable image + short introduction for your local team member. Swap the image and edit the copy.', 'ricoman' ),
+		'categories'  => array( 'ricoman-page' ),
+		'content'     => $teamintro,
+	) );
+	register_block_pattern( 'ricoman/region-contact', array(
+		'title'       => __( 'Region · Contact form', 'ricoman' ),
+		'description' => __( 'The contact-page enquiry form with a region heading (“Have a project in the …?”); leads are tagged to the region. Set the region slug in the shortcode block.', 'ricoman' ),
+		'categories'  => array( 'ricoman-page' ),
+		'content'     => $full( '[ricoman_region_contact region="' . esc_attr( $slug ) . '"]' ),
 	) );
 }, 13 );
 
