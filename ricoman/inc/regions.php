@@ -313,8 +313,68 @@ add_action( 'init', function () {
 
 	register_block_pattern( 'ricoman/region-landing', array(
 		'title'       => __( 'Region · Landing page', 'ricoman' ),
-		'description' => __( 'A regional ad landing page: an editable banner (change the image, text and buttons like any page), intro, trust bar, that region’s projects and local agent (set the region slug in those two shortcode blocks, e.g. region="north-west"), and a CTA. IMPORTANT: set the page template to “Page, Full-bleed (no title)” so the title is hidden and the banner runs to the page edges.', 'ricoman' ),
+		'description' => __( 'A regional ad landing page: an editable banner (change the image, text and buttons like any page), intro, trust bar, that region’s projects and local agent (set the region slug in those two shortcode blocks, e.g. region="north-west"), and a CTA. The full-bleed, no-title layout is applied automatically.', 'ricoman' ),
 		'categories'  => array( 'ricoman-page' ),
 		'content'     => $content,
 	) );
 }, 13 );
+
+/* ---------------------------------------------------------------------------
+ * Region landing pages render on the full-bleed, no-title template
+ * automatically, so nobody has to pick a template. A page counts as a region
+ * landing page when it uses the region projects/agents blocks.
+ * ------------------------------------------------------------------------- */
+
+/** Does this page content use the region landing blocks? */
+function ricoman_content_is_region_landing( $content ) {
+	$content = (string) $content;
+	return ( false !== strpos( $content, '[ricoman_region_projects' )
+		|| false !== strpos( $content, '[ricoman_region_agents' ) );
+}
+
+/** Apply the "Page, Full-bleed (no title)" template to a region page (only when
+ *  the author hasn't deliberately chosen a different template). */
+function ricoman_maybe_set_region_template( $pid ) {
+	$pid = (int) $pid;
+	if ( ! $pid || 'page' !== get_post_type( $pid ) ) {
+		return;
+	}
+	if ( ! apply_filters( 'ricoman_region_auto_template', true, $pid ) ) {
+		return;
+	}
+	if ( ! ricoman_content_is_region_landing( get_post_field( 'post_content', $pid ) ) ) {
+		return;
+	}
+	$cur = (string) get_post_meta( $pid, '_wp_page_template', true );
+	if ( '' === $cur || 'default' === $cur ) {
+		update_post_meta( $pid, '_wp_page_template', 'page-plain' );
+	}
+}
+
+// Block-editor saves land via the REST API — run AFTER the template field is
+// written so we only fill it when the author left it on the default.
+add_action( 'rest_after_insert_page', function ( $post ) {
+	if ( $post instanceof WP_Post ) {
+		ricoman_maybe_set_region_template( $post->ID );
+	}
+}, 20 );
+
+// Catch classic / programmatic saves too.
+add_action( 'save_post_page', function ( $pid, $post ) {
+	if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || wp_is_post_revision( $pid ) ) {
+		return;
+	}
+	ricoman_maybe_set_region_template( $pid );
+}, 99, 2 );
+
+// One-time sweep so any EXISTING region pages get the template without a re-save.
+add_action( 'admin_init', function () {
+	if ( get_option( 'ricoman_region_tpl_v1' ) ) {
+		return;
+	}
+	$ids = get_posts( array( 'post_type' => 'page', 'post_status' => 'any', 'numberposts' => 500, 'fields' => 'ids' ) );
+	foreach ( (array) $ids as $pid ) {
+		ricoman_maybe_set_region_template( $pid );
+	}
+	update_option( 'ricoman_region_tpl_v1', '1' );
+} );
