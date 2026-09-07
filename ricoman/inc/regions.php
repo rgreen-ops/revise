@@ -202,7 +202,8 @@ add_shortcode( 'ricoman_region_intro', function ( $atts ) {
 		. '</div></div>';
 } );
 
-/** Grid of projects tagged with a region. [ricoman_region_projects region="north-west" limit="12" heading="…"] */
+/** Projects tagged with a region, rendered with the same carousel cards as the
+ *  "Projects by our lighting design team" showcase. [ricoman_region_projects region="north-west" limit="12" heading="…"] */
 add_shortcode( 'ricoman_region_projects', function ( $atts ) {
 	$atts = shortcode_atts( array( 'region' => '', 'limit' => 12, 'heading' => '' ), $atts, 'ricoman_region_projects' );
 	$term = ricoman_region_term( $atts['region'] );
@@ -210,25 +211,39 @@ add_shortcode( 'ricoman_region_projects', function ( $atts ) {
 		// In the editor, help the team; on the front end, stay silent.
 		return is_admin() ? '<p><em>Set a valid region slug on this block.</em></p>' : '';
 	}
-	$q = new WP_Query( array(
+	$ids = get_posts( array(
 		'post_type'      => 'project',
 		'post_status'    => 'publish',
 		'posts_per_page' => max( 1, (int) $atts['limit'] ),
+		'fields'         => 'ids',
 		'no_found_rows'  => true,
 		'orderby'        => array( 'menu_order' => 'ASC', 'date' => 'DESC' ),
 		'tax_query'      => array( array( 'taxonomy' => 'region', 'terms' => $term->term_id ) ),
 	) );
-	if ( ! $q->have_posts() ) {
+	if ( ! $ids ) {
 		return '';
 	}
 	$heading = '' !== $atts['heading'] ? $atts['heading'] : sprintf( '%s projects', $term->name );
-	$cards   = '';
-	foreach ( $q->posts as $p ) {
-		$img   = function_exists( 'ricoman_project_img' ) ? ricoman_project_img( $p->ID ) : get_the_post_thumbnail_url( $p->ID, 'large' );
+
+	// Reuse the projects showcase so the cards + carousel match the rest of the
+	// site exactly; no "Explore all projects" link on a regional page.
+	if ( function_exists( 'ricoman_projects_showcase_sc' ) ) {
+		return '<div id="projects">' . ricoman_projects_showcase_sc( array(
+			'ids'        => implode( ',', array_map( 'intval', $ids ) ),
+			'heading'    => $heading,
+			'link'       => '',
+			'link_label' => '',
+		) ) . '</div>';
+	}
+
+	// Fallback (showcase unavailable): a simple card grid.
+	$cards = '';
+	foreach ( $ids as $pid ) {
+		$img   = function_exists( 'ricoman_project_img' ) ? ricoman_project_img( (int) $pid ) : get_the_post_thumbnail_url( (int) $pid, 'large' );
 		$style = $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '';
-		$cards .= '<a class="rm-projcard" href="' . esc_url( get_permalink( $p ) ) . '"' . $style . '><span class="rm-projcard-ov">'
+		$cards .= '<a class="rm-projcard" href="' . esc_url( get_permalink( (int) $pid ) ) . '"' . $style . '><span class="rm-projcard-ov">'
 			. '<span class="rm-eyebrow">' . esc_html__( 'Project', 'ricoman' ) . '</span>'
-			. '<span class="rm-projcard-t">' . esc_html( get_the_title( $p ) ) . '</span>'
+			. '<span class="rm-projcard-t">' . esc_html( get_the_title( (int) $pid ) ) . '</span>'
 			. '</span></a>';
 	}
 	return '<div class="rm-section" id="projects"><div class="rm-pp-wrap">'
