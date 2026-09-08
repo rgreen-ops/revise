@@ -286,10 +286,10 @@ add_shortcode( 'ricoman_region_contact', function ( $atts ) {
 	$name    = $term ? $term->name : '';
 	$heading = '' !== $atts['heading'] ? $atts['heading'] : ( $name ? sprintf( 'Have a project in the %s?', $name ) : 'Have a project on the board?' );
 	$intro   = '' !== $atts['intro'] ? $atts['intro'] : ( $name
-		? sprintf( 'Tell us about your project and your local %s team will get back to you within one working day — with advice, samples or a fully specified scheme.', $name )
-		: 'Tell us about your project and our team will get back to you within one working day.' );
+		? sprintf( 'Tell us about your project and your local %s team will get back to you — with advice, samples or a fully specified scheme.', $name )
+		: 'Tell us about your project and our team will be in touch to help.' );
 	$source  = $name ? sprintf( '%s landing page', $name ) : 'Region landing page';
-	$form    = ricoman_lead_form( array( 'title' => '', 'source' => $source ) );
+	$form    = ricoman_lead_form( array( 'title' => '', 'source' => $source, 'area' => ( $term ? $term->slug : '' ) ) );
 
 	return '<div class="rm-section rm-region-contact" id="enquire"><div class="rm-pp-wrap rm-region-contact-in">'
 		. '<div class="rm-region-contact-copy">'
@@ -309,6 +309,28 @@ add_action( 'wp_head', function () {
 		. '@media(max-width:820px){.rm-region-contact-in{grid-template-columns:1fr;gap:22px}}'
 		. '</style>';
 } );
+
+/**
+ * Save the customer-selected area (from a region contact form) on the lead, and
+ * surface it in the Leads list Location column so the team can route it. Runs
+ * after the country autofill (priority 5) so the chosen region wins. The main
+ * lead handler has already verified the nonce before this fires.
+ */
+add_action( 'ricoman_lead_captured', function ( $lead_id, $data ) {
+	if ( ! $lead_id || ! isset( $_POST['lead_area'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		return;
+	}
+	$slug = sanitize_title( wp_unslash( $_POST['lead_area'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+	if ( '' === $slug ) {
+		return;
+	}
+	$map  = function_exists( 'ricoman_regions_default' ) ? ricoman_regions_default() : array();
+	$name = isset( $map[ $slug ] ) ? $map[ $slug ] : ( 'other' === $slug ? __( 'Elsewhere / not sure', 'ricoman' ) : ucwords( str_replace( '-', ' ', $slug ) ) );
+	update_post_meta( (int) $lead_id, '_lead_region', $name );
+	if ( 'other' !== $slug ) {
+		update_post_meta( (int) $lead_id, '_lead_location', $name );
+	}
+}, 20, 2 );
 
 /* ---------------------------------------------------------------------------
  * Insertable landing-page pattern.

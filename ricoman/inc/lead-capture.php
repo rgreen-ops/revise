@@ -315,6 +315,7 @@ function ricoman_lead_form( $atts = array() ) {
 		array(
 			'title'  => __( 'Request a quote or scheme design', 'ricoman' ),
 			'source' => '',
+			'area'   => '', // When set to a region slug, show a pre-selected "Which area?" dropdown.
 		),
 		$atts,
 		'ricoman_lead_form'
@@ -385,6 +386,18 @@ function ricoman_lead_form( $atts = array() ) {
 			<span><?php esc_html_e( 'Tell us about your project', 'ricoman' ); ?></span>
 			<textarea name="lead_message" rows="4"></textarea>
 		</label>
+
+		<?php if ( '' !== $atts['area'] && function_exists( 'ricoman_regions_default' ) ) : ?>
+			<label>
+				<span><?php esc_html_e( 'Which area are you in?', 'ricoman' ); ?></span>
+				<select name="lead_area">
+					<?php foreach ( ricoman_regions_default() as $rslug => $rname ) : ?>
+						<option value="<?php echo esc_attr( $rslug ); ?>" <?php selected( $atts['area'], $rslug ); ?>><?php echo esc_html( $rname ); ?></option>
+					<?php endforeach; ?>
+					<option value="other" <?php selected( $atts['area'], 'other' ); ?>><?php esc_html_e( 'Elsewhere / not sure', 'ricoman' ); ?></option>
+				</select>
+			</label>
+		<?php endif; ?>
 
 		<?php echo ricoman_turnstile_widget(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 		<button type="submit" class="ricoman-lead-submit"><?php esc_html_e( 'Send enquiry', 'ricoman' ); ?></button>
