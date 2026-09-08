@@ -393,6 +393,14 @@ add_action( 'init', function () {
 		'content'     => $content,
 	) );
 
+	// Standalone local-team block (drop it back in if it gets removed).
+	register_block_pattern( 'ricoman/region-team', array(
+		'title'       => __( 'Region · Local team', 'ricoman' ),
+		'description' => __( 'The local team for the region (each member shows a short blurb from their bio). Set the region slug in the shortcode block.', 'ricoman' ),
+		'categories'  => array( 'ricoman-page' ),
+		'content'     => $full( '[ricoman_region_agents region="' . esc_attr( $slug ) . '"]' ),
+	) );
+
 	// Standalone contact form so it can be dropped onto an existing region page.
 	register_block_pattern( 'ricoman/region-contact', array(
 		'title'       => __( 'Region · Contact form', 'ricoman' ),
