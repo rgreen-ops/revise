@@ -1,0 +1,2031 @@
+<?php
+/**
+ * ACF-driven product page.
+ *
+ * The live ricoman.com products store ALL their content in ACF fields and have
+ * an empty post_content. So when a product has no block content, the theme
+ * renders the whole product page straight from those fields — in the new design.
+ * Nothing is migrated or duplicated: the theme reads the existing fields, so
+ * theme updates only restyle, never touch content.
+ *
+ * Reads (ACF if active, else post meta), mapped from the existing ACF group:
+ *   product_subname · product_sort_description · product_code · key_features ·
+ *   specification · product_gallery_image · show_variant · download_section ·
+ *   download_led_or_details · download_family_datasheet · product_video
+ *
+ * @package Ricoman
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * ACF field-group sync: load (and save) field groups from the theme's acf-json
+ * folder, so the product field definitions travel with the theme. Export your
+ * field group from the old site (ACF → Field Groups → Export → Generate JSON,
+ * or just drop the acf-json file in) and place it in /acf-json.
+ */
+add_filter( 'acf/settings/load_json', function ( $paths ) {
+	$paths[] = get_template_directory() . '/acf-json';
+	return $paths;
+} );
+add_filter( 'acf/settings/save_json', function ( $path ) {
+	$dir = get_template_directory() . '/acf-json';
+	return is_dir( $dir ) ? $dir : $path;
+} );
+
+/** ACF-aware field getter — get_field() when ACF is active, else raw meta. */
+function ricoman_pf_get( $pid, $key, $default = '' ) {
+	// Live builder preview: use the unsaved draft field values.
+	if ( isset( $GLOBALS['rm_pe_preview'] ) && (int) $GLOBALS['rm_pe_preview']['pid'] === (int) $pid
+		&& isset( $GLOBALS['rm_pe_preview']['fields'][ $key ] ) && '' !== $GLOBALS['rm_pe_preview']['fields'][ $key ] ) {
+		return $GLOBALS['rm_pe_preview']['fields'][ $key ];
+	}
+	if ( function_exists( 'get_field' ) ) {
+		$v = get_field( $key, $pid );
+		if ( null !== $v && '' !== $v ) {
+			return $v;
+		}
+	}
+	$m = get_post_meta( $pid, $key, true );
+	return ( '' !== $m && null !== $m ) ? $m : $default;
+}
+
+/**
+ * Turn a key-features value into a clean bullet list. The ACF field often holds
+ * raw HTML (<ul class="animatable fadeInUp"><li>…</li></ul>) — pull just the item
+ * text so the page never shows literal <ul>/<li> tags.
+ */
+function ricoman_pf_features_items( $kf, $max = 0 ) {
+	$items = array();
+	if ( is_array( $kf ) ) {
+		foreach ( $kf as $row ) {
+			$t = is_array( $row ) ? implode( ' ', array_filter( $row, 'is_scalar' ) ) : $row;
+			$t = trim( wp_strip_all_tags( (string) $t ) );
+			if ( '' !== $t ) {
+				$items[] = $t;
+			}
+		}
+	} else {
+		$kf = (string) $kf;
+		if ( false !== stripos( $kf, '<li' ) && preg_match_all( '/<li[^>]*>(.*?)<\/li>/is', $kf, $m ) ) {
+			foreach ( $m[1] as $t ) {
+				$t = trim( wp_strip_all_tags( html_entity_decode( $t ) ) );
+				if ( '' !== $t ) {
+					$items[] = $t;
+				}
+			}
+		} else {
+			foreach ( preg_split( '/\r\n|\r|\n/', wp_strip_all_tags( $kf ) ) as $line ) {
+				$line = trim( ltrim( $line, "•-*\t " ) );
+				if ( '' !== $line ) {
+					$items[] = $line;
+				}
+			}
+		}
+	}
+	if ( $max > 0 ) {
+		$items = array_slice( $items, 0, $max );
+	}
+	return $items;
+}
+
+/** Clean bullet list from a key-features value. */
+function ricoman_pf_features_list( $kf, $max = 0 ) {
+	$items = ricoman_pf_features_items( $kf, $max );
+	if ( ! $items ) {
+		return '';
+	}
+	$li = '';
+	foreach ( $items as $t ) {
+		$li .= '<li>' . esc_html( $t ) . '</li>';
+	}
+	return '<ul class="rm-ul rm-pp-features">' . $li . '</ul>';
+}
+
+/** Hero feature highlights with a check icon (title:description split if present). */
+function ricoman_pf_highlights( $kf, $max = 4 ) {
+	$items = ricoman_pf_features_items( $kf, $max );
+	if ( ! $items ) {
+		return '';
+	}
+	$ic = '<svg class="rm-hi-ic" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+	$li = '';
+	foreach ( $items as $t ) {
+		// "Title: description" -> bold title + text.
+		if ( preg_match( '/^([^:]{3,40}):\s*(.+)$/s', $t, $m ) ) {
+			$body = '<strong>' . esc_html( trim( $m[1] ) ) . ':</strong> ' . esc_html( trim( $m[2] ) );
+		} else {
+			$body = esc_html( $t );
+		}
+		$li .= '<li>' . $ic . '<span>' . $body . '</span></li>';
+	}
+	return '<ul class="rm-hi">' . $li . '</ul>';
+}
+
+/** A product card for the related / accessories carousels (image + title). */
+function ricoman_pf_relcard( $href, $img, $title ) {
+	return '<a class="rm-relc" href="' . esc_url( $href ) . '">'
+		. '<span class="rm-relc-img"' . ( $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '' ) . '></span>'
+		. '<span class="rm-relc-t">' . esc_html( $title ) . '</span></a>';
+}
+
+/** A titled horizontal carousel (prev/next arrows) of product cards. */
+function ricoman_pf_carousel( $title, $cards, $plain = false ) {
+	if ( '' === trim( (string) $cards ) ) {
+		return '';
+	}
+	return '<div class="rm-relhead"><h2 class="rm-relttl">' . esc_html( $title ) . '</h2>'
+		. '<div class="rm-relnav"><button type="button" class="rm-relarrow" data-rel="prev" aria-label="Previous">&larr;</button>'
+		. '<button type="button" class="rm-relarrow" data-rel="next" aria-label="Next">&rarr;</button></div></div>'
+		. '<div class="rm-relslider' . ( $plain ? ' rm-relslider--plain' : '' ) . '">' . $cards . '</div>';
+}
+
+/**
+ * Is this product itself an accessory? Matches the /products/ archive logic:
+ * the `is_accessories_product` flag OR membership of the "Accessories"
+ * (product-cat) category. Used to suppress the "Accessories" section on an
+ * accessory's own page (listing accessories on an accessory is redundant).
+ */
+function ricoman_pf_is_accessory( $pid ) {
+	if ( in_array( (string) get_post_meta( $pid, 'is_accessories_product', true ), array( '1', 'yes', 'true' ), true ) ) {
+		return true;
+	}
+	$tax = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
+	return (bool) has_term( 'accessories', $tax, $pid );
+}
+
+/**
+ * Accessory products for a product — products flagged `is_accessories_product`,
+ * preferring the same category (the relevant accessories), falling back to all
+ * accessory products. Same grey-card carousel as "You may also like".
+ */
+function ricoman_pf_accessories( $pid, $max = 24 ) {
+	$render_cards = function ( $q ) {
+		$cards = '';
+		while ( $q->have_posts() ) {
+			$q->the_post();
+			$img    = function_exists( 'ricoman_product_img' ) ? ricoman_product_img( get_the_ID() ) : get_the_post_thumbnail_url( get_the_ID(), 'large' );
+			$cards .= ricoman_pf_relcard( get_permalink(), $img, get_the_title() );
+		}
+		wp_reset_postdata();
+		return ricoman_pf_carousel( 'Accessories', $cards, false );
+	};
+
+	// Preview mode: use the draft selection only when the user has explicitly chosen accessories.
+	// An empty list falls through to auto-matching so the preview reflects the live behaviour.
+	if ( ! empty( $GLOBALS['rm_pe_preview'] ) && ! empty( $GLOBALS['rm_pe_preview']['accessories'] ) ) {
+		$ids = array_values( array_filter( array_map( 'absint', (array) $GLOBALS['rm_pe_preview']['accessories'] ) ) );
+		$q = new WP_Query( array(
+			'post_type'      => 'product',
+			'post_status'    => 'publish',
+			'posts_per_page' => count( $ids ),
+			'post__in'       => $ids,
+			'orderby'        => 'post__in',
+			'no_found_rows'  => true,
+		) );
+		return $q->have_posts() ? $render_cards( $q ) : '';
+	}
+
+	// Saved per-product selection (non-empty array overrides auto-matching).
+	$saved_raw = get_post_meta( $pid, '_ricoman_accessories', true );
+	if ( '' !== (string) $saved_raw ) {
+		$saved_ids = json_decode( (string) $saved_raw, true );
+		if ( is_array( $saved_ids ) && $saved_ids ) {
+			$ids = array_values( array_filter( array_map( 'absint', $saved_ids ) ) );
+			if ( $ids ) {
+				$q = new WP_Query( array(
+					'post_type'      => 'product',
+					'post_status'    => 'publish',
+					'posts_per_page' => count( $ids ),
+					'post__in'       => $ids,
+					'orderby'        => 'post__in',
+					'no_found_rows'  => true,
+				) );
+				return $q->have_posts() ? $render_cards( $q ) : '';
+			}
+		}
+	}
+
+	// Auto-match: category-scoped first, then global fallback.
+	$yes  = array( '1', 'yes', 'Yes', 'YES', 'true', 'on' );
+	$base = array(
+		'post_type'      => 'product',
+		'post_status'    => 'publish',
+		'posts_per_page' => $max,
+		'post__not_in'   => array( $pid ),
+		'no_found_rows'  => true,
+		'orderby'        => 'title',
+		'order'          => 'ASC',
+		'meta_query'     => array( array( 'key' => 'is_accessories_product', 'value' => $yes, 'compare' => 'IN' ) ),
+	);
+	$tax   = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
+	$terms = wp_get_post_terms( $pid, $tax, array( 'fields' => 'ids' ) );
+	$q     = null;
+	if ( ! is_wp_error( $terms ) && $terms ) {
+		$a              = $base;
+		$a['tax_query'] = array( array( 'taxonomy' => $tax, 'terms' => $terms ) );
+		$q              = new WP_Query( $a );
+	}
+	if ( ! $q || ! $q->have_posts() ) {
+		$q = new WP_Query( $base );
+	}
+	return $q->have_posts() ? $render_cards( $q ) : '';
+}
+
+/** "You may also like" — carousel of other products in the same category. */
+function ricoman_pf_related( $pid, $max = 12 ) {
+	$tax   = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
+	$terms = wp_get_post_terms( $pid, $tax, array( 'fields' => 'ids' ) );
+	if ( is_wp_error( $terms ) || ! $terms ) {
+		return '';
+	}
+	$q = new WP_Query( array(
+		'post_type'      => 'product',
+		'post_status'    => 'publish',
+		'posts_per_page' => $max,
+		'post__not_in'   => array( $pid ),
+		'orderby'        => 'rand',
+		'no_found_rows'  => true,
+		'tax_query'      => array( array( 'taxonomy' => $tax, 'terms' => $terms ) ),
+	) );
+	if ( ! $q->have_posts() ) {
+		return '';
+	}
+	$cards = '';
+	while ( $q->have_posts() ) {
+		$q->the_post();
+		$img    = function_exists( 'ricoman_product_img' ) ? ricoman_product_img( get_the_ID() ) : get_the_post_thumbnail_url( get_the_ID(), 'large' );
+		$cards .= ricoman_pf_relcard( get_permalink(), $img, get_the_title() );
+	}
+	wp_reset_postdata();
+	return '<div class="rm-section"><div class="rm-pp-wrap">' . ricoman_pf_carousel( 'You may also like', $cards, false ) . '</div></div>';
+}
+
+/**
+ * Render the Specification field as a clean card grid. The field holds heading
+ * (<strong>) blocks followed by "·"-prefixed bullet lines; we parse those into
+ * groups and lay them out as cards with accent headers and dot bullets. Falls
+ * back to the raw HTML if there are no headings to group on.
+ */
+function ricoman_pf_spec_html( $raw ) {
+	$raw = (string) $raw;
+	if ( '' === trim( $raw ) ) {
+		return '';
+	}
+	if ( ! preg_match( '/<strong/i', $raw ) ) {
+		return '<div class="rm-spechtml">' . wp_kses_post( wpautop( $raw ) ) . '</div>';
+	}
+	$txt = preg_replace( '/<\s*br\s*\/?>/i', "\n", $raw );
+	$txt = preg_replace( '/<\/(p|div|li|h[1-6])>/i', "\n", $txt );
+	$txt = preg_replace( '/<strong[^>]*>(.*?)<\/strong>/is', "\n@@H@@$1\n", $txt );
+	$txt = wp_strip_all_tags( $txt );
+	$lines = preg_split( '/\r\n|\r|\n/', $txt );
+
+	$groups = array();
+	$idx    = -1;
+	foreach ( $lines as $ln ) {
+		$ln = trim( html_entity_decode( $ln, ENT_QUOTES ) );
+		if ( '' === $ln ) {
+			continue;
+		}
+		if ( 0 === strpos( $ln, '@@H@@' ) ) {
+			$groups[] = array( 'title' => trim( substr( $ln, 5 ) ), 'items' => array() );
+			$idx      = count( $groups ) - 1;
+		} else {
+			$ln = ltrim( $ln, "·•-*\t " );
+			if ( '' === $ln ) {
+				continue;
+			}
+			if ( $idx < 0 ) {
+				$groups[] = array( 'title' => '', 'items' => array() );
+				$idx      = 0;
+			}
+			$groups[ $idx ]['items'][] = $ln;
+		}
+	}
+	if ( ! $groups ) {
+		return '<div class="rm-spechtml">' . wp_kses_post( wpautop( $raw ) ) . '</div>';
+	}
+	$cards = '';
+	foreach ( $groups as $g ) {
+		if ( '' === $g['title'] && ! $g['items'] ) {
+			continue;
+		}
+		$li = '';
+		foreach ( $g['items'] as $it ) {
+			$li .= '<li>' . esc_html( $it ) . '</li>';
+		}
+		$cards .= '<div class="rm-speccard">'
+			. ( '' !== $g['title'] ? '<h3 class="rm-speccard-h">' . esc_html( $g['title'] ) . '</h3>' : '' )
+			. ( $li ? '<ul>' . $li . '</ul>' : '' ) . '</div>';
+	}
+	return '<div class="rm-specgrid">' . $cards . '</div>';
+}
+
+/** Collapsible accordion row (native <details>, no JS needed). */
+function ricoman_pf_acc( $title, $content, $open = false ) {
+	if ( '' === trim( (string) $content ) ) {
+		return '';
+	}
+	return '<details class="rm-acc"' . ( $open ? ' open' : '' ) . '><summary class="rm-acc-h"><h2 class="rm-acc-title">' . esc_html( $title )
+		. '</h2><span class="rm-acc-ic" aria-hidden="true"></span></summary><div class="rm-acc-body">' . $content . '</div></details>';
+}
+
+/** Resolve an ACF image value (ID, URL, or array) to a URL. */
+function ricoman_pf_imgurl( $v, $size = 'large' ) {
+	$u  = '';
+	$id = 0;
+	if ( is_numeric( $v ) ) {
+		$id = (int) $v;
+	} elseif ( is_array( $v ) ) {
+		if ( ! empty( $v['ID'] ) ) {
+			$id = (int) $v['ID'];
+		} elseif ( ! empty( $v['id'] ) ) {
+			$id = (int) $v['id'];
+		}
+		if ( ! $id ) {
+			// Prefer a generated sub-size (WebP/AVIF) over the full original PNG/JPG.
+			if ( ! empty( $v['sizes'][ $size ] ) ) {
+				$u = $v['sizes'][ $size ];
+			} elseif ( ! empty( $v['sizes']['large'] ) ) {
+				$u = $v['sizes']['large'];
+			} elseif ( ! empty( $v['url'] ) ) {
+				$u = $v['url'];
+			}
+		}
+	} elseif ( is_string( $v ) ) {
+		$u = $v;
+	}
+	if ( $id ) {
+		// Prefer a generated WebP copy (theme-native converter) when present.
+		$webp = function_exists( 'ricoman_webp_url' ) ? ricoman_webp_url( $id ) : '';
+		if ( $webp ) {
+			$u = $webp;
+		} else {
+			// Sized sub-size is far smaller than the full original.
+			$su = wp_get_attachment_image_url( $id, $size );
+			if ( ! $su && 'large' !== $size ) {
+				$su = wp_get_attachment_image_url( $id, 'large' );
+			}
+			if ( ! $su ) {
+				$su = wp_get_attachment_image_url( $id, 'full' );
+			}
+			// Migrated attachments whose sub-size files weren't imported still have
+			// a guid pointing at the old-site URL — use that so ricoman_norm_img_url
+			// can serve it via the live-origin fallback.
+			if ( ! $su ) {
+				$su = (string) wp_get_attachment_url( $id );
+			}
+			// Array fallback: old-site attachment with embedded url/sizes.
+			if ( ! $su && is_array( $v ) ) {
+				if ( ! empty( $v['sizes'][ $size ] ) ) {
+					$su = $v['sizes'][ $size ];
+				} elseif ( ! empty( $v['sizes']['large'] ) ) {
+					$su = $v['sizes']['large'];
+				} elseif ( ! empty( $v['url'] ) ) {
+					$su = $v['url'];
+				}
+			}
+			$u = $su ? $su : '';
+		}
+	}
+	$u = $u ? $u : '';
+	if ( ! $u ) {
+		return '';
+	}
+	// Migrated values are often absolute old-domain URLs pointing at a sub-size
+	// that was never generated — normalise to this site + the original file, then
+	// fall back to the live origin only if it's genuinely missing.
+	$final = function_exists( 'ricoman_norm_img_url' )
+		? ricoman_norm_img_url( $u )
+		: ( function_exists( 'ricoman_img_fallback' ) ? ricoman_img_fallback( $u ) : $u );
+	// Prefer a lighter WebP twin when one exists (or can be made).
+	if ( function_exists( 'ricoman_webp_for_url' ) ) {
+		$w = ricoman_webp_for_url( $final );
+		if ( $w ) {
+			return $w;
+		}
+	}
+	return $final;
+}
+
+/** Extract [name, mainImage, swatch] from one variant row of unknown sub-field names. */
+function ricoman_pf_variant_row( $row ) {
+	if ( ! is_array( $row ) ) {
+		return null;
+	}
+	$vals = array_values( $row );
+	if ( 1 === count( $row ) && is_array( $vals[0] ) ) {
+		$row = $vals[0]; // descend a single wrapping group (e.g. "color").
+	}
+	$name = '';
+	$img  = '';
+	$sw   = '';
+	foreach ( $row as $k => $v ) {
+		$kl = strtolower( (string) $k );
+		if ( '' === $name && is_string( $v ) && ( false !== strpos( $kl, 'name' ) || false !== strpos( $kl, 'title' ) ) ) {
+			$name = $v;
+		} elseif ( '' === $img && ( false !== strpos( $kl, 'main' ) || false !== strpos( $kl, 'image' ) || false !== strpos( $kl, 'photo' ) ) ) {
+			$img = ricoman_pf_imgurl( $v );
+		} elseif ( '' === $sw && ( false !== strpos( $kl, 'icon' ) || false !== strpos( $kl, 'swatch' ) || false !== strpos( $kl, 'colour' ) || false !== strpos( $kl, 'color' ) ) ) {
+			$sw = ricoman_pf_imgurl( $v );
+		}
+	}
+	if ( '' === $img ) {
+		foreach ( $row as $v ) {
+			$u = ricoman_pf_imgurl( $v );
+			if ( $u ) {
+				$img = $u;
+				break;
+			}
+		}
+	}
+	return ( $name || $img ) ? array( $name, $img, $sw ) : null;
+}
+
+/**
+ * Best displayable URL for an attachment: a mid-weight sub-size that actually
+ * exists and is non-empty on disk, preferred over the full size.
+ *
+ * Guards against this host's 0-byte full-size ".webp" files (the WebP converter
+ * writes empty originals while the sub-sizes convert fine) by skipping any
+ * rendition whose file is empty. When no sub-size is usable it returns the
+ * filtered full URL, which self-heals a broken .webp to its original sibling
+ * (or borrows a missing file from the live origin) via ricoman_img_fallback.
+ */
+function ricoman_pf_best_rendition( $id ) {
+	$id = (int) $id;
+	if ( $id <= 0 ) {
+		return '';
+	}
+	$up   = wp_get_upload_dir();
+	$meta = wp_get_attachment_metadata( $id );
+	if ( is_array( $meta ) && ! empty( $meta['file'] ) && ! empty( $meta['sizes'] ) && is_array( $meta['sizes'] ) ) {
+		$dir     = dirname( $meta['file'] );                       // e.g. 2026/07
+		$subdir  = ( '.' === $dir || '' === $dir ) ? '' : trailingslashit( $dir );
+		$basedir = trailingslashit( $up['basedir'] );
+		$baseurl = trailingslashit( $up['baseurl'] );
+		// Mid-weight first (light enough for thumbnails, sharp enough for the hero).
+		foreach ( array( 'ricoman-card', 'large', 'medium_large', 'ricoman-wide', 'medium' ) as $s ) {
+			if ( empty( $meta['sizes'][ $s ]['file'] ) ) {
+				continue;
+			}
+			$rel = $subdir . $meta['sizes'][ $s ]['file'];
+			$sz  = @filesize( $basedir . $rel ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
+			if ( $sz && $sz > 0 ) {
+				return $baseurl . $rel;
+			}
+		}
+	}
+	// No usable sub-size — the filtered full URL self-heals a broken .webp.
+	return (string) wp_get_attachment_url( $id );
+}
+
+/** Gallery image URLs from product_gallery_image (array of IDs / arrays / urls). */
+function ricoman_pf_gallery( $pid ) {
+	$resolve_id = function ( $id ) {
+		return ricoman_pf_best_rendition( (int) $id );
+	};
+
+	// Live builder preview override (array of attachment IDs).
+	if ( ! empty( $GLOBALS['rm_pe_preview'] ) && (int) $GLOBALS['rm_pe_preview']['pid'] === (int) $pid && isset( $GLOBALS['rm_pe_preview']['gallery'] ) && is_array( $GLOBALS['rm_pe_preview']['gallery'] ) ) {
+		$out = array();
+		foreach ( $GLOBALS['rm_pe_preview']['gallery'] as $id ) {
+			$u = $resolve_id( $id );
+			if ( $u ) {
+				$out[] = $u;
+			}
+		}
+		return $out;
+	}
+	$g   = ricoman_pf_get( $pid, 'product_gallery_image', array() );
+	$out = array();
+	if ( is_array( $g ) ) {
+		foreach ( $g as $item ) {
+			$id = 0;
+			if ( is_numeric( $item ) ) {
+				$id = (int) $item;
+			} elseif ( is_array( $item ) ) {
+				$id = (int) ( isset( $item['ID'] ) ? $item['ID'] : ( isset( $item['id'] ) ? $item['id'] : 0 ) );
+			}
+			$u = $id ? $resolve_id( $id ) : ricoman_pf_imgurl( $item );
+			if ( $u ) {
+				$out[] = $u;
+			}
+		}
+	}
+	return $out;
+}
+
+/* ----------------------------------------------------- the full product page */
+/**
+ * Pull a product's fully-resolved data from the site's own headless API
+ * (get_product_details_data) via an internal REST dispatch — no HTTP, and it
+ * returns real image URLs + every section (swatches, paragraphs, zig-zag, …).
+ * That endpoint is provided by the site's API plugin, so it survives the theme
+ * switch. Returns null if unavailable (then we fall back to reading ACF/meta).
+ */
+function ricoman_pf_endpoint( $slug ) {
+	// PARKED: the resolved "product API" (the old RICOBOT/ricomanled REST
+	// endpoint) is switched off — product pages render from the migrated ACF
+	// data via ricoman_pf_sections(), per the roadmap (RICOBOT sync is step 5).
+	// It also resolved very heavy data for products with many variants, which
+	// exhausted PHP's memory limit and 500'd those pages. Re-enable by returning
+	// true from the 'ricoman_use_product_api' filter once RICOBOT is reconnected.
+	if ( ! apply_filters( 'ricoman_use_product_api', false ) ) {
+		return null;
+	}
+	if ( ! $slug || ! function_exists( 'rest_do_request' ) ) {
+		return null;
+	}
+	$req = new WP_REST_Request( 'GET', '/wp/v2/get_product_details_data' );
+	$req->set_param( 'slug', $slug );
+	$res = rest_do_request( $req );
+	if ( ! ( $res instanceof WP_REST_Response ) || $res->is_error() ) {
+		return null;
+	}
+	$d = $res->get_data();
+	return ( is_array( $d ) && ! empty( $d['product_title'] ) ) ? $d : null;
+}
+
+/** Build a localised product permalink from a slug. */
+function ricoman_pf_permalink( $slug ) {
+	$p = get_page_by_path( $slug, OBJECT, 'product' );
+	return $p ? get_permalink( $p ) : home_url( '/products/' . $slug . '/' );
+}
+
+/** Render the whole product page from the resolved endpoint data, in the new design. */
+function ricoman_pf_render_endpoint( $d, $pid ) {
+	$e   = function ( $s ) { return esc_html( (string) $s ); };
+	$cat = ( ! empty( $d['product_categories'][0]['product_cat_name'] ) ) ? $d['product_categories'][0]['product_cat_name'] : '';
+	$hero = ! empty( $d['featured_image_url'] ) ? $d['featured_image_url'] : '';
+
+	// Swatches (colour variants) — variant_name / main_image / variant_icon.
+	$sw = '';
+	if ( ! empty( $d['get_swatch_product_data'] ) && is_array( $d['get_swatch_product_data'] ) ) {
+		foreach ( $d['get_swatch_product_data'] as $i => $v ) {
+			$icon = ! empty( $v['variant_icon'] ) ? $v['variant_icon'] : '';
+			$mimg = ! empty( $v['main_image'] ) ? $v['main_image'] : '';
+			if ( '' === $hero && $mimg ) {
+				$hero = $mimg;
+			}
+			$style = $icon ? 'background-image:url(' . esc_url( $icon ) . ')' : '';
+			$sw   .= '<button type="button" class="rm-cv-sw' . ( 0 === $i ? ' on' : '' ) . '" data-img="' . esc_url( $mimg ) . '" style="' . $style . '" aria-label="' . esc_attr( $v['variant_name'] ) . '"><span>' . $e( $v['variant_name'] ) . '</span></button>';
+		}
+	}
+	// Gallery thumbs.
+	$thumbs = '';
+	if ( ! empty( $d['product_gallery_image'] ) && is_array( $d['product_gallery_image'] ) ) {
+		foreach ( $d['product_gallery_image'] as $j => $g ) {
+			$u = is_array( $g ) ? ( $g['url'] ?? '' ) : $g;
+			if ( $u ) {
+				$thumbs .= '<button type="button" class="rm-cfg-thumb' . ( 0 === $j ? ' on' : '' ) . '" data-img="' . esc_url( $u ) . '" aria-label="' . esc_attr( sprintf( 'View image %d', $j + 1 ) ) . '"><img src="' . esc_url( $u ) . '" alt="" loading="lazy" onerror="this.parentNode.style.display=\'none\'"></button>';
+			}
+		}
+	}
+	if ( '' === $hero ) {
+		$hero = esc_url( get_theme_file_uri( 'assets/images/ceiling.webp' ) );
+	}
+
+	// CTA buttons (from the product's own fields).
+	$ldl  = ! empty( $d['lighting_design_button_link'] ) ? $d['lighting_design_button_link'] : '/lighting-design/';
+	$ldt  = ! empty( $d['lighting_design_button_title'] ) ? $d['lighting_design_button_title'] : 'Request a Lighting Design';
+	$trl  = ! empty( $d['trade_button_link'] ) ? $d['trade_button_link'] : '/contact/';
+	$trt  = ! empty( $d['trade_button_title'] ) ? $d['trade_button_title'] : 'Apply for a Trade Account';
+	$acts = '<div class="rm-cfg-acts"><a class="btn btn-solid" href="' . esc_url( home_url( '/my-project/' ) ) . '">＋ Add to My Project</a> <a class="btn btn-line-d" href="' . esc_url( $ldl ) . '">' . $e( $ldt ) . '</a> <a class="btn btn-line-d" href="' . esc_url( $trl ) . '">' . $e( $trt ) . '</a></div>';
+
+	$spec = ! empty( $d['specification'] ) ? '<div class="rm-spechtml">' . wp_kses_post( wpautop( $d['specification'] ) ) . '</div>' : '';
+
+	// Breadcrumb (Products › Category › Name).
+	$crumb = do_shortcode( '[ricoman_breadcrumbs]' );
+
+	// Key features — clean bullets for the hero (full spec lives below).
+	$feat = ricoman_pf_features_list( ! empty( $d['key_features'] ) ? $d['key_features'] : '' );
+
+	// Order code + jump links.
+	$code = ! empty( $d['product_code'] ) ? '<p class="rm-pp-code"><span class="rm-cfg-code">' . $e( $d['product_code'] ) . '</span></p>' : '';
+	$jump = '<p class="rm-pp-jump">' . ( $spec ? '<a href="#specification">Specification</a>' : '' )
+		. '<a href="#downloads">Downloads &amp; Resources</a><a href="#variants">Configure</a></p>';
+
+	// ---- Split hero (concise; the detailed tech lives below) ----
+	$out  = ( $crumb ? '<div class="rm-section rm-pp-crumbwrap"><div class="rm-pp-wrap rm-pp-crumb">' . $crumb . '</div></div>' : '' )
+		. '<div class="rm-cfghero-wrap"><div class="rm-cfghero">'
+		. '<div class="rm-cfg-stage"><div class="rm-cfg-viz"><img class="rm-cfg-img" src="' . esc_url( $hero ) . '" alt="' . esc_attr( $d['product_title'] ) . '" fetchpriority="high" decoding="async" width="800" height="800" onerror="this.onerror=null;this.src=\'' . esc_js( get_theme_file_uri( 'assets/images/ceiling.webp' ) ) . '\'"></div>'
+		. ( $sw ? '<div class="rm-cv-swatches">' . $sw . '</div>' : '' )
+		. ( $thumbs ? '<div class="rm-cfg-thumbs">' . $thumbs . '</div>' : '' )
+		. '</div><div class="rm-cfg-panel">'
+		. ( $cat ? '<p class="rm-eyebrow">' . $e( $cat ) . '</p>' : '' )
+		. '<h1 class="rm-cfg-name">' . $e( $d['product_title'] ) . '</h1>'
+		. ( ! empty( $d['product_subname'] ) ? '<p class="rm-cfg-desc">' . $e( $d['product_subname'] ) . '</p>' : '' )
+		. ( ! empty( $d['product_sort_description'] ) ? '<p>' . $e( $d['product_sort_description'] ) . '</p>' : '' )
+		. $feat . $code . $acts . $jump . '</div></div></div>';
+
+	// Specification — moved out of the hero, into its own section below.
+	if ( $spec ) {
+		$out .= '<div class="rm-section" id="specification"><div class="rm-pp-wrap"><h2 class="rm-shead">Specification</h2>' . $spec . '</div></div>';
+	}
+
+	// Paragraph info → "Why specify" style band.
+	if ( ! empty( $d['get_paragraph_info_section'] ) && is_array( $d['get_paragraph_info_section'] ) ) {
+		$pp = '';
+		foreach ( $d['get_paragraph_info_section'] as $p ) {
+			$txt = is_array( $p ) ? ( $p['paragraph_content'] ?? '' ) : $p;
+			if ( $txt ) {
+				$pp .= '<div class="rm-sp-card"><p>' . $e( $txt ) . '</p></div>';
+			}
+		}
+		if ( $pp ) {
+			$out .= '<div class="rm-sp"><div class="rm-sp-inner"><p class="rm-eyebrow rm-sp-kick">Why specify ' . $e( $d['product_title'] ) . '</p><div class="rm-sp-grid">' . $pp . '</div></div></div>';
+		}
+	}
+
+	// Zig-zag (image/video + text + button), up to two boxes.
+	$z = isset( $d['product_image_video_sec_data'] ) && is_array( $d['product_image_video_sec_data'] ) ? $d['product_image_video_sec_data'] : array();
+	$zz = '';
+	foreach ( array( 'first', 'second' ) as $bi => $box ) {
+		$im = ! empty( $z[ 'upload_' . $box . '_media_image' ] ) ? $z[ 'upload_' . $box . '_media_image' ] : '';
+		$vd = ! empty( $z[ 'upload_' . $box . '_media_video' ] ) ? $z[ 'upload_' . $box . '_media_video' ] : '';
+		$bc = ! empty( $z[ $box . '_box_content' ] ) ? $z[ $box . '_box_content' ] : '';
+		if ( ! $im && ! $vd && ! $bc ) {
+			continue;
+		}
+		$media = $vd ? '<video controls playsinline src="' . esc_url( is_array( $vd ) ? ( $vd['url'] ?? '' ) : $vd ) . '"></video>' : ( $im ? '<img src="' . esc_url( is_array( $im ) ? ( $im['url'] ?? '' ) : $im ) . '" alt="" loading="lazy">' : '' );
+		$bt    = ! empty( $z[ $box . '_box_button_title' ] ) ? '<a class="btn btn-line-d" href="' . esc_url( $z[ $box . '_box_button_link' ] ?? '#' ) . '">' . $e( $z[ $box . '_box_button_title' ] ) . '</a>' : '';
+		$zz   .= '<div class="rm-zz-row' . ( 0 === $bi % 2 ? '' : ' rev' ) . '"><div class="rm-zz-media">' . $media . '</div><div class="rm-zz-body">' . ( $bc ? wp_kses_post( wpautop( $bc ) ) : '' ) . $bt . '</div></div>';
+	}
+	if ( $zz ) {
+		$out .= '<div class="rm-section"><div class="rm-zz">' . $zz . '</div></div>';
+	}
+
+	// Order codes & variants — RICOBOT live (this is what replaces the CSV).
+	// Only shown when the product is linked to a RICOBOT family in Product Builder.
+	if ( '' !== (string) get_post_meta( $pid, '_ricoman_family', true ) ) {
+		$out .= '<div class="rm-section" id="variants"><div class="rm-pp-wrap"><h2 class="rm-shead">Configure &amp; order codes</h2>' . do_shortcode( '[ricoman_family]' ) . '</div></div>';
+	}
+
+	// Downloads.
+	if ( ! empty( $d['download_section'] ) && is_array( $d['download_section'] ) ) {
+		$dl = '';
+		foreach ( $d['download_section'] as $row ) {
+			$file = is_array( $row ) ? ( $row['download-file'] ?? '' ) : '';
+			$dt   = is_array( $row ) ? ( $row['download-title'] ?? 'Download' ) : 'Download';
+			if ( $file ) {
+				$dl .= '<li><a href="' . esc_url( $file ) . '" target="_blank" rel="noopener">' . $e( $dt ) . ' &darr;</a></li>';
+			}
+		}
+		if ( $dl ) {
+			$out .= '<div class="rm-section" id="downloads"><div class="rm-pp-wrap"><div class="rm-prod-downloads"><h2 class="rm-shead">Downloads &amp; Resources</h2><ul>' . $dl . '</ul></div></div></div>';
+		}
+	}
+
+	// Related products.
+	if ( ! empty( $d['related_products'] ) && is_array( $d['related_products'] ) ) {
+		$rc = '';
+		foreach ( array_slice( $d['related_products'], 0, 3 ) as $rp ) {
+			$img  = ! empty( $rp['image'] ) ? $rp['image'] : '';
+			$href = ricoman_pf_permalink( $rp['slug'] ?? '' );
+			$rc  .= '<div class="wp-block-column"><div class="wp-block-group rm-card"><figure class="wp-block-image size-large"><a href="' . esc_url( $href ) . '"><img src="' . esc_url( $img ) . '" alt="' . esc_attr( $rp['title'] ?? '' ) . '" loading="lazy"></a></figure><h3 class="wp-block-heading"><a href="' . esc_url( $href ) . '">' . $e( $rp['title'] ?? '' ) . '</a></h3>' . ( ! empty( $rp['sub_name'] ) ? '<p class="has-muted-color has-text-color has-small-font-size">' . $e( $rp['sub_name'] ) . '</p>' : '' ) . '</div></div>';
+		}
+		if ( $rc ) {
+			$out .= '<div class="rm-section"><div class="rm-pp-wrap"><p class="rm-eyebrow">More from the range</p><h2 class="rm-shead">You may also like</h2><div class="wp-block-columns">' . $rc . '</div></div></div>';
+		}
+	}
+
+	$out .= '<script>(function(){var w=document.currentScript.previousElementSibling;if(!w)return;var im=w.querySelector(".rm-cfg-img");function bind(sel){w.querySelectorAll(sel).forEach(function(b){b.addEventListener("click",function(){if(b.dataset.img&&im){im.src=b.dataset.img;}var p=b.parentNode;p.querySelectorAll(sel).forEach(function(x){x.classList.remove("on");});b.classList.add("on");});});}bind(".rm-cv-sw");bind(".rm-cfg-thumb");w.querySelectorAll(".rm-gtab").forEach(function(t){t.addEventListener("click",function(){if(t.disabled)return;w.querySelectorAll(".rm-gtab").forEach(function(x){x.classList.remove("on");});t.classList.add("on");var tab=t.dataset.tab;w.querySelectorAll(".rm-gthumbs .rm-cfg-thumb").forEach(function(th){th.style.display=(tab==="all"||th.dataset.tab===tab)?"":"none";});});});var lb=w.querySelector(".rm-lightbox"),lbi=lb?lb.querySelector(".rm-lightbox-img"):null;if(lb&&lbi&&im){im.addEventListener("click",function(){lbi.src=im.src;lb.hidden=false;document.body.style.overflow="hidden";});function cl(){lb.hidden=true;document.body.style.overflow="";}lb.addEventListener("click",function(e){if(e.target===lb||e.target.classList.contains("rm-lightbox-x"))cl();});document.addEventListener("keydown",function(e){if(e.key==="Escape")cl();});}})();</script>';
+	return $out;
+}
+
+/** Dimension diagram images (ACF `dimension_diagrams` repeater, sub-field `picture`). */
+function ricoman_pf_dimension_diagrams( $pid ) {
+	$imgs = array();
+	$v    = ricoman_pf_get( $pid, 'dimension_diagrams' );
+	if ( is_array( $v ) ) {
+		foreach ( $v as $row ) {
+			$pic = is_array( $row ) ? ( isset( $row['picture'] ) ? $row['picture'] : ( isset( $row['image'] ) ? $row['image'] : '' ) ) : $row;
+			$u   = ricoman_pf_imgurl( $pic );
+			if ( $u ) {
+				$imgs[] = $u;
+			}
+		}
+	}
+	return $imgs;
+}
+
+/** Colour/size variants (Product Variation By Color): name + main image + icon. */
+function ricoman_pf_color_variants( $pid ) {
+	$rows = array();
+	// Builder-managed finishes (Product Editor) take precedence — a clean JSON
+	// list of { name, main, icon } where images may be an ID or a URL.
+	$custom = get_post_meta( $pid, '_ricoman_finishes', true );
+	if ( $custom ) {
+		$d = json_decode( $custom, true );
+		if ( is_array( $d ) ) {
+			foreach ( $d as $r ) {
+				if ( ! is_array( $r ) ) {
+					continue;
+				}
+				$name = isset( $r['name'] ) ? (string) $r['name'] : '';
+				$main = isset( $r['main'] ) ? ricoman_pf_imgurl( $r['main'] ) : '';
+				$icon = isset( $r['icon'] ) ? ricoman_pf_imgurl( $r['icon'] ) : '';
+				if ( $name || $main || $icon ) {
+					$rows[] = array( 'name' => $name, 'main' => $main, 'icon' => $icon );
+				}
+			}
+			if ( $rows ) {
+				return $rows;
+			}
+		}
+	}
+	foreach ( array( 'product_variation_by_color', 'variation_by_color', 'product_color_variation', 'get_swatch_product_data', 'color_variant', 'product_variant_color', 'show_swatch_product_data' ) as $fname ) {
+		$v = ricoman_pf_get( $pid, $fname );
+		if ( ! is_array( $v ) || ! $v ) {
+			continue;
+		}
+		foreach ( $v as $row ) {
+			if ( ! is_array( $row ) ) {
+				continue;
+			}
+			$name = '';
+			$main = '';
+			$icon = '';
+			foreach ( $row as $k => $val ) {
+				$lk = strtolower( (string) $k );
+				if ( false !== strpos( $lk, 'icon' ) ) {
+					$icon = ricoman_pf_imgurl( $val );
+				} elseif ( false !== strpos( $lk, 'main' ) || false !== strpos( $lk, 'image' ) ) {
+					$main = ricoman_pf_imgurl( $val );
+				} elseif ( false !== strpos( $lk, 'name' ) && is_scalar( $val ) ) {
+					$name = (string) $val;
+				}
+			}
+			if ( $name || $main || $icon ) {
+				$rows[] = array( 'name' => $name, 'main' => $main, 'icon' => $icon );
+			}
+		}
+		if ( $rows ) {
+			return $rows;
+		}
+	}
+	return $rows;
+}
+
+/** Paragraph Info Section -> array of marketing highlight strings. */
+function ricoman_pf_paragraphs( $pid ) {
+	foreach ( array( 'paragraph_info_section', 'get_paragraph_info_section', 'paragraph_section', 'product_paragraph_info', 'product_image_video_paragraph' ) as $fname ) {
+		$v = ricoman_pf_get( $pid, $fname );
+		if ( ! is_array( $v ) || ! $v ) {
+			continue;
+		}
+		$out = array();
+		foreach ( $v as $row ) {
+			if ( is_array( $row ) ) {
+				foreach ( $row as $k => $val ) {
+					if ( false !== strpos( strtolower( (string) $k ), 'content' ) && is_scalar( $val ) && '' !== trim( (string) $val ) ) {
+						$out[] = trim( (string) $val );
+					}
+				}
+			} elseif ( is_scalar( $row ) && '' !== trim( (string) $row ) ) {
+				$out[] = trim( (string) $row );
+			}
+		}
+		if ( $out ) {
+			return $out;
+		}
+	}
+	return array();
+}
+
+/** Resolve an ACF file value (ID / array / URL) to a URL. */
+function ricoman_pf_fileurl( $v ) {
+	$u = '';
+	if ( is_numeric( $v ) ) {
+		$u = (string) wp_get_attachment_url( (int) $v );
+	} elseif ( is_array( $v ) ) {
+		$u = isset( $v['url'] ) ? (string) $v['url'] : '';
+	} elseif ( is_string( $v ) ) {
+		$u = $v;
+	}
+	return ( $u && function_exists( 'ricoman_img_fallback' ) ) ? ricoman_img_fallback( $u ) : $u;
+}
+
+/**
+ * Fix double-encoded UTF-8 artifacts from the migration (e.g. "Â°C" -> "°C",
+ * smart quotes, dashes) so spec values read cleanly.
+ */
+function ricoman_fix_text( $s ) {
+	if ( ! is_string( $s ) || '' === $s ) {
+		return $s;
+	}
+	if ( false !== strpos( $s, 'Â' ) || false !== strpos( $s, 'â' ) ) {
+		$s = strtr( $s, array(
+			'Â°' => '°', 'Â ' => ' ', 'â€™' => '’', 'â€˜' => '‘',
+			'â€œ' => '“', 'â€' => '”', 'â€“' => '–', 'â€”' => '—', 'Â' => '',
+		) );
+	}
+	return $s;
+}
+
+/**
+ * Resolve a variant's lumens from whichever field/taxonomy the migrated data
+ * used, so the Configure table isn't blank when it's stored under an alt key.
+ */
+function ricoman_variant_lumens( $vid ) {
+	foreach ( array( 'lumens', 'lumen', 'lumen_output', 'lumens_output', 'total_lumens', 'output_lumens', 'lumen_value', 'lm' ) as $k ) {
+		$v = ricoman_pf_get( $vid, $k );
+		if ( is_scalar( $v ) && '' !== trim( (string) $v ) ) {
+			return (string) $v;
+		}
+	}
+	foreach ( array( 'lumen', 'lumens', 'lumen-output', 'lumen_output' ) as $tax ) {
+		if ( taxonomy_exists( $tax ) ) {
+			$terms = wp_get_post_terms( $vid, $tax, array( 'fields' => 'names' ) );
+			if ( ! is_wp_error( $terms ) && $terms ) {
+				return implode( ', ', $terms );
+			}
+		}
+	}
+	return '';
+}
+
+/**
+ * The full variant spec set, in display order: each entry [source, key, label]
+ * where source is 'meta' (a variant meta field) or 'tax' (a variant axis
+ * taxonomy). Duplicate labels (e.g. IP from meta ip_rating or the iprating
+ * taxonomy) are de-duplicated at render — first non-empty wins. No pricing.
+ */
+function ricoman_variant_spec_defs() {
+	return array(
+		array( 'meta', 'lumens', 'Lumens' ),
+		array( 'tax', 'wattage', 'Wattage' ),
+		array( 'meta', 'efficacy', 'Efficacy' ),
+		array( 'meta', 'cri', 'CRI' ),
+		array( 'tax', 'temperature', 'Colour Temp' ),
+		array( 'tax', 'color', 'Colour' ),
+		array( 'meta', 'colour_finish', 'Colour Finish' ),
+		array( 'meta', 'beam_angle', 'Beam Angle' ),
+		array( 'tax', 'beam-angle', 'Beam Angle' ),
+		array( 'meta', 'ip_rating', 'IP' ),
+		array( 'tax', 'iprating', 'IP' ),
+		array( 'meta', 'ik_rating', 'IK' ),
+		array( 'meta', 'ugr', 'UGR' ),
+		array( 'meta', 'voltage_range', 'Voltage' ),
+		array( 'meta', 'power_factor', 'Power Factor' ),
+		array( 'tax', 'dimming', 'Dimming' ),
+		array( 'meta', 'inrush_current', 'Inrush' ),
+		array( 'meta', 'running_current', 'Running Current' ),
+		array( 'meta', 'operating_temperatures', 'Operating Temp' ),
+		array( 'meta', 'operating_hours', 'Operating Hours' ),
+		array( 'tax', 'size', 'Size' ),
+		array( 'meta', 'cut_out', 'Cut-out (mm)' ),
+		array( 'meta', 'dimensions', 'Dimensions (mm)' ),
+		array( 'meta', 'unit_weight', 'Weight' ),
+		array( 'meta', 'optics', 'Optics' ),
+		array( 'meta', 'leds', 'LEDs' ),
+		array( 'meta', 'construction_material', 'Construction' ),
+		array( 'meta', 'diffuser_type', 'Diffuser' ),
+		array( 'tax', 'diffuser-material', 'Diffuser Material' ),
+		array( 'meta', 'luminaire_fixing', 'Fixing' ),
+		array( 'tax', 'fitting-type', 'Fitting Type' ),
+		array( 'tax', 'lamp-type', 'Lamp Type' ),
+		array( 'tax', 'lighting-direction', 'Lighting Direction' ),
+		array( 'tax', 'emergency', 'Emergency' ),
+		array( 'tax', 'pir', 'PIR' ),
+		array( 'tax', 'microwave', 'Microwave' ),
+		array( 'tax', 'glare-control', 'Glare Control' ),
+		array( 'tax', 'reflector', 'Reflector' ),
+		array( 'tax', 'reflector-finish', 'Reflector Finish' ),
+		array( 'tax', 'reflector-colour', 'Reflector Colour' ),
+		array( 'tax', 'bezel-finish', 'Bezel Finish' ),
+		array( 'meta', 'l70_b50', 'L70 B50' ),
+		array( 'meta', 'l80_b50', 'L80 B50' ),
+		array( 'meta', 'l90_b50', 'L90 B50' ),
+		array( 'meta', 'macadam_ellipse', 'MacAdam' ),
+		array( 'meta', 'colour_deviation', 'Colour Deviation' ),
+		array( 'meta', 'applications', 'Applications' ),
+		array( 'tax', 'application-area', 'Application Area' ),
+		array( 'meta', 'warranty', 'Warranty' ),
+		array( 'meta', 'certifications', 'Certifications' ),
+	);
+}
+
+/** Resolve one variant spec value, from a meta field or an axis taxonomy. */
+function ricoman_variant_spec_value( $vid, $source, $key ) {
+	if ( 'tax' === $source ) {
+		if ( ! taxonomy_exists( $key ) ) {
+			return '';
+		}
+		// get_the_terms() reads the object-term cache primed in bulk by the variant
+		// WP_Query — wp_get_post_terms() would instead hit the DB once PER variant
+		// PER taxonomy (~24 axes × 2000 variants = ~48k queries = timeout).
+		$terms = get_the_terms( $vid, $key );
+		if ( is_wp_error( $terms ) || empty( $terms ) ) {
+			return '';
+		}
+		return ricoman_fix_text( implode( ', ', wp_list_pluck( $terms, 'name' ) ) );
+	}
+	if ( 'lumens' === $key ) {
+		return ricoman_fix_text( ricoman_variant_lumens( $vid ) );
+	}
+	$v = ricoman_pf_get( $vid, $key );
+	return is_scalar( $v ) ? ricoman_fix_text( trim( (string) $v ) ) : '';
+}
+
+/** A variant's full spec set as label => value (only non-empty), de-duplicated. */
+function ricoman_variant_spec_pairs( $vid ) {
+	$out = array();
+	foreach ( ricoman_variant_spec_defs() as $def ) {
+		list( $source, $key, $label ) = $def;
+		if ( isset( $out[ $label ] ) ) {
+			continue; // already filled from an earlier source for this label.
+		}
+		$val = ricoman_variant_spec_value( $vid, $source, $key );
+		if ( '' !== $val ) {
+			$out[ $label ] = $val;
+		}
+	}
+	return $out;
+}
+
+/** All spec column labels, in definition order (de-duplicated). */
+function ricoman_variant_spec_label_order() {
+	$order = array();
+	foreach ( ricoman_variant_spec_defs() as $def ) {
+		if ( ! in_array( $def[2], $order, true ) ) {
+			$order[] = $def[2];
+		}
+	}
+	return $order;
+}
+
+/** Spec labels that have data across a product's variants (in order). */
+function ricoman_variant_populated_cols( $pid ) {
+	if ( ! post_type_exists( 'variant-product' ) ) {
+		return array();
+	}
+	$ids = get_posts( array(
+		'post_type'      => 'variant-product',
+		'post_status'    => 'publish',
+		'posts_per_page' => -1,
+		'no_found_rows'  => true,
+		'fields'         => 'ids',
+		'meta_query'     => array( array( 'key' => 'parent_product', 'value' => (string) $pid ) ),
+	) );
+	$has = array();
+	foreach ( $ids as $vid ) {
+		foreach ( ricoman_variant_spec_pairs( $vid ) as $label => $v ) {
+			$has[ $label ] = true;
+		}
+	}
+	$out = array();
+	foreach ( ricoman_variant_spec_label_order() as $l ) {
+		if ( isset( $has[ $l ] ) ) {
+			$out[] = $l;
+		}
+	}
+	return $out;
+}
+
+/** Columns to render: preview override > per-product meta > global option > auto (null). */
+function ricoman_variant_columns_for( $pid ) {
+	if ( ! empty( $GLOBALS['rm_pe_preview'] ) && (int) $GLOBALS['rm_pe_preview']['pid'] === (int) $pid && isset( $GLOBALS['rm_pe_preview']['cols'] ) && is_array( $GLOBALS['rm_pe_preview']['cols'] ) ) {
+		return $GLOBALS['rm_pe_preview']['cols'];
+	}
+	$per = get_post_meta( $pid, '_ricoman_cols', true );
+	if ( is_array( $per ) && $per ) {
+		return $per;
+	}
+	$glob = get_option( 'ricoman_spec_columns' );
+	if ( is_array( $glob ) && $glob ) {
+		return $glob;
+	}
+	return null;
+}
+
+/**
+ * Column labels whose FILTER dropdown is hidden (the column data still shows in
+ * the table). Per-product `_ricoman_filter_off`, else global option, else none.
+ */
+function ricoman_variant_filters_off( $pid ) {
+	if ( ! empty( $GLOBALS['rm_pe_preview'] ) && (int) $GLOBALS['rm_pe_preview']['pid'] === (int) $pid && isset( $GLOBALS['rm_pe_preview']['filteroff'] ) && is_array( $GLOBALS['rm_pe_preview']['filteroff'] ) ) {
+		return $GLOBALS['rm_pe_preview']['filteroff'];
+	}
+	$per = get_post_meta( $pid, '_ricoman_filter_off', true );
+	if ( is_array( $per ) ) {
+		return $per;
+	}
+	$glob = get_option( 'ricoman_spec_filters_off' );
+	return is_array( $glob ) ? $glob : array();
+}
+
+/**
+ * Configure / order-codes table, built from the linked `variant-product` posts
+ * (ACF `parent_product` == this product). Shows every spec column that actually
+ * has data across the variants — meta fields AND axis taxonomies (Lumens,
+ * Wattage, Colour Temp, IP, CRI, Beam Angle, …) — horizontally scrollable, like
+ * the old site's Configure Your Product table. No pricing.
+ */
+/** Product IDs sharing a configure-family with $pid (includes $pid). */
+function ricoman_pf_family_products( $pid ) {
+	if ( ! taxonomy_exists( 'config-family' ) ) {
+		return array( (int) $pid );
+	}
+	$terms = get_the_terms( $pid, 'config-family' );
+	if ( ! $terms || is_wp_error( $terms ) ) {
+		return array( (int) $pid );
+	}
+	$ids = get_posts( array(
+		'post_type'      => 'product',
+		'post_status'    => 'publish',
+		'posts_per_page' => 200,
+		'fields'         => 'ids',
+		'no_found_rows'  => true,
+		'orderby'        => 'menu_order title',
+		'order'          => 'ASC',
+		'tax_query'      => array( array( 'taxonomy' => 'config-family', 'field' => 'term_id', 'terms' => wp_list_pluck( $terms, 'term_id' ) ) ),
+	) );
+	$ids = array_map( 'intval', (array) $ids );
+	if ( ! in_array( (int) $pid, $ids, true ) ) {
+		$ids[] = (int) $pid;
+	}
+	return $ids ? $ids : array( (int) $pid );
+}
+
+/** Short "Type" labels for family members: titles with the shared leading words stripped. */
+function ricoman_pf_type_labels( $ids ) {
+	$titles = array();
+	foreach ( $ids as $id ) {
+		$titles[ (int) $id ] = get_the_title( $id );
+	}
+	if ( count( $titles ) < 2 ) {
+		return $titles;
+	}
+	$common = null; // longest common leading words across every title.
+	foreach ( $titles as $t ) {
+		$w = preg_split( '/\s+/', trim( (string) $t ) );
+		if ( null === $common ) {
+			$common = $w;
+			continue;
+		}
+		$n = 0;
+		while ( $n < count( $common ) && $n < count( $w ) && 0 === strcasecmp( $common[ $n ], $w[ $n ] ) ) {
+			$n++;
+		}
+		$common = array_slice( $common, 0, $n );
+	}
+	$strip = $common ? count( $common ) : 0;
+	$out   = array();
+	foreach ( $titles as $id => $t ) {
+		$w     = preg_split( '/\s+/', trim( (string) $t ) );
+		$label = trim( implode( ' ', array_slice( $w, $strip ) ) );
+		$out[ $id ] = ( '' !== $label ) ? $label : (string) $t; // never blank.
+	}
+	return $out;
+}
+
+function ricoman_pf_variant_table( $pid ) {
+	if ( ! post_type_exists( 'variant-product' ) ) {
+		return '';
+	}
+	// A product can belong to a "configure family" (e.g. all Estrella apertures);
+	// when it does, the table spans every member and gains a "Type" filter.
+	$family_ids  = function_exists( 'ricoman_pf_family_products' ) ? ricoman_pf_family_products( $pid ) : array( (int) $pid );
+	$is_family   = count( $family_ids ) > 1;
+	$type_labels = $is_family ? ricoman_pf_type_labels( $family_ids ) : array();
+	$meta_query  = $is_family
+		? array( array( 'key' => 'parent_product', 'value' => array_map( 'strval', $family_ids ), 'compare' => 'IN' ) )
+		: array( array( 'key' => 'parent_product', 'value' => (string) $pid ) );
+	$q = new WP_Query( array(
+		'post_type'      => 'variant-product',
+		'post_status'    => 'publish',
+		// Load the whole family (the table only shows 10 at a time + "Show more",
+		// but every row must be present so the filters can search across them all).
+		'posts_per_page' => 2000,
+		'no_found_rows'  => true,
+		'orderby'        => 'menu_order title',
+		'order'          => 'ASC',
+		'meta_query'     => $meta_query,
+	) );
+	if ( ! $q->have_posts() ) {
+		return '';
+	}
+	$datasheet = ricoman_pf_fileurl( ricoman_pf_get( $pid, 'download_family_datasheet' ) );
+	// Parent product image — used as a fallback thumbnail for variants that have
+	// no image of their own or whose image file is missing (broken).
+	$parent_img = ricoman_pf_imgurl( ricoman_pf_get( $pid, 'product_main_image' ) );
+	if ( ! $parent_img ) {
+		$parent_img = ricoman_pf_imgurl( ricoman_pf_get( $pid, 'product_gallery_image' ) );
+	}
+	if ( ! $parent_img && has_post_thumbnail( $pid ) ) {
+		$parent_img = get_the_post_thumbnail_url( $pid, 'medium' );
+	}
+	$onerr = $parent_img
+		? ' onerror="this.onerror=null;this.src=\'' . esc_js( $parent_img ) . '\'"'
+		: ' onerror="this.style.display=\'none\'"';
+
+	// Column order = unique spec labels in definition order.
+	$order = array();
+	foreach ( ricoman_variant_spec_defs() as $def ) {
+		if ( ! in_array( $def[2], $order, true ) ) {
+			$order[] = $def[2];
+		}
+	}
+
+	// Pass 1: gather each variant + note which columns have any value.
+	$variants = array();
+	$has_col  = array();
+	while ( $q->have_posts() ) {
+		$q->the_post();
+		$vid  = get_the_ID();
+		$code = ricoman_pf_get( $vid, 'part_code' );
+		if ( '' === (string) $code ) {
+			$code = ricoman_pf_get( $vid, 'order_code' );
+		}
+		$desc = ricoman_pf_get( $vid, 'product_sort_description' );
+		if ( '' === trim( (string) $desc ) ) {
+			$desc = get_the_title();
+		}
+		$img = ricoman_pf_imgurl( ricoman_pf_get( $vid, 'product_main_image' ) );
+		if ( ! $img ) {
+			$img = ricoman_pf_imgurl( ricoman_pf_get( $vid, 'product_gallery_image' ) );
+		}
+		$pairs = ricoman_variant_spec_pairs( $vid ); // label => value (non-empty).
+		foreach ( $pairs as $label => $val ) {
+			$has_col[ $label ] = true;
+		}
+		$vtype = '';
+		if ( $is_family ) {
+			$vpar  = (int) ricoman_pf_get( $vid, 'parent_product' );
+			$vtype = isset( $type_labels[ $vpar ] ) ? $type_labels[ $vpar ] : '';
+		}
+		$variants[] = array(
+			'code'  => (string) $code,
+			'desc'  => wp_strip_all_tags( (string) $desc ),
+			'img'   => $img,
+			'ldt'   => ricoman_pf_fileurl( ricoman_pf_get( $vid, 'download_led' ) ),
+			'ds'    => function_exists( 'ricoman_variant_datasheet_url' ) ? ricoman_variant_datasheet_url( $vid, $pid ) : $datasheet,
+			'pairs' => $pairs,
+			'type'  => $vtype,
+		);
+	}
+	wp_reset_postdata();
+
+	$chosen = ricoman_variant_columns_for( $pid );
+	$cols   = array();
+	if ( is_array( $chosen ) ) {
+		foreach ( $order as $label ) {
+			if ( in_array( $label, $chosen, true ) ) {
+				$cols[] = $label;
+			}
+		}
+	} else {
+		foreach ( $order as $label ) {
+			if ( ! empty( $has_col[ $label ] ) ) {
+				$cols[] = $label;
+			}
+		}
+	}
+
+	// Filterable attributes: spec columns with more than one distinct value.
+	$slugify  = function ( $l ) { return preg_replace( '/[^a-z0-9]+/', '-', strtolower( $l ) ); };
+	$distinct = array();
+	foreach ( $variants as $v ) {
+		foreach ( $cols as $label ) {
+			$val = isset( $v['pairs'][ $label ] ) ? $v['pairs'][ $label ] : '';
+			if ( '' !== $val ) {
+				$distinct[ $label ][ $val ] = true;
+			}
+		}
+	}
+	$filters_off = ricoman_variant_filters_off( $pid );
+	$filterable  = array();
+	foreach ( $cols as $label ) {
+		if ( in_array( $label, $filters_off, true ) ) {
+			continue; // column data still shows; just no filter dropdown.
+		}
+		if ( ! empty( $distinct[ $label ] ) && count( $distinct[ $label ] ) > 1 ) {
+			$vals = array_keys( $distinct[ $label ] );
+			natcasesort( $vals );
+			$filterable[ $label ] = array_values( $vals );
+		}
+	}
+	// Family "Type" filter (e.g. Estrella: Opal / Wallwasher / Square aperture …).
+	$type_vals = array();
+	if ( $is_family ) {
+		foreach ( $variants as $v ) {
+			if ( ! empty( $v['type'] ) ) {
+				$type_vals[ $v['type'] ] = true;
+			}
+		}
+	}
+	$has_type = count( $type_vals ) > 1;
+
+	$fbar = '';
+	if ( $filterable || $has_type ) {
+		$fbar = '<div class="rm-vt-filters">';
+		if ( $has_type ) {
+			$tv   = array_keys( $type_vals );
+			natcasesort( $tv );
+			$opts = '<option value="">Type: All</option>';
+			foreach ( $tv as $vv ) {
+				$opts .= '<option value="' . esc_attr( $vv ) . '">' . esc_html( $vv ) . '</option>';
+			}
+			$fbar .= '<select class="rm-vt-filter" data-col="type" aria-label="Filter by type">' . $opts . '</select>';
+		}
+		foreach ( $filterable as $label => $vals ) {
+			$opts = '<option value="">' . esc_html( $label ) . ': All</option>';
+			foreach ( $vals as $vv ) {
+				$opts .= '<option value="' . esc_attr( $vv ) . '">' . esc_html( $vv ) . '</option>';
+			}
+			$fbar .= '<select class="rm-vt-filter" data-col="' . esc_attr( $slugify( $label ) ) . '" aria-label="' . esc_attr( sprintf( 'Filter by %s', $label ) ) . '">' . $opts . '</select>';
+		}
+		$fbar .= '<button type="button" class="rm-vt-clear">Clear</button></div>';
+	}
+
+	$head = '<th></th><th>Part Code</th><th>Description</th>';
+	if ( $has_type ) {
+		$head .= '<th>Type</th>';
+	}
+	foreach ( $cols as $label ) {
+		$head .= '<th>' . esc_html( $label ) . '</th>';
+	}
+	$head .= '<th>LDT</th><th>Datasheet</th>';
+
+	// Render one row's cells (thumb · code · desc · [type] · cols · LDT · datasheet).
+	$render_cells = function ( $v ) use ( $parent_img, $onerr, $has_type, $cols ) {
+		$timg  = $v['img'] ? $v['img'] : $parent_img;
+		$thumb = $timg ? '<img src="' . esc_url( $timg ) . '" alt="" loading="lazy"' . $onerr . '>' : '';
+		$c = '<td class="vt-thumb">' . $thumb . '</td>'
+			. '<td class="vt-code">' . esc_html( $v['code'] ) . '</td>'
+			. '<td class="vt-desc">' . esc_html( $v['desc'] ) . '</td>'
+			. ( $has_type ? '<td class="vt-spec">' . esc_html( '' !== $v['type'] ? $v['type'] : '–' ) . '</td>' : '' );
+		foreach ( $cols as $label ) {
+			$cell = isset( $v['pairs'][ $label ] ) ? $v['pairs'][ $label ] : '–';
+			$c   .= '<td class="vt-spec">' . esc_html( $cell ) . '</td>';
+		}
+		$c .= '<td class="vt-dl">' . ( $v['ldt'] ? '<a href="' . esc_url( $v['ldt'] ) . '" target="_blank" rel="noopener" aria-label="LDT file">LDT ↓</a>' : '—' ) . '</td>'
+			. '<td class="vt-dl"><a href="' . esc_url( $v['ds'] ) . '" target="_blank" rel="noopener" aria-label="Datasheet">Datasheet ↓</a></td>';
+		return $c;
+	};
+
+	$total     = count( $variants );
+	$page_size = (int) apply_filters( 'ricoman_variant_page_size', 25 );
+	// Big tables paginate on the SERVER: only the first page ships in the page;
+	// filters + "Show more" fetch further pages via rm_vrows. This keeps a 2000-row
+	// range from shipping megabytes of <tr> to the browser. Small tables keep the
+	// instant client-side filtering (all rows present, hidden past 10).
+	$srv = $total > $page_size;
+
+	$rows    = '';
+	$store   = array();
+	$emitted = 0;
+	foreach ( $variants as $i => $v ) {
+		$cells = $render_cells( $v );
+		if ( $srv ) {
+			// Filtering is server-side, so the shipped rows don't carry data-f-*.
+			$fmap = array();
+			if ( $has_type ) {
+				$fmap['type'] = (string) $v['type'];
+			}
+			foreach ( $filterable as $label => $vals ) {
+				$fmap[ $slugify( $label ) ] = isset( $v['pairs'][ $label ] ) ? (string) $v['pairs'][ $label ] : '';
+			}
+			$rowhtml = '<tr class="vt-row" data-vt="' . $i . '" tabindex="0">' . $cells . '</tr>';
+			$store[] = array( 'f' => $fmap, 'h' => $rowhtml );
+			if ( $emitted < $page_size ) {
+				$rows .= $rowhtml;
+				$emitted++;
+			}
+		} else {
+			$rowattr = '';
+			if ( $has_type ) {
+				$rowattr .= ' data-f-type="' . esc_attr( $v['type'] ) . '"';
+			}
+			foreach ( $filterable as $label => $vals ) {
+				$rowattr .= ' data-f-' . $slugify( $label ) . '="' . esc_attr( isset( $v['pairs'][ $label ] ) ? $v['pairs'][ $label ] : '' ) . '"';
+			}
+			$rows .= '<tr class="vt-row' . ( $i >= 10 ? ' rm-vt-hide' : '' ) . '" data-vt="' . $i . '"' . $rowattr . ' tabindex="0">' . $cells . '</tr>';
+		}
+	}
+
+	if ( $srv ) {
+		set_transient( ricoman_variant_rows_key( $pid ), ricoman_vrows_pack( $store ), 12 * HOUR_IN_SECONDS );
+		$remaining = max( 0, $total - $page_size );
+		$showmore  = '<div class="rm-vt-morewrap"><button type="button" class="rm-vt-morebtn" data-srv="1">' . esc_html__( 'Show more', 'ricoman' ) . ' <span class="rm-vt-morecount">(' . (int) $remaining . ' more)</span></button></div>';
+		$vpattr    = ' data-srv="1" data-page="1" data-product="' . (int) $pid . '" data-url="' . esc_url( admin_url( 'admin-ajax.php' ) ) . '" data-page-size="' . (int) $page_size . '" data-total="' . (int) $total . '"';
+	} else {
+		$showmore = $total > 10
+			? '<div class="rm-vt-morewrap"><button type="button" class="rm-vt-morebtn" data-step="10">' . esc_html__( 'Show more', 'ricoman' ) . ' <span class="rm-vt-morecount">(' . ( $total - 10 ) . ' more)</span></button></div>'
+			: '';
+		$vpattr = '';
+	}
+
+	return '<div class="rm-vp"' . $vpattr . '>'
+		. $fbar
+		. '<div class="rm-vptable-wrap"><table class="rm-vptable"><thead><tr>' . $head . '</tr></thead><tbody>' . $rows . '</tbody></table></div>'
+		. $showmore
+		. '<div class="rm-vt-modal" hidden><div class="rm-vt-modal-box"><button type="button" class="rm-vt-x" aria-label="Close">&times;</button><div class="rm-vt-body"></div></div></div>'
+		. '</div>';
+}
+
+/** Transient key for a product's cached variant-row dataset (server pagination). */
+function ricoman_variant_rows_key( $pid ) {
+	return 'rm_vrows_v2_' . (int) $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true );
+}
+
+/**
+ * Pack/unpack the row dataset for storage. The raw set is megabytes of <tr> HTML,
+ * which silently fails to store in object caches with a per-item size cap (e.g.
+ * Memcached's 1MB). Compress + base64 so it's a small, binary-safe string.
+ */
+function ricoman_vrows_pack( $store ) {
+	$ser = serialize( $store ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize
+	if ( function_exists( 'gzcompress' ) ) {
+		return 'gz:' . base64_encode( gzcompress( $ser, 6 ) );
+	}
+	return 'raw:' . base64_encode( $ser );
+}
+function ricoman_vrows_unpack( $raw ) {
+	if ( ! is_string( $raw ) ) {
+		return false;
+	}
+	if ( 0 === strpos( $raw, 'gz:' ) && function_exists( 'gzuncompress' ) ) {
+		$d = @gzuncompress( base64_decode( substr( $raw, 3 ) ) ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
+	} elseif ( 0 === strpos( $raw, 'raw:' ) ) {
+		$d = base64_decode( substr( $raw, 4 ) );
+	} else {
+		return false;
+	}
+	if ( false === $d || '' === $d ) {
+		return false;
+	}
+	$arr = @unserialize( $d ); // phpcs:ignore
+	return is_array( $arr ) ? $arr : false;
+}
+
+/** AJAX: filtered + paginated variant rows for a server-paginated table. */
+function ricoman_ajax_variant_rows() {
+	$pid = isset( $_GET['product'] ) ? (int) $_GET['product'] : 0;
+	if ( ! $pid || 'product' !== get_post_type( $pid ) ) {
+		status_header( 400 );
+		exit;
+	}
+	$page = max( 1, isset( $_GET['page'] ) ? (int) $_GET['page'] : 1 );
+	$size = (int) apply_filters( 'ricoman_variant_page_size', 25 );
+	$filters = array();
+	if ( isset( $_GET['f'] ) ) {
+		$raw = json_decode( wp_unslash( $_GET['f'] ), true );
+		if ( is_array( $raw ) ) {
+			foreach ( $raw as $k => $val ) {
+				$filters[ sanitize_key( (string) $k ) ] = (string) $val;
+			}
+		}
+	}
+	$store = ricoman_vrows_unpack( get_transient( ricoman_variant_rows_key( $pid ) ) );
+	if ( ! is_array( $store ) ) {
+		ricoman_pf_variant_table( $pid ); // rebuild + cache the dataset.
+		$store = ricoman_vrows_unpack( get_transient( ricoman_variant_rows_key( $pid ) ) );
+		if ( ! is_array( $store ) ) {
+			$store = array();
+		}
+	}
+	$matched = array();
+	foreach ( $store as $row ) {
+		$ok = true;
+		foreach ( $filters as $col => $val ) {
+			if ( '' === $val ) {
+				continue;
+			}
+			if ( ! isset( $row['f'][ $col ] ) || (string) $row['f'][ $col ] !== $val ) {
+				$ok = false;
+				break;
+			}
+		}
+		if ( $ok ) {
+			$matched[] = $row['h'];
+		}
+	}
+	$total = count( $matched );
+	$slice = array_slice( $matched, ( $page - 1 ) * $size, $size );
+	nocache_headers();
+	header( 'Content-Type: application/json; charset=utf-8' );
+	echo wp_json_encode( array( 'rows' => implode( '', $slice ), 'total' => $total, 'page' => $page, 'hasMore' => ( $page * $size ) < $total ) );
+	exit;
+}
+add_action( 'wp_ajax_rm_vrows', 'ricoman_ajax_variant_rows' );
+add_action( 'wp_ajax_nopriv_rm_vrows', 'ricoman_ajax_variant_rows' );
+
+/** In-situ images for a product — manually uploaded via the Product Page Editor only. */
+function ricoman_pf_insitu_images( $pid ) {
+	$out = array();
+	// Live builder preview override (array of attachment IDs).
+	if ( ! empty( $GLOBALS['rm_pe_preview'] ) && (int) $GLOBALS['rm_pe_preview']['pid'] === (int) $pid && isset( $GLOBALS['rm_pe_preview']['insitu'] ) && is_array( $GLOBALS['rm_pe_preview']['insitu'] ) ) {
+		$o = array();
+		foreach ( $GLOBALS['rm_pe_preview']['insitu'] as $id ) {
+			$u = ricoman_pf_imgurl( (int) $id );
+			if ( $u ) {
+				$o[] = $u;
+			}
+		}
+		return array_values( array_unique( array_filter( $o ) ) );
+	}
+	// Photos uploaded directly to the product via the insitu_gallery field.
+	$own = ricoman_pf_get( $pid, 'insitu_gallery' );
+	if ( is_array( $own ) ) {
+		foreach ( $own as $g ) {
+			$u = ricoman_pf_imgurl( $g );
+			if ( $u ) {
+				$out[] = $u;
+			}
+		}
+	}
+	return array_values( array_unique( array_filter( $out ) ) );
+}
+
+/** Hero gallery block: main image (with finish swatches + order code chip), All/Studio/In-situ tabs, thumbnails. */
+function ricoman_pf_gallery_block( $pid, $title, $code, $sw_html, $footer = '' ) {
+	$studio = ricoman_pf_gallery( $pid ); // product_gallery_image.
+	foreach ( ricoman_pf_color_variants( $pid ) as $cv ) {
+		if ( $cv['main'] ) {
+			$studio[] = $cv['main'];
+		}
+	}
+	$studio = array_values( array_unique( array_filter( (array) $studio ) ) );
+	// Products without a dedicated studio gallery (e.g. the feature ranges built
+	// in the Product Builder) still get a hero image: fall back to the featured
+	// image so the standard gallery isn't a blank placeholder.
+	if ( ! $studio ) {
+		$feat_img = get_the_post_thumbnail_url( $pid, 'large' );
+		if ( $feat_img ) {
+			$studio[] = $feat_img;
+		}
+	}
+	$insitu = ricoman_pf_insitu_images( $pid );
+	// Accessories (a diffuser, louvre, driver…) have no meaningful "installed" shots,
+	// so the In-situ tab is dropped for them — automatic once a product is flagged as
+	// an accessory (is_accessories_product). Non-destructive: any photos stay in the DB,
+	// just hidden, so untagging brings the tab back.
+	$is_acc = in_array( (string) get_post_meta( $pid, 'is_accessories_product', true ), array( '1', 'yes', 'true' ), true );
+	if ( $is_acc ) {
+		$insitu = array();
+	}
+	$main   = $studio ? $studio[0] : ( $insitu ? $insitu[0] : esc_url( get_theme_file_uri( 'assets/images/ceiling.webp' ) ) );
+
+	$thumb = function ( $u, $tab, $on ) {
+		return '<button type="button" class="rm-cfg-thumb' . ( $on ? ' on' : '' ) . '" data-tab="' . esc_attr( $tab ) . '" data-img="' . esc_url( $u ) . '" aria-label="View product image"><img src="' . esc_url( $u ) . '" alt="" loading="lazy" onerror="this.parentNode.style.display=\'none\'"></button>';
+	};
+	$thumbs = '';
+	$first  = true;
+	foreach ( $studio as $u ) {
+		$thumbs .= $thumb( $u, 'studio', $first );
+		$first   = false;
+	}
+	foreach ( $insitu as $u ) {
+		$thumbs .= $thumb( $u, 'insitu', false );
+	}
+
+	// Show All / Studio / In-situ; grey out empty tabs. Accessories drop In-situ entirely.
+	$tabs = '<button type="button" class="rm-gtab on" data-tab="all">All</button>'
+		. '<button type="button" class="rm-gtab' . ( $studio ? '' : ' rm-gtab--off' ) . '" data-tab="studio"' . ( $studio ? '' : ' disabled' ) . '>Studio</button>'
+		. ( $is_acc ? '' : '<button type="button" class="rm-gtab' . ( $insitu ? '' : ' rm-gtab--off' ) . '" data-tab="insitu"' . ( $insitu ? '' : ' disabled' ) . '>In-situ</button>' );
+
+	// If the main image 404s (a migrated file missing on disk), fall back to the
+	// featured image, then the theme placeholder — never a broken-image icon.
+	$ceil   = get_theme_file_uri( 'assets/images/ceiling.webp' );
+	$feat   = get_the_post_thumbnail_url( $pid, 'large' );
+	$fb1    = ( $feat && $feat !== $main ) ? $feat : $ceil;
+	$onerr  = ' onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src=\'' . esc_js( $fb1 ) . '\';}else{this.onerror=null;this.src=\'' . esc_js( $ceil ) . '\';}"';
+	$viz = '<div class="rm-cfg-viz"><img class="rm-cfg-img rm-zoomable skip-lazy no-lazy" src="' . esc_url( $main ) . '" alt="' . esc_attr( $title ) . '" fetchpriority="high" loading="eager" decoding="async" data-no-lazy="1" data-skip-lazy width="800" height="800"' . $onerr . '>'
+		. ( $sw_html ? '<div class="rm-cv-swatches rm-pdp-sw">' . $sw_html . '</div>' : '' )
+		. '<span class="rm-zoom-hint" aria-hidden="true">⤢</span>'
+		. '</div>';
+
+	// Thumbnails sit in a vertical rail beside the main image (tabs above them),
+	// so the whole gallery stays above the fold.
+	return '<div class="rm-cfg-stage rm-pdp-gallery">'
+		. '<div class="rm-pdp-row">'
+		. ( $thumbs ? '<div class="rm-cfg-thumbs rm-gthumbs">' . $thumbs . '</div>' : '' )
+		. $viz
+		. '</div>'
+		. ( ( $thumbs || $footer ) ? '<div class="rm-gallery-row">' . ( $thumbs ? '<div class="rm-gtabs">' . $tabs . '</div>' : '' ) . $footer . '</div>' : '' )
+		. '<div class="rm-lightbox" hidden><button type="button" class="rm-lightbox-x" aria-label="Close">&times;</button><img class="rm-lightbox-img" src="" alt=""></div>'
+		. '</div>';
+}
+
+/**
+ * The shared gallery / swatch / thumbnail-tab / lightbox script. Scoped to the
+ * hero wrapper via document.currentScript.previousElementSibling, so it works
+ * whether the hero is rendered as part of the whole page or dropped in on its
+ * own as a composable section block.
+ */
+function ricoman_pf_gallery_js() {
+	// Gallery interactions now live in the enqueued assets/js/product-gallery.js
+	// (delegated on document, so it can't be broken by markup position or load
+	// order). Kept as a no-op so existing callers stay valid.
+	return '';
+}
+
+/**
+ * Build every product-page section from the ACF/meta fields, returned as a map
+ * of named HTML fragments:
+ *   hero · specs · configure · accessories · related · cta
+ *
+ * This is the single source of truth for the product layout. The whole-page
+ * renderer simply concatenates the fragments in order; the composable section
+ * blocks ([ricoman_section_hero] etc.) each emit just one fragment, so an admin
+ * can reorder them and drop their own patterns into the gaps. Result is cached
+ * per-product per-request so multiple section blocks don't rebuild it.
+ */
+function ricoman_pf_sections( $pid ) {
+	static $cache = array();
+	if ( isset( $cache[ $pid ] ) ) {
+		return $cache[ $pid ];
+	}
+	// Persistent cache of the built section HTML — the variant table alone queries
+	// up to 300 variant posts per view, so this saves real server time. Skipped in
+	// the live builder preview and for editors (so they always see fresh edits).
+	// Keyed by the product's modified time + a bump-able version (variant edits),
+	// so it self-invalidates; 12h TTL as a backstop.
+	// Cache for EVERYONE on normal views (incl. logged-in editors) — the key
+	// includes the product's modified time + _rm_secver (both bumped on any
+	// product/variant save), so an edit shows immediately on the next load. Only
+	// the live builder preview must bypass it. This matters on big families
+	// (Estrella has 1000s of variants); rebuilding per admin view was timing out.
+	$cacheable = empty( $GLOBALS['rm_pe_preview'] );
+	// 'm3' = markup version; bump to invalidate cached sections when section HTML
+	// changes. (Variant thumbnails use native loading="lazy"; the optimiser, not
+	// the theme, was the speed problem.)
+	$tkey      = 'rm_pfsec_m23_' . $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true ) . '_' . get_option( 'rm_cfgimg_ver', '0' );
+	if ( $cacheable ) {
+		$pre = get_transient( $tkey );
+		if ( is_array( $pre ) ) {
+			$cache[ $pid ] = $pre;
+			return $pre;
+		}
+	}
+	$title   = get_the_title( $pid );
+	$subname = ricoman_pf_get( $pid, 'product_subname' );
+	$sortd   = ricoman_pf_get( $pid, 'product_sort_description' );
+	$code    = ricoman_pf_get( $pid, 'product_code' );
+	$terms   = get_the_term_list( $pid, 'product-cat', '', ' · ' );
+	$hero    = get_the_post_thumbnail_url( $pid, 'large' );
+
+	// Colour/size variants (Product Variation By Color) — these drive the swatches
+	// AND the image switching (click Ø600 / Black -> main image updates).
+	$cvars   = ricoman_pf_color_variants( $pid );
+	$gallery = ricoman_pf_gallery( $pid );
+	if ( ! $hero ) {
+		$hero = ( $cvars && $cvars[0]['main'] ) ? $cvars[0]['main'] : ( $gallery ? $gallery[0] : esc_url( get_theme_file_uri( 'assets/images/ceiling.webp' ) ) );
+	} elseif ( $cvars && $cvars[0]['main'] ) {
+		$hero = $cvars[0]['main'];
+	}
+
+	// Swatches with per-variant image (icon shown, main image swapped on click).
+	$sw = '';
+	foreach ( $cvars as $i => $cv ) {
+		$icon  = $cv['icon'] ? $cv['icon'] : $cv['main'];
+		$style = $icon ? 'background-image:url(' . esc_url( $icon ) . ')' : '';
+		$sw   .= '<button type="button" class="rm-cv-sw' . ( 0 === $i ? ' on' : '' ) . '" data-img="' . esc_url( $cv['main'] ) . '" style="' . $style . '" aria-label="' . esc_attr( $cv['name'] ) . '"><span>' . esc_html( $cv['name'] ) . '</span></button>';
+	}
+	$thumbs = '';
+	foreach ( $gallery as $j => $g ) {
+		$thumbs .= '<button type="button" class="rm-cfg-thumb' . ( 0 === $j ? ' on' : '' ) . '" data-img="' . esc_url( $g ) . '" aria-label="' . esc_attr( sprintf( 'View image %d', $j + 1 ) ) . '"><img src="' . esc_url( $g ) . '" alt="" loading="lazy" onerror="this.parentNode.style.display=\'none\'"></button>';
+	}
+
+	// Specification (HTML with <strong> headings + · lines) — rendered as a tidy
+	// card grid (accent headers, dot bullets) instead of plain grey bands.
+	$spec = ricoman_pf_spec_html( (string) ricoman_pf_get( $pid, 'specification' ) );
+
+	// Key features — clean bullets (handles ACF fields that hold raw <ul>/<li> HTML).
+	$feat = ricoman_pf_features_list( ricoman_pf_get( $pid, 'key_features' ) );
+
+	// Downloads — compact "Label (TYPE) · SIZE" links, de-duplicated by file.
+	$dlitems = array(); // url => array( label, attachment_id ).
+	$dl_add  = function ( $label, $val ) use ( &$dlitems ) {
+		$att = is_numeric( $val ) ? (int) $val : ( is_array( $val ) && ! empty( $val['ID'] ) ? (int) $val['ID'] : 0 );
+		$url = $att ? wp_get_attachment_url( $att ) : ( is_array( $val ) && ! empty( $val['url'] ) ? $val['url'] : ( is_string( $val ) ? $val : '' ) );
+		if ( ! $url || isset( $dlitems[ $url ] ) ) {
+			return;
+		}
+		if ( ! $att && is_string( $url ) ) {
+			$att = attachment_url_to_postid( $url );
+		}
+		$dlitems[ $url ] = array( trim( (string) $label ), $att );
+	};
+	$dls = ricoman_pf_get( $pid, 'download_section', array() );
+	if ( is_array( $dls ) ) {
+		foreach ( $dls as $d ) {
+			if ( ! is_array( $d ) ) {
+				continue;
+			}
+			$dtitle = '';
+			$dfile  = null;
+			foreach ( $d as $k => $v ) {
+				if ( false !== strpos( strtolower( (string) $k ), 'title' ) ) {
+					$dtitle = $v;
+				} elseif ( false !== strpos( strtolower( (string) $k ), 'file' ) ) {
+					$dfile = $v;
+				}
+			}
+			if ( $dfile ) {
+				$dl_add( $dtitle ? $dtitle : __( 'Download', 'ricoman' ), $dfile );
+			}
+		}
+	}
+	$dl_add( __( 'Brochure', 'ricoman' ), ricoman_pf_get( $pid, 'download_led_or_details' ) );
+	$dl_add( __( 'Family datasheet', 'ricoman' ), ricoman_pf_get( $pid, 'download_family_datasheet' ) );
+
+	$typemap = array( 'RFA' => 'BIM/REVIT', 'RVT' => 'BIM/REVIT', 'IES' => 'IES', 'LDT' => 'LDT', 'DWG' => 'DWG', 'DXF' => 'DXF', 'ZIP' => 'ZIP' );
+	$dl = '';
+	foreach ( $dlitems as $url => $meta ) {
+		list( $label, $att ) = $meta;
+		$ext = strtoupper( pathinfo( (string) wp_parse_url( $url, PHP_URL_PATH ), PATHINFO_EXTENSION ) );
+		$typ = $ext ? ( isset( $typemap[ $ext ] ) ? $typemap[ $ext ] : $ext ) : '';
+		$sz  = '';
+		if ( $att ) {
+			$fp = get_attached_file( $att );
+			if ( $fp && is_file( $fp ) ) {
+				$bytes = filesize( $fp );
+				$sz    = size_format( $bytes, $bytes >= 1048576 ? 1 : 0 );
+			}
+		}
+		$sub = trim( ( $typ ? '(' . $typ . ')' : '' ) . ( $sz ? ( $typ ? ' · ' : '' ) . $sz : '' ) );
+		$dl .= '<a href="' . esc_url( $url ) . '" download rel="noopener"><span class="rm-dl-lbl">' . esc_html( $label ) . '</span>'
+			. ( $sub ? ' <span class="rm-dl-sub">' . esc_html( $sub ) . '</span>' : '' ) . '</a>';
+	}
+	// BIM / Revit is a made-to-request file (built by the lighting team on demand),
+	// so it's a request link on every product — not a direct download.
+	$dl = apply_filters( 'ricoman_pf_downloads_html', $dl, $pid );
+	$dl .= '<a class="rm-bim-req" href="#" data-product="' . esc_attr( $title ) . '"><span class="rm-dl-lbl">' . esc_html__( 'BIM / Revit', 'ricoman' ) . '</span> <span class="rm-dl-sub">' . esc_html__( '(RFA) · request', 'ricoman' ) . '</span></a>';
+	$dl_section = '<div class="rm-section" id="downloads"><div class="rm-pp-wrap"><h2 class="rm-shead">' . esc_html__( 'Downloads', 'ricoman' ) . '</h2><div class="rm-prod-downloads"><div class="rm-dls">' . $dl . '</div></div></div></div>';
+
+	// CTA buttons (LD + trade) from the structured fields, with fallbacks.
+	$ld    = ricoman_pf_get( $pid, '_ricoman_ld_btn', 'Request a Lighting Design' );
+	$ldu   = ricoman_pf_get( $pid, '_ricoman_ld_url', '/lighting-design/' );
+	$tr    = ricoman_pf_get( $pid, '_ricoman_trade_btn', 'Apply for a Trade Account' );
+	$tru   = ricoman_pf_get( $pid, '_ricoman_trade_url', '/new-trade-page/' );
+	$enq   = esc_url( home_url( '/my-project/' ) );
+	$add_btn = '<button type="button" class="ricoman-add-project" aria-label="' . esc_attr__( 'Add to My Project', 'ricoman' ) . '" data-add-to-project data-id="' . (int) $pid . '" data-title="' . esc_attr( $title ) . '" data-label="Add to my project"><span class="rm-pico" aria-hidden="true">&#xff0b;</span><span class="rm-plbl">Add to my project</span></button>';
+	$acts  = '<div class="rm-cfg-acts"><a class="btn btn-line-d" href="' . esc_url( $ldu ) . '">' . esc_html( $ld ) . '</a>';
+	$acts .= ' <a class="btn btn-line-d" href="' . esc_url( $tru ) . '">' . esc_html( $tr ) . '</a></div>';
+
+	$crumb = do_shortcode( '[ricoman_breadcrumbs]' );
+
+	// Hero highlights — prefer the Paragraph Info Section (rich "Title: desc"
+	// items); fall back to the first key features. Full key features go in the
+	// Features accordion.
+	// Migrated ACF products use `key_features`; products built in the Product
+	// Builder (Flow, Estrella…) store them as `_ricoman_features`.
+	$kfraw      = ricoman_pf_get( $pid, 'key_features' );
+	if ( '' === $kfraw || array() === $kfraw ) {
+		$kfraw = ricoman_pf_get( $pid, '_ricoman_features' );
+	}
+	$paras      = ricoman_pf_paragraphs( $pid );
+	$highlights = $paras ? ricoman_pf_highlights( $paras, 4 ) : ricoman_pf_highlights( $kfraw, 4 );
+	$feat_full  = ricoman_pf_features_list( $kfraw );
+
+	// Dimensions accordion — diagram images (ACF dimension_diagrams) + any text.
+	$dimimgs = ricoman_pf_dimension_diagrams( $pid );
+	$dims    = '';
+	if ( $dimimgs ) {
+		$dims = '<div class="rm-dimgrid">';
+		foreach ( $dimimgs as $du ) {
+			$dims .= '<img src="' . esc_url( $du ) . '" alt="' . esc_attr( $title . ' dimensions' ) . '" loading="lazy">';
+		}
+		$dims .= '</div>';
+	}
+	$dimtext = (string) ricoman_pf_get( $pid, 'product_dimension' );
+	if ( '' === $dimtext ) {
+		$dimtext = (string) ricoman_pf_get( $pid, 'dimensions' );
+	}
+	if ( '' !== $dimtext ) {
+		$dims .= '<div class="rm-spechtml">' . wp_kses_post( wpautop( $dimtext ) ) . '</div>';
+	}
+	$has_fam = '' !== (string) ricoman_pf_get( $pid, '_ricoman_family' );
+
+	// Jump-link buttons in the hero panel (Configure Product, Specifications, Downloads).
+	$vcount   = ricoman_pf_variant_count( $pid );
+	$_ico_cfg = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><line x1="1" y1="3" x2="13" y2="3"/><line x1="1" y1="7" x2="13" y2="7"/><line x1="1" y1="11" x2="13" y2="11"/><circle cx="4" cy="3" r="1.6" fill="currentColor" stroke="none"/><circle cx="10" cy="7" r="1.6" fill="currentColor" stroke="none"/><circle cx="6" cy="11" r="1.6" fill="currentColor" stroke="none"/></svg>';
+	$_ico_spc = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><rect x="2.5" y="1" width="9" height="12" rx="1"/><line x1="5" y1="4.5" x2="9" y2="4.5"/><line x1="5" y1="7" x2="9" y2="7"/><line x1="5" y1="9.5" x2="7" y2="9.5"/></svg>';
+	$_ico_dl  = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><line x1="7" y1="1" x2="7" y2="9"/><polyline points="4,6.5 7,9.5 10,6.5"/><line x1="1.5" y1="12.5" x2="12.5" y2="12.5"/></svg>';
+	$_jbtns   = '';
+	if ( $vcount ) {
+		$_jbtns .= '<a href="#variants" class="rm-pp-jbtn">' . $_ico_cfg . ' ' . esc_html__( 'Configure Product', 'ricoman' ) . '</a>';
+	}
+	$_jbtns .= '<a href="#specification" class="rm-pp-jbtn">' . $_ico_spc . ' ' . esc_html__( 'Specifications', 'ricoman' ) . '</a>';
+	if ( $dl ) {
+		$_jbtns .= '<a href="#downloads" class="rm-pp-jbtn">' . $_ico_dl . ' ' . esc_html__( 'Downloads', 'ricoman' ) . '</a>';
+	}
+	$jump = '<div class="rm-pp-jumps">' . $_jbtns . '</div>';
+
+	// Short description — fall back through the Builder tagline/lead and the post
+	// excerpt so feature ranges still get a line under the title.
+	$desc = $sortd ? $sortd : $subname;
+	if ( '' === (string) $desc ) {
+		$desc = (string) ricoman_pf_get( $pid, '_ricoman_tagline' );
+	}
+	if ( '' === (string) $desc ) {
+		$desc = (string) ricoman_pf_get( $pid, '_ricoman_lead' );
+	}
+	if ( '' === (string) $desc ) {
+		// Use the raw excerpt field only — get_the_excerpt() would regenerate it
+		// from the content, re-running the_content and recursing into this render.
+		$ex = (string) get_post_field( 'post_excerpt', $pid );
+		if ( '' !== trim( $ex ) ) {
+			$desc = $ex;
+		}
+	}
+
+	// ---- Hero: tabbed gallery (All/Studio/In-situ) + main image | panel ----
+	// The hero carries the gallery script so it works even when dropped in alone.
+	// The panel shows the standard CTAs (Add to My Project / Lighting Design /
+	// Trade) and the Downloads list beside the images on every product page.
+	$hero_html = ( $crumb ? '<div class="rm-section rm-pp-crumbwrap"><div class="rm-pp-wrap rm-pp-crumb">' . $crumb . '</div></div>' : '' )
+		. '<div class="rm-cfghero-wrap"><div class="rm-cfghero rm-pdp">'
+		. ricoman_pf_gallery_block( $pid, $title, $code, $sw, $add_btn )
+		. '<div class="rm-cfg-panel">'
+		. '<h1 class="rm-cfg-name">' . esc_html( $title ) . '</h1>'
+		. ( $desc ? '<p class="rm-cfg-desc">' . esc_html( $desc ) . '</p>' : '' )
+		. $highlights
+		. $acts
+		. $jump
+		. '</div></div></div>'
+		. ricoman_pf_gallery_js();
+
+	// ---- Accordions: Specification / Dimensions / Features ----
+	$acc  = ricoman_pf_acc( 'Specification', $spec, false );
+	$acc .= ricoman_pf_acc( 'Dimensions', $dims );
+	$acc .= ricoman_pf_acc( 'Features', $feat_full );
+	$acc_sec = $acc ? '<div class="rm-section" id="specification"><div class="rm-pp-wrap"><div class="rm-accs">' . $acc . '</div></div></div>' : '';
+
+	// ---- Configure Your Product ----
+	// The variant table / visual configurator can carry thousands of rows (the
+	// consolidated Estrella range), which bloats the page HTML and the browser DOM.
+	// Above a threshold we emit a light placeholder and stream the configurator in
+	// after paint from a cached AJAX endpoint, so the page itself loads in well
+	// under a second. Small products render inline as before.
+	$lazy_threshold = (int) apply_filters( 'ricoman_configure_lazy_threshold', 40 );
+	$vcount         = ricoman_pf_variant_count( $pid );
+	if ( $vcount > $lazy_threshold ) {
+		// IMPORTANT: do NOT build the inner here (that's the expensive bit we're
+		// deferring). Just a light skeleton; JS streams the real thing in.
+		$var_inner = '<div class="rm-cfg-lazy" data-product="' . (int) $pid . '" data-url="' . esc_url( admin_url( 'admin-ajax.php' ) ) . '" style="min-height:240px">'
+			. '<div class="rm-cfg-skel" aria-hidden="true" style="height:200px;border:1px solid #e7e9ee;border-radius:12px;background:#f6f7f9"></div>'
+			. '<p class="rm-cfg-loading" style="color:#5b6270;margin:12px 2px 0;font-size:.9rem">' . esc_html__( 'Loading the configurator…', 'ricoman' ) . '</p>'
+			. '<noscript><a class="btn btn-line-d" href="' . esc_url( add_query_arg( array( 'action' => 'rm_cfg_section', 'product' => (int) $pid ), admin_url( 'admin-ajax.php' ) ) ) . '">' . esc_html__( 'View all order codes', 'ricoman' ) . '</a></noscript></div>';
+	} else {
+		$var_inner = ricoman_pf_configure_inner( $pid );
+	}
+	$var_sec   = $var_inner
+		? '<div class="rm-section" id="variants"><div class="rm-pp-wrap"><h2 class="rm-shead">Configure Your Product</h2>' . $var_inner . '</div></div>'
+		: '';
+
+	// ---- Accessories — accessory products (toggle/remove per product in builder) ----
+	// An accessory's own page doesn't get an "Accessories" section — listing other
+	// accessories on an accessory is redundant, so suppress the whole block.
+	if ( ricoman_pf_is_accessory( $pid ) ) {
+		$acc_block = '';
+	} else {
+		$acc_grid = ricoman_pf_accessories( $pid );
+		if ( $acc_grid ) {
+			$acc_block = '<div class="rm-section"><div class="rm-pp-wrap">' . $acc_grid . '</div></div>';
+		} else {
+			$acc_live  = do_shortcode( '[ricoman_accessories_live]' );
+			$acc_block = ( $acc_live && false === strpos( $acc_live, 'rm-config-note' ) )
+				? '<div class="rm-section"><div class="rm-pp-wrap">' . $acc_live . '</div></div>' : '';
+		}
+	}
+
+	// ---- Product FAQs (edited via the Product FAQs metabox; emits FAQPage schema) ----
+	$faq_raw = (string) ricoman_pf_get( $pid, '_ricoman_faq' );
+	$faq_sec = '';
+	if ( '' !== trim( $faq_raw ) && function_exists( 'ricoman_faq_shortcode' ) ) {
+		$faq_inner = ricoman_faq_shortcode( array(), $faq_raw );
+		if ( $faq_inner ) {
+			$faq_sec = '<div class="rm-section" id="faq"><div class="rm-pp-wrap"><h2 class="rm-shead">Frequently asked questions</h2>' . $faq_inner . '</div></div>';
+		}
+	}
+
+	// ---- You may also like ----
+	$related = ricoman_pf_related( $pid );
+
+	$cta = '<div class="wp-block-cover alignfull has-base-color has-text-color" style="min-height:46vh"><span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-70 has-background-dim"></span><img class="wp-block-cover__image-background" alt="" src="' . esc_url( get_theme_file_uri( 'assets/images/office1.webp' ) ) . '" data-object-fit="cover"/><div class="wp-block-cover__inner-container"><h2 class="wp-block-heading has-text-align-center" style="color:#fff;text-align:center">Specify this product</h2><p class="has-text-align-center" style="text-align:center">Add it to your project or request a lighting scheme.</p><div class="wp-block-buttons is-content-justification-center" style="display:flex;justify-content:center;gap:10px"><a class="btn btn-line" href="' . $enq . '">Add to My Project</a> <a class="btn btn-line" href="' . esc_url( $ldu ) . '">' . esc_html( $ld ) . '</a></div></div></div>';
+
+	// Range hub content (Estrella) — brochure-derived sections; empty otherwise.
+	$range_sec = function_exists( 'ricoman_estrella_range_section' ) ? ricoman_estrella_range_section( $pid ) : '';
+
+	$cache[ $pid ] = array(
+		'hero'        => $hero_html,
+		'specs'       => $acc_sec,
+		'downloads'   => $dl_section,
+		'configure'   => $var_sec,
+		'range'       => $range_sec,
+		'accessories' => $acc_block,
+		'related'     => $related,
+		'faq'         => $faq_sec,
+		'cta'         => $cta,
+	);
+	if ( $cacheable ) {
+		set_transient( $tkey, $cache[ $pid ], 12 * HOUR_IN_SECONDS );
+	}
+	return $cache[ $pid ];
+}
+
+/** Number of variant rows that would feed a product's configurator (family-aware). */
+function ricoman_pf_variant_count( $pid ) {
+	if ( ! post_type_exists( 'variant-product' ) ) {
+		return 0;
+	}
+	$fam = function_exists( 'ricoman_pf_family_products' ) ? ricoman_pf_family_products( $pid ) : array( (int) $pid );
+	$mq  = count( $fam ) > 1
+		? array( array( 'key' => 'parent_product', 'value' => array_map( 'strval', $fam ), 'compare' => 'IN' ) )
+		: array( array( 'key' => 'parent_product', 'value' => (string) $pid ) );
+	$q = new WP_Query( array(
+		'post_type'      => 'variant-product',
+		'post_status'    => 'publish',
+		'posts_per_page' => 1,
+		'fields'         => 'ids',
+		'meta_query'     => $mq,
+	) );
+	return (int) $q->found_posts;
+}
+
+/** Build the configurator inner HTML (visual XOR table, family fallback). */
+function ricoman_pf_configure_inner( $pid ) {
+	if ( function_exists( 'ricoman_pf_visual_config_enabled' ) && ricoman_pf_visual_config_enabled( $pid ) ) {
+		$html = ricoman_pf_visual_config( $pid );
+		if ( ! $html ) {
+			$html = ricoman_pf_variant_table( $pid ); // nothing to configure visually → table.
+		}
+	} else {
+		$html = ricoman_pf_variant_table( $pid );
+	}
+	if ( ! $html ) {
+		$has_fam = '' !== (string) ricoman_pf_get( $pid, '_ricoman_family' );
+		$html    = $has_fam ? do_shortcode( '[ricoman_family]' ) : '';
+	}
+	return (string) $html;
+}
+
+/** Configurator HTML with its own transient cache (keyed like the section cache). */
+function ricoman_pf_configure_cached( $pid ) {
+	$key = 'rm_cfgsec_v5_' . (int) $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true ) . '_' . get_option( 'rm_cfgimg_ver', '0' );
+	$pre = get_transient( $key );
+	if ( is_string( $pre ) ) {
+		return $pre;
+	}
+	$html = ricoman_pf_configure_inner( $pid );
+	set_transient( $key, $html, 12 * HOUR_IN_SECONDS );
+	return $html;
+}
+
+/** AJAX: stream the (cached) configurator for a product. Public product data. */
+function ricoman_ajax_configure_section() {
+	$pid = isset( $_GET['product'] ) ? (int) $_GET['product'] : 0;
+	if ( ! $pid || 'product' !== get_post_type( $pid ) || 'publish' !== get_post_status( $pid ) ) {
+		status_header( 400 );
+		exit;
+	}
+	nocache_headers();
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo ricoman_pf_configure_cached( $pid ); // phpcs:ignore WordPress.Security.EscapeOutput
+	exit;
+}
+add_action( 'wp_ajax_rm_cfg_section', 'ricoman_ajax_configure_section' );
+add_action( 'wp_ajax_nopriv_rm_cfg_section', 'ricoman_ajax_configure_section' );
+
+/** A global version stamp for product-derived caches (catalogue, category cards,
+ *  archives). Bumped whenever any product or variant changes. */
+function ricoman_products_ver() {
+	return (string) get_option( 'rm_products_ver', '1' );
+}
+
+/** Pre-build (warm) a product's cache in the background so no visitor ever waits
+ *  for the rebuild — a quick non-blocking loopback request renders the page, which
+ *  populates the section transient (and any page-cache plugin). */
+function ricoman_schedule_warm( $pid ) {
+	$pid = (int) $pid;
+	if ( $pid <= 0 || 'product' !== get_post_type( $pid ) ) {
+		return;
+	}
+	if ( ! wp_next_scheduled( 'ricoman_warm_product', array( $pid ) ) ) {
+		wp_schedule_single_event( time() + 20, 'ricoman_warm_product', array( $pid ) );
+	}
+}
+add_action( 'ricoman_warm_product', function ( $pid ) {
+	$url = get_permalink( (int) $pid );
+	if ( $url ) {
+		wp_remote_get( $url, array( 'timeout' => 0.5, 'blocking' => false, 'sslverify' => false, 'headers' => array( 'X-Ricoman-Warm' => '1' ) ) );
+	}
+} );
+
+/** Nightly maintenance: precompute any missing product variant metrics and warm
+ *  the heaviest pages (homepage + catalogue) so the first visitor of the day
+ *  never triggers a cold rebuild. */
+add_action( 'init', function () {
+	if ( ! wp_next_scheduled( 'ricoman_nightly_maint' ) ) {
+		wp_schedule_event( time() + 300, 'daily', 'ricoman_nightly_maint' );
+	}
+} );
+add_action( 'ricoman_nightly_maint', function () {
+	if ( function_exists( 'ricoman_pf_build_all' ) ) {
+		ricoman_pf_build_all();
+	}
+	// Hit the heavy pages once to rebuild their caches in the background.
+	foreach ( array( home_url( '/' ), home_url( '/products/' ) ) as $u ) {
+		wp_remote_get( $u, array( 'timeout' => 1, 'blocking' => false, 'sslverify' => false, 'headers' => array( 'X-Ricoman-Warm' => '1' ) ) );
+	}
+} );
+
+/** Bump a product's section-cache version when its variants change, then warm. */
+add_action( 'save_post_variant-product', function ( $vid ) {
+	$parent = (int) get_post_meta( $vid, 'parent_product', true );
+	if ( $parent ) {
+		update_post_meta( $parent, '_rm_secver', time() );
+		ricoman_schedule_warm( $parent );
+	}
+	update_option( 'rm_products_ver', (string) time(), false );
+} );
+add_action( 'save_post_product', function ( $pid ) {
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	update_post_meta( $pid, '_rm_secver', time() );
+	update_option( 'rm_products_ver', (string) time(), false );
+	ricoman_schedule_warm( $pid );
+} );
+
+add_shortcode( 'ricoman_product_page', function () {
+	$pid = get_the_ID();
+	if ( ! $pid ) {
+		return '';
+	}
+	// Primary: render from the site's resolved product API (marketing content),
+	// with RICOBOT supplying the live variants/specs.
+	$d = ricoman_pf_endpoint( get_post_field( 'post_name', $pid ) );
+	if ( $d ) {
+		return ricoman_pf_render_endpoint( $d, $pid );
+	}
+	// Fallback: read ACF/meta fields directly, assembled from the section map.
+	$s = ricoman_pf_sections( $pid );
+	return $s['hero'] . $s['specs'] . ( isset( $s['downloads'] ) ? $s['downloads'] : '' ) . $s['configure'] . ( isset( $s['range'] ) ? $s['range'] : '' ) . $s['accessories'] . $s['related'] . ( isset( $s['faq'] ) ? $s['faq'] : '' ) . $s['cta'];
+} );
+
+/**
+ * Ensure a product's FAQ section renders even when the page has hand-built /
+ * builder-compiled block content that predates (or omits) the FAQ section.
+ * Appends the FAQ once, only when the FAQ meta is set and it isn't already in
+ * the rendered content. Emits the same markup as the auto-rendered FAQ section.
+ */
+function ricoman_pf_append_faq( $pid, $content ) {
+	if ( false !== strpos( (string) $content, 'ricoman-faq' ) ) {
+		return $content; // already present — don't duplicate.
+	}
+	$faq_raw = (string) ricoman_pf_get( $pid, '_ricoman_faq' );
+	if ( '' === trim( $faq_raw ) || ! function_exists( 'ricoman_faq_shortcode' ) ) {
+		return $content;
+	}
+	$inner = ricoman_faq_shortcode( array(), $faq_raw );
+	if ( ! $inner ) {
+		return $content;
+	}
+	return $content . '<div class="rm-section" id="faq"><div class="rm-pp-wrap"><h2 class="rm-shead">Frequently asked questions</h2>' . $inner . '</div></div>';
+}
+
+/* When a product has no block content (the ACF products), render the field page. */
+add_filter( 'the_content', function ( $content ) {
+	if ( is_admin() || ! is_singular( 'product' ) || ! in_the_loop() || ! is_main_query() ) {
+		return $content;
+	}
+	if ( ! empty( $GLOBALS['rm_pe_preview'] ) ) {
+		return $content; // the builder preview filter already rendered the page.
+	}
+	$pid = get_the_ID();
+	// A product with a managed layout (custom edits or a template) renders FROM its
+	// layout via ricoman_pe_render_layout — the same renderer the editor preview
+	// uses. That renderer INJECTS the Downloads / Range / FAQ sections in the right
+	// place for older layouts saved before those sections existed. The stored
+	// post_content, by contrast, is a one-off compile from build_content() that does
+	// NOT inject, so returning it directly can silently drop those sections — which
+	// is why Downloads went missing on builder-edited products. Rendering from the
+	// layout keeps the live page identical to the preview and self-heals the gap.
+	if ( function_exists( 'ricoman_pe_has_managed_layout' ) && ricoman_pe_has_managed_layout( $pid ) ) {
+		$rendered = ricoman_pe_render_layout( $pid );
+		if ( '' !== trim( (string) $rendered ) ) {
+			return $rendered;
+		}
+		// Layout resolved to nothing (shouldn't happen) — fall through to the
+		// stored content / auto render below rather than showing a blank page.
+	}
+	if ( '' !== trim( wp_strip_all_tags( (string) $content ) ) ) {
+		// Hand-built block content that isn't a managed layout — leave it as-is,
+		// but make sure the FAQ still shows.
+		return ricoman_pf_append_faq( $pid, $content );
+	}
+	return do_shortcode( '[ricoman_product_page]' );
+	// Priority 11: render AFTER wpautop (priority 10) so it can't wrap our
+	// hand-built hero markup (e.g. the loose gallery <img>) in stray <p> tags,
+	// which broke the gallery image height on mobile. The injected HTML already
+	// has its shortcodes expanded, so running late is safe.
+}, 11 );

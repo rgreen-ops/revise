@@ -1,0 +1,36 @@
+<!-- wp:template-part {"slug":"header","tagName":"header"} /-->
+
+<!-- wp:group {"tagName":"main","style":{"spacing":{"padding":{"top":"var:preset|spacing|50","bottom":"var:preset|spacing|60"}}},"layout":{"type":"constrained"}} -->
+<main class="wp-block-group" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--60)">
+	<!-- wp:shortcode -->[ricoman_breadcrumbs]<!-- /wp:shortcode -->
+	<!-- wp:post-title {"level":1} /-->
+
+	<!-- wp:columns {"align":"wide","verticalAlignment":"top","style":{"spacing":{"blockGap":{"left":"var:preset|spacing|60"}}}} -->
+	<div class="wp-block-columns alignwide are-vertically-aligned-top">
+		<!-- wp:column {"verticalAlignment":"top","width":"58%"} -->
+		<div class="wp-block-column is-vertically-aligned-top" style="flex-basis:58%">
+			<!-- wp:post-content {"layout":{"type":"constrained"}} /-->
+			<!-- wp:shortcode -->[ricoman_lead_form]<!-- /wp:shortcode -->
+		</div>
+		<!-- /wp:column -->
+
+		<!-- wp:column {"verticalAlignment":"top","width":"42%"} -->
+		<div class="wp-block-column is-vertically-aligned-top" style="flex-basis:42%">
+			<!-- wp:group {"className":"is-style-card","style":{"spacing":{"padding":{"top":"var:preset|spacing|40","bottom":"var:preset|spacing|40","left":"var:preset|spacing|40","right":"var:preset|spacing|40"}}},"layout":{"type":"constrained"}} -->
+			<div class="wp-block-group is-style-card" style="padding-top:var(--wp--preset--spacing--40);padding-right:var(--wp--preset--spacing--40);padding-bottom:var(--wp--preset--spacing--40);padding-left:var(--wp--preset--spacing--40)">
+				<!-- wp:heading {"level":2,"fontSize":"large"} -->
+				<h2 class="wp-block-heading has-large-font-size">Get in touch</h2>
+				<!-- /wp:heading -->
+				<!-- wp:paragraph --><p>Metroplex Business Park<br>520 Broadway, M50 2UE<br>Manchester, UK</p><!-- /wp:paragraph -->
+				<!-- wp:paragraph --><p><strong>Call</strong> <a href="tel:01614515913">0161 451 5913</a><br><strong>Email</strong> <a href="mailto:sales@ricoman.com">sales@ricoman.com</a></p><!-- /wp:paragraph -->
+				<!-- wp:paragraph --><p><strong>Hours</strong><br>Mon–Thu 8:30–17:00 · Fri 8:30–16:00</p><!-- /wp:paragraph -->
+			</div>
+			<!-- /wp:group -->
+		</div>
+		<!-- /wp:column -->
+	</div>
+	<!-- /wp:columns -->
+</main>
+<!-- /wp:group -->
+
+<!-- wp:template-part {"slug":"footer","tagName":"footer"} /-->

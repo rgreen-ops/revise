@@ -1,0 +1,927 @@
+<?php
+/**
+ * Custom post types & taxonomies: Products, Projects and Leads.
+ *
+ * These power the "editable product / project / page templates" and
+ * "product data / variant structure" parts of the build. They use block
+ * templates from /templates so editors can lay them out visually.
+ *
+ * @package Ricoman
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * Register the Product and Project post types and their taxonomies.
+ */
+function ricoman_register_post_types() {
+
+	// --- Products -------------------------------------------------------
+	register_post_type(
+		'product',
+		array(
+			'labels'        => array(
+				'name'               => __( 'Products', 'ricoman' ),
+				'singular_name'      => __( 'Product', 'ricoman' ),
+				'add_new_item'       => __( 'Add New Product', 'ricoman' ),
+				'edit_item'          => __( 'Edit Product', 'ricoman' ),
+				'new_item'           => __( 'New Product', 'ricoman' ),
+				'view_item'          => __( 'View Product', 'ricoman' ),
+				'search_items'       => __( 'Search Products', 'ricoman' ),
+				'not_found'          => __( 'No products found', 'ricoman' ),
+				'all_items'          => __( 'All Products', 'ricoman' ),
+				'menu_name'          => __( 'Products', 'ricoman' ),
+			),
+			'public'        => true,
+			'has_archive'   => true,
+			'menu_icon'     => 'dashicons-lightbulb',
+			'menu_position' => 20,
+			'rewrite'       => array( 'slug' => 'products', 'with_front' => false ),
+			'supports'      => array( 'title', 'editor', 'thumbnail', 'excerpt', 'custom-fields', 'page-attributes', 'revisions' ),
+			'show_in_rest'  => true,
+		)
+	);
+
+	// --- Projects (case studies) ---------------------------------------
+	register_post_type(
+		'project',
+		array(
+			'labels'        => array(
+				'name'               => __( 'Projects', 'ricoman' ),
+				'singular_name'      => __( 'Project', 'ricoman' ),
+				'add_new_item'       => __( 'Add New Project', 'ricoman' ),
+				'edit_item'          => __( 'Edit Project', 'ricoman' ),
+				'all_items'          => __( 'All Projects', 'ricoman' ),
+				'menu_name'          => __( 'Projects', 'ricoman' ),
+			),
+			'public'        => true,
+			'has_archive'   => true,
+			'menu_icon'     => 'dashicons-portfolio',
+			'menu_position' => 21,
+			'rewrite'       => array( 'slug' => 'projects', 'with_front' => false ),
+			'supports'      => array( 'title', 'editor', 'thumbnail', 'excerpt', 'custom-fields', 'revisions' ),
+			'show_in_rest'  => true,
+		)
+	);
+
+	// --- Leads (private, stores form submissions) ----------------------
+	register_post_type(
+		'lead',
+		array(
+			'labels'        => array(
+				'name'          => __( 'Leads', 'ricoman' ),
+				'singular_name' => __( 'Lead', 'ricoman' ),
+				'menu_name'     => __( 'Leads', 'ricoman' ),
+			),
+			'public'        => false,
+			'show_ui'       => true,
+			'menu_icon'     => 'dashicons-email-alt',
+			'menu_position' => 22,
+			'capability_type' => 'post',
+			'supports'      => array( 'title' ),
+			'show_in_rest'  => false,
+		)
+	);
+
+	// --- News (migrated articles) ------------------------------------------
+	register_post_type(
+		'news',
+		array(
+			'labels'        => array(
+				'name'          => __( 'News', 'ricoman' ),
+				'singular_name' => __( 'News Article', 'ricoman' ),
+				'menu_name'     => __( 'News', 'ricoman' ),
+			),
+			'public'        => true,
+			'has_archive'   => true,
+			'menu_icon'     => 'dashicons-megaphone',
+			'menu_position' => 24,
+			'rewrite'       => array( 'slug' => 'news', 'with_front' => false ),
+			'supports'      => array( 'title', 'editor', 'thumbnail', 'excerpt', 'custom-fields', 'revisions' ),
+			'show_in_rest'  => true,
+		)
+	);
+
+	// --- Variant products (the order-code rows for the Configure table) -----
+	// Each is linked to its parent product via the ACF `parent_product` field.
+	register_post_type(
+		'variant-product',
+		array(
+			'labels'        => array(
+				'name'          => __( 'Variant Products', 'ricoman' ),
+				'singular_name' => __( 'Variant Product', 'ricoman' ),
+				'menu_name'     => __( 'Variant Products', 'ricoman' ),
+			),
+			'public'        => false,
+			'show_ui'       => true,
+			'menu_icon'     => 'dashicons-screenoptions',
+			'menu_position' => 23,
+			'rewrite'       => false,
+			'supports'      => array( 'title', 'custom-fields' ),
+			'show_in_rest'  => false,
+		)
+	);
+}
+add_action( 'init', 'ricoman_register_post_types' );
+
+/**
+ * Register taxonomies for products and projects.
+ */
+function ricoman_register_taxonomies() {
+
+	// Product category (Downlights, Panels, Track, etc.).
+	// NB: the live ricoman.com data model uses these exact (hyphenated) taxonomy
+	// names, so the theme registers them verbatim — otherwise migrated products
+	// have categories/sectors that nothing can display.
+	register_taxonomy(
+		'product-cat',
+		'product',
+		array(
+			'labels'            => array(
+				'name'          => __( 'Product Categories', 'ricoman' ),
+				'singular_name' => __( 'Product Category', 'ricoman' ),
+				'menu_name'     => __( 'Categories', 'ricoman' ),
+			),
+			'hierarchical'      => true,
+			'public'            => true,
+			'show_admin_column' => true,
+			'show_in_rest'      => true,
+			'rewrite'           => array( 'slug' => 'product-category', 'with_front' => false ),
+		)
+	);
+
+	// Application / sector for products (Retail, Office, Hospitality, Healthcare…).
+	register_taxonomy(
+		'applycation-type',
+		'product',
+		array(
+			'labels'            => array(
+				'name'          => __( 'Applications', 'ricoman' ),
+				'singular_name' => __( 'Application', 'ricoman' ),
+				'menu_name'     => __( 'Applications', 'ricoman' ),
+			),
+			'hierarchical'      => true,
+			'public'            => true,
+			'show_admin_column' => true,
+			'show_in_rest'      => true,
+			'rewrite'           => array( 'slug' => 'application', 'with_front' => false ),
+		)
+	);
+
+	// Project / sector category (used by projects, and shared onto products).
+	register_taxonomy(
+		'project-cat',
+		array( 'project', 'product' ),
+		array(
+			'labels'            => array(
+				'name'          => __( 'Project Categories', 'ricoman' ),
+				'singular_name' => __( 'Project Category', 'ricoman' ),
+				'menu_name'     => __( 'Sectors', 'ricoman' ),
+			),
+			'hierarchical'      => true,
+			'public'            => true,
+			'show_admin_column' => true,
+			'show_in_rest'      => true,
+			'rewrite'           => array( 'slug' => 'sector', 'with_front' => false ),
+		)
+	);
+
+	// Configure family: groups related products (e.g. all Estrella apertures —
+	// Opal, Wallwasher, Square aperture, Black/White louvre, Microprismatic) so
+	// their "Configure Your Product" table can span the whole range with a Type
+	// drop-down. Tag every member product into one family term.
+	register_taxonomy(
+		'config-family',
+		'product',
+		array(
+			'labels'            => array(
+				'name'          => __( 'Configure Families', 'ricoman' ),
+				'singular_name' => __( 'Configure Family', 'ricoman' ),
+				'menu_name'     => __( 'Configure Families', 'ricoman' ),
+				'add_new_item'  => __( 'Add Configure Family', 'ricoman' ),
+			),
+			'hierarchical'      => true,
+			'public'            => false,
+			'show_ui'           => true,
+			'show_admin_column' => true,
+			'show_in_rest'      => true,
+			'rewrite'           => false,
+		)
+	);
+
+	// Specification Consultant (SPC): the person who specified / supported a
+	// project. Tag projects with their consultant; each consultant gets a public
+	// archive (/spc/<name>/) listing all their projects (taxonomy-spc.html).
+	register_taxonomy(
+		'spc',
+		'project',
+		array(
+			'labels'            => array(
+				'name'          => __( 'Consultants (SPC)', 'ricoman' ),
+				'singular_name' => __( 'Consultant', 'ricoman' ),
+				'menu_name'     => __( 'Consultants', 'ricoman' ),
+				'add_new_item'  => __( 'Add Consultant', 'ricoman' ),
+			),
+			'hierarchical'      => false,
+			'public'            => true,
+			'show_ui'           => true,
+			'show_admin_column' => true,
+			'show_in_rest'      => true,
+			'rewrite'           => array( 'slug' => 'spc', 'with_front' => false ),
+		)
+	);
+
+	// Mounting method (Surface, Recessed, Suspended, Track, Wall…) for filter sidebar.
+	register_taxonomy(
+		'mounting-method',
+		'product',
+		array(
+			'labels'            => array(
+				'name'          => __( 'Mounting Methods', 'ricoman' ),
+				'singular_name' => __( 'Mounting Method', 'ricoman' ),
+				'menu_name'     => __( 'Mounting Methods', 'ricoman' ),
+				'add_new_item'  => __( 'Add Mounting Method', 'ricoman' ),
+			),
+			'hierarchical'      => false,
+			'public'            => false,
+			'show_ui'           => true,
+			'show_admin_column' => true,
+			'show_in_rest'      => true,
+			'rewrite'           => false,
+		)
+	);
+}
+add_action( 'init', 'ricoman_register_taxonomies' );
+
+// One-time rewrite flush so the new public /spc/ consultant archives resolve
+// without anyone re-saving permalinks.
+add_action( 'init', function () {
+	if ( get_option( 'ricoman_spc_rewrite_v1' ) ) {
+		return;
+	}
+	flush_rewrite_rules( false );
+	update_option( 'ricoman_spc_rewrite_v1', '1' );
+}, 11 );
+
+/**
+ * Register the variant "axis" taxonomies the old data model used (wattage,
+ * colour temperature, colour, beam angle, IP rating, dimming, size, …). The
+ * variant order codes carry their specs as terms in these taxonomies. The old
+ * plugin registered them; our theme must too, otherwise the migrated terms are
+ * invisible (wp_get_post_terms can't read an unregistered taxonomy) and specs
+ * like Wattage never appear. Attached to products and variant products.
+ */
+function ricoman_variant_axis_taxonomies() {
+	return array(
+		'wattage'            => __( 'Wattage', 'ricoman' ),
+		'temperature'        => __( 'Colour Temperature', 'ricoman' ),
+		'color'              => __( 'Colour', 'ricoman' ),
+		'beam-angle'         => __( 'Beam Angle', 'ricoman' ),
+		'iprating'           => __( 'IP Rating', 'ricoman' ),
+		'size'               => __( 'Size', 'ricoman' ),
+		'dimming'            => __( 'Dimming', 'ricoman' ),
+		'lighting-direction' => __( 'Lighting Direction', 'ricoman' ),
+		'emergency'          => __( 'Emergency', 'ricoman' ),
+		'glare-control'      => __( 'Glare Control', 'ricoman' ),
+		'microwave'          => __( 'Microwave', 'ricoman' ),
+		'pir'                => __( 'PIR', 'ricoman' ),
+		'reflector'          => __( 'Reflector', 'ricoman' ),
+		'reflector-finish'   => __( 'Reflector Finish', 'ricoman' ),
+		'reflector-colour'   => __( 'Reflector Colour', 'ricoman' ),
+		'bezel-finish'       => __( 'Bezel Finish', 'ricoman' ),
+		'diffuser-material'  => __( 'Diffuser Material', 'ricoman' ),
+		'application-area'   => __( 'Application Area', 'ricoman' ),
+		'legend-required'    => __( 'Legend Required', 'ricoman' ),
+		'fitting-type'       => __( 'Fitting Type', 'ricoman' ),
+		'lamp-type'          => __( 'Lamp Type', 'ricoman' ),
+		'module'             => __( 'Module', 'ricoman' ),
+		'model'              => __( 'Model', 'ricoman' ),
+	);
+}
+
+function ricoman_register_variant_axes() {
+	foreach ( ricoman_variant_axis_taxonomies() as $slug => $label ) {
+		if ( taxonomy_exists( $slug ) ) {
+			continue;
+		}
+		register_taxonomy(
+			$slug,
+			array( 'variant-product' ), // per-variant specs; keeps the product editor uncluttered.
+			array(
+				'labels'       => array( 'name' => $label, 'singular_name' => $label, 'menu_name' => $label ),
+				'hierarchical' => false,
+				'public'       => false,
+				'show_ui'      => true,
+				'show_in_menu' => false, // managed via the Spec Axes hub.
+				'show_in_rest' => true,
+				'rewrite'      => false,
+				'query_var'    => false,
+			)
+		);
+	}
+}
+add_action( 'init', 'ricoman_register_variant_axes' );
+
+/**
+ * Flush rewrite rules once on theme activation so the new CPT permalinks work.
+ * (Switching themes fires this; admins can also just re-save Permalinks.)
+ */
+function ricoman_flush_rewrites() {
+	ricoman_register_post_types();
+	ricoman_register_taxonomies();
+	flush_rewrite_rules();
+}
+add_action( 'after_switch_theme', 'ricoman_flush_rewrites' );
+
+/**
+ * Self-healing permalinks. Uploading a new theme ZIP (rather than switching
+ * themes) doesn't fire after_switch_theme, so the rewrite rules for the
+ * product-category / sector taxonomies can be missing — which makes clicking a
+ * (sub)category do nothing. If our taxonomy rules aren't present, flush once.
+ */
+add_action( 'wp_loaded', function () {
+	if ( get_transient( 'ricoman_rw_ok' ) ) {
+		return;
+	}
+	$rules = get_option( 'rewrite_rules' );
+	$has   = false;
+	if ( is_array( $rules ) ) {
+		foreach ( array_keys( $rules ) as $k ) {
+			if ( false !== strpos( $k, 'product-category' ) ) {
+				$has = true;
+				break;
+			}
+		}
+	}
+	if ( ! $has ) {
+		flush_rewrite_rules( false );
+	}
+	set_transient( 'ricoman_rw_ok', 1, HOUR_IN_SECONDS );
+}, 99 );
+
+/**
+ * Dynamic grid of real Project posts — every tile links to a live permalink, so
+ * the listing always works regardless of what was seeded or imported.
+ * Use: [ricoman_projects_grid count="12"]
+ */
+add_shortcode( 'ricoman_projects_grid', function ( $atts ) {
+	$atts = shortcode_atts( array( 'count' => 12 ), $atts, 'ricoman_projects_grid' );
+	$args = array(
+		'post_type'      => 'project',
+		'post_status'    => 'publish',
+		'posts_per_page' => (int) $atts['count'],
+		'orderby'        => array( 'menu_order' => 'ASC', 'date' => 'DESC' ),
+		'no_found_rows'  => true,
+	);
+	// Hide the theme's seeded demo case studies once real projects are imported,
+	// so the listing shows genuine ricoman.com work — not the placeholder set.
+	// Non-destructive: the demo posts stay in the DB, they're just filtered out.
+	$exclude = ricoman_demo_project_ids();
+	if ( $exclude ) {
+		$real = new WP_Query( array(
+			'post_type'      => 'project',
+			'post_status'    => 'publish',
+			'post__not_in'   => $exclude,
+			'posts_per_page' => 1,
+			'fields'         => 'ids',
+			'no_found_rows'  => true,
+		) );
+		// Only exclude when genuine projects remain (otherwise show the demo set).
+		if ( $real->have_posts() ) {
+			$args['post__not_in'] = $exclude;
+		}
+	}
+	$q = new WP_Query( $args );
+	if ( ! $q->have_posts() ) {
+		return '<p class="rm-config-note">Projects will appear here once published.</p>';
+	}
+	$tax = taxonomy_exists( 'project-cat' ) ? 'project-cat' : 'application';
+
+	// Sector filter chips.
+	$chips = '';
+	$terms = get_terms( array( 'taxonomy' => $tax, 'hide_empty' => true ) );
+	if ( ! is_wp_error( $terms ) && $terms ) {
+		foreach ( $terms as $t ) {
+			$chips .= '<button type="button" class="rm-projchip" data-cat="' . esc_attr( $t->slug ) . '">' . esc_html( $t->name ) . '</button>';
+		}
+	}
+
+	// Build the cards first so we can show an accurate total in the toolbar.
+	$cards = '';
+	$total = 0;
+	while ( $q->have_posts() ) {
+		$q->the_post();
+		$pid    = get_the_ID();
+		$img    = function_exists( 'ricoman_project_img' ) ? ricoman_project_img( $pid ) : get_the_post_thumbnail_url( $pid, 'large' );
+		$sector = ricoman_first_term_name( $pid, array( 'project-cat', 'application' ) );
+		$slugs  = wp_get_post_terms( $pid, $tax, array( 'fields' => 'slugs' ) );
+		$cats   = ( ! is_wp_error( $slugs ) && $slugs ) ? implode( ' ', $slugs ) : '';
+		$loc    = trim( wp_strip_all_tags( (string) get_post_meta( $pid, 'area', true ) ) );
+		// Searchable haystack: title + sector + location + product names used.
+		$hay    = strtolower( get_the_title() . ' ' . $sector . ' ' . $loc . ' ' . ricoman_project_products_text( $pid ) );
+		$style  = $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '';
+		$cards .= '<a class="rm-projcard" data-cats="' . esc_attr( $cats ) . '" data-search="' . esc_attr( $hay ) . '" href="' . esc_url( get_permalink() ) . '"' . $style . '><span class="rm-projcard-ov">'
+			. ( $sector ? '<span class="rm-eyebrow">' . esc_html( $sector ) . '</span>' : '' )
+			. '<span class="rm-projcard-t">' . esc_html( get_the_title() ) . '</span>'
+			. ( $loc ? '<span class="rm-projcard-loc">' . esc_html( $loc ) . '</span>' : '' )
+			. '</span></a>';
+		$total++;
+	}
+	wp_reset_postdata();
+
+	// Toolbar: live search (title / sector / location / product) + sector filter.
+	$tools = '<div class="rm-projtools">'
+		. '<div class="rm-projsearch"><svg class="rm-projsearch-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'
+		. '<input type="search" class="rm-projq" placeholder="Search projects, sectors or products…" aria-label="Search projects"></div>'
+		. ( $chips ? '<div class="rm-projchips"><button type="button" class="rm-projchip on" data-cat="">All</button>' . $chips . '</div>' : '' )
+		. '<span class="rm-projcount" data-total="' . (int) $total . '">' . (int) $total . ' projects</span>'
+		. '</div>';
+
+	return $tools . '<div class="rm-projwide"><div class="rm-projgrid">' . $cards . '</div>'
+		. '<p class="rm-projempty" hidden>No projects match your search. <button type="button" class="rm-projreset">Clear filters</button></p></div>';
+} );
+
+/** Drop the "Project Category:" / "Archive:" prefix from archive titles. */
+add_filter( 'get_the_archive_title_prefix', '__return_empty_string' );
+
+/** Projects within the current sector term — case-study grid for the landing. */
+add_shortcode( 'ricoman_sector_projects', function ( $atts ) {
+	$atts = shortcode_atts( array( 'sector' => '' ), $atts, 'ricoman_sector_projects' );
+	$tax  = taxonomy_exists( 'project-cat' ) ? 'project-cat' : 'application';
+	$term = $atts['sector'] ? get_term_by( 'slug', $atts['sector'], $tax ) : get_queried_object();
+	if ( ! ( $term instanceof WP_Term ) ) {
+		return '';
+	}
+	$q = new WP_Query( array(
+		'post_type'      => 'project',
+		'post_status'    => 'publish',
+		'posts_per_page' => -1,
+		'no_found_rows'  => true,
+		'orderby'        => array( 'menu_order' => 'ASC', 'date' => 'DESC' ),
+		'tax_query'      => array( array( 'taxonomy' => $term->taxonomy, 'terms' => $term->term_id ) ),
+	) );
+	if ( ! $q->have_posts() ) {
+		return '';
+	}
+	$cards = '';
+	while ( $q->have_posts() ) {
+		$q->the_post();
+		$pid   = get_the_ID();
+		$img   = function_exists( 'ricoman_project_img' ) ? ricoman_project_img( $pid ) : get_the_post_thumbnail_url( $pid, 'large' );
+		$loc   = trim( wp_strip_all_tags( (string) get_post_meta( $pid, 'area', true ) ) );
+		$style = $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '';
+		$cards .= '<a class="rm-projcard" href="' . esc_url( get_permalink() ) . '"' . $style . '><span class="rm-projcard-ov">'
+			. '<span class="rm-projcard-t">' . esc_html( get_the_title() ) . '</span>'
+			. ( $loc ? '<span class="rm-projcard-loc">' . esc_html( $loc ) . '</span>' : '' )
+			. '</span></a>';
+	}
+	wp_reset_postdata();
+	return '<div class="rm-section rm-sectorproj" id="projects"><div class="rm-projwide">'
+		. '<h2 class="rm-shead">Selected ' . esc_html( $term->name ) . ' projects</h2>'
+		. '<div class="rm-projgrid">' . $cards . '</div></div></div>';
+} );
+
+/** Consultant (SPC) archive header — name, intro and project count. */
+add_shortcode( 'ricoman_spc_hero', function () {
+	$term = get_queried_object();
+	if ( ! ( $term instanceof WP_Term ) ) {
+		return '';
+	}
+	$desc  = trim( (string) term_description( $term ) );
+	$count = (int) $term->count;
+	$out   = '<div class="rm-section rm-hdr rm-hdr-editorial"><div class="rm-pp-wrap rm-spc-head">';
+	$out  .= '<p class="rm-eyebrow">' . esc_html__( 'Specification Consultant', 'ricoman' ) . '</p>';
+	$out  .= '<h1 class="rm-hdr-title">' . esc_html( $term->name ) . '</h1>';
+	if ( '' !== $desc ) {
+		$out .= '<div class="rm-hdr-lead">' . wp_kses_post( wpautop( $desc ) ) . '</div>';
+	}
+	$out  .= '<p class="rm-eyebrow rm-spc-count">' . esc_html( sprintf( _n( '%d project', '%d projects', $count, 'ricoman' ), $count ) ) . '</p>';
+	$out  .= '</div></div>';
+	return $out;
+} );
+
+/** Flat text of the product names used on a project (for search). */
+function ricoman_project_products_text( $pid ) {
+	$txt = '';
+	if ( function_exists( 'have_rows' ) && have_rows( 'product_use', $pid ) ) {
+		while ( have_rows( 'product_use', $pid ) ) {
+			the_row();
+			$txt .= ' ' . (string) get_sub_field( 'name' );
+		}
+	}
+	$fam = get_post_meta( $pid, '_ricoman_family', true );
+	if ( $fam ) {
+		$txt .= ' ' . $fam;
+	}
+	return trim( $txt );
+}
+
+/**
+ * Slugs of the demo case studies seeded by the theme installer (demo-setup.php).
+ * Kept in one place so the public Projects grid can hide them once real projects
+ * are imported. Filterable, so the team can adjust the set without code edits.
+ */
+function ricoman_demo_project_slugs() {
+	return apply_filters( 'ricoman_demo_project_slugs', array(
+		'allianz-hq', 'flagship-store', 'acoustic-ceiling', 'breakout-lounge',
+		'boutique-hotel', 'betfred-hq', 'kingsgate', 'estrella-canteen',
+		'campus-library', 'studio-hq',
+	) );
+}
+
+/** Resolve the demo project slugs to post IDs (only ones that exist). */
+function ricoman_demo_project_ids() {
+	$ids = array();
+	foreach ( ricoman_demo_project_slugs() as $slug ) {
+		$p = get_page_by_path( $slug, OBJECT, 'project' );
+		if ( $p ) {
+			$ids[] = (int) $p->ID;
+		}
+	}
+	return $ids;
+}
+
+/** Dynamic grid of real Product posts (same idea). [ricoman_products_grid] */
+add_shortcode( 'ricoman_products_grid', function ( $atts ) {
+	$atts = shortcode_atts( array( 'count' => 12 ), $atts, 'ricoman_products_grid' );
+	$q    = new WP_Query( array(
+		'post_type'      => 'product',
+		'post_status'    => 'publish',
+		'posts_per_page' => (int) $atts['count'],
+		'orderby'        => array( 'menu_order' => 'ASC', 'date' => 'DESC' ),
+		'no_found_rows'  => true,
+	) );
+	if ( ! $q->have_posts() ) {
+		return '<p class="rm-config-note">Products will appear here once published.</p>';
+	}
+	$out = '<div class="rm-projgrid rm-prodgrid">';
+	while ( $q->have_posts() ) {
+		$q->the_post();
+		$img    = ricoman_product_img( get_the_ID() );
+		$cat    = ricoman_first_term_name( get_the_ID(), array( 'product-cat', 'product_cat' ) );
+		$style  = $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '';
+		$out   .= '<a class="rm-projcard" href="' . esc_url( get_permalink() ) . '"' . $style . '><span class="rm-projcard-ov">'
+			. ( $cat ? '<span class="rm-eyebrow">' . esc_html( $cat ) . '</span>' : '' )
+			. '<span class="rm-projcard-t">' . esc_html( get_the_title() ) . '</span></span></a>';
+	}
+	wp_reset_postdata();
+	return $out . '</div>';
+} );
+
+/** First term name found across a list of taxonomies (for migrated + demo data). */
+function ricoman_first_term_name( $pid, $taxes ) {
+	foreach ( (array) $taxes as $tax ) {
+		if ( ! taxonomy_exists( $tax ) ) {
+			continue;
+		}
+		$terms = get_the_terms( $pid, $tax );
+		if ( $terms && ! is_wp_error( $terms ) ) {
+			return $terms[0]->name;
+		}
+	}
+	return '';
+}
+
+/** Display image for a product: ACF gallery image (what the page shows), else featured. */
+function ricoman_product_img( $pid ) {
+	// Prefer the ACF gallery image — that's exactly what the product PAGE shows.
+	// ricoman_pf_best_rendition() picks a valid, non-empty sub-size (skipping this
+	// host's 0-byte full-size .webp files) and self-heals via ricoman_img_fallback
+	// otherwise, so cards match the page and never show a broken/placeholder image.
+	if ( function_exists( 'ricoman_pf_get' ) ) {
+		$g     = ricoman_pf_get( $pid, 'product_gallery_image' );
+		$first = is_array( $g ) ? reset( $g ) : $g;
+		if ( $first ) {
+			$id = 0;
+			if ( is_numeric( $first ) ) {
+				$id = (int) $first;
+			} elseif ( is_array( $first ) ) {
+				$id = (int) ( isset( $first['ID'] ) ? $first['ID'] : ( isset( $first['id'] ) ? $first['id'] : 0 ) );
+			}
+			$u = '';
+			if ( $id && function_exists( 'ricoman_pf_best_rendition' ) ) {
+				$u = ricoman_pf_best_rendition( $id );
+			} elseif ( $id ) {
+				$u = (string) wp_get_attachment_url( $id );
+			} elseif ( function_exists( 'ricoman_pf_imgurl' ) ) {
+				$u = ricoman_pf_imgurl( $first );
+			}
+			if ( $u ) {
+				return $u;
+			}
+		}
+	}
+	// Fall back to the featured image (newer, theme-created products).
+	$tid = get_post_thumbnail_id( $pid );
+	if ( $tid ) {
+		$webp = function_exists( 'ricoman_webp_url' ) ? ricoman_webp_url( $tid ) : '';
+		if ( $webp ) {
+			return $webp;
+		}
+		$img = wp_get_attachment_image_url( $tid, 'large' );
+		if ( ! $img ) {
+			$img = wp_get_attachment_url( $tid );
+		}
+		if ( $img ) {
+			return $img;
+		}
+	}
+	return '';
+}
+
+/** First in-situ (real-space) photo for a product, from the insitu_gallery field. Empty if none. */
+function ricoman_product_img_insitu( $pid ) {
+	if ( function_exists( 'ricoman_pf_get' ) && function_exists( 'ricoman_pf_imgurl' ) ) {
+		$g     = ricoman_pf_get( $pid, 'insitu_gallery' );
+		$first = is_array( $g ) ? reset( $g ) : $g;
+		if ( $first ) {
+			$u = ricoman_pf_imgurl( $first );
+			if ( $u ) {
+				return $u;
+			}
+		}
+	}
+	return '';
+}
+
+/**
+ * Visual search results: an image grid of matching products/projects/news/pages,
+ * each with the right image (product gallery / project photo / featured image),
+ * a type or category label and the title. Replaces the plain title+excerpt list.
+ * [ricoman_search_results]
+ */
+add_shortcode( 'ricoman_search_results', function () {
+	$s     = get_search_query();
+	$paged = max( 1, (int) get_query_var( 'paged' ), (int) get_query_var( 'page' ) );
+
+	// Order results by type: products first, then accessories, then projects, then
+	// news — relevance kept within each group. An accessory is a product flagged
+	// is_accessories_product OR (crucially) one in the "accessories" product-cat
+	// term — the term is how they're tagged from the editor, so meta-only detection
+	// let term-tagged accessories rank as real products and surface first.
+	$rm_order = function ( $clauses ) {
+		global $wpdb;
+		$acc_meta = "EXISTS (SELECT 1 FROM {$wpdb->postmeta} pm WHERE pm.post_id = {$wpdb->posts}.ID AND pm.meta_key = 'is_accessories_product' AND pm.meta_value IN ('1','yes','true'))";
+		$acc_term = "EXISTS (SELECT 1 FROM {$wpdb->term_relationships} rtr"
+			. " INNER JOIN {$wpdb->term_taxonomy} rtt ON rtr.term_taxonomy_id = rtt.term_taxonomy_id"
+			. " INNER JOIN {$wpdb->terms} rt ON rtt.term_id = rt.term_id"
+			. " WHERE rtr.object_id = {$wpdb->posts}.ID AND rtt.taxonomy = 'product-cat' AND rt.slug = 'accessories')";
+		$rank = 'CASE'
+			. " WHEN {$wpdb->posts}.post_type = 'product' AND ({$acc_meta} OR {$acc_term}) THEN 1"
+			. " WHEN {$wpdb->posts}.post_type = 'product' THEN 0"
+			. " WHEN {$wpdb->posts}.post_type = 'project' THEN 2"
+			. " WHEN {$wpdb->posts}.post_type = 'news' THEN 3"
+			. ' ELSE 4 END';
+		$clauses['orderby'] = $rank . ' ASC' . ( ! empty( $clauses['orderby'] ) ? ', ' . $clauses['orderby'] : '' );
+		return $clauses;
+	};
+	add_filter( 'posts_clauses', $rm_order );
+	$q     = new WP_Query( array(
+		'post_type'      => array_values( array_filter( array( 'product', 'project', 'news' ), 'post_type_exists' ) ),
+		's'              => $s,
+		'post_status'    => 'publish',
+		'posts_per_page' => 24,
+		'paged'          => $paged,
+	) );
+	remove_filter( 'posts_clauses', $rm_order );
+	if ( ! $q->have_posts() ) {
+		return '<p class="rm-search-none">' . esc_html( sprintf( __( 'No results for “%s”. Try a different term.', 'ricoman' ), $s ) ) . '</p>';
+	}
+	$labels = array( 'product' => __( 'Product', 'ricoman' ), 'project' => __( 'Project', 'ricoman' ), 'news' => __( 'News', 'ricoman' ), 'page' => __( 'Page', 'ricoman' ), 'post' => __( 'Article', 'ricoman' ) );
+	$cards  = '';
+	while ( $q->have_posts() ) {
+		$q->the_post();
+		$pid = get_the_ID();
+		$pt  = get_post_type( $pid );
+		if ( 'product' === $pt && function_exists( 'ricoman_product_img' ) ) {
+			$img = ricoman_product_img( $pid );
+		} elseif ( 'project' === $pt && function_exists( 'ricoman_project_img' ) ) {
+			$img = ricoman_project_img( $pid );
+		} else {
+			$img = get_the_post_thumbnail_url( $pid, 'large' );
+		}
+		if ( $img && function_exists( 'ricoman_image_usable' ) && ! ricoman_image_usable( $img ) ) {
+			$img = '';
+		}
+		$label = '';
+		if ( 'product' === $pt && function_exists( 'ricoman_first_term_name' ) ) {
+			$label = ricoman_first_term_name( $pid, array( 'product-cat', 'product_cat' ) );
+		}
+		if ( ! $label ) {
+			$label = isset( $labels[ $pt ] ) ? $labels[ $pt ] : '';
+		}
+		$cards .= '<a class="rm-projcard rm-searchcard' . ( $img ? '' : ' rm-projcard-noimg' ) . '" href="' . esc_url( get_permalink() ) . '"' . ( $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '' ) . '>'
+			. '<span class="rm-projcard-ov">'
+			. ( $label ? '<span class="rm-eyebrow">' . esc_html( $label ) . '</span>' : '' )
+			. '<span class="rm-projcard-t">' . esc_html( get_the_title() ) . '</span></span></a>';
+	}
+	$max = (int) $q->max_num_pages;
+	wp_reset_postdata();
+	$pag = $max > 1 ? paginate_links( array( 'total' => $max, 'current' => $paged, 'type' => 'list', 'prev_text' => '‹', 'next_text' => '›' ) ) : '';
+	return '<div class="rm-searchgrid">' . $cards . '</div>' . ( $pag ? '<nav class="rm-search-pag">' . $pag . '</nav>' : '' );
+} );
+
+/**
+ * The real product catalogue: category quick-nav + faceted filter bar (light
+ * output / power sliders + feature tick-boxes) + every product grouped by
+ * category. Powers the /products/ archive. [ricoman_catalogue]
+ */
+add_shortcode( 'ricoman_catalogue', function ( $atts ) {
+	// 'm2-' markup version: bump to invalidate cached HTML when the card markup
+	// changes (here: lazy data-bg images).
+	$ver   = 'm3-' . ( function_exists( 'ricoman_products_ver' ) ? ricoman_products_ver() : '1' );
+	// Persisted option cache (not a transient — transients were not surviving on
+	// this host). Stored as [ver, html].
+	$store = get_option( 'rm_catalogue_cache' );
+	$have  = is_array( $store ) && isset( $store['html'] );
+
+	// Fresh — serve it.
+	if ( $have && (string) ( $store['ver'] ?? '' ) === (string) $ver ) {
+		return $store['html'];
+	}
+	// Stale-while-revalidate: NEVER rebuild the whole catalogue (every category +
+	// all ~500 products) on a visitor request — that synchronous build is the
+	// ~40s hit. Serve the last-good HTML instantly and rebuild in the background.
+	// Build inline only the very first time, when nothing is cached yet.
+	if ( $have ) {
+		if ( ! wp_next_scheduled( 'ricoman_catalogue_rebuild' ) ) {
+			wp_schedule_single_event( time() + 2, 'ricoman_catalogue_rebuild' );
+		}
+		return $store['html'];
+	}
+	return ricoman_catalogue_build_and_store();
+} );
+
+/** Rebuild the catalogue HTML and persist it. Heavy (every category + product);
+ *  only runs in the background (cron) or once on the very first uncached request. */
+add_action( 'ricoman_catalogue_rebuild', 'ricoman_catalogue_build_and_store' );
+function ricoman_catalogue_build_and_store() {
+	$ver   = 'm3-' . ( function_exists( 'ricoman_products_ver' ) ? ricoman_products_ver() : '1' );
+	$tax   = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
+	$terms = get_terms( array( 'taxonomy' => $tax, 'hide_empty' => true ) );
+
+	// No categorised products yet — fall back to a flat grid of everything.
+	if ( is_wp_error( $terms ) || empty( $terms ) ) {
+		return do_shortcode( '[ricoman_products_grid count="60"]' );
+	}
+
+	// Category quick-nav.
+	$nav = '<div class="rm-catnav">';
+	foreach ( $terms as $t ) {
+		$nav .= '<a class="rm-catnav-item" href="' . esc_url( get_term_link( $t ) ) . '">'
+			. esc_html( $t->name ) . ' <span>' . (int) $t->count . '</span></a>';
+	}
+	$nav .= '</div>';
+
+	// Build the category sections, collecting facet ranges as we go.
+	$sections = '';
+	$maxlm    = 0;
+	$maxw     = 0;
+	$allfeat  = array();
+	$total    = 0;
+	foreach ( $terms as $t ) {
+		$q = new WP_Query( array(
+			'post_type'      => 'product',
+			'post_status'    => 'publish',
+			'posts_per_page' => -1,
+			'orderby'        => 'title',
+			'order'          => 'ASC',
+			'no_found_rows'  => true,
+			'tax_query'      => array( array( 'taxonomy' => $tax, 'terms' => $t->term_id, 'include_children' => false ) ),
+		) );
+		if ( ! $q->have_posts() ) {
+			continue;
+		}
+		$cnt    = $q->post_count;
+		$total += $cnt;
+		$cards  = '';
+		while ( $q->have_posts() ) {
+			$q->the_post();
+			$pid   = get_the_ID();
+			$mx    = function_exists( 'ricoman_pf_metrics' ) ? ricoman_pf_metrics( $pid ) : array( 'lm' => 0, 'w' => 0, 'feats' => array() );
+			$maxlm = max( $maxlm, $mx['lm'] );
+			$maxw  = max( $maxw, $mx['w'] );
+			$fslug = array();
+			foreach ( $mx['feats'] as $f ) {
+				$allfeat[ $f ] = true;
+				$fslug[]       = sanitize_title( $f );
+			}
+			// Prefer the precomputed image/subtitle in the metrics record so the
+			// catalogue loop makes no live ACF calls (the old per-product
+			// get_field() calls were the ~40s cost). Fall back to live lookups
+			// only until the background builder has populated the record.
+			$img   = ( isset( $mx['img'] ) && '' !== $mx['img'] ) ? $mx['img'] : ricoman_product_img( $pid );
+			$sub   = isset( $mx['sub'] ) ? $mx['sub'] : ( function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( $pid, 'product_subname' ) : '' );
+			// Lazy background: keep the image URL in data-bg (loaded on scroll by
+			// rmLazyBg) instead of an inline background-image. With ~500 cards the
+			// inline backgrounds made the page very heavy and made the cache/optimiser
+			// choke; data-bg keeps the markup light and loads images as you scroll.
+			$style = $img ? ' data-bg="' . esc_url( $img ) . '"' : '';
+			$meta  = array();
+			if ( $mx['lm'] ) { $meta[] = number_format( $mx['lm'] ) . ' lm'; }
+			if ( $mx['w'] ) { $meta[] = $mx['w'] . 'W'; }
+			$cards .= '<a class="rm-projcard rm-fcard rm-lazybg" href="' . esc_url( get_permalink() ) . '"'
+				. ' data-lm="' . (int) $mx['lm'] . '" data-w="' . (int) $mx['w'] . '" data-feat="' . esc_attr( implode( ' ', $fslug ) ) . '"' . $style . '>'
+				. '<span class="rm-projcard-ov">'
+				. ( $sub ? '<span class="rm-eyebrow">' . esc_html( $sub ) . '</span>' : '' )
+				. '<span class="rm-projcard-t">' . esc_html( get_the_title() ) . '</span>'
+				. ( $meta ? '<span class="rm-fcard-meta">' . esc_html( implode( ' · ', $meta ) ) . '</span>' : '' )
+				. '</span></a>';
+		}
+		wp_reset_postdata();
+		$sections .= '<section class="rm-catsec" data-cat="' . esc_attr( $t->slug ) . '"><div class="rm-catsec-head"><h2 class="rm-shead">' . esc_html( $t->name )
+			. ' <span class="rm-catarch-count">' . (int) $cnt . '</span></h2>'
+			. '<a class="rm-catsec-all" href="' . esc_url( get_term_link( $t ) ) . '">Filter &amp; order codes →</a></div>'
+			. '<div class="rm-projgrid rm-prodgrid rm-fgrid">' . $cards . '</div></section>';
+	}
+
+	// Filter bar (rounded up sensible ranges).
+	$maxlm = $maxlm > 0 ? (int) ( ceil( $maxlm / 500 ) * 500 ) : 0;
+	$maxw  = $maxw > 0 ? (int) ( ceil( $maxw / 5 ) * 5 ) : 0;
+	ksort( $allfeat );
+	$excluded = function_exists( 'ricoman_pf_excluded_features' ) ? ricoman_pf_excluded_features() : array();
+	$ticks    = '';
+	foreach ( array_keys( $allfeat ) as $f ) {
+		// Skip junk labels (numbers / single chars) and the excluded set.
+		if ( ! preg_match( '/[a-z]{2,}/i', (string) $f ) || in_array( $f, $excluded, true ) ) {
+			continue;
+		}
+		$ticks .= '<label class="rm-ftick"><input type="checkbox" value="' . esc_attr( sanitize_title( $f ) ) . '"> ' . esc_html( $f ) . '</label>';
+	}
+	// Dual-range (min + max) sliders for light output and power.
+	$lmS = $maxlm ? '<div class="rm-frange rm-dual"><label>Light output <b class="rm-lm-lo">0</b> – <b class="rm-lm-hi">' . $maxlm . '</b> lm</label>'
+		. '<div class="rm-dual-track">'
+		. '<input type="range" class="rm-lm-min" aria-label="Minimum light output (lumens)" min="0" max="' . $maxlm . '" step="100" value="0">'
+		. '<input type="range" class="rm-lm-max" aria-label="Maximum light output (lumens)" min="0" max="' . $maxlm . '" step="100" value="' . $maxlm . '"></div></div>' : '';
+	$wS  = $maxw ? '<div class="rm-frange rm-dual"><label>Power <b class="rm-w-lo">0</b> – <b class="rm-w-hi">' . $maxw . '</b> W</label>'
+		. '<div class="rm-dual-track">'
+		. '<input type="range" class="rm-w-min" aria-label="Minimum power (watts)" min="0" max="' . $maxw . '" step="1" value="0">'
+		. '<input type="range" class="rm-w-max" aria-label="Maximum power (watts)" min="0" max="' . $maxw . '" step="1" value="' . $maxw . '"></div></div>' : '';
+	$filter = ( $lmS || $wS || $ticks )
+		? '<div class="rm-catfilter"><div class="rm-catfilter-ranges">' . $lmS . $wS . '</div>'
+			. ( $ticks ? '<div class="rm-catfilter-ticks"><span class="rm-facets-sub">Features</span>' . $ticks . '</div>' : '' )
+			. '<button type="button" class="rm-fclear">Clear</button></div>'
+		: '';
+	// Collapsible on mobile (open by default on desktop via CSS), so the product
+	// grid is reachable without scrolling past the whole filter panel.
+	$bar = $filter
+		? '<details class="rm-catfilter-d"><summary class="rm-catfilter-sum"><span>Filter products</span><span class="rm-catfilter-caret" aria-hidden="true"></span></summary>' . $filter . '</details>'
+		: '';
+
+	$out  = '<div class="rm-pp-wrap rm-catwide">' . $nav . $bar
+		. '<p class="rm-fcount"><b>' . (int) $total . '</b> products</p>' . $sections
+		. '<p class="rm-fnone" hidden>No products match those filters. <button type="button" class="rm-fclear">Clear filters</button></p></div>';
+
+	// Filtering is wired up by the enqueued product-gallery.js (rmCatFilterInit),
+	// keyed off .rm-catwide — reliable regardless of where the markup lands.
+	update_option( 'rm_catalogue_cache', array( 'ver' => (string) $ver, 'html' => $out ), false );
+	return $out;
+}
+
+/* ---------------------------------------------------------------------------
+ * Admin: a quick "Hide drafts" toggle on the Products list.
+ *
+ * WordPress already has the Published / Drafts status tabs, but a one-click
+ * checkbox on the default "All" view is friendlier for the team (the catalogue
+ * carries 50+ draft variants). Ticking it drops drafts from the list; it has no
+ * effect on the Drafts tab itself (where you've explicitly asked for them).
+ * ------------------------------------------------------------------------- */
+add_action( 'restrict_manage_posts', function ( $post_type ) {
+	if ( 'product' !== $post_type ) {
+		return;
+	}
+	// Moot on a specific status tab (Drafts / Published / Pending …).
+	if ( ! empty( $_GET['post_status'] ) ) {
+		return;
+	}
+	$on = ! empty( $_GET['rm_hide_drafts'] );
+	echo '<label class="rm-hide-drafts" style="display:inline-flex;align-items:center;gap:5px;height:32px;vertical-align:top;margin:0 4px">'
+		. '<input type="checkbox" name="rm_hide_drafts" value="1"' . checked( $on, true, false ) . ' onchange="this.form.submit()"> '
+		. esc_html__( 'Hide drafts', 'ricoman' ) . '</label>';
+} );
+
+/**
+ * Front-end search: return only real content — products, projects and news.
+ * WordPress' default search also pulls in pages (thank-you, login, form pages,
+ * etc.), which cluttered the results, so we scope search to the content types.
+ */
+add_action( 'pre_get_posts', function ( $q ) {
+	if ( is_admin() || ! $q->is_main_query() || ! $q->is_search() ) {
+		return;
+	}
+	$q->set( 'post_type', array( 'product', 'project', 'news' ) );
+} );
+
+add_action( 'pre_get_posts', function ( $q ) {
+	if ( ! is_admin() || ! $q->is_main_query() || 'product' !== $q->get( 'post_type' ) ) {
+		return;
+	}
+	// Respect an explicit status tab; only filter the "All" view.
+	if ( empty( $_GET['rm_hide_drafts'] ) || ! empty( $_GET['post_status'] ) ) {
+		return;
+	}
+	$q->set( 'post_status', array( 'publish', 'future', 'pending', 'private' ) );
+} );
+

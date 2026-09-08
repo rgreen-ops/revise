@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neptune — Ricoman</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#ffffff; --soft:#f4f3f1; --line:#e7e5e1; --ink:#0b0b0c;
+  --text:#16161a; --muted:#8c8b86; --faint:#b6b4ae; --blue:#1d4ed8; --accent:#1d4ed8;
+  --wide:1440px; --pad:clamp(20px,4vw,72px);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Poppins,system-ui,sans-serif;color:var(--text);background:var(--paper);line-height:1.72;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:Poppins,sans-serif;color:var(--ink);margin:0;font-weight:600;letter-spacing:-.035em;line-height:1}
+a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
+.wrap{max-width:var(--wide);margin:0 auto;padding-inline:var(--pad)}
+.kick{font-family:Poppins;text-transform:uppercase;letter-spacing:.32em;font-size:.66rem;font-weight:600;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;gap:.8em;font-family:Poppins;font-weight:600;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;padding:1.15em 2em;border:1px solid transparent;cursor:pointer;transition:.3s}
+.btn-solid{background:var(--ink);color:#fff}.btn-solid:hover{background:var(--blue)}
+.btn-line-d{border-color:#d2cfc9;color:var(--ink)}.btn-line-d:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+.util{background:var(--ink);color:rgba(255,255,255,.55);font-family:Poppins;font-size:.66rem;letter-spacing:.16em;text-transform:uppercase}
+.util .wrap{display:flex;justify-content:space-between;height:38px;align-items:center}
+@media(max-width:680px){.util .wrap span:first-child{display:none}}
+
+header.site{position:sticky;top:0;z-index:50;background:var(--ink)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:80px;color:#fff}
+.brand{font-family:Poppins;font-weight:700;letter-spacing:.3em;font-size:1.1rem}
+.brand sup{font-size:.5em;top:-1em}
+.nav ul{display:flex;gap:42px;list-style:none;margin:0;padding:0;font-family:Poppins;font-size:.72rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase}
+.nav ul a{color:rgba(255,255,255,.82)}.nav ul a:hover{color:#fff}
+.tbox{font-family:Poppins;font-weight:600;font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;border:1px solid rgba(255,255,255,.35);padding:.85em 1.5em;border-radius:999px;color:#fff}
+@media(max-width:1024px){.nav ul,.tbox{display:none}}
+
+.crumb{font-family:Poppins;font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);padding:30px 0}
+.crumb a:hover{color:var(--accent)} .crumb .sep{color:var(--line);margin:0 .7em}
+
+.product{display:grid;grid-template-columns:1.1fr 1fr;gap:clamp(34px,6vw,110px);align-items:start;padding-bottom:clamp(50px,7vw,100px)}
+@media(max-width:860px){.product{grid-template-columns:1fr}}
+.media{position:sticky;top:100px}
+.shot{width:100%;aspect-ratio:1;object-fit:cover;background:var(--soft)}
+.thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}
+.thumbs img{width:100%;aspect-ratio:1;object-fit:cover;background:var(--soft);opacity:.72;cursor:pointer}
+.thumbs img:first-child{opacity:1;outline:1px solid var(--ink);outline-offset:2px}
+
+.pname{font-size:clamp(3rem,6.5vw,5.5rem);margin:.22em 0 .3em;letter-spacing:-.045em;font-weight:500}
+.pdesc{color:var(--muted);font-size:1.18rem;margin:0 0 2em;max-width:40ch}
+.chiprow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:2.2em}
+.chip{font-family:Poppins;font-weight:600;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;border:1px solid var(--line);border-radius:999px;padding:.6em 1.2em;color:var(--ink)}
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:2.6em}
+.spec{width:100%;border-collapse:collapse}
+.spec th,.spec td{text-align:left;padding:1.05em 0;border-bottom:1px solid var(--line);font-size:.95rem}
+.spec th{color:var(--muted);font-weight:400;width:46%}
+.spec td{font-family:Poppins;font-weight:600;color:var(--ink)}
+
+.varsblock{border-top:1px solid var(--line);padding:clamp(54px,7vw,100px) 0}
+.sectlabel{font-family:Poppins;font-weight:600;font-size:1.5rem;letter-spacing:-.02em;margin-bottom:1.2em}
+.vars{width:100%;border-collapse:collapse}
+.vars thead th{border-bottom:1.5px solid var(--ink);color:var(--ink);padding:1em 0;font-family:Poppins;font-size:.66rem;text-align:left;letter-spacing:.18em;text-transform:uppercase}
+.vars td{padding:1.1em 0;border-bottom:1px solid var(--line);font-size:.92rem}
+.vars td:first-child{font-family:Poppins;font-weight:600}
+
+footer.site{background:var(--ink);color:rgba(255,255,255,.5);padding:64px 0;font-family:Poppins;font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;margin-top:10px}
+footer .row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:20px;align-items:center}
+footer .brand{color:#fff;letter-spacing:.3em}
+.tag{position:fixed;left:14px;bottom:14px;z-index:99;background:var(--ink);color:#fff;font-family:Poppins;font-weight:600;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;padding:.6em 1.1em;border-radius:999px;border:1px solid rgba(255,255,255,.25)}
+</style>
+</head>
+<body>
+<div class="tag">Preview · Neptune — simple template</div>
+
+<div class="util"><div class="wrap"><span>Designed &amp; manufactured in Manchester, UK</span><span>Specify · Datasheets · BIM →</span></div></div>
+
+<header class="site"><div class="wrap nav">
+  <div class="brand">RICOMAN<sup>®</sup></div>
+  <ul><li><a>Products</a></li><li><a>Projects</a></li><li><a>Lighting Design</a></li><li><a>About</a></li></ul>
+  <a class="tbox">＋ My Project</a>
+</div></header>
+
+<div class="wrap crumb"><a>Home</a><span class="sep">/</span><a>Products</a><span class="sep">/</span><a>Downlights</a><span class="sep">/</span><span>Neptune</span></div>
+
+<section class="wrap product">
+  <div class="media">
+    <img class="shot" src="img/ceiling.jpg" alt="Neptune downlight installed">
+    <div class="thumbs">
+      <img src="img/ceiling.jpg" alt=""><img src="img/light-a.jpg" alt=""><img src="img/office2.jpg" alt=""><img src="img/build.jpg" alt="">
+    </div>
+  </div>
+  <div class="details">
+    <span class="kick">Downlights — Fixed</span>
+    <h1 class="pname">Neptune</h1>
+    <p class="pdesc">A clean, fire-rated LED downlight with switchable CCT and wattage — the dependable workhorse for offices, retail and healthcare ceilings.</p>
+    <div class="chiprow">
+      <span class="chip">Fire-rated</span><span class="chip">Switchable CCT</span><span class="chip">IP65 front</span><span class="chip">CRI 90</span>
+    </div>
+    <div class="actions">
+      <a class="btn btn-solid">＋ Add to My Project</a>
+      <a class="btn btn-line-d">Datasheet ↓</a>
+    </div>
+    <table class="spec"><tbody>
+      <tr><th>Order code</th><td>NEP-DL-08</td></tr>
+      <tr><th>Wattage</th><td>6 / 8 / 10 W switchable</td></tr>
+      <tr><th>Output</th><td>up to 1050 lm</td></tr>
+      <tr><th>CCT</th><td>3000K / 4000K / 6000K</td></tr>
+      <tr><th>CRI</th><td>90</td></tr>
+      <tr><th>Beam angle</th><td>60°</td></tr>
+      <tr><th>IP rating</th><td>IP65 (front)</td></tr>
+      <tr><th>Cut-out</th><td>68–75 mm</td></tr>
+      <tr><th>Origin</th><td>Made in Manchester, UK</td></tr>
+      <tr><th>Warranty</th><td>5 years</td></tr>
+    </tbody></table>
+  </div>
+</section>
+
+<section class="wrap varsblock">
+  <div class="sectlabel">Ordering &amp; variants</div>
+  <table class="vars">
+    <thead><tr><th>Order code</th><th>Description</th><th>Watts</th><th>Lumens</th><th>CCT</th></tr></thead>
+    <tbody>
+      <tr><td>NEP-DL-08-WH</td><td>Neptune downlight, white bezel</td><td>6/8/10</td><td>1050 lm</td><td>3/4/6000K</td></tr>
+      <tr><td>NEP-DL-08-BK</td><td>Neptune downlight, black bezel</td><td>6/8/10</td><td>1050 lm</td><td>3/4/6000K</td></tr>
+      <tr><td>NEP-DL-08-EM</td><td>Neptune downlight, emergency</td><td>8</td><td>820 lm</td><td>4000K</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<footer class="site"><div class="wrap row">
+  <div class="brand">RICOMAN<sup>®</sup></div>
+  <div>Metroplex Business Park · 520 Broadway · M50 2UE · Manchester · 0161 451 5913</div>
+  <div>© 2026 Ricoman Ltd</div>
+</div></footer>
+</body>
+</html>
