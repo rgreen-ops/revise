@@ -143,7 +143,7 @@ add_action( 'save_post', function ( $pid, $post ) {
 
 /** Normalise the requested field list (default = the lot). */
 function ricoman_staff_fields_list( $fields ) {
-	$all = array( 'photo', 'name', 'title', 'email', 'phone', 'bio' );
+	$all = array( 'photo', 'name', 'title', 'email', 'phone', 'bio', 'blurb' );
 	$fields = trim( (string) $fields );
 	if ( '' === $fields ) {
 		return array( 'photo', 'name', 'title', 'email', 'phone' );
@@ -197,6 +197,13 @@ function ricoman_staff_card( $id, $fields = '', $linked = true ) {
 		$bio = get_post_field( 'post_content', $id );
 		if ( '' !== trim( (string) $bio ) ) {
 			$h .= '<div class="rm-staff-bio">' . wp_kses_post( wpautop( $bio ) ) . '</div>';
+		}
+	}
+	// A short one-line blurb (trimmed from the bio) for compact cards.
+	if ( in_array( 'blurb', $show, true ) ) {
+		$bio = trim( wp_strip_all_tags( (string) get_post_field( 'post_content', $id ) ) );
+		if ( '' !== $bio ) {
+			$h .= '<p class="rm-staff-blurb">' . esc_html( wp_trim_words( $bio, 28, '…' ) ) . '</p>';
 		}
 	}
 	$h .= '</div></div>';

@@ -253,7 +253,7 @@ add_shortcode( 'ricoman_region_projects', function ( $atts ) {
 
 /** Local agent card(s) for a region, with a default-contact fallback. [ricoman_region_agents region="…" heading="…"] */
 add_shortcode( 'ricoman_region_agents', function ( $atts ) {
-	$atts = shortcode_atts( array( 'region' => '', 'heading' => '', 'fields' => 'photo,name,title,email,phone' ), $atts, 'ricoman_region_agents' );
+	$atts = shortcode_atts( array( 'region' => '', 'heading' => '', 'fields' => 'photo,name,title,email,phone,blurb' ), $atts, 'ricoman_region_agents' );
 	$term = ricoman_region_term( $atts['region'] );
 	$ids  = ricoman_region_agent_ids( $term );
 	if ( ! $ids || ! function_exists( 'ricoman_staff_card' ) ) {
@@ -307,6 +307,7 @@ add_action( 'wp_head', function () {
 		. '.rm-region-contact-copy .rm-projshow-title{margin:0 0 .5em}'
 		. '.rm-region-contact-intro{color:var(--muted);max-width:44ch}'
 		. '@media(max-width:820px){.rm-region-contact-in{grid-template-columns:1fr;gap:22px}}'
+		. '.rm-staff-blurb{font-size:.85rem;line-height:1.4;color:var(--muted);margin:.5em 0 0}'
 		. '</style>';
 } );
 
@@ -378,41 +379,21 @@ add_action( 'init', function () {
 			. '</div><!-- /wp:group -->';
 	};
 
-	// Editable "meet your local contact" image + short intro (native blocks).
-	$teamintro = '<!-- wp:group {"align":"full","className":"rm-section","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-section">'
-		. '<!-- wp:columns {"verticalAlignment":"center"} --><div class="wp-block-columns are-vertically-aligned-center">'
-		. '<!-- wp:column {"verticalAlignment":"center","width":"40%"} --><div class="wp-block-column is-vertically-aligned-center" style="flex-basis:40%">'
-		. '<!-- wp:image {"sizeSlug":"large"} --><figure class="wp-block-image size-large"><img src="' . $hero_img . '" alt=""/></figure><!-- /wp:image -->'
-		. '</div><!-- /wp:column -->'
-		. '<!-- wp:column {"verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center">'
-		. '<!-- wp:heading {"level":2,"className":"rm-projshow-title"} --><h2 class="wp-block-heading rm-projshow-title">Meet your local contact</h2><!-- /wp:heading -->'
-		. '<!-- wp:paragraph --><p>A short introduction to your team member — who they are, their experience, and how they help specifiers, contractors and clients with projects in the region. Swap the photo and edit this copy.</p><!-- /wp:paragraph -->'
-		. '</div><!-- /wp:column -->'
-		. '</div><!-- /wp:columns -->'
-		. '</div><!-- /wp:group -->';
-
 	$content  = $hero;
 	$content .= "\n\n" . $intro;
 	$content .= "\n\n" . $full( '[ricoman_sector_trust]' );
 	$content .= "\n\n" . $full( '[ricoman_region_projects region="' . esc_attr( $slug ) . '"]' );
 	$content .= "\n\n" . $full( '[ricoman_region_agents region="' . esc_attr( $slug ) . '"]' );
-	$content .= "\n\n" . $teamintro;
 	$content .= "\n\n" . $full( '[ricoman_region_contact region="' . esc_attr( $slug ) . '"]' );
 
 	register_block_pattern( 'ricoman/region-landing', array(
 		'title'       => __( 'Region · Landing page', 'ricoman' ),
-		'description' => __( 'A regional ad landing page: an editable banner (image, text, buttons), intro, trust bar, that region’s projects, the local agent, an editable “meet your contact” image+text, and a contact form (set the region slug in the shortcode blocks, e.g. region="north-west"). The full-bleed, no-title layout is applied automatically.', 'ricoman' ),
+		'description' => __( 'A regional ad landing page: an editable banner (image, text, buttons), intro, trust bar, that region’s projects, the local team (each member shows a short blurb from their bio), and a contact form (set the region slug in the shortcode blocks, e.g. region="north-west"). The full-bleed, no-title layout is applied automatically.', 'ricoman' ),
 		'categories'  => array( 'ricoman-page' ),
 		'content'     => $content,
 	) );
 
-	// Standalone pieces so they can be dropped onto an existing region page.
-	register_block_pattern( 'ricoman/region-team-intro', array(
-		'title'       => __( 'Region · Team intro (image + text)', 'ricoman' ),
-		'description' => __( 'An editable image + short introduction for your local team member. Swap the image and edit the copy.', 'ricoman' ),
-		'categories'  => array( 'ricoman-page' ),
-		'content'     => $teamintro,
-	) );
+	// Standalone contact form so it can be dropped onto an existing region page.
 	register_block_pattern( 'ricoman/region-contact', array(
 		'title'       => __( 'Region · Contact form', 'ricoman' ),
 		'description' => __( 'The contact-page enquiry form with a region heading (“Have a project in the …?”); leads are tagged to the region. Set the region slug in the shortcode block.', 'ricoman' ),
