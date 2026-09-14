@@ -54,6 +54,7 @@ add_action( 'init', function () {
 function ricoman_regions_default() {
 	return apply_filters( 'ricoman_regions_default', array(
 		'north-west'       => 'North West',
+		'north-east'       => 'North East',
 		'midlands'         => 'Midlands',
 		'london'           => 'London',
 		'south'            => 'South',
@@ -67,7 +68,9 @@ function ricoman_regions_default() {
 
 // Seed the region terms once (create-only — never clobbers renamed/added terms).
 add_action( 'admin_init', function () {
-	if ( get_option( 'ricoman_regions_seeded_v1' ) ) {
+	// Bump this version when adding new default regions so existing sites pick up
+	// the additions (create-only — term_exists guards the ones already there).
+	if ( get_option( 'ricoman_regions_seeded_v2' ) ) {
 		return;
 	}
 	if ( ! taxonomy_exists( 'region' ) ) {
@@ -78,7 +81,7 @@ add_action( 'admin_init', function () {
 			wp_insert_term( $name, 'region', array( 'slug' => $slug ) );
 		}
 	}
-	update_option( 'ricoman_regions_seeded_v1', '1' );
+	update_option( 'ricoman_regions_seeded_v2', '1' );
 } );
 
 /* ---------------------------------------------------------------------------
