@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 add_action( 'init', function () {
 	register_taxonomy(
 		'collection',
-		'product',
+		array( 'product', 'project' ),
 		array(
 			'labels'            => array(
 				'name'          => __( 'Collections', 'ricoman' ),
@@ -787,4 +787,58 @@ add_action( 'init', function () {
 		'categories'  => array( 'ricoman-page' ),
 		'content'     => $content,
 	) );
+
+	// "Projects using this range" — carousel of projects tagged with the collection.
+	$cslugs = get_terms( array( 'taxonomy' => 'collection', 'hide_empty' => false, 'number' => 1, 'fields' => 'slugs' ) );
+	$ex     = ( ! is_wp_error( $cslugs ) && $cslugs ) ? $cslugs[0] : 'your-collection';
+	register_block_pattern( 'ricoman/collection-projects', array(
+		'title'       => __( 'Collection · Projects using this range', 'ricoman' ),
+		'description' => __( 'A carousel of projects that used this collection. Tag projects with the collection (Projects → edit → Collections box), then set the collection slug in the shortcode (on the collection’s own landing page it auto-detects).', 'ricoman' ),
+		'categories'  => array( 'ricoman-page' ),
+		'content'     => '<!-- wp:shortcode -->[ricoman_collection_projects collection="' . esc_attr( $ex ) . '"]<!-- /wp:shortcode -->',
+	) );
 }, 14 );
+
+/** [ricoman_collection_projects collection="slug" heading="…" limit="8"] — projects tagged with a collection, as the projects carousel. */
+add_shortcode( 'ricoman_collection_projects', function ( $atts ) {
+	$atts = shortcode_atts( array( 'collection' => '', 'heading' => '', 'limit' => 8 ), $atts, 'ricoman_collection_projects' );
+	$tid  = 0;
+	if ( '' !== trim( (string) $atts['collection'] ) ) {
+		$t = get_term_by( 'slug', sanitize_title( $atts['collection'] ), 'collection' );
+		if ( ! $t ) {
+			$t = get_term_by( 'name', $atts['collection'], 'collection' );
+		}
+		if ( $t instanceof WP_Term ) {
+			$tid = (int) $t->term_id;
+		}
+	} else {
+		$q = get_queried_object();
+		if ( $q instanceof WP_Term && 'collection' === $q->taxonomy ) {
+			$tid = (int) $q->term_id;
+		}
+	}
+	if ( ! $tid || ! function_exists( 'ricoman_projects_showcase_sc' ) ) {
+		return '';
+	}
+	$term = get_term( $tid, 'collection' );
+	$ids  = get_posts( array(
+		'post_type'      => 'project',
+		'post_status'    => 'publish',
+		'numberposts'    => max( 1, (int) $atts['limit'] ),
+		'fields'         => 'ids',
+		'no_found_rows'  => true,
+		'orderby'        => array( 'menu_order' => 'ASC', 'date' => 'DESC' ),
+		'tax_query'      => array( array( 'taxonomy' => 'collection', 'terms' => $tid ) ),
+	) );
+	if ( ! $ids ) {
+		return '';
+	}
+	$heading = '' !== trim( (string) $atts['heading'] ) ? $atts['heading']
+		: sprintf( __( 'Projects using %s', 'ricoman' ), ( $term instanceof WP_Term ? $term->name : __( 'this range', 'ricoman' ) ) );
+	return ricoman_projects_showcase_sc( array(
+		'ids'        => implode( ',', array_map( 'intval', $ids ) ),
+		'heading'    => $heading,
+		'link'       => '',
+		'link_label' => '',
+	) );
+} );
