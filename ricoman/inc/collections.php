@@ -734,3 +734,57 @@ function ricoman_sku_find_ajax() {
 }
 add_action( 'wp_ajax_rm_sku_find', 'ricoman_sku_find_ajax' );
 add_action( 'wp_ajax_nopriv_rm_sku_find', 'ricoman_sku_find_ajax' );
+
+/* ---------------------------------------------------------------------------
+ * "Options table" pattern — a photo + info comparison table for a collection's
+ * options (e.g. the Estrella optics). Built from core Columns so it's fully
+ * editable inline (swap each photo, edit each cell, duplicate a row to add an
+ * option) and validates cleanly. Style loads on front + editor.
+ * ------------------------------------------------------------------------- */
+add_action( 'enqueue_block_assets', function () {
+	$css = '.rm-opt-row{border-bottom:1px solid var(--line,#e6e4de);padding-top:14px;padding-bottom:14px}'
+		. '.rm-opt-head{border-bottom:2px solid var(--ink,#16161a)}'
+		. '.rm-opt-h{font-family:Poppins,sans-serif;font-weight:700;font-size:.9rem;margin:0}'
+		. '.rm-opt-img img{width:72px;height:72px;object-fit:cover;border-radius:8px;display:block}'
+		. '.rm-opt-name{font-family:Poppins,sans-serif;font-weight:600;font-size:1rem;margin:8px 0 0}'
+		. '.rm-opt-row .wp-block-column>p{margin:0;font-size:.92rem;line-height:1.4}'
+		. '@media(max-width:781px){.rm-opt-head{display:none}.rm-opt-name{font-size:1.1rem}}';
+	wp_register_style( 'ricoman-collections-inline', false );
+	wp_enqueue_style( 'ricoman-collections-inline' );
+	wp_add_inline_style( 'ricoman-collections-inline', $css );
+} );
+
+add_action( 'init', function () {
+	if ( ! function_exists( 'register_block_pattern' ) ) {
+		return;
+	}
+	$img = esc_url( get_theme_file_uri( 'assets/images/office1.webp' ) );
+	$col = function ( $w, $inner ) {
+		return '<!-- wp:column {"width":"' . $w . '"} --><div class="wp-block-column" style="flex-basis:' . $w . '">' . $inner . '</div><!-- /wp:column -->';
+	};
+	$p    = function ( $t ) { return '<!-- wp:paragraph --><p>' . $t . '</p><!-- /wp:paragraph -->'; };
+	$hc   = function ( $t ) { return '<!-- wp:paragraph {"className":"rm-opt-h"} --><p class="rm-opt-h">' . $t . '</p><!-- /wp:paragraph -->'; };
+	$name = function ( $n ) use ( $img ) {
+		return '<!-- wp:image {"sizeSlug":"thumbnail","className":"rm-opt-img"} --><figure class="wp-block-image size-thumbnail rm-opt-img"><img src="' . $img . '" alt=""/></figure><!-- /wp:image -->'
+			. '<!-- wp:heading {"level":4,"className":"rm-opt-name"} --><h4 class="wp-block-heading rm-opt-name">' . $n . '</h4><!-- /wp:heading -->';
+	};
+	$row = function ( $c1, $c2, $c3, $c4, $c5 ) use ( $col ) {
+		return '<!-- wp:columns {"verticalAlignment":"center","className":"rm-opt-row"} --><div class="wp-block-columns are-vertically-aligned-center rm-opt-row">'
+			. $col( '22%', $c1 ) . $col( '30%', $c2 ) . $col( '16%', $c3 ) . $col( '16%', $c4 ) . $col( '16%', $c5 )
+			. '</div><!-- /wp:columns -->';
+	};
+
+	$content  = '<!-- wp:columns {"className":"rm-opt-row rm-opt-head"} --><div class="wp-block-columns rm-opt-row rm-opt-head">'
+		. $col( '22%', $hc( 'Optic' ) ) . $col( '30%', $hc( 'Best for' ) ) . $col( '16%', $hc( 'Efficacy' ) ) . $col( '16%', $hc( 'Glare (UGR)' ) ) . $col( '16%', $hc( 'Beam' ) )
+		. '</div><!-- /wp:columns -->';
+	$content .= "\n\n" . $row( $name( 'Opal' ), $p( 'General area lighting, high uniformity' ), $p( 'Up to 120 lm/W' ), $p( '&lt;24' ), $p( '100°' ) );
+	$content .= "\n\n" . $row( $name( 'Square Aperture' ), $p( 'Offices, meeting rooms, screen-based spaces' ), $p( 'Up to 125 lm/W' ), $p( '&lt;14' ), $p( '90°' ) );
+	$content .= "\n\n" . $row( $name( 'Wallwash' ), $p( 'Feature walls, retail displays, accent lighting' ), $p( 'Up to 116 lm/W' ), $p( '&lt;22' ), $p( '60°' ) );
+
+	register_block_pattern( 'ricoman/collection-options-table', array(
+		'title'       => __( 'Collection · Options table (photo + info)', 'ricoman' ),
+		'description' => __( 'A comparison table of a collection’s options — a photo + name and a few info columns per row. Swap each photo, edit the cells, and duplicate a row to add an option (or edit the header labels for different specs).', 'ricoman' ),
+		'categories'  => array( 'ricoman-page' ),
+		'content'     => $content,
+	) );
+}, 14 );
