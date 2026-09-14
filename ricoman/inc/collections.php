@@ -372,7 +372,7 @@ function ricoman_collection_card_html( $term ) {
 	// "Browse products" opens the normal Products page filtered to this collection
 	// (same grid + filters as /products/, just this collection's products).
 	$archive = get_post_type_archive_link( 'product' );
-	$browse  = add_query_arg( 'collection', $term->slug, $archive ? $archive : home_url( '/products/' ) );
+	$browse  = add_query_arg( 'rm_collection', $term->slug, $archive ? $archive : home_url( '/products/' ) );
 
 	$h  = '<div class="rm-collcard">';
 	if ( $img ) {

@@ -182,9 +182,10 @@ add_shortcode( 'ricoman_all_products', function () {
 		 WHERE post_type = 'product' AND post_status = 'publish'
 		 ORDER BY menu_order ASC, post_title ASC"
 	);
-	// Optional collection filter: /products/?collection=<slug> shows only that
-	// collection's products in the normal grid (same filters + layout).
-	$rm_col_slug = isset( $_GET['collection'] ) ? sanitize_title( wp_unslash( $_GET['collection'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	// Optional collection filter: /products/?rm_collection=<slug> shows only that
+	// collection's products in the normal grid (same filters + layout). We use
+	// rm_collection (not "collection") to avoid WP treating it as a taxonomy archive.
+	$rm_col_slug = isset( $_GET['rm_collection'] ) ? sanitize_title( wp_unslash( $_GET['rm_collection'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	$rm_col_term = ( '' !== $rm_col_slug && taxonomy_exists( 'collection' ) ) ? get_term_by( 'slug', $rm_col_slug, 'collection' ) : null;
 	if ( $rm_col_term instanceof WP_Term ) {
 		$rm_col_obj = get_objects_in_term( $rm_col_term->term_id, 'collection' );
