@@ -628,9 +628,10 @@ CSS;
 	// A linked landing Page (built with patterns) powers the body when set;
 	// otherwise fall back to the simple body field. The page content renders at
 	// full width (outside .rm-pp-wrap) so full-bleed patterns work.
-	$lp    = (int) get_term_meta( $term->term_id, '_rm_col_landing_page', true );
-	$lpost = $lp ? get_post( $lp ) : null;
-	if ( $lpost instanceof WP_Post && 'trash' !== $lpost->post_status ) {
+	$lp          = (int) get_term_meta( $term->term_id, '_rm_col_landing_page', true );
+	$lpost       = $lp ? get_post( $lp ) : null;
+	$has_landing = ( $lpost instanceof WP_Post && 'trash' !== $lpost->post_status );
+	if ( $has_landing ) {
 		$mid       = apply_filters( 'the_content', $lpost->post_content );
 		$grid_here = has_shortcode( (string) $lpost->post_content, 'ricoman_collection_products' );
 	} else {
@@ -641,7 +642,13 @@ CSS;
 	// Products grid — appended unless the landing page already placed it.
 	$grid = $grid_here ? '' : ricoman_collection_products_html( $term->term_id );
 
-	return $css . '<div class="rm-pp-wrap rm-colpage">' . $hero . '</div>' . $mid . $grid;
+	// When a landing Page is linked it provides its own hero, so drop the
+	// built-in banner (filterable if a collection ever wants to keep both).
+	$show_hero = ! $has_landing;
+	$show_hero = (bool) apply_filters( 'ricoman_collection_show_hero', $show_hero, $term->term_id );
+	$hero_html = $show_hero ? '<div class="rm-pp-wrap rm-colpage">' . $hero . '</div>' : '';
+
+	return $css . $hero_html . $mid . $grid;
 } );
 
 /* ---------------------------------------------------------------------------
