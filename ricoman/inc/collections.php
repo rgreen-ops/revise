@@ -463,6 +463,12 @@ CSS;
         if(view === 'sku'){ var i = wrap.querySelector('.rm-skufind-in'); if(i){ setTimeout(function(){ i.focus(); }, 30); } }
       });
     });
+    // Open the Collections / SKU tab when linked directly (e.g. /products/#collections).
+    var h = (location.hash || '').replace('#','');
+    if(h === 'collections' || h === 'sku'){
+      var target = document.querySelector('.rm-pp-tab[data-view="'+h+'"]');
+      if(target){ target.click(); target.scrollIntoView({behavior:'smooth', block:'start'}); }
+    }
   }
   var input = document.querySelector('.rm-skufind-in');
   if(input){

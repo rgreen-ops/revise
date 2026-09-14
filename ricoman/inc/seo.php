@@ -745,6 +745,13 @@ function ricoman_breadcrumb_trail() {
 			'label' => __( 'Sectors', 'ricoman' ),
 			'url'   => $hub ? get_permalink( $hub ) : home_url( '/sectors/' ),
 		);
+	} elseif ( is_tax( 'collection' ) ) {
+		// Collections live as a tab on the Products page.
+		$archive = get_post_type_archive_link( 'product' );
+		$trail[] = array(
+			'label' => __( 'Collections', 'ricoman' ),
+			'url'   => ( $archive ? $archive : home_url( '/products/' ) ) . '#collections',
+		);
 	} elseif ( is_singular( 'project' ) || is_post_type_archive( 'project' ) ) {
 		$archive = get_post_type_archive_link( 'project' );
 		if ( $archive ) {
