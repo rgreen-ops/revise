@@ -377,7 +377,8 @@ function ricoman_collections_panel() {
 .rm-collgrid{display:none;grid-template-columns:repeat(3,1fr);gap:22px}
 .rm-view-coll .rm-collgrid{display:grid}
 .rm-view-coll .rm-catgrid-top,.rm-view-coll .rm-allpgrid,.rm-view-coll .rm-pgn,.rm-view-coll .rm-fnone{display:none!important}
-.rm-collcard{position:relative;display:flex;flex-direction:column;justify-content:flex-end;min-height:430px;border-radius:14px;overflow:hidden;background:#0e0e10;color:#fff}
+.rm-collcard{position:relative;display:flex;flex-direction:column;justify-content:flex-end;min-height:500px;border-radius:14px;overflow:hidden;background:#0e0e10;color:#fff}
+@media(max-width:768px){.rm-collcard{min-height:360px}}
 .rm-collcard-media{position:absolute;inset:0;background-size:cover;background-position:center;z-index:0}
 .rm-collcard::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.9),rgba(0,0,0,.25) 55%,rgba(0,0,0,0));z-index:1}
 .rm-collcard-body{position:relative;z-index:2;padding:24px}
@@ -386,8 +387,8 @@ function ricoman_collections_panel() {
 .rm-collcard-meta{font-size:.78rem;letter-spacing:.04em;color:rgba(255,255,255,.7);margin:0 0 18px}
 .rm-collcard-btns{display:flex;gap:10px;flex-wrap:wrap}
 .rm-collcard-btns a{font-family:Poppins;font-weight:600;font-size:.82rem;padding:10px 18px;border-radius:8px;text-decoration:none;transition:.2s}
-.rm-cbtn-primary{background:#2f6df6;color:#fff}
-.rm-cbtn-primary:hover{background:#255ad6}
+.rm-cbtn-primary{background:var(--blue,#004899);color:#fff}
+.rm-cbtn-primary:hover{background:var(--ink,#16161a)}
 .rm-cbtn-outline{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.5)}
 .rm-cbtn-outline:hover{background:rgba(255,255,255,.22)}
 @media(max-width:1100px){.rm-collgrid{grid-template-columns:repeat(2,1fr)}}
@@ -404,7 +405,7 @@ function ricoman_collections_panel() {
 .rm-skures:hover{border-color:var(--ink,#111);background:#fafafa}
 .rm-skures-code{font-family:Poppins;font-weight:600;font-size:.92rem;color:var(--ink,#111)}
 .rm-skures-prod{font-size:.85rem;color:#666}
-.rm-skures-go{font-size:.8rem;color:#2f6df6;font-weight:600;white-space:nowrap}
+.rm-skures-go{font-size:.8rem;color:var(--blue,#004899);font-weight:600;white-space:nowrap}
 </style>
 CSS;
 	$js = <<<'JS'
