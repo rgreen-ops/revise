@@ -195,6 +195,29 @@ function ricoman_col_img_control( $value ) {
 	return $out;
 }
 
+/** <option> list of Pages (publish/draft/private) for the collection landing-page picker. */
+function ricoman_col_landing_options( $selected ) {
+	$selected = (int) $selected;
+	$pages    = get_posts( array(
+		'post_type'   => 'page',
+		'post_status' => array( 'publish', 'draft', 'private' ),
+		'numberposts' => 300,
+		'orderby'     => 'title',
+		'order'       => 'ASC',
+		'fields'      => 'ids',
+	) );
+	$opts = '<option value="0">' . esc_html__( '— None (use the built-in layout) —', 'ricoman' ) . '</option>';
+	foreach ( (array) $pages as $pid ) {
+		$st    = get_post_status( $pid );
+		$label = get_the_title( $pid );
+		if ( 'publish' !== $st ) {
+			$label .= ' (' . $st . ')';
+		}
+		$opts .= '<option value="' . (int) $pid . '"' . selected( $selected, (int) $pid, false ) . '>' . esc_html( $label ) . '</option>';
+	}
+	return $opts;
+}
+
 add_action( 'admin_init', function () {
 	// Add-new term screen: stacked .form-field blocks.
 	add_action( 'collection_add_form_fields', function () {
@@ -210,6 +233,10 @@ add_action( 'admin_init', function () {
 		echo '<textarea name="_rm_col_body" id="_rm_col_body" rows="8"></textarea>';
 		echo '<p class="description">' . esc_html__( 'Longer copy for the "Know more" landing page. Basic HTML allowed.', 'ricoman' ) . '</p></div>';
 
+		echo '<div class="form-field"><label for="_rm_col_landing_page">' . esc_html__( 'Landing page (optional)', 'ricoman' ) . '</label>';
+		echo '<select name="_rm_col_landing_page" id="_rm_col_landing_page">' . ricoman_col_landing_options( 0 ) . '</select>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo '<p class="description">' . esc_html__( 'Build a Page with patterns, then pick it here to power the “Know more” page. The product grid is added automatically (or place it exactly where you want with a Shortcode block: [ricoman_collection_products]).', 'ricoman' ) . '</p></div>';
+
 		echo '<div class="form-field"><label for="_rm_col_order">' . esc_html__( 'Display order', 'ricoman' ) . '</label>';
 		echo '<input type="number" name="_rm_col_order" id="_rm_col_order" value="0" step="1" style="width:90px">';
 		echo '<p class="description">' . esc_html__( 'Lower numbers show first (0 = automatic).', 'ricoman' ) . '</p></div>';
@@ -221,6 +248,7 @@ add_action( 'admin_init', function () {
 		$desc  = (string) get_term_meta( $term->term_id, '_rm_col_desc', true );
 		$body  = (string) get_term_meta( $term->term_id, '_rm_col_body', true );
 		$order = (int) get_term_meta( $term->term_id, '_rm_col_order', true );
+		$lpage = (int) get_term_meta( $term->term_id, '_rm_col_landing_page', true );
 
 		echo '<tr class="form-field"><th scope="row"><label>' . esc_html__( 'Collection image', 'ricoman' ) . '</label></th><td>';
 		echo ricoman_col_img_control( $img ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -233,6 +261,10 @@ add_action( 'admin_init', function () {
 		echo '<tr class="form-field"><th scope="row"><label for="_rm_col_body">' . esc_html__( 'Landing page content', 'ricoman' ) . '</label></th><td>';
 		echo '<textarea name="_rm_col_body" id="_rm_col_body" rows="8" class="large-text">' . esc_textarea( $body ) . '</textarea>';
 		echo '<p class="description">' . esc_html__( 'Longer copy for the "Know more" landing page. Basic HTML allowed.', 'ricoman' ) . '</p></td></tr>';
+
+		echo '<tr class="form-field"><th scope="row"><label for="_rm_col_landing_page">' . esc_html__( 'Landing page (optional)', 'ricoman' ) . '</label></th><td>';
+		echo '<select name="_rm_col_landing_page" id="_rm_col_landing_page">' . ricoman_col_landing_options( $lpage ) . '</select>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo '<p class="description">' . esc_html__( 'Build a Page with patterns, then pick it here to power the “Know more” page. The product grid is added automatically (or place it exactly where you want with a Shortcode block: [ricoman_collection_products]). Tip: you can keep that Page as a Draft — this page still shows its content.', 'ricoman' ) . '</p></td></tr>';
 
 		echo '<tr class="form-field"><th scope="row"><label for="_rm_col_order">' . esc_html__( 'Display order', 'ricoman' ) . '</label></th><td>';
 		echo '<input type="number" name="_rm_col_order" id="_rm_col_order" value="' . esc_attr( $order ) . '" step="1" style="width:90px">';
@@ -263,6 +295,14 @@ function ricoman_collection_save_fields( $term_id ) {
 	}
 	if ( isset( $_POST['_rm_col_order'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 		update_term_meta( $term_id, '_rm_col_order', absint( $_POST['_rm_col_order'] ) ); // phpcs:ignore WordPress.Security.NonceVerification
+	}
+	if ( isset( $_POST['_rm_col_landing_page'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+		$lp = absint( $_POST['_rm_col_landing_page'] ); // phpcs:ignore WordPress.Security.NonceVerification
+		if ( $lp ) {
+			update_term_meta( $term_id, '_rm_col_landing_page', $lp );
+		} else {
+			delete_term_meta( $term_id, '_rm_col_landing_page' );
+		}
 	}
 	// Bust cached collection counts / product tiles.
 	$ver = (int) get_option( 'rm_products_ver', 1 );
@@ -465,10 +505,78 @@ JS;
 	return $css . '<div class="rm-collgrid">' . $cards . '</div>' . $sku . $js;
 }
 
+/**
+ * The collection's product grid — shared by the landing page and the
+ * [ricoman_collection_products] block so it can sit among page patterns.
+ */
+function ricoman_collection_products_html( $term_id, $heading = '' ) {
+	$term_id = (int) $term_id;
+	if ( ! $term_id ) {
+		return '';
+	}
+	$prods = ricoman_collection_products( $term_id );
+	if ( empty( $prods ) ) {
+		return '';
+	}
+	$cards = '';
+	foreach ( $prods as $pid ) {
+		$pimg = function_exists( 'ricoman_product_img' ) ? ricoman_product_img( $pid ) : (string) get_the_post_thumbnail_url( $pid, 'large' );
+		$sub  = function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( $pid, 'product_subname' ) : '';
+		$mx   = function_exists( 'ricoman_pf_metrics' ) ? ricoman_pf_metrics( $pid ) : array( 'lm' => 0, 'w' => 0, 'co' => 0, 'feats' => array() );
+		$fins = function_exists( 'ricoman_pcard_finish_slugs' ) ? ricoman_pcard_finish_slugs( $pid ) : array();
+		if ( function_exists( 'ricoman_pcard_html' ) ) {
+			$cards .= ricoman_pcard_html( get_permalink( $pid ), $pid, $pimg, $sub, $mx, (int) ( $mx['co'] ?? 0 ), array(), array(), array(), $fins );
+		}
+	}
+	if ( '' === $cards ) {
+		return '';
+	}
+	$h   = '' !== trim( (string) $heading ) ? $heading : __( 'Products in this collection', 'ricoman' );
+	$css = <<<'CSS'
+<style>
+.rm-colpage-grid-wrap{max-width:1200px;margin:34px auto 64px;padding:0 24px;scroll-margin-top:80px}
+.rm-colpage-gridh{font-family:Poppins;font-weight:600;font-size:1.4rem;margin:0 0 20px}
+.rm-colpage-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.rm-colpage .rm-pcard{display:flex;flex-direction:column;text-decoration:none;color:inherit}
+.rm-colpage .rm-pcard-img{position:relative;aspect-ratio:4/5;background:#f2f2f2;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.rm-colpage .rm-pcard-img img{width:82%;height:82%;object-fit:contain;display:block;mix-blend-mode:multiply}
+.rm-colpage .rm-pcard-body{padding:14px 4px 0;text-align:center}
+.rm-colpage .rm-pcard-eyebrow{display:block;font-size:.82rem;font-family:Poppins;color:#888;margin-top:6px}
+.rm-colpage .rm-pcard-title{display:block;font-size:1.1rem;font-weight:600;font-family:Poppins;line-height:1.3}
+.rm-colpage .rm-pcard-noimg{font-family:Poppins;font-size:1.1rem;font-weight:600;color:#c9c9c9;text-align:center}
+@media(max-width:1100px){.rm-colpage-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:600px){.rm-colpage-grid{grid-template-columns:1fr 1fr}}
+</style>
+CSS;
+	return $css . '<div class="rm-pp-wrap rm-colpage"><div class="rm-colpage-grid-wrap" id="rm-browse"><h2 class="rm-colpage-gridh">' . esc_html( $h ) . '</h2><div class="rm-colpage-grid">' . $cards . '</div></div></div>';
+}
+
+/** [ricoman_collection_products collection="slug" heading="…"] — drop the collection's product grid onto a landing Page among patterns. */
+add_shortcode( 'ricoman_collection_products', function ( $atts ) {
+	$atts = shortcode_atts( array( 'collection' => '', 'heading' => '' ), $atts, 'ricoman_collection_products' );
+	$tid  = 0;
+	if ( '' !== trim( (string) $atts['collection'] ) ) {
+		$t = get_term_by( 'slug', sanitize_title( $atts['collection'] ), 'collection' );
+		if ( ! $t ) {
+			$t = get_term_by( 'name', $atts['collection'], 'collection' );
+		}
+		if ( $t instanceof WP_Term ) {
+			$tid = (int) $t->term_id;
+		}
+	} else {
+		$q = get_queried_object();
+		if ( $q instanceof WP_Term && 'collection' === $q->taxonomy ) {
+			$tid = (int) $q->term_id;
+		}
+	}
+	return $tid ? ricoman_collection_products_html( $tid, $atts['heading'] ) : '';
+} );
+
 /* ---------------------------------------------------------------------------
  * Front-end: the collection landing + browse page ([ricoman_collection_page],
  * placed by templates/taxonomy-collection.html). Renders the "Know more" hero
- * (image + title + description + body) then the products in the collection.
+ * then EITHER a linked landing Page (built with patterns) or the simple body,
+ * followed by the products grid (unless the landing page placed it itself).
  * ------------------------------------------------------------------------- */
 add_shortcode( 'ricoman_collection_page', function () {
 	$term = get_queried_object();
@@ -483,17 +591,6 @@ add_shortcode( 'ricoman_collection_page', function () {
 	$crumb = do_shortcode( '[ricoman_breadcrumbs]' );
 	if ( '' === $img && ! empty( $prods ) ) {
 		$img = function_exists( 'ricoman_product_img' ) ? ricoman_product_img( $prods[0] ) : (string) get_the_post_thumbnail_url( $prods[0], 'large' );
-	}
-
-	$cards = '';
-	foreach ( $prods as $pid ) {
-		$pimg = function_exists( 'ricoman_product_img' ) ? ricoman_product_img( $pid ) : (string) get_the_post_thumbnail_url( $pid, 'large' );
-		$sub  = function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( $pid, 'product_subname' ) : '';
-		$mx   = function_exists( 'ricoman_pf_metrics' ) ? ricoman_pf_metrics( $pid ) : array( 'lm' => 0, 'w' => 0, 'co' => 0, 'feats' => array() );
-		$fins = function_exists( 'ricoman_pcard_finish_slugs' ) ? ricoman_pcard_finish_slugs( $pid ) : array();
-		if ( function_exists( 'ricoman_pcard_html' ) ) {
-			$cards .= ricoman_pcard_html( get_permalink( $pid ), $pid, $pimg, $sub, $mx, (int) ( $mx['co'] ?? 0 ), array(), array(), array(), $fins );
-		}
 	}
 
 	$css = <<<'CSS'
@@ -528,11 +625,23 @@ CSS;
 		. ( '' !== $desc ? '<p class="rm-colpage-desc">' . esc_html( $desc ) . '</p>' : '' )
 		. '<p class="rm-colpage-meta">' . (int) $c['products'] . ' products &middot; ' . (int) $c['variants'] . ' variants</p>'
 		. '</div></div>';
-	$bodyhtml = ( '' !== trim( (string) $body ) ) ? '<div class="rm-colpage-body">' . wpautop( wp_kses_post( $body ) ) . '</div>' : '';
-	$grid = '<div class="rm-colpage-grid-wrap" id="rm-browse"><h2 class="rm-colpage-gridh">' . esc_html__( 'Products in this collection', 'ricoman' ) . '</h2>'
-		. '<div class="rm-colpage-grid">' . $cards . '</div></div>';
+	// A linked landing Page (built with patterns) powers the body when set;
+	// otherwise fall back to the simple body field. The page content renders at
+	// full width (outside .rm-pp-wrap) so full-bleed patterns work.
+	$lp    = (int) get_term_meta( $term->term_id, '_rm_col_landing_page', true );
+	$lpost = $lp ? get_post( $lp ) : null;
+	if ( $lpost instanceof WP_Post && 'trash' !== $lpost->post_status ) {
+		$mid       = apply_filters( 'the_content', $lpost->post_content );
+		$grid_here = has_shortcode( (string) $lpost->post_content, 'ricoman_collection_products' );
+	} else {
+		$mid       = ( '' !== trim( (string) $body ) ) ? '<div class="rm-colpage-body">' . wpautop( wp_kses_post( $body ) ) . '</div>' : '';
+		$grid_here = false;
+	}
 
-	return $css . '<div class="rm-pp-wrap rm-colpage">' . $hero . $bodyhtml . $grid . '</div>';
+	// Products grid — appended unless the landing page already placed it.
+	$grid = $grid_here ? '' : ricoman_collection_products_html( $term->term_id );
+
+	return $css . '<div class="rm-pp-wrap rm-colpage">' . $hero . '</div>' . $mid . $grid;
 } );
 
 /* ---------------------------------------------------------------------------
