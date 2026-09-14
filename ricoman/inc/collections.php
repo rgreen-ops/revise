@@ -154,15 +154,31 @@ function ricoman_collection_counts( $term_id ) {
 	return $out;
 }
 
-/** All collection terms that actually have products, ordered (manual, then name). */
+/** All collection terms shown on the Collections menu: not hidden, and (unless
+ *  $include_empty) actually have PRODUCTS. Ordered (manual, then name). */
 function ricoman_collections_all( $include_empty = false ) {
 	$terms = get_terms( array(
 		'taxonomy'   => 'collection',
-		'hide_empty' => ! $include_empty,
+		'hide_empty' => false, // We decide "empty" by PRODUCT count below — projects
+		                       // are taggable now, so the term's raw count isn't it.
 		'orderby'    => 'name',
 		'order'      => 'ASC',
 	) );
 	if ( is_wp_error( $terms ) || empty( $terms ) ) {
+		return array();
+	}
+	$terms = array_values( array_filter( $terms, function ( $t ) use ( $include_empty ) {
+		// Manually hidden collections never show on the menu (build them in peace).
+		if ( get_term_meta( $t->term_id, '_rm_col_hidden', true ) ) {
+			return false;
+		}
+		if ( $include_empty ) {
+			return true;
+		}
+		$c = ricoman_collection_counts( $t->term_id );
+		return ( (int) $c['products'] ) > 0;
+	} ) );
+	if ( empty( $terms ) ) {
 		return array();
 	}
 	usort( $terms, function ( $a, $b ) {
@@ -240,6 +256,9 @@ add_action( 'admin_init', function () {
 		echo '<div class="form-field"><label for="_rm_col_order">' . esc_html__( 'Display order', 'ricoman' ) . '</label>';
 		echo '<input type="number" name="_rm_col_order" id="_rm_col_order" value="0" step="1" style="width:90px">';
 		echo '<p class="description">' . esc_html__( 'Lower numbers show first (0 = automatic).', 'ricoman' ) . '</p></div>';
+
+		echo '<div class="form-field"><label><input type="checkbox" name="_rm_col_hidden" value="1"> ' . esc_html__( 'Hide from the Collections menu (while you build it)', 'ricoman' ) . '</label>';
+		echo '<p class="description">' . esc_html__( 'Keeps this collection off the Collections tab + cards. Untick when it’s ready to show. Tagging still works while hidden.', 'ricoman' ) . '</p></div>';
 	} );
 
 	// Edit term screen: table rows.
@@ -249,6 +268,7 @@ add_action( 'admin_init', function () {
 		$body  = (string) get_term_meta( $term->term_id, '_rm_col_body', true );
 		$order = (int) get_term_meta( $term->term_id, '_rm_col_order', true );
 		$lpage = (int) get_term_meta( $term->term_id, '_rm_col_landing_page', true );
+		$hidden = (string) get_term_meta( $term->term_id, '_rm_col_hidden', true );
 
 		echo '<tr class="form-field"><th scope="row"><label>' . esc_html__( 'Collection image', 'ricoman' ) . '</label></th><td>';
 		echo ricoman_col_img_control( $img ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -269,6 +289,10 @@ add_action( 'admin_init', function () {
 		echo '<tr class="form-field"><th scope="row"><label for="_rm_col_order">' . esc_html__( 'Display order', 'ricoman' ) . '</label></th><td>';
 		echo '<input type="number" name="_rm_col_order" id="_rm_col_order" value="' . esc_attr( $order ) . '" step="1" style="width:90px">';
 		echo '<p class="description">' . esc_html__( 'Lower numbers show first (0 = automatic).', 'ricoman' ) . '</p></td></tr>';
+
+		echo '<tr class="form-field"><th scope="row">' . esc_html__( 'Visibility', 'ricoman' ) . '</th><td>';
+		echo '<label><input type="checkbox" name="_rm_col_hidden" value="1"' . checked( $hidden, '1', false ) . '> ' . esc_html__( 'Hide from the Collections menu (while you build it)', 'ricoman' ) . '</label>';
+		echo '<p class="description">' . esc_html__( 'Keeps this collection off the Collections tab + cards. Untick when it’s ready to show. Tagging still works while hidden.', 'ricoman' ) . '</p></td></tr>';
 	} );
 } );
 
@@ -295,6 +319,14 @@ function ricoman_collection_save_fields( $term_id ) {
 	}
 	if ( isset( $_POST['_rm_col_order'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 		update_term_meta( $term_id, '_rm_col_order', absint( $_POST['_rm_col_order'] ) ); // phpcs:ignore WordPress.Security.NonceVerification
+		// Visibility toggle (checkbox absent when unticked). Gated on the order field
+		// so only our full term form touches it, never a quick-edit.
+		$is_hidden = ( isset( $_POST['_rm_col_hidden'] ) && '1' === (string) $_POST['_rm_col_hidden'] ); // phpcs:ignore WordPress.Security.NonceVerification
+		if ( $is_hidden ) {
+			update_term_meta( $term_id, '_rm_col_hidden', '1' );
+		} else {
+			delete_term_meta( $term_id, '_rm_col_hidden' );
+		}
 	}
 	if ( isset( $_POST['_rm_col_landing_page'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 		$lp = absint( $_POST['_rm_col_landing_page'] ); // phpcs:ignore WordPress.Security.NonceVerification
