@@ -182,16 +182,6 @@ add_shortcode( 'ricoman_all_products', function () {
 		 WHERE post_type = 'product' AND post_status = 'publish'
 		 ORDER BY menu_order ASC, post_title ASC"
 	);
-	// Optional collection filter: /products/?rm_collection=<slug> shows only that
-	// collection's products in the normal grid (same filters + layout). We use
-	// rm_collection (not "collection") to avoid WP treating it as a taxonomy archive.
-	$rm_col_slug = isset( $_GET['rm_collection'] ) ? sanitize_title( wp_unslash( $_GET['rm_collection'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	$rm_col_term = ( '' !== $rm_col_slug && taxonomy_exists( 'collection' ) ) ? get_term_by( 'slug', $rm_col_slug, 'collection' ) : null;
-	if ( $rm_col_term instanceof WP_Term ) {
-		$rm_col_obj = get_objects_in_term( $rm_col_term->term_id, 'collection' );
-		$rm_col_obj = is_array( $rm_col_obj ) ? array_map( 'intval', $rm_col_obj ) : array();
-		$ids        = $rm_col_obj ? array_values( array_intersect( array_map( 'intval', $ids ), $rm_col_obj ) ) : array();
-	}
 	$rm_t0 = microtime( true );
 	if ( ! empty( $ids ) ) {
 		// Bulk-load posts + meta + terms in a few queries. The raw $wpdb ID query
@@ -361,18 +351,10 @@ add_shortcode( 'ricoman_all_products', function () {
 		. '.rm-pcard-img img.is-insitu{width:100%;height:100%;object-fit:cover;mix-blend-mode:normal}'
 		. '.rm-catgrid-tools{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-left:auto}'
 		. '.rm-catgrid-tools .rm-pgn-top{padding:0;margin:0}'
-		. '.rm-col-filter-note{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:0 0 18px;padding:10px 16px;background:var(--soft,#f4f4f2);border-radius:8px;font-size:.92rem}'
-		. '.rm-col-filter-note a{color:var(--blue,#004899);font-weight:600;text-decoration:none}'
-		. '.rm-col-filter-note a:hover{text-decoration:underline}'
 		. '</style>';
 	$out .= '<div class="rm-pp-wrap rm-catarch rm-allprods" data-acy-cat="' . esc_attr( $acy_slug ) . '">';
 	$out .= '<div class="rm-pp-crumb">' . $crumb . '</div>';
 	$out .= '<h1 class="rm-catarch-title">' . esc_html( ricoman_catarch_h1( 'All Products' ) ) . '</h1>';
-	if ( $rm_col_term instanceof WP_Term ) {
-		$rm_all_url = get_post_type_archive_link( 'product' );
-		$out .= '<div class="rm-col-filter-note"><span>' . esc_html( sprintf( __( 'Showing collection: %s', 'ricoman' ), $rm_col_term->name ) ) . '</span>'
-			. '<a href="' . esc_url( $rm_all_url ? $rm_all_url : home_url( '/products/' ) ) . '">' . esc_html__( '× View all products', 'ricoman' ) . '</a></div>';
-	}
 	$out .= function_exists( 'ricoman_collections_tabbar' ) ? ricoman_collections_tabbar() : '';
 	$out .= '<div class="rm-catgrid-wrap"><aside class="rm-facets">' . $sidebar . '</aside>';
 	$out .= '<div class="rm-catgrid">';

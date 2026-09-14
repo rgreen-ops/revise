@@ -369,10 +369,6 @@ function ricoman_collection_card_html( $term ) {
 	$desc = ricoman_collection_desc( $term->term_id );
 	$link = get_term_link( $term );
 	$link = is_wp_error( $link ) ? '#' : $link;
-	// "Browse products" opens the normal Products page filtered to this collection
-	// (same grid + filters as /products/, just this collection's products).
-	$archive = get_post_type_archive_link( 'product' );
-	$browse  = add_query_arg( 'rm_collection', $term->slug, $archive ? $archive : home_url( '/products/' ) );
 
 	$h  = '<div class="rm-collcard">';
 	if ( $img ) {
@@ -386,7 +382,7 @@ function ricoman_collection_card_html( $term ) {
 	$h .= '<p class="rm-collcard-meta">' . (int) $c['products'] . ' products &middot; ' . (int) $c['variants'] . ' variants</p>';
 	$h .= '<div class="rm-collcard-btns">';
 	$h .= '<a class="rm-cbtn-primary" href="' . esc_url( $link ) . '">' . esc_html__( 'Know more', 'ricoman' ) . '</a>';
-	$h .= '<a class="rm-cbtn-outline" href="' . esc_url( $browse ) . '">' . esc_html__( 'Browse products', 'ricoman' ) . '</a>';
+	$h .= '<a class="rm-cbtn-outline" href="' . esc_url( $link ) . '#rm-browse">' . esc_html__( 'Browse products', 'ricoman' ) . '</a>';
 	$h .= '</div></div></div>';
 	return $h;
 }
