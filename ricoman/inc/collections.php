@@ -603,6 +603,7 @@ add_shortcode( 'ricoman_collection_page', function () {
 .rm-colpage-desc{font-size:1.05rem;max-width:62ch;color:rgba(255,255,255,.9);margin:0 0 .6em}
 .rm-colpage-meta{font-size:.85rem;letter-spacing:.04em;color:rgba(255,255,255,.75);margin:0}
 .rm-colpage-body{max-width:820px;margin:34px auto;padding:0 24px;font-size:1.02rem;line-height:1.7}
+.rm-colpage-crumbbar{font-size:.85rem;padding:16px 0 0}
 .rm-colpage-grid-wrap{max-width:1200px;margin:34px auto 64px;padding:0 24px;scroll-margin-top:80px}
 .rm-colpage-gridh{font-family:Poppins;font-weight:600;font-size:1.4rem;margin:0 0 20px}
 .rm-colpage-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
@@ -646,7 +647,12 @@ CSS;
 	// built-in banner (filterable if a collection ever wants to keep both).
 	$show_hero = ! $has_landing;
 	$show_hero = (bool) apply_filters( 'ricoman_collection_show_hero', $show_hero, $term->term_id );
-	$hero_html = $show_hero ? '<div class="rm-pp-wrap rm-colpage">' . $hero . '</div>' : '';
+	if ( $show_hero ) {
+		$hero_html = '<div class="rm-pp-wrap rm-colpage">' . $hero . '</div>';
+	} else {
+		// Hero hidden (landing page) — keep a slim breadcrumb for nav + SEO.
+		$hero_html = '<div class="rm-pp-wrap rm-colpage-crumbbar">' . $crumb . '</div>';
+	}
 
 	return $css . $hero_html . $mid . $grid;
 } );
