@@ -648,39 +648,45 @@ function ricoman_product_editor_render() {
 	}
 
 	// Downloads (download_section repeater + family datasheet) for the editor's
-	// Downloads manager. Read raw values = attachment ids (not formatted URLs).
+	// Downloads manager. Read the repeater DIRECTLY from postmeta — ACF's raw
+	// get_field() for a repeater doesn't map the subfields reliably here, which
+	// left migrated rows blank in the box (they still rendered on the front end,
+	// which reads the formatted value). This reads exactly what's stored:
+	//   download_section              = row count
+	//   download_section_{i}_download-title / _download-file  = the subfields.
+	// Each file value is an attachment id or a (migrated) URL.
 	$dl_rows = array();
 	$dl_fam  = 0;
-	if ( ! $is_tpl && function_exists( 'get_field' ) ) {
-		$raw_dl = get_field( 'download_section', $pid, false );
-		if ( is_array( $raw_dl ) ) {
-			foreach ( $raw_dl as $r ) {
-				$rawfile = isset( $r['download-file'] ) ? $r['download-file'] : '';
-				$fid  = 0;
-				$furl = '';
-				if ( is_numeric( $rawfile ) ) {
-					$fid = (int) $rawfile;
-				} elseif ( is_string( $rawfile ) && '' !== trim( $rawfile ) ) {
-					// Migrated file stored as a URL. Match it to a Media Library item if
-					// possible; otherwise keep the URL so the row still shows + persists.
-					$maybe = attachment_url_to_postid( $rawfile );
-					if ( $maybe ) {
-						$fid = (int) $maybe;
-					} else {
-						$furl = $rawfile;
-					}
+	if ( ! $is_tpl ) {
+		$dl_count = (int) get_post_meta( $pid, 'download_section', true );
+		for ( $i = 0; $i < $dl_count; $i++ ) {
+			$title   = (string) get_post_meta( $pid, 'download_section_' . $i . '_download-title', true );
+			$rawfile = get_post_meta( $pid, 'download_section_' . $i . '_download-file', true );
+			$fid  = 0;
+			$furl = '';
+			if ( is_numeric( $rawfile ) ) {
+				$fid = (int) $rawfile;
+			} elseif ( is_string( $rawfile ) && '' !== trim( $rawfile ) ) {
+				// Migrated file stored as a URL. Match it to a Media Library item if
+				// possible; otherwise keep the URL so the row still shows + persists.
+				$maybe = attachment_url_to_postid( $rawfile );
+				if ( $maybe ) {
+					$fid = (int) $maybe;
+				} else {
+					$furl = $rawfile;
 				}
-				$fname = $fid ? basename( (string) get_attached_file( $fid ) )
-					: ( '' !== $furl ? basename( (string) wp_parse_url( $furl, PHP_URL_PATH ) ) : '' );
-				$dl_rows[] = array(
-					'title' => isset( $r['download-title'] ) ? (string) $r['download-title'] : '',
-					'id'    => $fid,
-					'url'   => $furl,
-					'name'  => $fname,
-				);
 			}
+			$fname = $fid ? basename( (string) get_attached_file( $fid ) )
+				: ( '' !== $furl ? basename( (string) wp_parse_url( $furl, PHP_URL_PATH ) ) : '' );
+			$dl_rows[] = array(
+				'title' => $title,
+				'id'    => $fid,
+				'url'   => $furl,
+				'name'  => $fname,
+			);
 		}
-		$dl_fam = (int) get_field( 'download_family_datasheet', $pid, false );
+		$fam_raw = get_post_meta( $pid, 'download_family_datasheet', true );
+		$dl_fam  = is_numeric( $fam_raw ) ? (int) $fam_raw : 0;
 	}
 	$dl_fam_name = $dl_fam ? basename( (string) get_attached_file( $dl_fam ) ) : '';
 
