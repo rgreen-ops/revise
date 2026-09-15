@@ -774,13 +774,18 @@ add_action( 'wp_ajax_nopriv_rm_sku_find', 'ricoman_sku_find_ajax' );
  * option) and validates cleanly. Style loads on front + editor.
  * ------------------------------------------------------------------------- */
 add_action( 'enqueue_block_assets', function () {
-	$css = '.rm-opt-row{border-bottom:1px solid var(--line,#e6e4de);padding-top:14px;padding-bottom:14px}'
+	$css = '.rm-opt-row.wp-block-columns{align-items:center;margin-bottom:0;gap:16px}'
+		. '.rm-opt-row .wp-block-column{margin:0}'
+		. '.rm-opt-row{border-bottom:1px solid var(--line,#e6e4de);padding-top:16px;padding-bottom:16px}'
 		. '.rm-opt-head{border-bottom:2px solid var(--ink,#16161a)}'
 		. '.rm-opt-h{font-family:Poppins,sans-serif;font-weight:700;font-size:.9rem;margin:0}'
-		. '.rm-opt-img img{width:72px;height:72px;object-fit:cover;border-radius:8px;display:block}'
-		. '.rm-opt-name{font-family:Poppins,sans-serif;font-weight:600;font-size:1rem;margin:8px 0 0}'
+		// First cell: thumbnail + name side by side, vertically centred.
+		. '.rm-opt-row .wp-block-column:first-child{display:flex;flex-direction:row;align-items:center;gap:14px}'
+		. '.rm-opt-img{margin:0;flex:0 0 auto}'
+		. '.rm-opt-img img{width:64px;height:64px;object-fit:cover;border-radius:8px;display:block}'
+		. '.rm-opt-name{font-family:Poppins,sans-serif;font-weight:600;font-size:1rem;line-height:1.25;margin:0}'
 		. '.rm-opt-row .wp-block-column>p{margin:0;font-size:.92rem;line-height:1.4}'
-		. '@media(max-width:781px){.rm-opt-head{display:none}.rm-opt-name{font-size:1.1rem}}';
+		. '@media(max-width:781px){.rm-opt-head{display:none}.rm-opt-name{font-size:1.05rem}}';
 	wp_register_style( 'ricoman-collections-inline', false );
 	wp_enqueue_style( 'ricoman-collections-inline' );
 	wp_add_inline_style( 'ricoman-collections-inline', $css );
