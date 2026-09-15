@@ -206,7 +206,9 @@ add_filter( 'the_content', function ( $content ) {
 	$imgof = function ( $k ) use ( $pid ) { return function_exists( 'ricoman_pf_imgurl' ) ? ricoman_pf_imgurl( get_post_meta( $pid, $k, true ) ) : ''; };
 
 	$title   = $meta( 'lighting_project_title' ) ? $meta( 'lighting_project_title' ) : get_the_title( $pid );
-	$banner  = $imgof( 'project_banner_image' );
+	// Full-bleed banner shows at ~full window width, so pull the FULL-size image,
+	// not the 1024px "large" default (which looks pixelated stretched that wide).
+	$banner  = function_exists( 'ricoman_pf_imgurl' ) ? ricoman_pf_imgurl( get_post_meta( $pid, 'project_banner_image', true ), 'full' ) : '';
 	$sector  = function_exists( 'ricoman_first_term_name' ) ? ricoman_first_term_name( $pid, array( 'project-cat', 'application' ) ) : '';
 	$loc     = trim( wp_strip_all_tags( $meta( 'area' ) ) );
 
