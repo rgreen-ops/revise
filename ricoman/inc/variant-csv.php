@@ -1,0 +1,465 @@
+<?php
+/**
+ * Variant CSV import / export — the staging replacement for the old
+ * "Import/Export Variable Product" tool.
+ *
+ * Each order-code row is a `variant-product` post linked to its parent product
+ * by the `parent_product` meta. This screen lets an admin bulk-edit those rows
+ * in a spreadsheet: export every variant (optionally just one product's) to CSV,
+ * edit in Excel/Sheets, and import it back to create or update the rows.
+ *
+ * Found under: Variant Products → Import / Export (back end).
+ *
+ * @package Ricoman
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * Canonical CSV columns, in order. `id` and `parent` are structural; the rest
+ * map 1:1 to variant-product meta keys (and match the datasheet spec fields).
+ */
+function ricoman_variant_csv_columns() {
+	return array(
+		'id',            // post ID — leave blank to create a new variant.
+		'parent',        // parent product: slug or numeric ID.
+		'title',         // post title.
+		'part_code',
+		'order_code',
+		'product_sort_description',
+		'lumens',
+		'dimensions',
+		'cut_out',
+		'efficacy',
+		'cri',
+		'beam_angle',
+		'ip_rating',
+		'ik_rating',
+		'ugr',
+		'colour_finish',
+		'operating_temperatures',
+		'voltage_range',
+		'power_factor',
+		'l70_b50',
+		'optics',
+		'leds',
+		'construction_material',
+		'diffuser_type',
+		'unit_weight',
+		'warranty',
+		'certifications',
+		'download_led',        // LDT file URL.
+		'product_main_image',  // image URL.
+		'product_diagram',     // dimension diagram URL.
+	);
+}
+
+/** Meta columns only (everything except the structural id/parent/title). */
+function ricoman_variant_csv_meta_keys() {
+	$cols = ricoman_variant_csv_columns();
+	return array_values( array_diff( $cols, array( 'id', 'parent', 'title' ) ) );
+}
+
+/** Taxonomy axis slugs offered as CSV columns (wattage, temperature, …). */
+function ricoman_variant_csv_tax_keys() {
+	return function_exists( 'ricoman_variant_axis_taxonomies' ) ? array_keys( ricoman_variant_axis_taxonomies() ) : array();
+}
+
+/** Full ordered header row: meta columns + taxonomy columns (prefixed tax_). */
+function ricoman_variant_csv_headers() {
+	$cols = ricoman_variant_csv_columns();
+	foreach ( ricoman_variant_csv_tax_keys() as $slug ) {
+		$cols[] = 'tax_' . $slug;
+	}
+	return $cols;
+}
+
+/** Resolve a stored image/file meta value to a URL for export. */
+function ricoman_variant_csv_url( $v ) {
+	if ( is_numeric( $v ) ) {
+		$u = wp_get_attachment_url( (int) $v );
+		return $u ? $u : '';
+	}
+	if ( is_array( $v ) ) {
+		return isset( $v['url'] ) ? (string) $v['url'] : '';
+	}
+	return (string) $v;
+}
+
+/* ------------------------------------------------------------------ admin UI */
+
+add_action( 'admin_menu', function () {
+	add_submenu_page(
+		'edit.php?post_type=variant-product',
+		__( 'Import / Export Variants', 'ricoman' ),
+		__( 'Import / Export', 'ricoman' ),
+		'edit_posts',
+		'ricoman-variant-csv',
+		'ricoman_variant_csv_page'
+	);
+} );
+
+function ricoman_variant_csv_page() {
+	if ( ! current_user_can( 'edit_posts' ) ) {
+		return;
+	}
+	$products = get_posts( array(
+		'post_type'      => 'product',
+		'post_status'    => array( 'publish', 'draft', 'pending', 'private' ),
+		'posts_per_page' => -1,
+		'orderby'        => 'title',
+		'order'          => 'ASC',
+		'fields'         => 'ids',
+	) );
+	$notice = isset( $_GET['rm_csv'] ) ? sanitize_text_field( wp_unslash( $_GET['rm_csv'] ) ) : '';
+	?>
+	<div class="wrap">
+		<h1><?php esc_html_e( 'Variant Products — Import / Export', 'ricoman' ); ?></h1>
+		<?php if ( $notice ) : ?>
+			<div class="notice notice-success is-dismissible"><p><?php echo esc_html( $notice ); ?></p></div>
+		<?php endif; ?>
+		<p><?php esc_html_e( 'Bulk-edit the order-code rows (lumens, dimensions, LDT files, datasheets) in a spreadsheet. Export to CSV, edit, then import to create or update rows.', 'ricoman' ); ?></p>
+
+		<div class="card" style="max-width:760px;padding:8px 20px 18px">
+			<h2><?php esc_html_e( 'Export', 'ricoman' ); ?></h2>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<input type="hidden" name="action" value="ricoman_variant_export">
+				<?php wp_nonce_field( 'ricoman_variant_export' ); ?>
+				<p>
+					<label for="rm-exp-parent"><?php esc_html_e( 'Product:', 'ricoman' ); ?></label>
+					<select name="parent" id="rm-exp-parent">
+						<option value=""><?php esc_html_e( 'All products', 'ricoman' ); ?></option>
+						<?php foreach ( $products as $prod_id ) : ?>
+							<option value="<?php echo esc_attr( $prod_id ); ?>"><?php echo esc_html( get_the_title( $prod_id ) ); ?></option>
+						<?php endforeach; ?>
+					</select>
+				</p>
+				<p>
+					<button type="submit" class="button button-primary"><?php esc_html_e( 'Download CSV', 'ricoman' ); ?></button>
+					<button type="submit" class="button" name="template" value="1"><?php esc_html_e( 'Download blank template', 'ricoman' ); ?></button>
+				</p>
+			</form>
+		</div>
+
+		<div class="card" style="max-width:760px;padding:8px 20px 18px;margin-top:18px">
+			<h2><?php esc_html_e( 'Import', 'ricoman' ); ?></h2>
+			<form method="post" enctype="multipart/form-data" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<input type="hidden" name="action" value="ricoman_variant_import">
+				<?php wp_nonce_field( 'ricoman_variant_import' ); ?>
+				<p><input type="file" name="csv" accept=".csv,text/csv" required></p>
+				<p class="description"><?php esc_html_e( 'Rows with an "id" update that variant; blank "id" creates a new one. "parent" accepts a product slug or numeric ID. Image / file columns accept a URL.', 'ricoman' ); ?></p>
+				<p><button type="submit" class="button button-primary"><?php esc_html_e( 'Upload &amp; import', 'ricoman' ); ?></button></p>
+			</form>
+		</div>
+
+		<div class="card" style="max-width:760px;padding:8px 20px 18px;margin-top:18px">
+			<h2><?php esc_html_e( 'Link variants to a parent', 'ricoman' ); ?></h2>
+			<p><?php esc_html_e( 'Attach existing variant rows to a product when migrated variants aren’t connected (so they appear in the product’s Configure table). Matches variants whose title STARTS WITH the text below, and sets their parent to the chosen product. Example: product “Estrella”, title starts with “Estrella Pro”.', 'ricoman' ); ?></p>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<input type="hidden" name="action" value="ricoman_variant_link_parent">
+				<?php wp_nonce_field( 'ricoman_variant_link_parent' ); ?>
+				<p>
+					<label for="rm-link-parent"><?php esc_html_e( 'Parent product:', 'ricoman' ); ?></label>
+					<select name="parent" id="rm-link-parent" required>
+						<option value=""><?php esc_html_e( '— select —', 'ricoman' ); ?></option>
+						<?php foreach ( $products as $prod_id ) : ?>
+							<option value="<?php echo esc_attr( $prod_id ); ?>"><?php echo esc_html( get_the_title( $prod_id ) ); ?></option>
+						<?php endforeach; ?>
+					</select>
+				</p>
+				<p>
+					<label for="rm-link-prefix"><?php esc_html_e( 'Variant title starts with:', 'ricoman' ); ?></label>
+					<input type="text" name="prefix" id="rm-link-prefix" class="regular-text" placeholder="Estrella Pro" required>
+				</p>
+				<p><button type="submit" class="button button-primary"><?php esc_html_e( 'Link matching variants', 'ricoman' ); ?></button></p>
+				<p class="description"><?php esc_html_e( 'Re-runnable and reversible (use Unlink below). Only published variant-product rows are matched.', 'ricoman' ); ?></p>
+			</form>
+		</div>
+
+		<div class="card" style="max-width:760px;padding:8px 20px 18px;margin-top:18px;border-left:4px solid #d63638">
+			<h2><?php esc_html_e( 'Unlink variants from a parent (undo a bad link)', 'ricoman' ); ?></h2>
+			<p><?php esc_html_e( 'Reverts a “Link variants to a parent” you didn’t mean. Pick the product you linked them to — every variant currently attached to it has its parent link cleared (back to unlinked). Optionally limit by a title prefix.', 'ricoman' ); ?></p>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" onsubmit="return confirm('<?php echo esc_js( __( 'Unlink all variants currently attached to this product?', 'ricoman' ) ); ?>');">
+				<input type="hidden" name="action" value="ricoman_variant_unlink_parent">
+				<?php wp_nonce_field( 'ricoman_variant_unlink_parent' ); ?>
+				<p>
+					<label for="rm-unlink-parent"><?php esc_html_e( 'Parent product they’re attached to:', 'ricoman' ); ?></label>
+					<select name="parent" id="rm-unlink-parent" required>
+						<option value=""><?php esc_html_e( '— select —', 'ricoman' ); ?></option>
+						<?php foreach ( $products as $prod_id ) : ?>
+							<option value="<?php echo esc_attr( $prod_id ); ?>"><?php echo esc_html( get_the_title( $prod_id ) ); ?></option>
+						<?php endforeach; ?>
+					</select>
+				</p>
+				<p>
+					<label for="rm-unlink-prefix"><?php esc_html_e( 'Only titles starting with (optional):', 'ricoman' ); ?></label>
+					<input type="text" name="prefix" id="rm-unlink-prefix" class="regular-text" placeholder="Estrella Pro">
+				</p>
+				<p><button type="submit" class="button"><?php esc_html_e( 'Unlink matching variants', 'ricoman' ); ?></button></p>
+				<p class="description"><?php esc_html_e( 'If a previous parent was backed up when you linked, unlinking restores it; otherwise the variant becomes unlinked (the prior state for migrated Estrella variants).', 'ricoman' ); ?></p>
+			</form>
+		</div>
+	</div>
+	<?php
+}
+
+add_action( 'admin_post_ricoman_variant_unlink_parent', function () {
+	if ( ! current_user_can( 'edit_posts' ) || ! check_admin_referer( 'ricoman_variant_unlink_parent' ) ) {
+		wp_die( esc_html__( 'You do not have permission to do this.', 'ricoman' ) );
+	}
+	$parent = isset( $_POST['parent'] ) ? absint( $_POST['parent'] ) : 0;
+	$prefix = isset( $_POST['prefix'] ) ? sanitize_text_field( wp_unslash( $_POST['prefix'] ) ) : '';
+	$n      = 0;
+	if ( $parent && post_type_exists( 'variant-product' ) ) {
+		global $wpdb;
+		$sql  = "SELECT p.ID FROM {$wpdb->posts} p INNER JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = 'parent_product' WHERE p.post_type = 'variant-product' AND m.meta_value = %s";
+		$args = array( (string) $parent );
+		if ( '' !== $prefix ) {
+			$sql   .= ' AND p.post_title LIKE %s';
+			$args[] = $wpdb->esc_like( $prefix ) . '%';
+		}
+		$ids = $wpdb->get_col( $wpdb->prepare( $sql, $args ) ); // phpcs:ignore WordPress.DB
+		foreach ( $ids as $vid ) {
+			$prev = get_post_meta( (int) $vid, '_parent_product_prev', true );
+			if ( '' !== (string) $prev ) {
+				update_post_meta( (int) $vid, 'parent_product', (string) $prev );
+			} else {
+				delete_post_meta( (int) $vid, 'parent_product' );
+			}
+			delete_post_meta( (int) $vid, '_parent_product_prev' );
+			$n++;
+		}
+		if ( function_exists( 'ricoman_products_ver' ) ) {
+			update_option( 'rm_products_ver', (string) time(), false );
+		}
+	}
+	wp_safe_redirect( add_query_arg(
+		array( 'rm_csv' => rawurlencode( sprintf( /* translators: %d count */ __( 'Unlinked %d variant(s).', 'ricoman' ), $n ) ) ),
+		admin_url( 'edit.php?post_type=variant-product&page=ricoman-variant-csv' )
+	) );
+	exit;
+} );
+
+add_action( 'admin_post_ricoman_variant_link_parent', function () {
+	if ( ! current_user_can( 'edit_posts' ) || ! check_admin_referer( 'ricoman_variant_link_parent' ) ) {
+		wp_die( esc_html__( 'You do not have permission to do this.', 'ricoman' ) );
+	}
+	$parent = isset( $_POST['parent'] ) ? absint( $_POST['parent'] ) : 0;
+	$prefix = isset( $_POST['prefix'] ) ? sanitize_text_field( wp_unslash( $_POST['prefix'] ) ) : '';
+	$n      = 0;
+	if ( $parent && get_post( $parent ) && '' !== $prefix && post_type_exists( 'variant-product' ) ) {
+		global $wpdb;
+		$like = $wpdb->esc_like( $prefix ) . '%';
+		$ids  = $wpdb->get_col( $wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			"SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND post_status = 'publish' AND post_title LIKE %s",
+			'variant-product',
+			$like
+		) );
+		foreach ( $ids as $vid ) {
+			// Back up the previous parent so a link is reversible to its exact prior state.
+			update_post_meta( (int) $vid, '_parent_product_prev', (string) get_post_meta( (int) $vid, 'parent_product', true ) );
+			update_post_meta( (int) $vid, 'parent_product', (string) $parent );
+			$n++;
+		}
+		if ( function_exists( 'ricoman_products_ver' ) ) {
+			update_option( 'rm_products_ver', (string) time(), false );
+		}
+	}
+	wp_safe_redirect( add_query_arg(
+		array( 'rm_csv' => rawurlencode( sprintf( /* translators: %d count */ __( 'Linked %d variant(s) to the product.', 'ricoman' ), $n ) ) ),
+		admin_url( 'edit.php?post_type=variant-product&page=ricoman-variant-csv' )
+	) );
+	exit;
+} );
+
+/* -------------------------------------------------------------------- export */
+
+add_action( 'admin_post_ricoman_variant_export', function () {
+	if ( ! current_user_can( 'edit_posts' ) || ! check_admin_referer( 'ricoman_variant_export' ) ) {
+		wp_die( esc_html__( 'Permission denied.', 'ricoman' ) );
+	}
+	$cols     = ricoman_variant_csv_headers();
+	$tax_keys = ricoman_variant_csv_tax_keys();
+	$template = ! empty( $_POST['template'] );
+	$parent   = isset( $_POST['parent'] ) ? absint( $_POST['parent'] ) : 0;
+
+	$ids = array();
+	if ( ! $template ) {
+		$args = array(
+			'post_type'      => 'variant-product',
+			'post_status'    => array( 'publish', 'draft', 'pending', 'private' ),
+			'posts_per_page' => -1,
+			'orderby'        => 'menu_order title',
+			'order'          => 'ASC',
+			'fields'         => 'ids',
+		);
+		if ( $parent ) {
+			$args['meta_query'] = array( array( 'key' => 'parent_product', 'value' => (string) $parent ) );
+		}
+		$ids = get_posts( $args );
+	}
+
+	$slug    = $parent ? get_post_field( 'post_name', $parent ) : 'all';
+	$fname   = 'ricoman-variants-' . $slug . '-' . gmdate( 'Ymd' ) . '.csv';
+	nocache_headers();
+	header( 'Content-Type: text/csv; charset=utf-8' );
+	header( 'Content-Disposition: attachment; filename="' . $fname . '"' );
+	$out = fopen( 'php://output', 'w' );
+	fprintf( $out, "\xEF\xBB\xBF" ); // UTF-8 BOM so Excel reads accents correctly.
+	fputcsv( $out, $cols );
+
+	$meta_keys = ricoman_variant_csv_meta_keys();
+	foreach ( $ids as $vid ) {
+		$parent_id = (int) get_post_meta( $vid, 'parent_product', true );
+		$row = array(
+			'id'     => $vid,
+			'parent' => $parent_id ? get_post_field( 'post_name', $parent_id ) : '',
+			'title'  => get_the_title( $vid ),
+		);
+		foreach ( $meta_keys as $k ) {
+			$v = get_post_meta( $vid, $k, true );
+			if ( in_array( $k, array( 'download_led', 'product_main_image', 'product_diagram' ), true ) ) {
+				$v = ricoman_variant_csv_url( $v );
+			}
+			$row[ $k ] = is_scalar( $v ) ? (string) $v : '';
+		}
+		// Taxonomy axes -> tax_<slug> columns (terms joined by | ).
+		foreach ( $tax_keys as $slug ) {
+			$terms = taxonomy_exists( $slug ) ? wp_get_post_terms( $vid, $slug, array( 'fields' => 'names' ) ) : array();
+			$row[ 'tax_' . $slug ] = ( ! is_wp_error( $terms ) && $terms ) ? implode( ' | ', $terms ) : '';
+		}
+		// Keep column order.
+		$line = array();
+		foreach ( $cols as $c ) {
+			$line[] = isset( $row[ $c ] ) ? $row[ $c ] : '';
+		}
+		fputcsv( $out, $line );
+	}
+	fclose( $out );
+	exit;
+} );
+
+/* -------------------------------------------------------------------- import */
+
+/** Resolve a "parent" cell (slug or numeric ID) to a product post ID. */
+function ricoman_variant_resolve_parent( $val ) {
+	$val = trim( (string) $val );
+	if ( '' === $val ) {
+		return 0;
+	}
+	if ( ctype_digit( $val ) && 'product' === get_post_type( (int) $val ) ) {
+		return (int) $val;
+	}
+	$p = get_page_by_path( $val, OBJECT, 'product' );
+	return $p ? (int) $p->ID : 0;
+}
+
+add_action( 'admin_post_ricoman_variant_import', function () {
+	if ( ! current_user_can( 'edit_posts' ) || ! check_admin_referer( 'ricoman_variant_import' ) ) {
+		wp_die( esc_html__( 'Permission denied.', 'ricoman' ) );
+	}
+	$back = admin_url( 'edit.php?post_type=variant-product&page=ricoman-variant-csv' );
+
+	if ( empty( $_FILES['csv']['tmp_name'] ) || ! is_uploaded_file( $_FILES['csv']['tmp_name'] ) ) {
+		wp_safe_redirect( add_query_arg( 'rm_csv', rawurlencode( __( 'No file uploaded.', 'ricoman' ) ), $back ) );
+		exit;
+	}
+
+	$fh = fopen( $_FILES['csv']['tmp_name'], 'r' );
+	if ( ! $fh ) {
+		wp_safe_redirect( add_query_arg( 'rm_csv', rawurlencode( __( 'Could not read file.', 'ricoman' ) ), $back ) );
+		exit;
+	}
+
+	$header = fgetcsv( $fh );
+	if ( $header ) {
+		// Strip a UTF-8 BOM from the first header cell.
+		$header[0] = preg_replace( '/^\xEF\xBB\xBF/', '', (string) $header[0] );
+		$header    = array_map( function ( $h ) { return strtolower( trim( (string) $h ) ); }, $header );
+	}
+	$allowed   = ricoman_variant_csv_headers();
+	$meta_keys = ricoman_variant_csv_meta_keys();
+	$tax_keys  = ricoman_variant_csv_tax_keys();
+
+	$created = 0;
+	$updated = 0;
+	$skipped = 0;
+	while ( ( $data = fgetcsv( $fh ) ) !== false ) {
+		if ( count( array_filter( $data, function ( $c ) { return '' !== trim( (string) $c ); } ) ) === 0 ) {
+			continue; // blank line.
+		}
+		$rec = array();
+		foreach ( $header as $i => $col ) {
+			if ( in_array( $col, $allowed, true ) ) {
+				$rec[ $col ] = isset( $data[ $i ] ) ? trim( (string) $data[ $i ] ) : '';
+			}
+		}
+
+		$id        = ! empty( $rec['id'] ) && ctype_digit( $rec['id'] ) ? (int) $rec['id'] : 0;
+		$parent_id = isset( $rec['parent'] ) ? ricoman_variant_resolve_parent( $rec['parent'] ) : 0;
+		$title     = isset( $rec['title'] ) && '' !== $rec['title']
+			? $rec['title']
+			: ( ! empty( $rec['part_code'] ) ? $rec['part_code'] : ( ! empty( $rec['order_code'] ) ? $rec['order_code'] : 'Variant' ) );
+
+		// An update target must be an existing variant-product.
+		if ( $id && 'variant-product' !== get_post_type( $id ) ) {
+			$id = 0;
+		}
+
+		if ( $id ) {
+			wp_update_post( array( 'ID' => $id, 'post_title' => $title ) );
+			$updated++;
+		} else {
+			$id = wp_insert_post( array(
+				'post_type'   => 'variant-product',
+				'post_status' => 'publish',
+				'post_title'  => $title,
+			) );
+			if ( ! $id || is_wp_error( $id ) ) {
+				$skipped++;
+				continue;
+			}
+			$created++;
+		}
+
+		if ( $parent_id ) {
+			update_post_meta( $id, 'parent_product', (string) $parent_id );
+		}
+		foreach ( $meta_keys as $k ) {
+			if ( array_key_exists( $k, $rec ) ) {
+				// Empty cell clears the value; leaves untouched only if column absent.
+				if ( '' === $rec[ $k ] ) {
+					delete_post_meta( $id, $k );
+				} else {
+					update_post_meta( $id, $k, $rec[ $k ] );
+				}
+			}
+		}
+		// Taxonomy axes: tax_<slug> columns -> terms (created if missing, | separated).
+		foreach ( $tax_keys as $slug ) {
+			$col = 'tax_' . $slug;
+			if ( ! array_key_exists( $col, $rec ) || ! taxonomy_exists( $slug ) ) {
+				continue;
+			}
+			if ( '' === $rec[ $col ] ) {
+				wp_set_object_terms( $id, array(), $slug );
+				continue;
+			}
+			$names = array_filter( array_map( 'trim', explode( '|', $rec[ $col ] ) ), 'strlen' );
+			wp_set_object_terms( $id, $names, $slug ); // names auto-create terms.
+		}
+	}
+	fclose( $fh );
+
+	$msg = sprintf(
+		/* translators: 1: created, 2: updated, 3: skipped */
+		__( 'Import complete — %1$d created, %2$d updated, %3$d skipped.', 'ricoman' ),
+		$created,
+		$updated,
+		$skipped
+	);
+	wp_safe_redirect( add_query_arg( 'rm_csv', rawurlencode( $msg ), $back ) );
+	exit;
+} );
