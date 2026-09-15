@@ -925,3 +925,16 @@ add_action( 'pre_get_posts', function ( $q ) {
 	$q->set( 'post_status', array( 'publish', 'future', 'pending', 'private' ) );
 } );
 
+
+/**
+ * Safety net: always show the Publish / Update box on the variant-product (and
+ * product / project) editors. Its core "submitdiv" can get hidden via per-user
+ * screen meta, which leaves the classic edit screen with no Save button.
+ */
+add_filter( 'hidden_meta_boxes', function ( $hidden, $screen ) {
+	if ( is_object( $screen ) && isset( $screen->post_type )
+		&& in_array( $screen->post_type, array( 'variant-product', 'product', 'project' ), true ) ) {
+		$hidden = array_values( array_diff( (array) $hidden, array( 'submitdiv' ) ) );
+	}
+	return (array) $hidden;
+}, 20, 2 );
