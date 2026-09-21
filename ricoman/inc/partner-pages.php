@@ -43,6 +43,57 @@ function ricoman_partner_logo_html( array $p, $h = 40 ) {
 	return '<span class="pname">' . esc_html( $p['name'] ) . '</span>';
 }
 
+/** Real project cards (office sector first), each: title + image URL + link. */
+function ricoman_partner_project_cards( $limit = 9 ) {
+	if ( ! post_type_exists( 'project' ) ) {
+		return array();
+	}
+	$args = array( 'post_type' => 'project', 'post_status' => 'publish', 'numberposts' => $limit, 'orderby' => 'date', 'order' => 'DESC', 'no_found_rows' => true );
+	// Prefer the office sector if the taxonomy + term exist.
+	$tax = '';
+	foreach ( array( 'sector', 'project-cat', 'project_cat', 'project-sector', 'sectors' ) as $t ) {
+		if ( taxonomy_exists( $t ) ) { $tax = $t; break; }
+	}
+	if ( $tax ) {
+		foreach ( array( 'office-lighting', 'office', 'offices', 'workspace', 'workplace' ) as $s ) {
+			$term = get_term_by( 'slug', $s, $tax );
+			if ( $term && ! is_wp_error( $term ) ) {
+				$args['tax_query'] = array( array( 'taxonomy' => $tax, 'field' => 'term_id', 'terms' => $term->term_id ) ); // phpcs:ignore WordPress.DB.SlowDBQuery
+				break;
+			}
+		}
+	}
+	$posts = get_posts( $args );
+	if ( count( $posts ) < $limit ) { // top up with the newest projects of any sector.
+		$more  = get_posts( array( 'post_type' => 'project', 'post_status' => 'publish', 'numberposts' => $limit, 'orderby' => 'date', 'order' => 'DESC', 'no_found_rows' => true, 'exclude' => wp_list_pluck( $posts, 'ID' ) ) );
+		$posts = array_slice( array_merge( $posts, $more ), 0, $limit );
+	}
+	$fb    = array( 'hero-betfred-1.webp', 'rico-office-fitout.webp', 'rico-kingsgate.webp', 'rico-betfred7.webp', 'office2.webp', 'rico-office-render.webp', 'office3.webp', 'estrella-lounge.webp', 'rico-office.webp' );
+	$cards = array();
+	$i     = 0;
+	foreach ( $posts as $post ) {
+		$url = get_the_post_thumbnail_url( $post->ID, 'large' );
+		if ( ! $url ) {
+			$url = get_theme_file_uri( 'assets/images/' . $fb[ $i % count( $fb ) ] );
+		}
+		$cards[] = array( 'title' => get_the_title( $post ), 'url' => $url, 'link' => get_permalink( $post ) );
+		$i++;
+	}
+	return $cards;
+}
+
+/** A product's own featured image by slug, with a theme fallback. */
+function ricoman_product_image_url( $slug, $fallback = '' ) {
+	$p = get_page_by_path( $slug, OBJECT, 'product' );
+	if ( $p ) {
+		$u = get_the_post_thumbnail_url( $p->ID, 'large' );
+		if ( $u ) {
+			return $u;
+		}
+	}
+	return $fallback ? get_theme_file_uri( 'assets/images/' . $fallback ) : '';
+}
+
 /** Intercept the request early and render the bespoke page. */
 add_action( 'template_redirect', function () {
 	$path = strtolower( trim( (string) wp_parse_url( $_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH ), '/' ) );
@@ -70,15 +121,9 @@ function ricoman_render_partner_page( array $p ) {
 	$tel   = '0161 877 1399';
 	$mail  = 'sales@ricoman.com';
 
-	// Project gallery.
-	$gallery = array(
-		array( 'hero-betfred-1.webp', 'Betfred HQ, Warrington' ),
-		array( 'rico-office-fitout.webp', 'Workspace fit-out' ),
-		array( 'rico-kingsgate.webp', 'Kingsgate, office' ),
-		array( 'rico-betfred7.webp', 'Betfred — Flow curved linear' ),
-		array( 'office2.webp', 'Commercial office scheme' ),
-		array( 'rico-office-render.webp', 'Design visual → installed' ),
-	);
+	// Real projects from the site (office sector first), each with its own photo,
+	// name and a link to the live project page. Nine = three rows.
+	$gallery = ricoman_partner_project_cards( 9 );
 
 	header( 'Content-Type: text/html; charset=utf-8' );
 	?><!doctype html>
@@ -122,14 +167,14 @@ h1,h2,h3{line-height:1.08;font-weight:700}
 .hero p.sub{font-size:clamp(1.05rem,2vw,1.35rem);max-width:52ch;opacity:.95;margin-bottom:1.8em}
 .hero .cta{display:flex;gap:14px;flex-wrap:wrap}
 .hero .for{display:inline-block;background:var(--blue);color:#fff;padding:7px 16px;border-radius:30px;font-weight:700;font-size:.82rem;letter-spacing:.04em}
-.prep{display:inline-flex;align-items:center;gap:16px;background:#fff;color:var(--ink);padding:13px 22px;border-radius:14px;margin-bottom:20px;box-shadow:0 14px 40px rgba(0,0,0,.28)}
-.prep .lbl{font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#8a9099;border-right:1px solid var(--line);padding-right:16px}
-.prep .pname{font-weight:700;font-size:1.45rem;color:var(--ink);line-height:1}
+.prep{display:inline-flex;align-items:center;gap:22px;background:#fff;color:var(--ink);padding:20px 34px;border-radius:16px;margin-bottom:26px;box-shadow:0 18px 48px rgba(0,0,0,.32)}
+.prep .lbl{font-size:.74rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#8a9099;border-right:1px solid var(--line);padding-right:22px}
+.prep .pname{font-weight:700;font-size:clamp(2rem,5vw,2.9rem);color:var(--ink);line-height:1}
 .prep .plogo{display:block;width:auto}
 /* co-brand line in the closing CTA */
-.duo{display:flex;align-items:center;justify-content:center;gap:22px;margin:0 auto 26px;flex-wrap:wrap}
-.duo img{height:34px}.duo .x{color:#9aa0aa;font-size:1.6rem}
-.duo .pname{font-weight:700;font-size:1.5rem;color:var(--ink)}
+.duo{display:flex;align-items:center;justify-content:center;gap:26px;margin:0 auto 30px;flex-wrap:wrap}
+.duo img{height:48px}.duo .x{color:#9aa0aa;font-size:2rem}
+.duo .pname{font-weight:700;font-size:clamp(1.8rem,4vw,2.4rem);color:var(--ink)}
 /* stat strip */
 .stats{background:var(--blue);color:#fff}
 .stats .wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:34px 24px;text-align:center}
@@ -194,7 +239,7 @@ footer .links a{margin-left:20px}
 		<h1>Lighting that finishes <?php echo esc_html( $name ); ?>'s fit-outs — beautifully.</h1>
 		<p class="sub">UK commercial lighting, engineered and manufactured in-house in Manchester. Bespoke linear, acoustic and biophilic — on spec, on time, on budget.</p>
 		<div class="cta">
-			<a class="btn btn-primary" href="mailto:<?php echo $mail; ?>?subject=<?php echo rawurlencode( $name . ' × Ricoman — let\'s talk lighting' ); ?>">Book a factory visit</a>
+			<a class="btn btn-primary" href="<?php echo esc_url( home_url( '/contact/' ) ); ?>">Book a factory visit</a>
 			<a class="btn btn-ghost" href="#work">See our work</a>
 		</div>
 	</div>
@@ -242,7 +287,7 @@ footer .links a{margin-left:20px}
 	</div>
 
 	<div class="cap">
-		<img loading="lazy" src="<?php echo $img( 'rico-acoustic-corridor.webp' ); ?>" alt="Ricoman acoustic lighting">
+		<a href="<?php echo esc_url( home_url( '/products/sounds-like-light-baffle/' ) ); ?>"><img loading="lazy" src="<?php echo esc_url( home_url( '/wp-content/uploads/2026/08/Acoustic-Baffle-1-2.webp' ) ); ?>" alt="Sounds Like Light acoustic baffle"></a>
 		<div>
 			<span class="tag">Acoustic lighting</span>
 			<h3>Sounds Like Light — quieter, calmer offices.</h3>
@@ -287,7 +332,7 @@ footer .links a{margin-left:20px}
 	<h2>Let's light <?php echo esc_html( $name ); ?>'s next project.</h2>
 	<p>Come and see the machine that makes it — a 20-minute walk round our Manchester factory, or a scheme designed for your live enquiry. Whichever's more use to you.</p>
 	<div class="cta">
-		<a class="btn btn-primary" href="mailto:<?php echo $mail; ?>?subject=<?php echo rawurlencode( $name . ' × Ricoman — let\'s talk lighting' ); ?>">Email us</a>
+		<a class="btn btn-primary" href="<?php echo esc_url( home_url( '/contact/' ) ); ?>">Get in touch</a>
 		<a class="btn btn-dark" href="tel:<?php echo preg_replace( '/\s/', '', $tel ); ?>">Call <?php echo esc_html( $tel ); ?></a>
 	</div>
 </div></div>
