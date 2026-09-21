@@ -607,3 +607,18 @@ add_filter( 'wp_resource_hints', function ( $urls, $relation_type ) {
 	}
 	return $urls;
 }, 10, 2 );
+
+/**
+ * TEMPORARY diagnostic: on the /products/ archive, print a footer comment with
+ * total PHP time + DB query count + peak memory, so we can pinpoint the ~9s
+ * cold-render cause (N+1 queries vs a blocking call) without guessing. Remove
+ * once diagnosed.
+ */
+add_action( 'wp_footer', function () {
+	if ( ! is_post_type_archive( 'product' ) || is_admin() ) {
+		return;
+	}
+	echo "\n<!-- rmperf-req php=" . number_format( (float) timer_stop( 0, 4 ), 4 ) . 's'
+		. ' queries=' . (int) get_num_queries()
+		. ' mem=' . size_format( memory_get_peak_usage( true ) ) . " -->\n";
+}, 99 );
