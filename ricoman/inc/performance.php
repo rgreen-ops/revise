@@ -18,6 +18,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// TEMPORARY: record query timings on the /products/ archive so the perf probe
+// below can show the slowest queries + their source. Scoped to /products/ so it
+// adds no overhead elsewhere. Remove with the probe once diagnosed.
+if ( ! is_admin() && isset( $_SERVER['REQUEST_URI'] )
+	&& false !== strpos( (string) $_SERVER['REQUEST_URI'], '/products/' ) // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+	&& ! defined( 'SAVEQUERIES' ) ) {
+	define( 'SAVEQUERIES', true );
+}
+
 /* ---- Only inline the block CSS a page actually uses ---- */
 add_filter( 'should_load_separate_core_block_assets', '__return_true' );
 
@@ -618,7 +627,23 @@ add_action( 'wp_footer', function () {
 	if ( ! is_post_type_archive( 'product' ) || is_admin() ) {
 		return;
 	}
-	echo "\n<!-- rmperf-req php=" . number_format( (float) timer_stop( 0, 4 ), 4 ) . 's'
+	$out = "\n<!-- rmperf-req php=" . number_format( (float) timer_stop( 0, 4 ), 4 ) . 's'
 		. ' queries=' . (int) get_num_queries()
-		. ' mem=' . size_format( memory_get_peak_usage( true ) ) . " -->\n";
+		. ' mem=' . size_format( memory_get_peak_usage( true ) );
+	global $wpdb;
+	if ( defined( 'SAVEQUERIES' ) && SAVEQUERIES && ! empty( $wpdb->queries ) ) {
+		$q   = $wpdb->queries;
+		$tot = 0.0;
+		foreach ( $q as $r ) {
+			$tot += (float) $r[1];
+		}
+		usort( $q, function ( $a, $b ) { return ( $b[1] <=> $a[1] ); } );
+		$out .= ' | db_total=' . number_format( $tot, 3 ) . 's | slowest:';
+		foreach ( array_slice( $q, 0, 6 ) as $r ) {
+			$caller = preg_replace( '/\s+/', ' ', (string) ( $r[2] ?? '' ) );
+			$sql    = preg_replace( '/\s+/', ' ', (string) ( $r[0] ?? '' ) );
+			$out   .= "\n   [" . number_format( (float) $r[1], 3 ) . 's] ' . substr( $caller, -80 ) . ' :: ' . substr( $sql, 0, 90 );
+		}
+	}
+	echo $out . "\n-->\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 }, 99 );
