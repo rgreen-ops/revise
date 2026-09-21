@@ -18,15 +18,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// TEMPORARY: record query timings on the /products/ archive so the perf probe
-// below can show the slowest queries + their source. Scoped to /products/ so it
-// adds no overhead elsewhere. Remove with the probe once diagnosed.
-if ( ! is_admin() && isset( $_SERVER['REQUEST_URI'] )
-	&& false !== strpos( (string) $_SERVER['REQUEST_URI'], '/products/' ) // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
-	&& ! defined( 'SAVEQUERIES' ) ) {
-	define( 'SAVEQUERIES', true );
-}
-
 /* ---- Only inline the block CSS a page actually uses ---- */
 add_filter( 'should_load_separate_core_block_assets', '__return_true' );
 
@@ -144,6 +135,13 @@ function ricoman_img_reserve_space( $html ) {
 	if ( ! is_string( $html ) || false === strpos( $html, '<img' ) ) {
 		return $html;
 	}
+	// Skip on grid/archive pages: their cards already reserve space via CSS
+	// aspect-ratio, so resolving each image's dimensions here is pointless AND
+	// slow (hundreds of attachment_url_to_postid lookups = ~9s on /products/).
+	if ( is_post_type_archive( array( 'product', 'project' ) )
+		|| is_tax( array( 'product-cat', 'collection', 'project-cat', 'application', 'applycation-type' ) ) ) {
+		return $html;
+	}
 	return preg_replace_callback( '/<img\b[^>]*>/i', function ( $m ) {
 		$tag = $m[0];
 		if ( preg_match( '/\b(width|height)=/i', $tag ) ) {
@@ -175,14 +173,32 @@ function ricoman_img_reserve_space( $html ) {
  * large grid never hammers the database. Returns array( width, height ) or null.
  */
 function ricoman_img_dims_for_url( $url ) {
-	static $cache  = array();
-	static $budget = 80;
-	$key = strtok( (string) $url, '?' );
-	if ( isset( $cache[ $key ] ) ) {
-		return $cache[ $key ];
+	static $cache  = null;   // URL => array(w,h) | 0 (known none); persisted across requests.
+	static $dirty  = false;
+	static $budget = 30;     // hard cap on slow lookups per request (worst case ~3s, not 9s).
+	// Load the persistent map once, and flush it on shutdown if we learned anything.
+	if ( null === $cache ) {
+		$stored = get_transient( 'rm_imgdims_v1' );
+		$cache  = is_array( $stored ) ? $stored : array();
+		register_shutdown_function( function () use ( &$cache, &$dirty ) {
+			if ( $dirty ) {
+				// Cap the stored map so it can never bloat the options table.
+				if ( count( $cache ) > 4000 ) {
+					$cache = array_slice( $cache, -4000, null, true );
+				}
+				set_transient( 'rm_imgdims_v1', $cache, WEEK_IN_SECONDS );
+			}
+		} );
 	}
-	if ( $budget <= 0 || false === strpos( $key, '/wp-content/uploads/' ) ) {
-		return $cache[ $key ] = null;
+	$key = strtok( (string) $url, '?' );
+	if ( array_key_exists( $key, $cache ) ) {
+		return $cache[ $key ] ? $cache[ $key ] : null;
+	}
+	if ( false === strpos( $key, '/wp-content/uploads/' ) ) {
+		return null;
+	}
+	if ( $budget <= 0 ) {
+		return null; // over budget this request — don't cache, so a warm request can resolve it.
 	}
 	$budget--;
 	$out = null;
@@ -207,7 +223,9 @@ function ricoman_img_dims_for_url( $url ) {
 			}
 		}
 	}
-	return $cache[ $key ] = $out;
+	$cache[ $key ] = $out ? $out : 0; // remember "none" as 0 so we never re-query it.
+	$dirty         = true;
+	return $out;
 }
 
 /* ---- Serve hand-optimised WebP for the heavy homepage hero photos ----
@@ -617,33 +635,3 @@ add_filter( 'wp_resource_hints', function ( $urls, $relation_type ) {
 	return $urls;
 }, 10, 2 );
 
-/**
- * TEMPORARY diagnostic: on the /products/ archive, print a footer comment with
- * total PHP time + DB query count + peak memory, so we can pinpoint the ~9s
- * cold-render cause (N+1 queries vs a blocking call) without guessing. Remove
- * once diagnosed.
- */
-add_action( 'wp_footer', function () {
-	if ( ! is_post_type_archive( 'product' ) || is_admin() ) {
-		return;
-	}
-	$out = "\n<!-- rmperf-req php=" . number_format( (float) timer_stop( 0, 4 ), 4 ) . 's'
-		. ' queries=' . (int) get_num_queries()
-		. ' mem=' . size_format( memory_get_peak_usage( true ) );
-	global $wpdb;
-	if ( defined( 'SAVEQUERIES' ) && SAVEQUERIES && ! empty( $wpdb->queries ) ) {
-		$q   = $wpdb->queries;
-		$tot = 0.0;
-		foreach ( $q as $r ) {
-			$tot += (float) $r[1];
-		}
-		usort( $q, function ( $a, $b ) { return ( $b[1] <=> $a[1] ); } );
-		$out .= ' | db_total=' . number_format( $tot, 3 ) . 's | slowest:';
-		foreach ( array_slice( $q, 0, 6 ) as $r ) {
-			$caller = preg_replace( '/\s+/', ' ', (string) ( $r[2] ?? '' ) );
-			$sql    = preg_replace( '/\s+/', ' ', (string) ( $r[0] ?? '' ) );
-			$out   .= "\n   [" . number_format( (float) $r[1], 3 ) . 's] ' . substr( $caller, -80 ) . ' :: ' . substr( $sql, 0, 90 );
-		}
-	}
-	echo $out . "\n-->\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-}, 99 );
