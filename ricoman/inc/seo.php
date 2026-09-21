@@ -299,6 +299,10 @@ function ricoman_seo_noindex_page_uris() {
 		// Migration left-overs (duplicate / backup / template).
 		'home-page', 'home-duplicate-bkp', 'updated-home-page',
 		'product-mega-menu', 'elementor-88702', 'registration-duplicate-1',
+		// Private prospect / outreach microsites — sent to a named account, never
+		// meant for public search. Add each new one's page slug here (or just tick
+		// "Hide from search engines" in the page editor — either works).
+		'obi', 'office-innovations',
 	);
 }
 function ricoman_seo_is_noindex_target() {
