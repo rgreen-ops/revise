@@ -188,6 +188,7 @@ section.pad{padding:78px 0}
 .lead p{font-size:1.15rem;color:#3c4350}
 /* projects grid */
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:38px}
+.grid .pcard{display:block;text-decoration:none}
 .grid figure{position:relative;border-radius:14px;overflow:hidden;aspect-ratio:4/3;background:#e9edf1}
 .grid img{width:100%;height:100%;object-fit:cover;transition:.5s}
 .grid figure:hover img{transform:scale(1.06)}
@@ -275,7 +276,7 @@ footer .links a{margin-left:20px}
 	<h2 style="font-size:clamp(1.9rem,4vw,2.9rem);margin:.25em 0 0">Offices &amp; workspaces we've lit</h2>
 	<div class="grid">
 		<?php foreach ( $gallery as $g ) : ?>
-			<figure><img loading="lazy" src="<?php echo $img( $g[0] ); ?>" alt="<?php echo esc_attr( $g[1] ); ?>"><figcaption><?php echo esc_html( $g[1] ); ?></figcaption></figure>
+			<a class="pcard" href="<?php echo esc_url( $g['link'] ); ?>"><figure><img loading="lazy" src="<?php echo esc_url( $g['url'] ); ?>" alt="<?php echo esc_attr( $g['title'] ); ?>"><figcaption><?php echo esc_html( $g['title'] ); ?></figcaption></figure></a>
 		<?php endforeach; ?>
 	</div>
 </div></section>
