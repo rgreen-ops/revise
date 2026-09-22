@@ -210,7 +210,9 @@ h1,h2,h3{line-height:1.08;font-weight:700}
 .hero p.sub{font-size:clamp(1.05rem,1.8vw,1.3rem);max-width:50ch;color:rgba(255,255,255,.9);font-weight:400;margin-bottom:2em}
 .hero .cta{display:flex;gap:14px;flex-wrap:wrap}
 .hello{font-size:clamp(1.5rem,3.4vw,2.5rem);font-weight:400;color:#fff;line-height:1.12;letter-spacing:.005em;margin-bottom:.7em}
-.hello .who{font-weight:600;box-shadow:inset 0 -2px 0 rgba(140,185,255,.9);padding-bottom:1px}
+.who{box-shadow:inset 0 -2px 0 rgba(140,185,255,.9);padding-bottom:1px}
+.hello .who{font-weight:600}
+.hero h1 .who{box-shadow:inset 0 -5px 0 rgba(140,185,255,.95);padding-bottom:2px}
 .kicker{display:inline-block;text-transform:uppercase;letter-spacing:.22em;font-size:.78rem;font-weight:600;color:rgba(255,255,255,.72);margin-bottom:1.1em}
 .prep{display:inline-flex;align-items:center;gap:18px;background:#fff;color:var(--ink);padding:12px 22px;border-radius:12px;margin-bottom:30px;box-shadow:0 12px 34px rgba(0,0,0,.28)}
 .prep .lbl{font-size:.68rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#8a9099;border-right:1px solid var(--line);padding-right:18px}
@@ -293,7 +295,7 @@ footer .links a{margin-left:20px}
 		<div class="prep"><span class="lbl">Prepared for</span> <?php echo ricoman_partner_logo_html( $p, 60 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></div>
 		<?php if ( $greeting ) : ?><p class="hello">Hello <span class="who"><?php echo esc_html( $greeting ); ?></span>,</p><?php endif; ?>
 		<span class="kicker">Commercial lighting · designed &amp; made in Manchester</span>
-		<h1>Lighting that finishes <?php echo esc_html( $name ); ?>'s fit-outs, beautifully.</h1>
+		<h1>Lighting that finishes <span class="who"><?php echo esc_html( $name ); ?></span>'s fit-outs, beautifully.</h1>
 		<p class="sub">In-house linear, acoustic and biophilic luminaires — engineered around the way you specify, and delivered in two to three weeks.</p>
 		<div class="cta">
 			<a class="btn btn-primary" href="<?php echo esc_url( home_url( '/contact/' ) ); ?>">Book a factory visit</a>
