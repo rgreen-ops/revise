@@ -328,7 +328,7 @@ footer .links a{margin-left:20px}
 		<p>Our bespoke biophilic light trees bring greenery, warmth and a moment of calm into a reception or breakout — a living centrepiece people stop and look at.</p>
 		<p>Paired with warm, human-centric linear and downlighting, it turns a workspace into somewhere people genuinely want to be. Designed with you and built in Manchester.</p>
 	</div>
-	<div class="media"><img loading="lazy" src="<?php echo $img( 'biophilic-tree.avif' ); ?>" alt="Ricoman bespoke biophilic light tree"></div>
+	<div class="media"><img loading="lazy" src="<?php echo $img( 'biophilic-tree.webp' ); ?>" alt="Ricoman bespoke biophilic light tree"></div>
 </div></section>
 
 <div class="band"><div class="wrap">
