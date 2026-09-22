@@ -44,9 +44,24 @@ function ricoman_partner_logo_html( array $p, $h = 40 ) {
 }
 
 /** Real project cards (office sector first), each: title + image URL + link. */
-function ricoman_partner_project_cards( $limit = 9 ) {
+function ricoman_partner_project_cards( $limit = 9, $slugs = array() ) {
 	if ( ! post_type_exists( 'project' ) ) {
 		return array();
+	}
+	// Hand-picked mode: resolve the given project slugs, in order.
+	if ( ! empty( $slugs ) ) {
+		$fb    = array( 'hero-betfred-1.webp', 'rico-office-fitout.webp', 'rico-kingsgate.webp', 'rico-betfred7.webp', 'office2.webp', 'rico-office-render.webp', 'office3.webp', 'estrella-lounge.webp', 'rico-office.webp' );
+		$cards = array();
+		$i     = 0;
+		foreach ( $slugs as $slug ) {
+			$post = get_page_by_path( $slug, OBJECT, 'project' );
+			if ( ! $post ) { continue; }
+			$url = get_the_post_thumbnail_url( $post->ID, 'large' );
+			if ( ! $url ) { $url = get_theme_file_uri( 'assets/images/' . $fb[ $i % count( $fb ) ] ); }
+			$cards[] = array( 'title' => get_the_title( $post ), 'url' => $url, 'link' => get_permalink( $post ) );
+			$i++;
+		}
+		return array_slice( $cards, 0, $limit );
 	}
 	$args = array( 'post_type' => 'project', 'post_status' => 'publish', 'numberposts' => $limit, 'orderby' => 'date', 'order' => 'DESC', 'no_found_rows' => true );
 	// Prefer the office sector if the taxonomy + term exist.
@@ -124,7 +139,20 @@ function ricoman_render_partner_page( array $p ) {
 
 	// Real projects from the site (office sector first), each with its own photo,
 	// name and a link to the live project page. Nine = three rows.
-	$gallery = ricoman_partner_project_cards( 9 );
+	// Hand-picked project showcase (office / workspace led). Edit this list to
+	// change which projects appear, and in what order.
+	$curated = array(
+		'betfred-headquarters-lighting',
+		'gamesroom-gym-lighting-waterhouse-gardens',
+		'allianz-leeds',
+		'tower-court-coventry',
+		'crown-house',
+		'st-paul-square',
+		'flour-patisserie',
+		'flow',
+		'rgbw-casambi-gym-lighting',
+	);
+	$gallery = ricoman_partner_project_cards( 9, $curated );
 
 	// Optional personalisation for 1:1 outreach: add ?to=Andy (or ?name=) to the
 	// link you paste into an email/LinkedIn message and the hero greets them by name.
