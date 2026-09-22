@@ -6,7 +6,7 @@
  * top-level slug (e.g. /OBI, /office-innovations) and sent directly to a named
  * account. Rendered entirely in code (self-contained HTML) so they don't touch
  * the CMS, are version-controlled, and deploy with the theme. Always noindexed
- * (private outreach — not for public search); the slugs are also in
+ * (private outreach, not for public search); the slugs are also in
  * ricoman_seo_noindex_page_uris() as belt-and-braces.
  *
  * To add a prospect: add one row to ricoman_partner_pages(). That's it.
@@ -24,12 +24,12 @@ function ricoman_partner_pages() {
 		'obi' => array(
 			'name'  => 'OBI',
 			'logo'  => 'partners/obi.png',       // drop the prospect's logo here; falls back to their name if absent.
-			'intro' => 'Four teams working as one — transactions, consultancy, workplace design and studio — building workspaces people are proud of. We make the lighting that finishes them: engineered in-house in Manchester, right on your doorstep, and kind to people and the planet.',
+			'intro' => 'Four teams working as one across transactions, consultancy, workplace design and studio, building workspaces people are proud of. We make the lighting that finishes them, engineered in-house in Manchester, right on your doorstep, and kind to people and the planet.',
 		),
 		'office-innovations' => array(
 			'name'  => 'Office Innovations',
 			'logo'  => 'partners/office-innovations.png',
-			'intro' => 'You turn empty floors into workspaces that work. We make the lighting that brings them to life — engineered in-house, in Manchester, right on your doorstep.',
+			'intro' => 'You turn empty floors into workspaces that work. We make the lighting that brings them to life, engineered in-house, in Manchester, right on your doorstep.',
 		),
 	);
 }
@@ -125,7 +125,7 @@ add_action( 'template_redirect', function () {
 	exit;
 }, 1 );
 
-/** Handle the on-page contact form — emails the enquiry to Richard. */
+/** Handle the on-page contact form; emails the enquiry to Richard. */
 add_action( 'admin_post_nopriv_ricoman_partner_contact', 'ricoman_partner_contact_submit' );
 add_action( 'admin_post_ricoman_partner_contact', 'ricoman_partner_contact_submit' );
 function ricoman_partner_contact_submit() {
@@ -144,7 +144,7 @@ function ricoman_partner_contact_submit() {
 	$email   = sanitize_email( wp_unslash( $_POST['rp_email'] ?? '' ) );
 	$company = sanitize_text_field( wp_unslash( $_POST['rp_company'] ?? '' ) );
 	$message = sanitize_textarea_field( wp_unslash( $_POST['rp_message'] ?? '' ) );
-	$subject = 'Website enquiry — ' . ( '' !== $company ? $company : $name );
+	$subject = 'Website enquiry: ' . ( '' !== $company ? $company : $name );
 	$body    = "New enquiry from your prospect landing page:\n\n"
 		. 'Name: ' . $name . "\n"
 		. 'Company: ' . $company . "\n"
@@ -216,7 +216,7 @@ function ricoman_render_partner_page( array $p ) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Ricoman × <?php echo esc_html( $name ); ?> — Commercial lighting, made in Manchester</title>
+<title>Ricoman for <?php echo esc_html( $name ); ?> · Commercial lighting, made in Manchester</title>
 <style>
 @font-face{font-family:Poppins;font-weight:400;font-display:swap;src:url(<?php echo $font( 'poppins-400.woff2' ); ?>) format('woff2')}
 @font-face{font-family:Poppins;font-weight:600;font-display:swap;src:url(<?php echo $font( 'poppins-600.woff2' ); ?>) format('woff2')}
@@ -365,7 +365,7 @@ footer .links a{margin-left:20px}
 		<?php if ( $greeting ) : ?><p class="hello">Hello <span class="who"><?php echo esc_html( $greeting ); ?></span>,</p><?php endif; ?>
 		<span class="kicker">Commercial lighting · designed &amp; made in Manchester</span>
 		<h1>Lighting that finishes <span class="who"><?php echo esc_html( $name ); ?></span>'s fit-outs, beautifully.</h1>
-		<p class="sub">In-house linear, acoustic and biophilic luminaires — engineered around the way you specify, and delivered in two to three weeks.</p>
+		<p class="sub">In-house linear, acoustic and biophilic luminaires, engineered around the way you specify and delivered in two to three weeks.</p>
 		<div class="cta">
 			<a class="btn btn-primary" href="#contact">Book a factory visit</a>
 			<a class="btn btn-ghost" href="#work">See our work</a>
@@ -375,7 +375,7 @@ footer .links a{margin-left:20px}
 
 <div class="stats"><div class="wrap">
 	<div><div class="n">1,000,000+</div><div class="l">linear variants, built to order</div></div>
-	<div><div class="n">2–3 wks</div><div class="l">typical project delivery</div></div>
+	<div><div class="n">2-3 wks</div><div class="l">typical project delivery</div></div>
 	<div><div class="n">In-house</div><div class="l">Manchester manufacturing</div></div>
 	<div><div class="n">UK-made</div><div class="l">no import lead times</div></div>
 </div></div>
@@ -384,7 +384,7 @@ footer .links a{margin-left:20px}
 	<div class="lead">
 		<span class="eyebrow">Why <?php echo esc_html( $name ); ?> + Ricoman</span>
 		<h2>Made round the corner, not shipped round the world.</h2>
-		<p><?php echo esc_html( $intro ); ?> Because we design, bend and build our linear on our own floor, we can tailor a run exactly to your space and turn it around in <strong>2–3 weeks</strong> — no eight-week import wait, no "sorry, that's a special".</p>
+		<p><?php echo esc_html( $intro ); ?> Because we design, bend and build our linear on our own floor, we can tailor a run exactly to your space and turn it around in <strong>2-3 weeks</strong>. No eight-week import wait, no "sorry, that's a special".</p>
 	</div>
 </div></section>
 
@@ -404,8 +404,8 @@ footer .links a{margin-left:20px}
 		<img loading="lazy" src="<?php echo $img( 'rico-mfg.webp' ); ?>" alt="Ricoman manufacturing floor, Manchester">
 		<div>
 			<span class="tag">In-house manufacturing</span>
-			<h3>Our own bending machine — in Manchester.</h3>
-			<p>Curves, corners, custom lengths — our in-house bending machine and assembly line mean your linear scheme is made to your drawing, not forced to fit a catalogue.</p>
+			<h3>Our own bending machine, here in Manchester.</h3>
+			<p>Curves, corners, custom lengths: our in-house bending machine and assembly line mean your linear scheme is made to your drawing, not forced to fit a catalogue.</p>
 			<ul>
 				<li><strong>1,000,000+</strong> linear configurations, built to order</li>
 				<li>Bespoke shapes &amp; lengths as standard, not a surcharge</li>
@@ -418,7 +418,7 @@ footer .links a{margin-left:20px}
 		<a href="<?php echo esc_url( home_url( '/products/sounds-like-light-baffle/' ) ); ?>"><img loading="lazy" src="<?php echo esc_url( home_url( '/wp-content/uploads/2024/01/RICOMAN-Lighting-product-soundslikelight02.webp' ) ); ?>" alt="Sounds Like Light acoustic baffle"></a>
 		<div>
 			<span class="tag">Acoustic lighting</span>
-			<h3>Sounds Like Light — quieter, calmer offices.</h3>
+			<h3>Sounds Like Light: quieter, calmer offices.</h3>
 			<p>Light and sound absorption in one fitting. Cut the reverb in open-plan floors, breakouts and meeting spaces while the lighting still looks the part.</p>
 		</div>
 	</div>
@@ -428,7 +428,7 @@ footer .links a{margin-left:20px}
 		<div>
 			<span class="tag">Lighting design service</span>
 			<h3>A free scheme, before you commit.</h3>
-			<p>Our in-house design team produces the lux calculations, layouts and visuals for your project — so you win the pitch with a scheme that's already proven to work.</p>
+			<p>Our in-house design team produces the lux calculations, layouts and visuals for your project, so you win the pitch with a scheme that's already proven to work.</p>
 			<ul>
 				<li>DIALux lux plans &amp; compliance</li>
 				<li>Photoreal visuals for client sign-off</li>
@@ -455,7 +455,7 @@ footer .links a{margin-left:20px}
 	<div class="txt">
 		<span class="eyebrow">Biophilic lighting</span>
 		<h2>Lighting that makes a space feel alive.</h2>
-		<p>Our bespoke biophilic light trees bring greenery, warmth and a moment of calm into a reception or breakout — a living centrepiece people stop and look at.</p>
+		<p>Our bespoke biophilic light trees bring greenery, warmth and a moment of calm into a reception or breakout, a living centrepiece people stop and look at.</p>
 		<p>Paired with warm, human-centric linear and downlighting, it turns a workspace into somewhere people genuinely want to be. Designed with you and built in Manchester.</p>
 	</div>
 	<div class="media"><img loading="lazy" src="<?php echo $img( 'biophilic-tree.webp' ); ?>" alt="Ricoman bespoke biophilic light tree"></div>
@@ -463,16 +463,16 @@ footer .links a{margin-left:20px}
 
 <div class="band"><div class="wrap">
 	<h2>Everything a fit-out needs, from one Manchester supplier.</h2>
-	<p>Linear, downlights, track, acoustic, biophilic and emergency — designed, made and delivered in-house. Fewer suppliers, faster lead times, one team that answers the phone.</p>
+	<p>Linear, downlights, track, acoustic, biophilic and emergency, all designed, made and delivered in-house. Fewer suppliers, faster lead times, one team that answers the phone.</p>
 	<a class="btn btn-primary" href="<?php echo esc_url( home_url( '/products/' ) ); ?>">Explore the range</a>
 </div></div>
 
 <section class="pad contactsec" id="contact"><div class="wrap narrow">
 	<span class="eyebrow">Get in touch</span>
 	<h2>Talk to <?php echo esc_html( $rep ); ?>.</h2>
-	<p class="cintro">Drop me a line and I'll come straight back — a scheme for a live enquiry, budget prices, or a look round the factory.<br>
+	<p class="cintro">Drop me a line and I'll come straight back, whether that's a scheme for a live enquiry, budget prices, or a look round the factory.<br>
 		<a href="mailto:<?php echo esc_attr( $rep_email ); ?>"><?php echo esc_html( $rep_email ); ?></a> &nbsp;·&nbsp; <a href="tel:<?php echo esc_attr( $rep_mobrw ); ?>"><?php echo esc_html( $rep_mob ); ?></a></p>
-	<?php if ( $sent ) : ?><p class="sent">✅ Thanks — your message is on its way to <?php echo esc_html( $rep ); ?>. I'll be in touch shortly.</p><?php endif; ?>
+	<?php if ( $sent ) : ?><p class="sent">✅ Thanks, your message is on its way to <?php echo esc_html( $rep ); ?>. I'll be in touch shortly.</p><?php endif; ?>
 	<form class="cform" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 		<input type="hidden" name="action" value="ricoman_partner_contact">
 		<input type="hidden" name="rp_source" value="<?php echo esc_url( $self ); ?>">
@@ -492,10 +492,10 @@ footer .links a{margin-left:20px}
 	<div class="duo"><span class="lock rlock"><img src="<?php echo $logo; ?>" alt="Ricoman Lighting"></span><span class="x">×</span><span class="lock plock"><?php echo ricoman_partner_logo_html( $p, 60 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span></div>
 	<span class="eyebrow">Let's work together</span>
 	<h2>Let's light <?php echo esc_html( $name ); ?>'s next project.</h2>
-	<p>Come and see the machine that makes it — a 20-minute walk round our Manchester factory, or a scheme designed for your live enquiry. Whichever's more use to you.</p>
+	<p>Come and see the machine that makes it: a 20-minute walk round our Manchester factory, or a scheme designed for your live enquiry. Whichever's more use to you.</p>
 	<div class="cta">
 		<a class="btn btn-primary" href="mailto:<?php echo esc_attr( $rep_email ); ?>">Email <?php echo esc_html( $rep ); ?></a>
-		<a class="btn btn-wa" href="https://wa.me/<?php echo esc_attr( $wa ); ?>?text=<?php echo rawurlencode( 'Hi Ricoman — I saw the ' . $name . ' lighting page and would like to chat.' ); ?>" target="_blank" rel="noopener">💬 WhatsApp me</a>
+		<a class="btn btn-wa" href="https://wa.me/<?php echo esc_attr( $wa ); ?>?text=<?php echo rawurlencode( 'Hi Richard, I saw the ' . $name . ' lighting page and would like to chat.' ); ?>" target="_blank" rel="noopener">💬 WhatsApp me</a>
 		<a class="btn btn-dark" href="tel:<?php echo esc_attr( $rep_mobrw ); ?>">Call <?php echo esc_html( $rep_mob ); ?></a>
 	</div>
 </div></div>
