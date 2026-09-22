@@ -204,6 +204,16 @@ section.pad{padding:78px 0}
 .cap ul{margin:1em 0 0;padding-left:1.1em;color:#3c4350}
 .cap li{margin:.3em 0}
 @media(max-width:860px){.cap,.cap:nth-child(even){grid-template-columns:1fr;direction:ltr;gap:26px;margin:52px 0}}
+/* biophilic showcase */
+.biophilic{background:#0e1512;color:#fff;overflow:hidden}
+.biophilic .wrap{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center;padding:0 24px}
+.biophilic .txt{padding:80px 0}
+.biophilic .eyebrow{color:#8fd6a6}
+.biophilic h2{font-size:clamp(2rem,4.4vw,3rem);margin:.3em 0 .5em}
+.biophilic p{color:#c9d3cd;font-size:1.12rem;max-width:48ch;margin:0 0 1em}
+.biophilic .media{position:relative;align-self:stretch;min-height:460px}
+.biophilic .media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+@media(max-width:860px){.biophilic .wrap{grid-template-columns:1fr;gap:0}.biophilic .media{min-height:340px;order:-1}.biophilic .txt{padding:52px 0}}
 /* why band */
 .band{background:var(--ink);color:#fff}
 .band .wrap{padding:74px 24px;text-align:center}
@@ -296,15 +306,6 @@ footer .links a{margin-left:20px}
 	</div>
 
 	<div class="cap">
-		<img loading="lazy" src="<?php echo $img( 'rico-breakout-lounge.webp' ); ?>" alt="Ricoman biophilic lighting">
-		<div>
-			<span class="tag">Biophilic lighting</span>
-			<h3>Lighting that makes a space feel alive.</h3>
-			<p>Warm, human-centric schemes for breakouts, lounges and wellbeing zones — the finishing touch that makes a workspace somewhere people actually want to be.</p>
-		</div>
-	</div>
-
-	<div class="cap">
 		<img loading="lazy" src="<?php echo $img( 'rico-lightingdesign.webp' ); ?>" alt="Ricoman lighting design service">
 		<div>
 			<span class="tag">Lighting design service</span>
@@ -318,6 +319,16 @@ footer .links a{margin-left:20px}
 		</div>
 	</div>
 
+</div></section>
+
+<section class="biophilic"><div class="wrap">
+	<div class="txt">
+		<span class="eyebrow">Biophilic lighting</span>
+		<h2>Lighting that makes a space feel alive.</h2>
+		<p>Our bespoke biophilic light trees bring greenery, warmth and a moment of calm into a reception or breakout — a living centrepiece people stop and look at.</p>
+		<p>Paired with warm, human-centric linear and downlighting, it turns a workspace into somewhere people genuinely want to be. Designed with you and built in Manchester.</p>
+	</div>
+	<div class="media"><img loading="lazy" src="<?php echo $img( 'biophilic-tree.avif' ); ?>" alt="Ricoman bespoke biophilic light tree"></div>
 </div></section>
 
 <div class="band"><div class="wrap">
