@@ -260,7 +260,7 @@ footer .links a{margin-left:20px}
 	<div class="grad"></div>
 	<div class="wrap">
 		<?php if ( $greeting ) : ?><p class="hi">Hi <?php echo esc_html( $greeting ); ?> 👋</p><?php endif; ?>
-		<div class="prep"><span class="lbl">Prepared for</span> <?php echo ricoman_partner_logo_html( $p, 54 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></div>
+		<div class="prep"><span class="lbl">Prepared for</span> <?php echo ricoman_partner_logo_html( $p, 82 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></div>
 		<span class="for">A lighting partnership for <?php echo esc_html( $name ); ?></span>
 		<h1>Lighting that finishes <?php echo esc_html( $name ); ?>'s fit-outs — beautifully.</h1>
 		<p class="sub">UK commercial lighting, engineered and manufactured in-house in Manchester. Bespoke linear, acoustic and biophilic — on spec, on time, on budget.</p>
@@ -354,7 +354,7 @@ footer .links a{margin-left:20px}
 </div></div>
 
 <div class="close"><div class="wrap">
-	<div class="duo"><span style="font-weight:700;font-size:1.5rem;color:var(--blue);letter-spacing:.03em">RICOMAN</span><span class="x">×</span><?php echo ricoman_partner_logo_html( $p, 44 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></div>
+	<div class="duo"><span style="font-weight:700;font-size:1.5rem;color:var(--blue);letter-spacing:.03em">RICOMAN</span><span class="x">×</span><?php echo ricoman_partner_logo_html( $p, 64 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></div>
 	<span class="eyebrow">Let's work together</span>
 	<h2>Let's light <?php echo esc_html( $name ); ?>'s next project.</h2>
 	<p>Come and see the machine that makes it — a 20-minute walk round our Manchester factory, or a scheme designed for your live enquiry. Whichever's more use to you.</p>
