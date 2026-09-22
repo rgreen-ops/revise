@@ -464,7 +464,7 @@ footer .links a{margin-left:20px}
 		<p>Our custom biophilic lighting brings greenery, warmth and a moment of calm into a reception or breakout, a living centrepiece people stop and look at.</p>
 		<p>Paired with warm, human-centric linear and downlighting, it turns a workspace into somewhere people genuinely want to be. Designed with you and built in Manchester.</p>
 	</div>
-	<div class="media"><img loading="lazy" src="<?php echo $img( 'rico-allianz-biophilic.webp' ); ?>" alt="Ricoman custom biophilic lighting at Allianz"></div>
+	<div class="media"><img loading="lazy" src="<?php echo $img( 'biophilic-tree.webp' ); ?>" alt="Ricoman custom biophilic lighting"></div>
 </div></section>
 
 <div class="band"><div class="wrap">
