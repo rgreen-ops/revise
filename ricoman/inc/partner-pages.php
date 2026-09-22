@@ -24,7 +24,7 @@ function ricoman_partner_pages() {
 		'obi' => array(
 			'name'  => 'OBI',
 			'logo'  => 'partners/obi.png',       // drop the prospect's logo here; falls back to their name if absent.
-			'intro' => 'You design and build workspaces people are proud to walk into. We make the lighting that finishes them — engineered in-house, in Manchester, right on your doorstep.',
+			'intro' => 'Four teams working as one — transactions, consultancy, workplace design and studio — building workspaces people are proud of. We make the lighting that finishes them: engineered in-house in Manchester, right on your doorstep, and kind to people and the planet.',
 		),
 		'office-innovations' => array(
 			'name'  => 'Office Innovations',
@@ -125,6 +125,19 @@ function ricoman_render_partner_page( array $p ) {
 	// name and a link to the live project page. Nine = three rows.
 	$gallery = ricoman_partner_project_cards( 9 );
 
+	// Optional personalisation for 1:1 outreach: add ?to=Andy (or ?name=) to the
+	// link you paste into an email/LinkedIn message and the hero greets them by name.
+	$greeting = '';
+	foreach ( array( 'to', 'name', 'hi' ) as $k ) {
+		if ( ! empty( $_GET[ $k ] ) ) { $greeting = (string) wp_unslash( $_GET[ $k ] ); break; } // phpcs:ignore WordPress.Security.NonceVerification
+	}
+	$greeting = trim( preg_replace( '/\s+/', ' ', preg_replace( "/[^A-Za-z '\-]/", '', $greeting ) ) );
+	if ( '' !== $greeting && strlen( $greeting ) <= 32 ) {
+		$greeting = ucwords( $greeting );
+	} else {
+		$greeting = '';
+	}
+
 	header( 'Content-Type: text/html; charset=utf-8' );
 	?><!doctype html>
 <html lang="en-GB">
@@ -167,7 +180,8 @@ h1,h2,h3{line-height:1.08;font-weight:700}
 .hero p.sub{font-size:clamp(1.05rem,2vw,1.35rem);max-width:52ch;opacity:.95;margin-bottom:1.8em}
 .hero .cta{display:flex;gap:14px;flex-wrap:wrap}
 .hero .for{display:inline-block;background:var(--blue);color:#fff;padding:7px 16px;border-radius:30px;font-weight:700;font-size:.82rem;letter-spacing:.04em}
-.prep{display:inline-flex;align-items:center;gap:22px;background:#fff;color:var(--ink);padding:20px 34px;border-radius:16px;margin-bottom:26px;box-shadow:0 18px 48px rgba(0,0,0,.32)}
+.hi{font-size:clamp(1.3rem,2.8vw,2rem);font-weight:700;color:#fff;margin-bottom:16px;text-shadow:0 2px 14px rgba(0,0,0,.45)}
+.prep{display:inline-flex;align-items:center;gap:22px;background:#fff;color:var(--ink);padding:18px 30px;border-radius:16px;margin-bottom:26px;box-shadow:0 18px 48px rgba(0,0,0,.32)}
 .prep .lbl{font-size:.74rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#8a9099;border-right:1px solid var(--line);padding-right:22px}
 .prep .pname{font-weight:700;font-size:clamp(2rem,5vw,2.9rem);color:var(--ink);line-height:1}
 .prep .plogo{display:block;width:auto}
@@ -245,7 +259,8 @@ footer .links a{margin-left:20px}
 	<img class="bg" src="<?php echo $img( 'rico-betfred-flow.webp' ); ?>" alt="">
 	<div class="grad"></div>
 	<div class="wrap">
-		<div class="prep"><span class="lbl">Prepared for</span> <?php echo ricoman_partner_logo_html( $p, 40 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></div>
+		<?php if ( $greeting ) : ?><p class="hi">Hi <?php echo esc_html( $greeting ); ?> 👋</p><?php endif; ?>
+		<div class="prep"><span class="lbl">Prepared for</span> <?php echo ricoman_partner_logo_html( $p, 54 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></div>
 		<span class="for">A lighting partnership for <?php echo esc_html( $name ); ?></span>
 		<h1>Lighting that finishes <?php echo esc_html( $name ); ?>'s fit-outs — beautifully.</h1>
 		<p class="sub">UK commercial lighting, engineered and manufactured in-house in Manchester. Bespoke linear, acoustic and biophilic — on spec, on time, on budget.</p>
@@ -339,7 +354,7 @@ footer .links a{margin-left:20px}
 </div></div>
 
 <div class="close"><div class="wrap">
-	<div class="duo"><span style="font-weight:700;font-size:1.5rem;color:var(--blue);letter-spacing:.03em">RICOMAN</span><span class="x">×</span><?php echo ricoman_partner_logo_html( $p, 34 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></div>
+	<div class="duo"><span style="font-weight:700;font-size:1.5rem;color:var(--blue);letter-spacing:.03em">RICOMAN</span><span class="x">×</span><?php echo ricoman_partner_logo_html( $p, 44 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></div>
 	<span class="eyebrow">Let's work together</span>
 	<h2>Let's light <?php echo esc_html( $name ); ?>'s next project.</h2>
 	<p>Come and see the machine that makes it — a 20-minute walk round our Manchester factory, or a scheme designed for your live enquiry. Whichever's more use to you.</p>
