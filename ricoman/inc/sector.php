@@ -299,14 +299,26 @@ add_shortcode( 'ricoman_sector_products', function ( $atts ) {
 	$pq = new WP_Query( array(
 		'post_type'      => 'product',
 		'post_status'    => 'publish',
-		'posts_per_page' => 8,
+		'posts_per_page' => 40, // fetch extra so we can drop accessories and still fill the row.
 		'no_found_rows'  => true,
 		'orderby'        => array( 'menu_order' => 'ASC', 'date' => 'DESC' ),
 		'tax_query'      => array( array( 'taxonomy' => $term->taxonomy, 'terms' => $term->term_id ) ),
 	) );
-	if ( $pq->have_posts() ) {
+	// Exclude accessories (mounting frames, clips, drivers…) — the "By application"
+	// pages should recommend luminaires, not fittings' accessories.
+	$show = array();
+	foreach ( $pq->posts as $p ) {
+		if ( function_exists( 'ricoman_pf_is_accessory' ) && ricoman_pf_is_accessory( $p->ID ) ) {
+			continue;
+		}
+		$show[] = $p;
+		if ( count( $show ) >= 8 ) {
+			break;
+		}
+	}
+	if ( $show ) {
 		$cards = '';
-		foreach ( $pq->posts as $p ) {
+		foreach ( $show as $p ) {
 			$img   = function_exists( 'ricoman_product_img' ) ? ricoman_product_img( $p->ID ) : get_the_post_thumbnail_url( $p->ID, 'large' );
 			$sub   = function_exists( 'ricoman_pf_get' ) ? ricoman_pf_get( $p->ID, 'product_subname' ) : '';
 			$style = $img ? ' style="background-image:url(' . esc_url( $img ) . ')"' : '';
