@@ -644,7 +644,7 @@ add_shortcode( 'ricoman_collection_page', function () {
 .rm-colpage-crumbbar{font-size:.85rem;padding:16px 0 0}
 /* Constrain loose text/media a landing page drops at the top level (paragraphs,
    headings, lists…) to the content column; full-width sections/banners stay full. */
-.rm-colpage-content > :where(p,h1,h2,h3,h4,h5,h6,ul,ol,figure,blockquote,.wp-block-paragraph,.wp-block-heading,.wp-block-list,.wp-block-quote,.wp-block-image,.wp-block-buttons):not(.alignfull):not(.alignwide){max-width:1200px;margin-left:auto;margin-right:auto;padding-left:24px;padding-right:24px;box-sizing:border-box}
+.rm-colpage-content > :where(p,h1,h2,h3,h4,h5,h6,ul,ol,figure,blockquote,.wp-block-paragraph,.wp-block-heading,.wp-block-list,.wp-block-quote,.wp-block-image,.wp-block-buttons,.rm-opt-row):not(.alignfull):not(.alignwide){max-width:1200px;margin-left:auto;margin-right:auto;padding-left:24px;padding-right:24px;box-sizing:border-box}
 .rm-colpage-grid-wrap{max-width:1200px;margin:34px auto 64px;padding:0 24px;scroll-margin-top:80px}
 .rm-colpage-gridh{font-family:Poppins;font-weight:600;font-size:1.4rem;margin:0 0 20px}
 .rm-colpage-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
