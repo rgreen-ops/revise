@@ -642,6 +642,9 @@ add_shortcode( 'ricoman_collection_page', function () {
 .rm-colpage-meta{font-size:.85rem;letter-spacing:.04em;color:rgba(255,255,255,.75);margin:0}
 .rm-colpage-body{max-width:820px;margin:34px auto;padding:0 24px;font-size:1.02rem;line-height:1.7}
 .rm-colpage-crumbbar{font-size:.85rem;padding:16px 0 0}
+/* Constrain loose text/media a landing page drops at the top level (paragraphs,
+   headings, lists…) to the content column; full-width sections/banners stay full. */
+.rm-colpage-content > :where(p,h1,h2,h3,h4,h5,h6,ul,ol,figure,blockquote,.wp-block-paragraph,.wp-block-heading,.wp-block-list,.wp-block-quote,.wp-block-image,.wp-block-buttons):not(.alignfull):not(.alignwide){max-width:1200px;margin-left:auto;margin-right:auto;padding-left:24px;padding-right:24px;box-sizing:border-box}
 .rm-colpage-grid-wrap{max-width:1200px;margin:34px auto 64px;padding:0 24px;scroll-margin-top:80px}
 .rm-colpage-gridh{font-family:Poppins;font-weight:600;font-size:1.4rem;margin:0 0 20px}
 .rm-colpage-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
@@ -671,7 +674,9 @@ CSS;
 	$lpost       = $lp ? get_post( $lp ) : null;
 	$has_landing = ( $lpost instanceof WP_Post && 'trash' !== $lpost->post_status );
 	if ( $has_landing ) {
-		$mid       = apply_filters( 'the_content', $lpost->post_content );
+		// Wrap so loose top-level text blocks constrain to the content column
+		// (see .rm-colpage-content CSS); full-width sections/banners still break out.
+		$mid       = '<div class="rm-colpage-content">' . apply_filters( 'the_content', $lpost->post_content ) . '</div>';
 		$grid_here = has_shortcode( (string) $lpost->post_content, 'ricoman_collection_products' );
 	} else {
 		$mid       = ( '' !== trim( (string) $body ) ) ? '<div class="rm-colpage-body">' . wpautop( wp_kses_post( $body ) ) . '</div>' : '';
