@@ -450,10 +450,10 @@ footer .links a{margin-left:20px}
 		<a href="<?php echo esc_url( home_url( '/products/astrowave-neon-rope-light/' ) ); ?>"><figure><img loading="lazy" src="<?php echo $img( 'rico-astrowave-banner.webp' ); ?>" alt="Ricoman Astrowave neon rope light"><figcaption><span class="pt">Astrowave</span><span class="ps">Neon-effect rope</span></figcaption></figure></a>
 		<a href="<?php echo esc_url( home_url( '/products/sounds-like-light-baffle/' ) ); ?>"><figure><img loading="lazy" src="<?php echo esc_url( home_url( '/wp-content/uploads/2024/01/RICOMAN-Lighting-product-soundslikelight05.webp' ) ); ?>" alt="Ricoman Sounds Like Light acoustic baffle"><figcaption><span class="pt">Sounds Like Light</span><span class="ps">Acoustic + light</span></figcaption></figure></a>
 		<a class="more" href="<?php echo esc_url( home_url( '/products/neptune/' ) ); ?>"><figure><img loading="lazy" src="<?php echo esc_url( home_url( '/wp-content/uploads/2023/07/RICOMAN-Lighting-product-Neptune06.png' ) ); ?>" alt="Ricoman Neptune linear lighting"><figcaption><span class="pt">Neptune</span><span class="ps">Architectural linear</span></figcaption></figure></a>
-		<a class="more" href="<?php echo esc_url( home_url( '/product-category/led-downlights/' ) ); ?>"><figure><img loading="lazy" src="<?php echo $img( 'rico-office-render.webp' ); ?>" alt="Ricoman recessed downlights"><figcaption><span class="pt">Downlights</span><span class="ps">Recessed &amp; adjustable</span></figcaption></figure></a>
-		<a class="more" href="<?php echo esc_url( home_url( '/product-category/48v-track/' ) ); ?>"><figure><img loading="lazy" src="<?php echo $img( 'rico-office-fitout.webp' ); ?>" alt="Ricoman 48V magnetic track"><figcaption><span class="pt">48V track</span><span class="ps">Magnetic track system</span></figcaption></figure></a>
-		<a class="more" href="<?php echo esc_url( home_url( '/product-category/led-panel-lights/' ) ); ?>"><figure><img loading="lazy" src="<?php echo $img( 'office3.webp' ); ?>" alt="Ricoman backlit LED panels"><figcaption><span class="pt">Panels</span><span class="ps">Backlit &amp; edge-lit</span></figcaption></figure></a>
-		<a class="more" href="<?php echo esc_url( home_url( '/product-category/led-emergency/' ) ); ?>"><figure><img loading="lazy" src="<?php echo $img( 'office2.webp' ); ?>" alt="Ricoman emergency and exit lighting"><figcaption><span class="pt">Emergency</span><span class="ps">Emergency &amp; exit</span></figcaption></figure></a>
+		<a class="more" href="<?php echo esc_url( home_url( '/products/3000k-5000k-interchangeable-downlight-centorio/' ) ); ?>"><figure><img loading="lazy" src="<?php echo esc_url( home_url( '/wp-content/uploads/2019/06/Centorio-Main.webp' ) ); ?>" alt="Ricoman Centorio downlight"><figcaption><span class="pt">Centorio</span><span class="ps">CCT downlight</span></figcaption></figure></a>
+		<a class="more" href="<?php echo esc_url( home_url( '/products/zodiac-48v-direct-track/' ) ); ?>"><figure><img loading="lazy" src="<?php echo esc_url( home_url( '/wp-content/uploads/2023/07/Zodiac-Direct-track.png' ) ); ?>" alt="Ricoman Zodiac 48V magnetic track"><figcaption><span class="pt">Zodiac 48V</span><span class="ps">Magnetic track</span></figcaption></figure></a>
+		<a class="more" href="<?php echo esc_url( home_url( '/products/backlit-slim-led-panel-core-plus/' ) ); ?>"><figure><img loading="lazy" src="<?php echo esc_url( home_url( '/wp-content/uploads/2019/04/Core-plus.png' ) ); ?>" alt="Ricoman Core+ backlit LED panel"><figcaption><span class="pt">Core+</span><span class="ps">Backlit slim panel</span></figcaption></figure></a>
+		<a class="more" href="<?php echo esc_url( home_url( '/products/emergency-twin-spot-janus/' ) ); ?>"><figure><img loading="lazy" src="<?php echo esc_url( home_url( '/wp-content/uploads/2025/08/janus_695x695.webp' ) ); ?>" alt="Ricoman Janus emergency twin-spot"><figcaption><span class="pt">Janus</span><span class="ps">Emergency twin-spot</span></figcaption></figure></a>
 	</div>
 	<p style="margin-top:22px"><button type="button" class="btn btn-dark" id="rangeMore">See more products</button></p>
 </div></section>
@@ -462,10 +462,10 @@ footer .links a{margin-left:20px}
 	<div class="txt">
 		<span class="eyebrow">Biophilic lighting</span>
 		<h2>Lighting that makes a space feel alive.</h2>
-		<p>Our bespoke biophilic light trees bring greenery, warmth and a moment of calm into a reception or breakout, a living centrepiece people stop and look at.</p>
+		<p>Our custom biophilic lighting brings greenery, warmth and a moment of calm into a reception or breakout, a living centrepiece people stop and look at.</p>
 		<p>Paired with warm, human-centric linear and downlighting, it turns a workspace into somewhere people genuinely want to be. Designed with you and built in Manchester.</p>
 	</div>
-	<div class="media"><img loading="lazy" src="<?php echo $img( 'biophilic-tree.webp' ); ?>" alt="Ricoman bespoke biophilic light tree"></div>
+	<div class="media"><img loading="lazy" src="<?php echo $img( 'biophilic-tree.webp' ); ?>" alt="Ricoman custom biophilic lighting"></div>
 </div></section>
 
 <div class="band"><div class="wrap">
