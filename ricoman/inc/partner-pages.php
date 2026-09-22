@@ -400,6 +400,17 @@ footer .links a{margin-left:20px}
 	</div>
 </div></section>
 
+<div class="close close--mid"><div class="wrap">
+	<div class="duo"><span class="lock rlock"><img src="<?php echo $logo; ?>" alt="Ricoman Lighting"></span><span class="x">×</span><span class="lock plock"><?php echo ricoman_partner_logo_html( $p, 60 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span></div>
+	<span class="eyebrow">Let's work together</span>
+	<h2>Let's light <?php echo esc_html( $name ); ?>'s next project.</h2>
+	<p>Come and see the machine that makes it: a 20-minute walk round our Manchester factory, or a scheme designed for your live enquiry. Whichever's more use to you.</p>
+	<div class="cta">
+		<a class="btn btn-primary" href="#contact">Start a conversation</a>
+		<a class="btn btn-wa" href="https://wa.me/<?php echo esc_attr( $wa ); ?>?text=<?php echo rawurlencode( 'Hi Richard, I saw the ' . $name . ' lighting page and would like to chat.' ); ?>" target="_blank" rel="noopener">💬 WhatsApp me</a>
+	</div>
+</div></div>
+
 <section class="pad" style="padding-top:0"><div class="wrap">
 
 	<div class="cap">
@@ -432,7 +443,7 @@ footer .links a{margin-left:20px}
 			<h3>A free scheme, before you commit.</h3>
 			<p>Our in-house design team produces the lux calculations, layouts and visuals for your project, so you win the pitch with a scheme that's already proven to work.</p>
 			<ul>
-				<li>DIALux lux plans &amp; compliance</li>
+				<li>Relux lux plans &amp; compliance</li>
 				<li>Photoreal visuals for client sign-off</li>
 				<li>Full spec &amp; drawing support</li>
 			</ul>
@@ -493,18 +504,6 @@ footer .links a{margin-left:20px}
 		<button type="submit" class="btn btn-primary">Send to <?php echo esc_html( $rep ); ?></button>
 	</form>
 </div></section>
-
-<div class="close"><div class="wrap">
-	<div class="duo"><span class="lock rlock"><img src="<?php echo $logo; ?>" alt="Ricoman Lighting"></span><span class="x">×</span><span class="lock plock"><?php echo ricoman_partner_logo_html( $p, 60 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span></div>
-	<span class="eyebrow">Let's work together</span>
-	<h2>Let's light <?php echo esc_html( $name ); ?>'s next project.</h2>
-	<p>Come and see the machine that makes it: a 20-minute walk round our Manchester factory, or a scheme designed for your live enquiry. Whichever's more use to you.</p>
-	<div class="cta">
-		<a class="btn btn-primary" href="mailto:<?php echo esc_attr( $rep_email ); ?>">Email <?php echo esc_html( $rep ); ?></a>
-		<a class="btn btn-wa" href="https://wa.me/<?php echo esc_attr( $wa ); ?>?text=<?php echo rawurlencode( 'Hi Richard, I saw the ' . $name . ' lighting page and would like to chat.' ); ?>" target="_blank" rel="noopener">💬 WhatsApp me</a>
-		<a class="btn btn-dark" href="tel:<?php echo esc_attr( $rep_mobrw ); ?>">Call <?php echo esc_html( $rep_mob ); ?></a>
-	</div>
-</div></div>
 
 <footer><div class="wrap">
 	<div>
