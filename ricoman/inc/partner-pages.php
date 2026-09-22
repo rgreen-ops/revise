@@ -120,6 +120,7 @@ function ricoman_render_partner_page( array $p ) {
 	$logo  = esc_url( home_url( '/wp-content/uploads/2025/09/header-logo.png' ) );
 	$tel   = '0161 877 1399';
 	$mail  = 'sales@ricoman.com';
+	$wa    = '447802832849'; // WhatsApp (Richard), international format for wa.me.
 
 	// Real projects from the site (office sector first), each with its own photo,
 	// name and a link to the live project page. Nine = three rows.
@@ -161,6 +162,7 @@ a{color:inherit}
 .btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:#003471;transform:translateY(-2px)}
 .btn-ghost{border-color:rgba(255,255,255,.7);color:#fff}.btn-ghost:hover{background:#fff;color:var(--ink)}
 .btn-dark{background:var(--ink);color:#fff}.btn-dark:hover{background:#000;transform:translateY(-2px)}
+.btn-wa{background:#25d366;color:#fff}.btn-wa:hover{background:#1ebe5d;transform:translateY(-2px)}
 .eyebrow{text-transform:uppercase;letter-spacing:.14em;font-size:.78rem;font-weight:700;color:var(--blue)}
 h1,h2,h3{line-height:1.08;font-weight:700}
 /* top bar */
@@ -360,6 +362,7 @@ footer .links a{margin-left:20px}
 	<p>Come and see the machine that makes it — a 20-minute walk round our Manchester factory, or a scheme designed for your live enquiry. Whichever's more use to you.</p>
 	<div class="cta">
 		<a class="btn btn-primary" href="<?php echo esc_url( home_url( '/contact/' ) ); ?>">Get in touch</a>
+		<a class="btn btn-wa" href="https://wa.me/<?php echo esc_attr( $wa ); ?>?text=<?php echo rawurlencode( 'Hi Ricoman — I saw the ' . $name . ' lighting page and would like to chat.' ); ?>" target="_blank" rel="noopener">💬 WhatsApp us</a>
 		<a class="btn btn-dark" href="tel:<?php echo preg_replace( '/\s/', '', $tel ); ?>">Call <?php echo esc_html( $tel ); ?></a>
 	</div>
 </div></div>
