@@ -210,7 +210,9 @@ h1,h2,h3{line-height:1.08;font-weight:700}
 .hero p.sub{font-size:clamp(1.05rem,2vw,1.35rem);max-width:52ch;opacity:.95;margin-bottom:1.8em}
 .hero .cta{display:flex;gap:14px;flex-wrap:wrap}
 .hero .for{display:inline-block;background:var(--blue);color:#fff;padding:7px 16px;border-radius:30px;font-weight:700;font-size:.82rem;letter-spacing:.04em}
-.hi{font-size:clamp(1.3rem,2.8vw,2rem);font-weight:700;color:#fff;margin-bottom:16px;text-shadow:0 2px 14px rgba(0,0,0,.45)}
+.hi{font-size:clamp(2.4rem,6vw,4.4rem);font-weight:700;color:#fff;margin-bottom:20px;line-height:1.04;letter-spacing:-.01em;text-shadow:0 2px 16px rgba(0,0,0,.5)}
+.hi .who{display:inline-block;background:linear-gradient(90deg,#0a63e6,#39b6ff);color:#fff;padding:.02em .34em;border-radius:14px;box-shadow:0 10px 30px rgba(10,99,230,.55);white-space:nowrap}
+.hi-sub{display:block;font-size:clamp(.9rem,1.8vw,1.15rem);font-weight:600;letter-spacing:.02em;color:#cfe0ff;margin-top:12px;text-shadow:none}
 .prep{display:inline-flex;align-items:center;gap:22px;background:#fff;color:var(--ink);padding:18px 30px;border-radius:16px;margin-bottom:26px;box-shadow:0 18px 48px rgba(0,0,0,.32)}
 .prep .lbl{font-size:.74rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#8a9099;border-right:1px solid var(--line);padding-right:22px}
 .prep .pname{font-weight:700;font-size:clamp(2rem,5vw,2.9rem);color:var(--ink);line-height:1}
@@ -289,7 +291,7 @@ footer .links a{margin-left:20px}
 	<img class="bg" src="<?php echo $img( 'rico-betfred-flow.webp' ); ?>" alt="">
 	<div class="grad"></div>
 	<div class="wrap">
-		<?php if ( $greeting ) : ?><p class="hi">Hi <?php echo esc_html( $greeting ); ?> 👋</p><?php endif; ?>
+		<?php if ( $greeting ) : ?><p class="hi">Hi <span class="who"><?php echo esc_html( $greeting ); ?></span> 👋<span class="hi-sub">Yes — we built this page just for you.</span></p><?php endif; ?>
 		<div class="prep"><span class="lbl">Prepared for</span> <?php echo ricoman_partner_logo_html( $p, 82 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></div>
 		<span class="for">A lighting partnership for <?php echo esc_html( $name ); ?></span>
 		<h1>Lighting that finishes <?php echo esc_html( $name ); ?>'s fit-outs — beautifully.</h1>
