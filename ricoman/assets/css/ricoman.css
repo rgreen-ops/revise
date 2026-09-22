@@ -1382,6 +1382,8 @@ body:not(.rm-pe-preview) .rm-mediapanel{width:100vw;margin-left:calc(50% - 50vw)
 .rm-pdp .rm-cfg-stage{display:flex;gap:16px;align-items:flex-start;position:sticky;top:100px}
 .rm-pdp .rm-cfg-viz{flex:1;aspect-ratio:1/1;border-radius:10px;background:#e4e4e4}
 .rm-pdp .rm-cfg-img{object-fit:contain;padding:7%}
+/* In-situ (lifestyle) photos fill the frame edge-to-edge; studio cut-outs keep the padded contain look. */
+.rm-cfg-img.rm-cfg-img--cover,.rm-pdp .rm-cfg-img.rm-cfg-img--cover{object-fit:cover;padding:0;border-radius:inherit}
 .rm-thumbs-rail{display:flex;flex-direction:column;flex-wrap:nowrap;gap:12px;width:84px;flex-shrink:0;margin:0}
 .rm-thumbs-rail .rm-cfg-thumb{width:84px;height:74px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#e4e4e4;cursor:pointer;padding:6px}
 .rm-thumbs-rail .rm-cfg-thumb.on{border-color:var(--ink)}

@@ -1471,6 +1471,9 @@ function ricoman_pf_gallery_block( $pid, $title, $code, $sw_html, $footer = '' )
 		$insitu = array();
 	}
 	$main   = $studio ? $studio[0] : ( $insitu ? $insitu[0] : esc_url( get_theme_file_uri( 'assets/images/ceiling.webp' ) ) );
+	// If the first image shown is an in-situ (lifestyle) shot, start it in "cover"
+	// (fill the frame); studio cut-outs stay contain. JS keeps this in sync on tab/thumb clicks.
+	$main_cover = ( ! $studio && $insitu ) ? ' rm-cfg-img--cover' : '';
 
 	$thumb = function ( $u, $tab, $on ) {
 		return '<button type="button" class="rm-cfg-thumb' . ( $on ? ' on' : '' ) . '" data-tab="' . esc_attr( $tab ) . '" data-img="' . esc_url( $u ) . '" aria-label="View product image"><img src="' . esc_url( $u ) . '" alt="" loading="lazy" onerror="this.parentNode.style.display=\'none\'"></button>';
@@ -1496,7 +1499,7 @@ function ricoman_pf_gallery_block( $pid, $title, $code, $sw_html, $footer = '' )
 	$feat   = get_the_post_thumbnail_url( $pid, 'large' );
 	$fb1    = ( $feat && $feat !== $main ) ? $feat : $ceil;
 	$onerr  = ' onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src=\'' . esc_js( $fb1 ) . '\';}else{this.onerror=null;this.src=\'' . esc_js( $ceil ) . '\';}"';
-	$viz = '<div class="rm-cfg-viz"><img class="rm-cfg-img rm-zoomable skip-lazy no-lazy" src="' . esc_url( $main ) . '" alt="' . esc_attr( $title ) . '" fetchpriority="high" loading="eager" decoding="async" data-no-lazy="1" data-skip-lazy width="800" height="800"' . $onerr . '>'
+	$viz = '<div class="rm-cfg-viz"><img class="rm-cfg-img rm-zoomable skip-lazy no-lazy' . $main_cover . '" src="' . esc_url( $main ) . '" alt="' . esc_attr( $title ) . '" fetchpriority="high" loading="eager" decoding="async" data-no-lazy="1" data-skip-lazy width="800" height="800"' . $onerr . '>'
 		. ( $sw_html ? '<div class="rm-cv-swatches rm-pdp-sw">' . $sw_html . '</div>' : '' )
 		. '<span class="rm-zoom-hint" aria-hidden="true">⤢</span>'
 		. '</div>';
@@ -1556,7 +1559,7 @@ function ricoman_pf_sections( $pid ) {
 	// 'm3' = markup version; bump to invalidate cached sections when section HTML
 	// changes. (Variant thumbnails use native loading="lazy"; the optimiser, not
 	// the theme, was the speed problem.)
-	$tkey      = 'rm_pfsec_m23_' . $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true ) . '_' . get_option( 'rm_cfgimg_ver', '0' );
+	$tkey      = 'rm_pfsec_m24_' . $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true ) . '_' . get_option( 'rm_cfgimg_ver', '0' );
 	if ( $cacheable ) {
 		$pre = get_transient( $tkey );
 		if ( is_array( $pre ) ) {

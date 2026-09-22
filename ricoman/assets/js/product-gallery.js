@@ -45,7 +45,12 @@
 		var btn = e.target.closest( '.rm-cfg-thumb, .rm-cv-sw' );
 		if ( btn ) {
 			var wrap = wrapOf( btn ), im = mainImg( wrap );
-			if ( btn.dataset.img && im ) { rmSetImg( im, btn.dataset.img ); }
+			if ( btn.dataset.img && im ) {
+				rmSetImg( im, btn.dataset.img );
+				// In-situ (lifestyle) photos fill the whole frame; studio cut-outs and
+				// finish/colour images keep the padded "contain" look.
+				im.classList.toggle( 'rm-cfg-img--cover', 'insitu' === btn.getAttribute( 'data-tab' ) );
+			}
 			var sel = btn.classList.contains( 'rm-cv-sw' ) ? '.rm-cv-sw' : '.rm-cfg-thumb';
 			var group = btn.parentNode;
 			group.querySelectorAll( sel ).forEach( function ( x ) { x.classList.remove( 'on' ); } );
