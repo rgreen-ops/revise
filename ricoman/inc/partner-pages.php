@@ -125,6 +125,41 @@ add_action( 'template_redirect', function () {
 	exit;
 }, 1 );
 
+/** Handle the on-page contact form — emails the enquiry to Richard. */
+add_action( 'admin_post_nopriv_ricoman_partner_contact', 'ricoman_partner_contact_submit' );
+add_action( 'admin_post_ricoman_partner_contact', 'ricoman_partner_contact_submit' );
+function ricoman_partner_contact_submit() {
+	$source = isset( $_POST['rp_source'] ) ? esc_url_raw( wp_unslash( $_POST['rp_source'] ) ) : '';
+	$back   = wp_validate_redirect( $source, wp_get_referer() ? wp_get_referer() : home_url( '/' ) );
+	if ( ! isset( $_POST['rp_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['rp_nonce'] ) ), 'ricoman_partner_contact' ) ) {
+		wp_safe_redirect( $back );
+		exit;
+	}
+	// Honeypot: real people leave this blank.
+	if ( ! empty( $_POST['company_url'] ) ) {
+		wp_safe_redirect( add_query_arg( 'sent', '1', $back ) );
+		exit;
+	}
+	$name    = sanitize_text_field( wp_unslash( $_POST['rp_name'] ?? '' ) );
+	$email   = sanitize_email( wp_unslash( $_POST['rp_email'] ?? '' ) );
+	$company = sanitize_text_field( wp_unslash( $_POST['rp_company'] ?? '' ) );
+	$message = sanitize_textarea_field( wp_unslash( $_POST['rp_message'] ?? '' ) );
+	$subject = 'Website enquiry — ' . ( '' !== $company ? $company : $name );
+	$body    = "New enquiry from your prospect landing page:\n\n"
+		. 'Name: ' . $name . "\n"
+		. 'Company: ' . $company . "\n"
+		. 'Email: ' . $email . "\n"
+		. 'Page: ' . $source . "\n\n"
+		. "Message:\n" . $message . "\n";
+	$headers = array( 'Content-Type: text/plain; charset=UTF-8' );
+	if ( is_email( $email ) ) {
+		$headers[] = 'Reply-To: ' . $name . ' <' . $email . '>';
+	}
+	wp_mail( 'rgreen@ricoman.com', $subject, $body, $headers );
+	wp_safe_redirect( add_query_arg( 'sent', '1', $back ) . '#contact' );
+	exit;
+}
+
 /** Output the full standalone landing page. */
 function ricoman_render_partner_page( array $p ) {
 	$name  = $p['name'];
@@ -136,6 +171,13 @@ function ricoman_render_partner_page( array $p ) {
 	$tel   = '0161 877 1399';
 	$mail  = 'sales@ricoman.com';
 	$wa    = '447802832849'; // WhatsApp (Richard), international format for wa.me.
+	// Your named point of contact on the page.
+	$rep       = 'Richard Green';
+	$rep_mob   = '07802 832 849';
+	$rep_mobrw = '07802832849';
+	$rep_email = 'rgreen@ricoman.com';
+	$self      = home_url( isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '/' );
+	$sent      = ! empty( $_GET['sent'] ); // phpcs:ignore WordPress.Security.NonceVerification
 
 	// Real projects from the site (office sector first), each with its own photo,
 	// name and a link to the live project page. Nine = three rows.
@@ -196,7 +238,7 @@ h1,h2,h3{line-height:1.08;font-weight:700}
 /* top bar */
 .bar{position:sticky;top:0;z-index:20;background:rgba(22,22,26,.92);backdrop-filter:blur(6px);border-bottom:1px solid rgba(255,255,255,.08)}
 .bar .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
-.bar img{height:26px}
+.bar img{height:34px}
 .bar .r{display:flex;align-items:center;gap:18px;color:#fff;font-size:.92rem}
 .bar .r a{color:#fff;text-decoration:none;font-weight:600}
 .bar .pill{background:rgba(255,255,255,.12);padding:6px 14px;border-radius:30px;font-size:.8rem;font-weight:600}
@@ -219,9 +261,36 @@ h1,h2,h3{line-height:1.08;font-weight:700}
 .prep .pname{font-weight:700;font-size:clamp(2rem,5vw,2.9rem);color:var(--ink);line-height:1}
 .prep .plogo{display:block;width:auto}
 /* co-brand line in the closing CTA */
-.duo{display:flex;align-items:center;justify-content:center;gap:26px;margin:0 auto 30px;flex-wrap:wrap}
-.duo img{height:48px}.duo .x{color:#9aa0aa;font-size:2rem}
+.duo{display:flex;align-items:center;justify-content:center;gap:24px;margin:0 auto 34px;flex-wrap:wrap}
+.duo .x{color:#9aa0aa;font-size:2rem}
+.duo .lock{display:inline-flex;align-items:center;border-radius:14px;padding:16px 26px}
+.duo .rlock{background:var(--blue)}
+.duo .rlock img{height:34px;display:block}
+.duo .plock{background:#fff;box-shadow:0 10px 30px rgba(0,0,0,.1)}
 .duo .pname{font-weight:700;font-size:clamp(1.8rem,4vw,2.4rem);color:var(--ink)}
+/* product range grid */
+.prodgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:34px}
+.prodgrid a{display:block;text-decoration:none;color:inherit}
+.prodgrid figure{position:relative;border-radius:14px;overflow:hidden;aspect-ratio:4/5;background:#e9edf1}
+.prodgrid img{width:100%;height:100%;object-fit:cover;transition:.5s}
+.prodgrid a:hover img{transform:scale(1.06)}
+.prodgrid figcaption{position:absolute;left:0;right:0;bottom:0;padding:30px 16px 15px;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.8))}
+.prodgrid .pt{display:block;font-weight:700;font-size:1.02rem}
+.prodgrid .ps{display:block;font-size:.8rem;opacity:.85;margin-top:2px}
+@media(max-width:820px){.prodgrid{grid-template-columns:repeat(2,1fr)}}
+/* contact form */
+.contactsec{background:var(--paper)}
+.wrap.narrow{max-width:720px}
+.cintro{font-size:1.12rem;color:#3c4350}
+.cform{margin-top:24px;display:grid;gap:16px}
+.cform label{display:block;font-weight:600;font-size:.9rem;color:var(--ink)}
+.cform input,.cform textarea{width:100%;margin-top:6px;padding:13px 15px;border:1px solid var(--line);border-radius:10px;font:inherit;background:#fff;color:var(--ink)}
+.cform input:focus,.cform textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,72,153,.12)}
+.cform .row2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:560px){.cform .row2{grid-template-columns:1fr}}
+.cform .hp{display:none}
+.cform button{justify-self:start;margin-top:4px;cursor:pointer}
+.sent{background:#e7f6ec;border:1px solid #b6e2c4;color:#1a7f3c;padding:13px 16px;border-radius:10px;font-weight:600;margin-top:18px}
 /* stat strip */
 .stats{background:var(--blue);color:#fff}
 .stats .wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:34px 24px;text-align:center}
@@ -253,12 +322,12 @@ section.pad{padding:78px 0}
 .cap li{margin:.3em 0}
 @media(max-width:860px){.cap,.cap:nth-child(even){grid-template-columns:1fr;direction:ltr;gap:26px;margin:52px 0}}
 /* biophilic showcase */
-.biophilic{background:#0e1512;color:#fff;overflow:hidden}
+.biophilic{background:#0c1a30;color:#fff;overflow:hidden}
 .biophilic .wrap{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center;padding:0 24px}
 .biophilic .txt{padding:80px 0}
-.biophilic .eyebrow{color:#8fd6a6}
+.biophilic .eyebrow{color:#86b3ff}
 .biophilic h2{font-size:clamp(2rem,4.4vw,3rem);margin:.3em 0 .5em}
-.biophilic p{color:#c9d3cd;font-size:1.12rem;max-width:48ch;margin:0 0 1em}
+.biophilic p{color:#c4d2ea;font-size:1.12rem;max-width:48ch;margin:0 0 1em}
 .biophilic .media{position:relative;align-self:stretch;min-height:460px}
 .biophilic .media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 @media(max-width:860px){.biophilic .wrap{grid-template-columns:1fr;gap:0}.biophilic .media{min-height:340px;order:-1}.biophilic .txt{padding:52px 0}}
@@ -276,7 +345,7 @@ section.pad{padding:78px 0}
 /* footer */
 footer{background:#0d0d10;color:#aeb4bd;font-size:.92rem}
 footer .wrap{padding:52px 24px;display:flex;flex-wrap:wrap;gap:24px;justify-content:space-between;align-items:center}
-footer img{height:24px;opacity:.9}
+footer .flogo{height:34px;opacity:.95}
 footer a{color:#fff;text-decoration:none}
 footer .links a{margin-left:20px}
 </style>
@@ -285,7 +354,7 @@ footer .links a{margin-left:20px}
 
 <div class="bar"><div class="wrap">
 	<a href="<?php echo $home; ?>"><img src="<?php echo $logo; ?>" alt="Ricoman Lighting"></a>
-	<div class="r"><span class="pill">🏭 Made in Manchester</span><a href="tel:<?php echo preg_replace( '/\s/', '', $tel ); ?>"><?php echo esc_html( $tel ); ?></a></div>
+	<div class="r"><span class="pill">🏭 Made in Manchester</span><a href="tel:<?php echo esc_attr( $rep_mobrw ); ?>"><?php echo esc_html( $rep_mob ); ?></a></div>
 </div></div>
 
 <header class="hero">
@@ -298,7 +367,7 @@ footer .links a{margin-left:20px}
 		<h1>Lighting that finishes <span class="who"><?php echo esc_html( $name ); ?></span>'s fit-outs, beautifully.</h1>
 		<p class="sub">In-house linear, acoustic and biophilic luminaires — engineered around the way you specify, and delivered in two to three weeks.</p>
 		<div class="cta">
-			<a class="btn btn-primary" href="<?php echo esc_url( home_url( '/contact/' ) ); ?>">Book a factory visit</a>
+			<a class="btn btn-primary" href="#contact">Book a factory visit</a>
 			<a class="btn btn-ghost" href="#work">See our work</a>
 		</div>
 	</div>
@@ -370,6 +439,18 @@ footer .links a{margin-left:20px}
 
 </div></section>
 
+<section class="pad" style="padding-top:0"><div class="wrap">
+	<span class="eyebrow">The range</span>
+	<h2 style="font-size:clamp(1.9rem,4vw,2.9rem);margin:.25em 0 0">Product families designers reach for</h2>
+	<div class="prodgrid">
+		<a href="<?php echo esc_url( home_url( '/products/flowplus/' ) ); ?>"><figure><img loading="lazy" src="<?php echo $img( 'rico-betfred-flow.webp' ); ?>" alt="Ricoman Flow+ curved linear lighting"><figcaption><span class="pt">Flow+</span><span class="ps">Curved &amp; ring linear</span></figcaption></figure></a>
+		<a href="<?php echo esc_url( home_url( '/products/estrella-linear-lighting/' ) ); ?>"><figure><img loading="lazy" src="<?php echo $img( 'estrella-lounge.webp' ); ?>" alt="Ricoman Estrella linear lighting"><figcaption><span class="pt">Estrella</span><span class="ps">Modular linear system</span></figcaption></figure></a>
+		<a href="<?php echo esc_url( home_url( '/products/astrowave-neon-rope-light/' ) ); ?>"><figure><img loading="lazy" src="<?php echo $img( 'rico-astrowave-banner.webp' ); ?>" alt="Ricoman Astrowave neon rope light"><figcaption><span class="pt">Astrowave</span><span class="ps">Neon-effect rope</span></figcaption></figure></a>
+		<a href="<?php echo esc_url( home_url( '/products/sounds-like-light-baffle/' ) ); ?>"><figure><img loading="lazy" src="<?php echo esc_url( home_url( '/wp-content/uploads/2024/01/RICOMAN-Lighting-product-soundslikelight05.webp' ) ); ?>" alt="Ricoman Sounds Like Light acoustic baffle"><figcaption><span class="pt">Sounds Like Light</span><span class="ps">Acoustic + light</span></figcaption></figure></a>
+	</div>
+	<p style="margin-top:22px"><a class="btn btn-dark" href="<?php echo esc_url( home_url( '/products/' ) ); ?>">See the full range</a></p>
+</div></section>
+
 <section class="biophilic"><div class="wrap">
 	<div class="txt">
 		<span class="eyebrow">Biophilic lighting</span>
@@ -386,23 +467,44 @@ footer .links a{margin-left:20px}
 	<a class="btn btn-primary" href="<?php echo esc_url( home_url( '/products/' ) ); ?>">Explore the range</a>
 </div></div>
 
+<section class="pad contactsec" id="contact"><div class="wrap narrow">
+	<span class="eyebrow">Get in touch</span>
+	<h2>Talk to <?php echo esc_html( $rep ); ?>.</h2>
+	<p class="cintro">Drop me a line and I'll come straight back — a scheme for a live enquiry, budget prices, or a look round the factory.<br>
+		<a href="mailto:<?php echo esc_attr( $rep_email ); ?>"><?php echo esc_html( $rep_email ); ?></a> &nbsp;·&nbsp; <a href="tel:<?php echo esc_attr( $rep_mobrw ); ?>"><?php echo esc_html( $rep_mob ); ?></a></p>
+	<?php if ( $sent ) : ?><p class="sent">✅ Thanks — your message is on its way to <?php echo esc_html( $rep ); ?>. I'll be in touch shortly.</p><?php endif; ?>
+	<form class="cform" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+		<input type="hidden" name="action" value="ricoman_partner_contact">
+		<input type="hidden" name="rp_source" value="<?php echo esc_url( $self ); ?>">
+		<?php wp_nonce_field( 'ricoman_partner_contact', 'rp_nonce' ); ?>
+		<div class="row2">
+			<label>Your name<input type="text" name="rp_name" required></label>
+			<label>Company<input type="text" name="rp_company" value="<?php echo esc_attr( $name ); ?>"></label>
+		</div>
+		<label>Email<input type="email" name="rp_email" required></label>
+		<label>Message<textarea name="rp_message" rows="4" placeholder="Tell me about your project…"></textarea></label>
+		<input type="text" name="company_url" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+		<button type="submit" class="btn btn-primary">Send to <?php echo esc_html( $rep ); ?></button>
+	</form>
+</div></section>
+
 <div class="close"><div class="wrap">
-	<div class="duo"><span style="font-weight:700;font-size:1.5rem;color:var(--blue);letter-spacing:.03em">RICOMAN</span><span class="x">×</span><?php echo ricoman_partner_logo_html( $p, 64 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></div>
+	<div class="duo"><span class="lock rlock"><img src="<?php echo $logo; ?>" alt="Ricoman Lighting"></span><span class="x">×</span><span class="lock plock"><?php echo ricoman_partner_logo_html( $p, 60 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span></div>
 	<span class="eyebrow">Let's work together</span>
 	<h2>Let's light <?php echo esc_html( $name ); ?>'s next project.</h2>
 	<p>Come and see the machine that makes it — a 20-minute walk round our Manchester factory, or a scheme designed for your live enquiry. Whichever's more use to you.</p>
 	<div class="cta">
-		<a class="btn btn-primary" href="<?php echo esc_url( home_url( '/contact/' ) ); ?>">Get in touch</a>
-		<a class="btn btn-wa" href="https://wa.me/<?php echo esc_attr( $wa ); ?>?text=<?php echo rawurlencode( 'Hi Ricoman — I saw the ' . $name . ' lighting page and would like to chat.' ); ?>" target="_blank" rel="noopener">💬 WhatsApp us</a>
-		<a class="btn btn-dark" href="tel:<?php echo preg_replace( '/\s/', '', $tel ); ?>">Call <?php echo esc_html( $tel ); ?></a>
+		<a class="btn btn-primary" href="mailto:<?php echo esc_attr( $rep_email ); ?>">Email <?php echo esc_html( $rep ); ?></a>
+		<a class="btn btn-wa" href="https://wa.me/<?php echo esc_attr( $wa ); ?>?text=<?php echo rawurlencode( 'Hi Ricoman — I saw the ' . $name . ' lighting page and would like to chat.' ); ?>" target="_blank" rel="noopener">💬 WhatsApp me</a>
+		<a class="btn btn-dark" href="tel:<?php echo esc_attr( $rep_mobrw ); ?>">Call <?php echo esc_html( $rep_mob ); ?></a>
 	</div>
 </div></div>
 
 <footer><div class="wrap">
 	<div>
-		<img src="<?php echo $logo; ?>" alt="Ricoman Lighting"><br><br>
+		<img class="flogo" src="<?php echo $logo; ?>" alt="Ricoman Lighting"><br><br>
 		RICOMAN Lighting · Salford Quays, Manchester<br>
-		<?php echo esc_html( $tel ); ?> · <a href="mailto:<?php echo $mail; ?>"><?php echo esc_html( $mail ); ?></a>
+		Office <?php echo esc_html( $tel ); ?><br>Your contact: <strong><?php echo esc_html( $rep ); ?></strong><br><a href="tel:<?php echo esc_attr( $rep_mobrw ); ?>"><?php echo esc_html( $rep_mob ); ?></a> &middot; <a href="mailto:<?php echo esc_attr( $rep_email ); ?>"><?php echo esc_html( $rep_email ); ?></a>
 	</div>
 	<div class="links">
 		<a href="<?php echo esc_url( home_url( '/products/' ) ); ?>">Products</a>
