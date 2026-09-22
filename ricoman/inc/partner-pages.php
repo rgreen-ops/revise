@@ -313,7 +313,7 @@ footer .links a{margin-left:20px}
 	</div>
 
 	<div class="cap">
-		<a href="<?php echo esc_url( home_url( '/products/sounds-like-light-baffle/' ) ); ?>"><img loading="lazy" src="<?php echo esc_url( home_url( '/wp-content/uploads/2026/08/Acoustic-Baffle-1-2.webp' ) ); ?>" alt="Sounds Like Light acoustic baffle"></a>
+		<a href="<?php echo esc_url( home_url( '/products/sounds-like-light-baffle/' ) ); ?>"><img loading="lazy" src="<?php echo esc_url( home_url( '/wp-content/uploads/2024/01/RICOMAN-Lighting-product-soundslikelight02.webp' ) ); ?>" alt="Sounds Like Light acoustic baffle"></a>
 		<div>
 			<span class="tag">Acoustic lighting</span>
 			<h3>Sounds Like Light — quieter, calmer offices.</h3>
