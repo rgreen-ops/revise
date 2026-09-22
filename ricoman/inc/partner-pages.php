@@ -268,6 +268,7 @@ h1,h2,h3{line-height:1.08;font-weight:700}
 .duo .rlock img{height:34px;display:block}
 .duo .plock{background:#fff;box-shadow:0 10px 30px rgba(0,0,0,.1)}
 .duo .pname{font-weight:700;font-size:clamp(1.8rem,4vw,2.4rem);color:var(--ink)}
+.duo .rlogo-img{height:38px;width:auto;display:block}
 /* product range grid */
 .prodgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:34px}
 .prodgrid a{display:block;text-decoration:none;color:inherit}
@@ -355,7 +356,7 @@ footer .links a{margin-left:20px}
 <body>
 
 <div class="bar"><div class="wrap">
-	<a href="<?php echo $home; ?>"><img src="<?php echo $logo; ?>" alt="Ricoman Lighting"></a>
+	<a href="<?php echo $home; ?>"><img src="<?php echo $img( 'ricoman-logo-white.png' ); ?>" alt="Ricoman Lighting"></a>
 	<div class="r"><span class="pill">🏭 Made in Manchester</span><a href="tel:<?php echo esc_attr( $rep_mobrw ); ?>"><?php echo esc_html( $rep_mob ); ?></a></div>
 </div></div>
 
@@ -401,7 +402,7 @@ footer .links a{margin-left:20px}
 </div></section>
 
 <div class="close close--mid"><div class="wrap">
-	<div class="duo"><span class="lock rlock"><img src="<?php echo $logo; ?>" alt="Ricoman Lighting"></span><span class="x">×</span><span class="lock plock"><?php echo ricoman_partner_logo_html( $p, 60 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span></div>
+	<div class="duo"><img class="rlogo-img" src="<?php echo $img( 'ricoman-logo-black.png' ); ?>" alt="Ricoman Lighting"><span class="x">×</span><?php echo ricoman_partner_logo_html( $p, 48 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></div>
 	<span class="eyebrow">Let's work together</span>
 	<h2>Let's light <?php echo esc_html( $name ); ?>'s next project.</h2>
 	<p>Come and see the machine that makes it: a 20-minute walk round our Manchester factory, or a scheme designed for your live enquiry. Whichever's more use to you.</p>
@@ -507,7 +508,7 @@ footer .links a{margin-left:20px}
 
 <footer><div class="wrap">
 	<div>
-		<img class="flogo" src="<?php echo $logo; ?>" alt="Ricoman Lighting"><br><br>
+		<img class="flogo" src="<?php echo $img( 'ricoman-logo-white.png' ); ?>" alt="Ricoman Lighting"><br><br>
 		RICOMAN Lighting · Salford Quays, Manchester<br>
 		Office <?php echo esc_html( $tel ); ?><br>Your contact: <strong><?php echo esc_html( $rep ); ?></strong><br><a href="tel:<?php echo esc_attr( $rep_mobrw ); ?>"><?php echo esc_html( $rep_mob ); ?></a> &middot; <a href="mailto:<?php echo esc_attr( $rep_email ); ?>"><?php echo esc_html( $rep_email ); ?></a>
 	</div>
