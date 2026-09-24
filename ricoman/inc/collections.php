@@ -449,8 +449,8 @@ function ricoman_collections_panel() {
 .rm-collgrid{display:none;grid-template-columns:repeat(3,1fr);gap:22px}
 .rm-view-coll .rm-collgrid{display:grid}
 .rm-view-coll .rm-catgrid-top,.rm-view-coll .rm-allpgrid,.rm-view-coll .rm-pgn,.rm-view-coll .rm-fnone{display:none!important}
-.rm-collcard{position:relative;display:flex;flex-direction:column;justify-content:flex-end;min-height:500px;border-radius:14px;overflow:hidden;background:#0e0e10;color:#fff}
-@media(max-width:768px){.rm-collcard{min-height:360px}}
+.rm-collcard{position:relative;display:flex;flex-direction:column;justify-content:flex-end;min-height:620px;border-radius:14px;overflow:hidden;background:#0e0e10;color:#fff}
+@media(max-width:768px){.rm-collcard{min-height:440px}}
 .rm-collcard-media{position:absolute;inset:0;background-size:cover;background-position:center;z-index:0}
 .rm-collcard::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.9),rgba(0,0,0,.25) 55%,rgba(0,0,0,0));z-index:1}
 .rm-collcard-body{position:relative;z-index:2;padding:24px}
