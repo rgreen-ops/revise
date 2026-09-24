@@ -424,10 +424,13 @@ function ricoman_collections_tabbar() {
 	if ( empty( ricoman_collections_all() ) ) {
 		return '';
 	}
+	// SKU Finder is a work in progress — hidden for now. Flip this filter true
+	// (or change the default) to bring the tab back once it's ready.
+	$show_sku = apply_filters( 'ricoman_show_sku_finder', false );
 	return '<div class="rm-pp-tabs" role="tablist">'
 		. '<button type="button" class="rm-pp-tab on" data-view="products">' . esc_html__( 'Products', 'ricoman' ) . '</button>'
 		. '<button type="button" class="rm-pp-tab" data-view="collections">' . esc_html__( 'Collections', 'ricoman' ) . '</button>'
-		. '<button type="button" class="rm-pp-tab" data-view="sku">' . esc_html__( 'SKU Finder', 'ricoman' ) . '</button>'
+		. ( $show_sku ? '<button type="button" class="rm-pp-tab" data-view="sku">' . esc_html__( 'SKU Finder', 'ricoman' ) . '</button>' : '' )
 		. '</div>';
 }
 
