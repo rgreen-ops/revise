@@ -877,10 +877,13 @@ add_shortcode( 'ricoman_collection_projects', function ( $atts ) {
 	}
 	$heading = '' !== trim( (string) $atts['heading'] ) ? $atts['heading']
 		: sprintf( __( 'Projects using %s', 'ricoman' ), ( $term instanceof WP_Term ? $term->name : __( 'this range', 'ricoman' ) ) );
-	return ricoman_projects_showcase_sc( array(
+	// Wrap in an anchor target so a button can link to it with #rm-projects
+	// (mirrors the products grid's #rm-browse). scroll-margin clears the header.
+	$out = ricoman_projects_showcase_sc( array(
 		'ids'        => implode( ',', array_map( 'intval', $ids ) ),
 		'heading'    => $heading,
 		'link'       => '',
 		'link_label' => '',
 	) );
+	return '<div id="rm-projects" style="scroll-margin-top:100px">' . $out . '</div>';
 } );
