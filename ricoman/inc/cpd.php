@@ -72,10 +72,10 @@ function ricoman_cpd_form_sc( $atts ) {
 			<textarea name="address" rows="2" placeholder="Where should we deliver the CPD? Building, street, town, postcode"></textarea>
 		</label>
 
-		<label class="rm-tradeform-label">Include a guided tour of our manufacturing facilities?
+		<label class="rm-tradeform-label" data-cpd-tour hidden>Include a guided tour of our manufacturing facilities?
 			<select name="tour">
-				<option value="No">No</option>
 				<option value="Yes">Yes</option>
+				<option value="No">No</option>
 			</select>
 		</label>
 
@@ -145,9 +145,15 @@ function ricoman_cpd_capture() {
 		wp_send_json_success( array( 'msg' => __( 'Thanks — your CPD enquiry has been received.', 'ricoman' ) ) );
 	}
 
-	// If they chose their own location, keep the address with the location line.
+	// Address applies only when they host; the manufacturing tour only at HQ.
+	$own = ( false !== stripos( $loc, 'your location' ) );
+	if ( ! $own ) {
+		$address = '';
+	} else {
+		$tour = '';
+	}
 	$location = $loc;
-	if ( false !== stripos( $loc, 'your location' ) && '' !== $address ) {
+	if ( $own && '' !== $address ) {
 		$location = $loc . ' — ' . preg_replace( '/\s+/', ' ', $address );
 	}
 
@@ -163,7 +169,9 @@ function ricoman_cpd_capture() {
 	if ( '' !== $address ) {
 		$lines[] = 'Address: ' . $address;
 	}
-	$lines[] = 'Guided tour of manufacturing: ' . ( '' !== $tour ? $tour : 'No' );
+	if ( '' !== $tour ) {
+		$lines[] = 'Guided tour of manufacturing: ' . $tour;
+	}
 	if ( '' !== $role ) {
 		$lines[] = 'Job role: ' . $role;
 	}
@@ -206,7 +214,7 @@ function ricoman_cpd_capture() {
 	// Notify the marketing team — numbered subject.
 	$subject = sprintf( 'CPD booking request %s', $ref );
 	$body    = sprintf(
-		"New CPD booking request %s\n\nName: %s\nCompany: %s\nJob role: %s\nEmail: %s\nPhone: %s\n\nCPD session: %s\nLocation: %s\nGuided tour of manufacturing: %s\n%s%s\n",
+		"New CPD booking request %s\n\nName: %s\nCompany: %s\nJob role: %s\nEmail: %s\nPhone: %s\n\nCPD session: %s\nLocation: %s\n%s%s%s\n",
 		$ref,
 		$name,
 		( '' !== $company ? $company : '—' ),
@@ -215,7 +223,7 @@ function ricoman_cpd_capture() {
 		( '' !== $phone ? $phone : '—' ),
 		( '' !== $session ? $session : '—' ),
 		( '' !== $loc ? $loc : '—' ),
-		( '' !== $tour ? $tour : 'No' ),
+		( '' !== $tour ? 'Guided tour of manufacturing: ' . $tour . "\n" : '' ),
 		( '' !== $address ? "\nAddress:\n" . $address . "\n" : '' ),
 		( '' !== $msg ? "\nComments:\n" . $msg . "\n" : '' )
 	);

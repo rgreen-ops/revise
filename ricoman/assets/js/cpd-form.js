@@ -15,15 +15,18 @@
 		var g = function (n) { var el = f.querySelector('[name=' + n + ']'); return el ? (el.value || '').trim() : ''; };
 		var loc = f.querySelector('[data-cpd-location]');
 		var addr = f.querySelector('[data-cpd-address]');
+		var tour = f.querySelector('[data-cpd-tour]');
 
-		// Show the address field only when the visitor picks their own location.
-		function syncAddress() {
-			if (!loc || !addr) { return; }
+		// Address only when they host at their own site; manufacturing tour only
+		// when the CPD is at Ricoman HQ.
+		function syncFields() {
+			if (!loc) { return; }
 			var own = /your location/i.test(loc.value || '');
-			addr.hidden = !own;
+			if (addr) { addr.hidden = !own; }
+			if (tour) { tour.hidden = own; }
 		}
-		if (loc) { loc.addEventListener('change', syncAddress); }
-		syncAddress();
+		if (loc) { loc.addEventListener('change', syncFields); }
+		syncFields();
 
 		f.addEventListener('submit', function (e) {
 			e.preventDefault();
