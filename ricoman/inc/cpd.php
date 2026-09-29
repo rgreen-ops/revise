@@ -65,6 +65,7 @@ function ricoman_cpd_form_sc( $atts ) {
 				<select name="location" data-cpd-location>
 					<option value="Ricoman Lighting HQ">Ricoman Lighting HQ</option>
 					<option value="Your location">Your location (we come to you)</option>
+					<option value="Virtual seminar">Virtual seminar</option>
 				</select>
 			</label>
 		</div>
@@ -147,11 +148,14 @@ function ricoman_cpd_capture() {
 		wp_send_json_success( array( 'msg' => __( 'Thanks — your CPD enquiry has been received.', 'ricoman' ) ) );
 	}
 
-	// Address applies only when they host; the manufacturing tour only at HQ.
+	// Address applies only when they host; the manufacturing tour only at HQ;
+	// a virtual seminar has neither.
 	$own = ( false !== stripos( $loc, 'your location' ) );
+	$hq  = ( false !== stripos( $loc, 'hq' ) );
 	if ( ! $own ) {
 		$address = '';
-	} else {
+	}
+	if ( ! $hq ) {
 		$tour = '';
 	}
 	$location = $loc;

@@ -18,12 +18,14 @@
 		var tour = f.querySelector('[data-cpd-tour]');
 
 		// Address only when they host at their own site; manufacturing tour only
-		// when the CPD is at Ricoman HQ.
+		// when the CPD is at Ricoman HQ. A virtual seminar shows neither.
 		function syncFields() {
 			if (!loc) { return; }
-			var own = /your location/i.test(loc.value || '');
+			var val = loc.value || '';
+			var own = /your location/i.test(val);
+			var hq = /hq/i.test(val);
 			if (addr) { addr.hidden = !own; }
-			if (tour) { tour.hidden = own; }
+			if (tour) { tour.hidden = !hq; }
 		}
 		if (loc) { loc.addEventListener('change', syncFields); }
 		syncFields();
