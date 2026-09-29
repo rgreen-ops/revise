@@ -213,14 +213,14 @@ add_shortcode( 'ricoman_header', function () {
 						. ( '' !== $c['desc'] ? '<span class="rm-submega-d">' . esc_html( $c['desc'] ) . '</span>' : '' )
 						. '</a>';
 				}
-				$items .= '<li class="rm-has-submega"><a href="' . esc_url( $url ) . '">' . esc_html( $label ) . ' <span class="rm-sub-caret" aria-hidden="true">&#9662;</span></a>'
+				$items .= '<li class="rm-has-submega"><a href="' . esc_url( $url ) . '">' . esc_html( $label ) . '</a>'
 					. '<div class="rm-submega"><div class="rm-submega-inner">' . $cells . '</div></div></li>';
 			} else {
 				$sub = '';
 				foreach ( $node['children'] as $c ) {
 					$sub .= '<li><a href="' . esc_url( $c['url'] ) . '">' . esc_html( $c['label'] ) . '</a></li>';
 				}
-				$items .= '<li class="rm-has-sub"><a href="' . esc_url( $url ) . '">' . esc_html( $label ) . ' <span class="rm-sub-caret" aria-hidden="true">&#9662;</span></a><ul class="rm-subnav">' . $sub . '</ul></li>';
+				$items .= '<li class="rm-has-sub"><a href="' . esc_url( $url ) . '">' . esc_html( $label ) . '</a><ul class="rm-subnav">' . $sub . '</ul></li>';
 			}
 		} else {
 			$items .= '<li><a href="' . esc_url( $url ) . '">' . esc_html( $label ) . '</a></li>';
