@@ -24,8 +24,8 @@
 			name: 'SEG backlit', code: 'SEG', sides: 1,
 			blurb: 'LEDs behind a stretched fabric face. Any size or shape; big runs are joined in sections.',
 			shapes: ['rect', 'rounded', 'circle', 'ring', 'cutout', 'custom'],
-			depths: [40, 50, 60, 80, 100],
-			lights: ['white', 'tunable', 'rgbw', 'pixel'],
+			depths: [40, 50, 60, 65, 80, 100],
+			lights: ['white', 'tunable', 'rgb', 'rgbw', 'pixel'],
 			mounts: ['wall', 'ceiling', 'suspended', 'freestanding'],
 			min: 300, secShort: 2400, secLong: 4000, maxLen: 30000
 		},
@@ -43,7 +43,7 @@
 			blurb: 'Graphics on both faces. Stands on the floor or hangs from the ceiling, so it can be seen from both sides.',
 			shapes: ['rect', 'rounded'],
 			depths: [100, 120],
-			lights: ['white', 'tunable', 'rgbw'],
+			lights: ['white', 'tunable', 'rgb', 'rgbw'],
 			mounts: ['freestanding', 'suspended'],
 			min: 500, secShort: 2400, secLong: 4000, maxLen: 12000
 		}
@@ -58,6 +58,7 @@
 		'seg-40': { face: 20, alu: 1.8, kg: 1.05, engines: ['LGP panel', 'Flexible LED sheet', 'LED lattice'] },
 		'seg-50': { face: 20, alu: 1.8, kg: 0.85, engines: ['Flexible LED sheet', 'LED lattice'] },
 		'seg-60': { face: 20, alu: 1.8, kg: 0.85, engines: ['Flexible LED sheet', 'LED lattice'] },
+		'seg-65': { face: 20, engines: ['Edge-lit LED strip'], note: 'remote driver' },
 		'seg-80': { face: 22, alu: 2.0, kg: 1.6, engines: ['LED backlight modules', 'Edge-lit LED strip'] },
 		'seg-100': { face: 22, alu: 2.0, kg: 1.65, engines: ['LED backlight modules', 'Edge-lit LED strip'] },
 		'double-100': { face: 22, alu: 2.0, kg: 1.7, engines: ['Double-sided backlight', 'Side-lit LED strip'] },
@@ -76,8 +77,9 @@
 	var LIGHTS = {
 		white: { name: 'Static white', code: 'W', minDepth: 0, blurb: 'One fixed colour temperature' },
 		tunable: { name: 'Tunable white', code: 'TW', minDepth: 40, blurb: 'Warm to cool, 3000–6500K' },
-		rgbw: { name: 'RGBW colour', code: 'RGBW', minDepth: 60, blurb: 'Any colour plus pure white' },
-		pixel: { name: 'Dynamic pixel', code: 'PX', minDepth: 80, blurb: 'Moving skies, gradients, content' }
+		rgb: { name: 'RGB colour', code: 'RGB', minDepth: 60, blurb: 'Any colour, whole face at once' },
+		rgbw: { name: 'RGBW colour', code: 'RGBW', minDepth: 60, blurb: 'Any colour plus a true white' },
+		pixel: { name: 'Pixel addressable RGB', code: 'PX', minDepth: 80, blurb: 'Every pixel its own colour: moving skies, waves, video content' }
 	};
 
 	var CONTROLS = {
@@ -90,6 +92,7 @@
 	var CONTROL_BY_LIGHT = {
 		white: ['onoff', 'dali', 'casambi'],
 		tunable: ['dali', 'casambi'],
+		rgb: ['casambi', 'dmx'],
 		rgbw: ['casambi', 'dmx'],
 		pixel: ['pixel']
 	};
@@ -159,7 +162,7 @@
 		if (S.type === 'lgp') { d = 30; }
 		else if (S.type === 'double') { d = longS > 2400 ? 120 : 100; }
 		else if (S.light === 'pixel') { d = shortS > 2400 ? 100 : 80; }
-		else if (S.light === 'rgbw') { d = shortS > 1500 ? 80 : 60; }
+		else if (S.light === 'rgbw' || S.light === 'rgb') { d = shortS > 1500 ? 80 : 60; }
 		else if (longS <= 1200) { d = 40; }
 		else if (longS <= 2400) { d = 60; }
 		else { d = 80; }
@@ -172,7 +175,8 @@
 	/** Recommended light engine for the current build. */
 	function recEngine() {
 		var p = profile(), e = p.engines || [];
-		if (S.light === 'pixel') { return 'Addressable RGB pixel modules'; }
+		if (S.light === 'pixel') { return 'Addressable RGB pixel modules (SPI)'; }
+		if (S.light === 'rgb') { return 'RGB LED modules'; }
 		if (S.light === 'rgbw') { return 'RGBW LED modules'; }
 		if (S.type === 'seg' && e.length > 1) {
 			var b = bbox(), area = b.w * b.h / 1e6;
@@ -432,7 +436,7 @@
 			});
 			return { svg: out.join(''), glow: glow };
 		}
-		if (S.light === 'rgbw') {
+		if (S.light === 'rgbw' || S.light === 'rgb') {
 			glow = '#c77dff';
 			out.push('<rect width="' + W + '" height="' + H + '" fill="#ff4fb3"><animate attributeName="fill" values="#ff4fb3;#7a5cff;#2fd0ff;#46e08a;#ffc93a;#ff4fb3" ' + dur + '/></rect>');
 			if (S.graphic === 'print') { out.push(placeholderArt(W, H, big, true)); }
@@ -547,14 +551,31 @@
 			h('button', { type: 'button', class: 'btn btn-line-d', text: 'Copy link', onclick: copyLink }),
 			h('button', { type: 'button', class: 'btn btn-line-d', text: 'Print / PDF', onclick: function () { window.print(); } })
 		]);
+		// Preview column: 3D render (default) or dimensioned drawing. Sticky, always in view.
+		els.stage3d = h('div', { class: 'lbx-stage3d' }, [h('p', { class: 'lbx-loading', text: 'Loading 3D view…' })]);
+		els.tab3d = h('button', { type: 'button', class: 'lbx-tab is-on', text: '3D view', onclick: function () { setView('3d'); } });
+		els.tab2d = h('button', { type: 'button', class: 'lbx-tab', text: 'Drawing', onclick: function () { setView('2d'); } });
+		els.reset = h('button', { type: 'button', class: 'lbx-tool', text: '⟲ Reset view', onclick: function () { if (VIEW3D) { VIEW3D.resetView(); } } });
+		els.quick = h('p', { class: 'lbx-quick' });
 		els.side = h('aside', { class: 'lbx-side' }, [
-			h('div', { class: 'lbx-view' }, [els.stage, els.toggle]),
-			els.notes,
+			h('div', { class: 'lbx-view is-3d' }, [
+				els.stage3d, els.stage,
+				h('div', { class: 'lbx-tabs' }, [els.tab3d, els.tab2d]),
+				h('div', { class: 'lbx-tools' }, [els.toggle, els.reset]),
+				h('p', { class: 'lbx-drag', text: 'Drag to turn it. Scroll or pinch to zoom.' })
+			]),
+			els.quick,
+			els.notes
+		]);
+		els.view = els.side.firstChild;
+		els.right = h('div', { class: 'lbx-right' }, [
+			els.controls,
 			h('div', { class: 'lbx-sum' }, [h('h2', { text: 'Your light box' }), els.spec, els.code, els.actions])
 		]);
 
 		root.appendChild(h('div', { class: 'lbx-pre-wrap' }, [h('p', { class: 'lbx-pre-h', text: 'Start from an idea, or build from scratch below' }), els.presets]));
-		root.appendChild(h('div', { class: 'lbx-grid' }, [els.controls, els.side]));
+		root.appendChild(h('div', { class: 'lbx-grid' }, [els.side, els.right]));
+		load3d();
 		root.appendChild(features());
 		root.appendChild(quoteForm());
 
@@ -566,6 +587,7 @@
 			btn.addEventListener('click', function () {
 				S = assign({}, DEFAULTS, p.s, { depthManual: !!p.s.depth });
 				update(true);
+				if (VIEW3D) { VIEW3D.resetView(); }
 				els.side.scrollIntoView({ behavior: 'smooth', block: 'start' });
 			});
 			els.presets.appendChild(btn);
@@ -781,7 +803,47 @@
 			els.spec.appendChild(h('dd', { text: r[1] }));
 		});
 		els.code.textContent = 'Build code: ' + buildCode();
-		if (els.formSpec) { els.formSpec.textContent = buildCode() + ' · ' + (isRound() ? 'Ø' + fmt(S.d) : fmt(S.w) + ' × ' + fmt(S.h)) + ' mm · ' + LIGHTS[S.light].name + ' · qty ' + S.qty; }
+		var quick = (isRound() ? 'Ø ' + fmt(S.d) : fmt(S.w) + ' × ' + fmt(S.h)) + ' mm · ' + S.depth + ' mm deep · ' + LIGHTS[S.light].name + (S.light === 'white' ? ' ' + S.cct + 'K' : '');
+		els.quick.textContent = quick;
+		if (els.formSpec) { els.formSpec.textContent = buildCode() + ' · ' + quick + ' · qty ' + S.qty; }
+		queue3d();
+	}
+
+	/* --------------------------------------------------------------- 3D view */
+
+	var VIEW3D = null, VIEW = '3d', q3d = 0;
+
+	function model3d() {
+		return {
+			geo: { kind: S.shape, w: S.w, h: S.h, r: S.shape === 'custom' ? customR() : S.r, d: S.d, band: S.band, cw: S.cw, ch: S.ch, cr: cutR() },
+			depth: S.depth, face: profile().face || 20, sides: TYPES[S.type].sides, mount: S.mount,
+			finishColor: FINISHES[S.finish].color, metal: S.finish === 'silver',
+			light: S.light, cct: S.cct, cctColor: CCT_COL[S.cct] || '#ffffff', graphic: S.graphic, art: S.graphic === 'print' ? ART : null, lit: LIT
+		};
+	}
+	function queue3d() {
+		if (!VIEW3D || q3d) { return; }
+		q3d = requestAnimationFrame(function () { q3d = 0; VIEW3D.update(model3d()); });
+	}
+	function setView(v) {
+		if (v === '3d' && !VIEW3D) { v = '2d'; }
+		VIEW = v;
+		els.view.className = 'lbx-view is-' + v;
+		els.tab3d.className = 'lbx-tab' + (v === '3d' ? ' is-on' : '');
+		els.tab2d.className = 'lbx-tab' + (v === '2d' ? ' is-on' : '');
+	}
+	function webglOK() {
+		try { var c = document.createElement('canvas'); return !!(window.WebGLRenderingContext && (c.getContext('webgl2') || c.getContext('webgl'))); } catch (e) { return false; }
+	}
+	function load3d() {
+		var url = root.getAttribute('data-three');
+		if (!url || !webglOK()) { setView('2d'); els.tab3d.hidden = true; return; }
+		import(url).then(function (mod) {
+			els.stage3d.innerHTML = '';
+			VIEW3D = mod.create(els.stage3d);
+			VIEW3D.update(model3d());
+			setView(VIEW);
+		}).catch(function () { setView('2d'); els.tab3d.hidden = true; });
 	}
 
 	/* -------------------------------------------------------- features band */

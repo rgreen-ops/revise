@@ -48,11 +48,13 @@ function ricoman_lightbox_assets() {
 /** [ricoman_lightbox_builder] — the tool markup. JS builds the controls. */
 function ricoman_lightbox_sc() {
 	ricoman_lightbox_assets();
+	$three = get_theme_file_path( 'assets/js/lightbox-3d.js' );
 	ob_start();
 	?>
 	<div class="rm-lbx" id="rm-lbx"
 		data-ajax="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>"
 		data-ts="<?php echo (int) time(); ?>"
+		data-three="<?php echo esc_url( add_query_arg( 'v', file_exists( $three ) ? (string) filemtime( $three ) : '1', get_theme_file_uri( 'assets/js/lightbox-3d.js' ) ) ); ?>"
 		data-img="<?php echo esc_url( get_theme_file_uri( 'assets/images/lightbox/' ) ); ?>">
 		<noscript><p>The Light Box Builder needs JavaScript. Please call us on 0161 877 1399 or email <a href="mailto:sales@ricoman.com">sales@ricoman.com</a> and we&rsquo;ll spec your light box with you.</p></noscript>
 	</div>
