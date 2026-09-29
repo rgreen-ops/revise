@@ -176,13 +176,30 @@
 		form && form.addEventListener( 'submit', function ( e ) {
 			e.preventDefault();
 			var btn = form.querySelector( '.rm-gate-go' );
+			// Friendly source label: a data-rm-source attribute (on the link or an
+			// ancestor) or an rm_src / src query param on the link wins; otherwise
+			// fall back to the file URL. Lets a button be tagged e.g. "CPD brochure"
+			// just by editing its link (…​.pdf?rm_src=CPD%20brochure).
+			var source = ( pending && pending.getAttribute( 'href' ) ) || document.title;
+			if ( pending ) {
+				var tagged = pending.closest( '[data-rm-source]' );
+				if ( tagged && tagged.getAttribute( 'data-rm-source' ) ) {
+					source = tagged.getAttribute( 'data-rm-source' );
+				} else {
+					try {
+						var u = new URL( pending.href, window.location.href );
+						var q = u.searchParams.get( 'rm_src' ) || u.searchParams.get( 'src' );
+						if ( q ) { source = q; }
+					} catch ( err ) {}
+				}
+			}
 			var body = new URLSearchParams( {
 				action: 'rm_lead_gate',
 				nonce: G.nonce || '',
 				name: form.name.value,
 				email: form.email.value,
 				ctype: form.ctype.value,
-				source: ( pending && pending.getAttribute( 'href' ) ) || document.title,
+				source: source,
 				optin: ( form.optin && form.optin.checked ) ? '1' : ''
 			} );
 			if ( btn ) { btn.disabled = true; }
