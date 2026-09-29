@@ -96,6 +96,12 @@ function makePainter(model, cv) {
 			ctx.fillStyle = m.light === 'white' ? m.cctColor : '#ffffff';
 			ctx.fillRect(0, 0, W, H);
 		}
+		if (m.graphic === 'colour') {
+			const c = new Color(m.fabricColor);
+			if (!m.lit) { c.lerp(new Color('#9a9a9a'), 0.35); }
+			ctx.fillStyle = '#' + c.getHexString(); ctx.fillRect(0, 0, W, H);
+			return;
+		}
 		if (m.graphic === 'sky') {
 			const g = ctx.createLinearGradient(0, 0, 0, H);
 			g.addColorStop(0, '#5f9fe6'); g.addColorStop(1, '#a9d1f7');

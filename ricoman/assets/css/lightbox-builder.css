@@ -160,3 +160,21 @@
 	.lbx-tabs,.lbx-tools,.lbx-drag{display:none!important}
 	.lbx-stage.is-lit{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
+
+/* Coloured fabric picker */
+.lbx-colour{margin-top:12px;flex-direction:row;align-items:center;gap:12px}
+.lbx-colour input{width:56px;height:36px;padding:0;border:1px solid #b9b7b2;border-radius:8px;background:none;cursor:pointer}
+
+/* Installed examples */
+.lbx-gal{margin:clamp(40px,6vw,72px) 0 0}
+.lbx-gal h2{font-size:clamp(1.5rem,3vw,2.2rem);margin:.3em 0 .8em;line-height:1.1}
+.lbx-gal-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.lbx-gal-card{margin:0;border:1px solid var(--line,#e7e5e1);border-radius:14px;overflow:hidden;background:#fff;display:flex;flex-direction:column}
+.lbx-gal-card img{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover}
+.lbx-gal-card figcaption{display:flex;flex-direction:column;gap:3px;padding:12px 14px 14px;flex:1}
+.lbx-gal-card strong{font-size:.92rem;font-weight:600;color:var(--ink,#0b0b0c)}
+.lbx-gal-card small{font-size:.78rem;color:var(--muted,#67665f)}
+.lbx-gal-btn{margin-top:auto;padding:8px 0 0;border:0;background:none;text-align:left;font:inherit;font-size:.82rem;font-weight:600;color:var(--blue,#004899);cursor:pointer}
+.lbx-gal-btn:hover{text-decoration:underline}
+@media (max-width:1080px){.lbx-gal-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media print{.lbx-gal{display:none!important}}

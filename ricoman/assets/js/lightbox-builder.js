@@ -22,12 +22,12 @@
 	var TYPES = {
 		seg: {
 			name: 'SEG backlit', code: 'SEG', sides: 1,
-			blurb: 'LEDs behind a stretched fabric face. Any size or shape; big runs are joined in sections.',
+			blurb: 'LEDs behind a stretched fabric face. Any shape, up to 4.9 m wide and any length.',
 			shapes: ['rect', 'rounded', 'circle', 'ring', 'cutout', 'custom'],
 			depths: [40, 50, 60, 65, 80, 100],
 			lights: ['white', 'tunable', 'rgb', 'rgbw', 'pixel'],
 			mounts: ['wall', 'ceiling', 'suspended', 'freestanding'],
-			min: 300, secShort: 2400, secLong: 4000, maxLen: 30000
+			min: 300, secShort: 2400, secLong: 4000, maxLen: 60000, maxWidth: 4900
 		},
 		lgp: {
 			name: 'Ultra-slim LGP', code: 'LGP', sides: 1,
@@ -45,7 +45,7 @@
 			depths: [100, 120],
 			lights: ['white', 'tunable', 'rgb', 'rgbw'],
 			mounts: ['freestanding', 'suspended'],
-			min: 500, secShort: 2400, secLong: 4000, maxLen: 12000
+			min: 500, secShort: 2400, secLong: 4000, maxLen: 12000, maxWidth: 4900
 		}
 	};
 
@@ -58,7 +58,7 @@
 		'seg-40': { face: 20, alu: 1.8, kg: 1.05, engines: ['LGP panel', 'Flexible LED sheet', 'LED lattice'] },
 		'seg-50': { face: 20, alu: 1.8, kg: 0.85, engines: ['Flexible LED sheet', 'LED lattice'] },
 		'seg-60': { face: 20, alu: 1.8, kg: 0.85, engines: ['Flexible LED sheet', 'LED lattice'] },
-		'seg-65': { face: 20, engines: ['Edge-lit LED strip'], note: 'remote driver' },
+		'seg-65': { face: 20, engines: ['Edge-lit LED strip'], remoteOnly: true },
 		'seg-80': { face: 22, alu: 2.0, kg: 1.6, engines: ['LED backlight modules', 'Edge-lit LED strip'] },
 		'seg-100': { face: 22, alu: 2.0, kg: 1.65, engines: ['LED backlight modules', 'Edge-lit LED strip'] },
 		'double-100': { face: 22, alu: 2.0, kg: 1.7, engines: ['Double-sided backlight', 'Side-lit LED strip'] },
@@ -87,19 +87,23 @@
 		dali: 'DALI dimming',
 		casambi: 'Casambi (app / Bluetooth)',
 		dmx: 'DMX',
+		dt8: 'DALI DT8',
+		v010: '0–10V dimming',
+		mains: 'Mains (phase) dimmer',
 		pixel: 'Pixel controller (SPI/DMX) + content'
 	};
 	var CONTROL_BY_LIGHT = {
-		white: ['onoff', 'dali', 'casambi'],
-		tunable: ['dali', 'casambi'],
-		rgb: ['casambi', 'dmx'],
-		rgbw: ['casambi', 'dmx'],
+		white: ['onoff', 'mains', 'v010', 'dali', 'casambi'],
+		tunable: ['dt8', 'casambi', 'dmx'],
+		rgb: ['casambi', 'dmx', 'dt8'],
+		rgbw: ['casambi', 'dmx', 'dt8'],
 		pixel: ['pixel']
 	};
 
 	var GRAPHICS = {
 		print: { name: 'Printed graphic', blurb: 'Your artwork, dye-sub printed' },
 		white: { name: 'Plain white fabric', blurb: 'Clean, even glow' },
+		colour: { name: 'Coloured fabric', blurb: 'Plain fabric in a colour you choose' },
 		sky: { name: 'Sky image', blurb: 'Printed sky, for ceilings' }
 	};
 
@@ -128,12 +132,24 @@
 		{ name: 'Retail poster', img: '', s: { type: 'lgp', shape: 'rect', w: 1000, h: 1500, depth: 30, light: 'white', cct: 4300, graphic: 'print', mount: 'wall', finish: 'silver' } }
 	];
 
+	// Installed examples (photos: supplier project library). "Build one like this" loads a close preset.
+	var PROJECTS = [
+		{ img: 'project-19.webp', name: 'Shopping centre wall', sub: '8 m printed wall graphic', s: { type: 'seg', shape: 'rect', w: 8000, h: 3500, graphic: 'print', mount: 'wall', finish: 'black' } },
+		{ img: 'project-24.webp', name: 'Circular ceiling feature', sub: 'Printed disc, face down', s: { type: 'seg', shape: 'circle', d: 3000, graphic: 'print', mount: 'ceiling', finish: 'white' } },
+		{ img: 'project-33.webp', name: 'Retail wall run', sub: 'Long spliced run', s: { type: 'seg', shape: 'rect', w: 9000, h: 1800, graphic: 'print', mount: 'wall', finish: 'white' } },
+		{ img: 'project-13.webp', name: 'Fashion portrait', sub: 'Tall single-sided box', s: { type: 'seg', shape: 'rect', w: 1200, h: 2600, graphic: 'print', mount: 'wall', finish: 'black' } },
+		{ img: 'project-2.webp', name: 'Freestanding display', sub: 'Double-sided, seen from both sides', s: { type: 'double', shape: 'rect', w: 1800, h: 1100, graphic: 'print', mount: 'freestanding', finish: 'white' } },
+		{ img: 'project-22.webp', name: 'Column graphic', sub: 'Portrait box on a pillar', s: { type: 'seg', shape: 'rect', w: 1500, h: 2800, graphic: 'print', mount: 'wall', finish: 'white' } },
+		{ img: 'project-31.webp', name: 'Boutique window', sub: 'Large-format poster', s: { type: 'seg', shape: 'rect', w: 1600, h: 2400, graphic: 'print', mount: 'wall', finish: 'black' } },
+		{ img: 'project-11.webp', name: 'Showroom feature wall', sub: 'Wide wall-mounted graphic', s: { type: 'seg', shape: 'rect', w: 6000, h: 2000, graphic: 'print', mount: 'wall', finish: 'white' } }
+	];
+
 	/* ----------------------------------------------------------------- state */
 
 	var DEFAULTS = {
 		type: 'seg', shape: 'rect', w: 2400, h: 1200, r: 200, d: 1800, band: 600, cw: 1200, ch: 500,
 		depth: 60, depthManual: false, engine: '', engineManual: false, light: 'white', cct: 4000, control: 'onoff',
-		graphic: 'print', mount: 'wall', finish: 'silver', ral: '', qty: 1
+		graphic: 'print', fabric: '#2f7de1', mount: 'wall', finish: 'silver', ral: '', driver: 'builtin', ip: 'indoor', qty: 1
 	};
 	var S = assign({}, DEFAULTS);
 	var ART = null;      // uploaded artwork (data URL) — stays on the device
@@ -204,7 +220,11 @@
 		// Sizes.
 		var maxLen = T.maxLen, min = T.min;
 		S.w = clamp(Math.round(num(S.w, 1200)), min, maxLen);
-		S.h = clamp(Math.round(num(S.h, 1200)), min, T.onePiece ? maxLen : 6000);
+		S.h = clamp(Math.round(num(S.h, 1200)), min, maxLen);
+		if (T.maxWidth && Math.min(S.w, S.h) > T.maxWidth) {
+			notes.push('Light boxes can be up to 4.9 m wide, with no limit on length. We have set the shorter side to 4,900 mm.');
+			if (S.w <= S.h) { S.w = T.maxWidth; } else { S.h = T.maxWidth; }
+		}
 		if (T.onePiece) {
 			// Must fit 1220 × 2440 either way round.
 			var s = Math.min(S.w, S.h), l = Math.max(S.w, S.h);
@@ -214,8 +234,8 @@
 				else { S.h = Math.min(S.h, T.secLong); S.w = Math.min(S.w, T.secShort); }
 			}
 		}
-		S.d = clamp(Math.round(num(S.d, 1800)), 500, 12000);
-		S.band = clamp(Math.round(num(S.band, 600)), 200, Math.floor(S.d / 2) - 100);
+		S.d = clamp(Math.round(num(S.d, 1800)), 500, S.shape === 'ring' ? 20000 : 4900);
+		S.band = clamp(Math.round(num(S.band, 600)), 200, Math.min(4900, Math.floor(S.d / 2) - 100));
 		S.r = clamp(Math.round(num(S.r, 200)), 20, Math.floor(Math.min(S.w, S.h) / 2));
 		S.cw = clamp(Math.round(num(S.cw, 1000)), 200, S.w - 400);
 		S.ch = clamp(Math.round(num(S.ch, 400)), 200, S.h - 400);
@@ -238,6 +258,7 @@
 		var eng = profile().engines || [];
 		if (S.light !== 'white' && S.light !== 'tunable') { S.engineManual = false; }
 		if (!S.engineManual || eng.indexOf(S.engine) < 0) { S.engine = recEngine(); S.engineManual = false; }
+		if (profile().remoteOnly && S.driver !== 'remote') { S.driver = 'remote'; }
 		return notes;
 	}
 
@@ -424,6 +445,7 @@
 		if (!LIT) {
 			if (S.graphic === 'print') { out.push(placeholderArt(W, H, big, false)); }
 			if (S.graphic === 'sky') { out.push('<rect width="' + W + '" height="' + H + '" fill="#b9c9d6"/>'); }
+			if (S.graphic === 'colour') { out.push('<rect width="' + W + '" height="' + H + '" fill="' + S.fabric + '" opacity=".6"/>'); }
 			return { svg: out.join(''), glow: glow };
 		}
 		if (S.light === 'pixel') {
@@ -441,6 +463,10 @@
 			out.push('<rect width="' + W + '" height="' + H + '" fill="#ff4fb3"><animate attributeName="fill" values="#ff4fb3;#7a5cff;#2fd0ff;#46e08a;#ffc93a;#ff4fb3" ' + dur + '/></rect>');
 			if (S.graphic === 'print') { out.push(placeholderArt(W, H, big, true)); }
 			return { svg: out.join(''), glow: glow };
+		}
+		if (S.graphic === 'colour') {
+			out.push('<rect width="' + W + '" height="' + H + '" fill="' + S.fabric + '"/>');
+			return { svg: out.join(''), glow: S.fabric };
 		}
 		if (S.graphic === 'sky') {
 			glow = '#bfe0ff';
@@ -576,6 +602,7 @@
 		root.appendChild(h('div', { class: 'lbx-pre-wrap' }, [h('p', { class: 'lbx-pre-h', text: 'Start from an idea, or build from scratch below' }), els.presets]));
 		root.appendChild(h('div', { class: 'lbx-grid' }, [els.side, els.right]));
 		load3d();
+		root.appendChild(gallery());
 		root.appendChild(features());
 		root.appendChild(quoteForm());
 
@@ -608,11 +635,11 @@
 
 		var sz = [];
 		if (isRound()) {
-			sz.push(field(S.shape === 'ring' ? 'Outside diameter' : 'Diameter', 'd', { min: 500, max: 12000 }));
+			sz.push(field(S.shape === 'ring' ? 'Outside diameter' : 'Diameter', 'd', { min: 500, max: S.shape === 'ring' ? 20000 : 4900 }));
 			if (S.shape === 'ring') { sz.push(field('Ring band width', 'band', { min: 200, max: S.d / 2 - 100 })); }
 		} else {
 			sz.push(field('Width', 'w', { min: T.min, max: T.maxLen }));
-			sz.push(field('Height', 'h', { min: T.min, max: T.onePiece ? T.maxLen : 6000 }));
+			sz.push(field('Height', 'h', { min: T.min, max: T.maxLen }));
 			if (S.shape === 'rounded' || S.shape === 'cutout') { sz.push(field('Corner radius', 'r', { min: 20, max: Math.min(S.w, S.h) / 2 })); }
 			if (S.shape === 'cutout') {
 				sz.push(field('Cut-out width', 'cw', { min: 200, max: S.w - 400 }));
@@ -621,7 +648,7 @@
 		}
 		var hint = S.type === 'lgp' ? 'From 100 × 100 mm up to 1220 × 2440 mm.'
 			: S.shape === 'custom' ? 'Give us the overall size. Send your sketch or DWG with the quote and we will draw it up.'
-				: 'Any size. Anything over 2.4 × 4 m is made in sections and joined on site, with no visible gaps in the fabric.';
+				: 'Up to 4.9 m wide and any length. Long runs are spliced in sections with no visible gaps in the fabric. No limit on mounting height.';
 		c.appendChild(step(++n, 'Size', [h('div', { class: 'lbx-fields' }, sz)], hint));
 
 		var lightKids = [choice('light', Object.keys(LIGHTS).map(function (k) {
@@ -654,6 +681,11 @@
 			return { v: k, label: GRAPHICS[k].name, sub: k === 'print' && T.sides === 2 ? 'Printed on both faces' : GRAPHICS[k].blurb, dis: dis, why: 'Sky prints are for single-sided ceiling boxes' };
 		}), 'tiles')];
 		if (S.graphic === 'print') { gKids.push(artDrop()); }
+		if (S.graphic === 'colour') {
+			var col = h('input', { type: 'color', id: 'lbx-f-fabric', value: S.fabric });
+			col.addEventListener('input', function () { S.fabric = col.value; update(false); });
+			gKids.push(h('label', { class: 'lbx-field lbx-colour', for: 'lbx-f-fabric' }, [h('span', { text: 'Fabric colour' }), col]));
+		}
 		c.appendChild(step(++n, 'Fabric graphic', gKids, '100% flame-retardant polyester, dye-sublimation printed, with a silicone edge that pushes into the frame. You can swap graphics in minutes.'));
 
 		c.appendChild(step(++n, 'Mounting', [choice('mount', Object.keys(MOUNTS).map(function (k) {
@@ -670,6 +702,20 @@
 			fKids.push(h('label', { class: 'lbx-field', for: 'lbx-f-ral' }, [h('span', { text: 'RAL colour' }), h('span', { class: 'lbx-inp' }, [ral])]));
 		}
 		c.appendChild(step(++n, 'Frame finish', fKids));
+
+		var remoteOnly = !!profile().remoteOnly;
+		c.appendChild(step(++n, 'Driver & environment', [
+			h('p', { class: 'lbx-sub', text: 'Driver' }),
+			choice('driver', [
+				{ v: 'builtin', label: 'Built into the box', sub: 'Neat, nothing to hide', dis: remoteOnly, why: 'The 65 mm profile uses a remote driver' },
+				{ v: 'remote', label: 'Remote driver', sub: 'Mounted elsewhere, for easy access' }
+			], 'chips'),
+			h('p', { class: 'lbx-sub', text: 'Where is it going?' }),
+			choice('ip', [
+				{ v: 'indoor', label: 'Indoors', sub: 'Standard' },
+				{ v: 'ip65', label: 'IP65 version', sub: 'Wet or dusty areas' }
+			], 'chips')
+		], 'Power, colour rendering (CRI) and brightness are specified for each project.'));
 
 		c.appendChild(step(++n, 'Quantity', [h('div', { class: 'lbx-fields' }, [field('How many?', 'qty', { min: 1, max: 999, step: 1, unit: 'pcs' })])]));
 
@@ -719,11 +765,15 @@
 		rows.push(['Lit area', fmt2(m.area) + ' m²' + (T.sides === 2 ? ' (both faces)' : '')]);
 		rows.push(['Frame', fmt1(m.perim) + ' m' + (m.kg ? ', approx ' + fmt1(m.kg) + ' kg (frame only)' : '')]);
 		rows.push(['Build', m.sections === 1 ? 'One piece' : m.split]);
+		if (m.sections !== 1) { rows.push(['Shipping', 'Large units ship as components and are assembled in the UK']); }
 		rows.push(['Lighting', light]);
 		rows.push(['Light engine', S.engine]);
 		rows.push(['Control', CONTROLS[S.control]]);
-		rows.push(['Graphic', GRAPHICS[S.graphic].name + (S.graphic === 'print' ? (ART ? ' (artwork previewed)' : '') : '') + ', FR polyester, silicone edge']);
+		rows.push(['Graphic', GRAPHICS[S.graphic].name + (S.graphic === 'colour' ? ' ' + S.fabric.toUpperCase() : '') + (S.graphic === 'print' ? (ART ? ' (artwork previewed)' : '') : '') + ', FR polyester, silicone edge']);
 		rows.push(['Mounting', MOUNTS[S.mount].name]);
+		rows.push(['Driver', S.driver === 'remote' ? 'Remote driver' : 'Built-in driver']);
+		rows.push(['Rating', S.ip === 'ip65' ? 'IP65' : 'Indoor']);
+		rows.push(['Power, CRI, lux', 'Specified for your project']);
 		rows.push(['Frame finish', FINISHES[S.finish].name + (S.finish === 'ral' && S.ral ? ' ' + S.ral : '')]);
 		rows.push(['Quantity', String(S.qty)]);
 		return rows;
@@ -733,7 +783,7 @@
 		var T = TYPES[S.type], b = bbox();
 		var size = isRound() ? 'D' + S.d + (S.shape === 'ring' ? '-B' + S.band : '') : b.w + 'x' + b.h;
 		var light = LIGHTS[S.light].code + (S.light === 'white' ? String(S.cct).slice(0, 2) : '');
-		return ['RLB', T.code + S.depth, SHAPES[S.shape].code, size, light, MOUNTS[S.mount].code, FINISHES[S.finish].code].join('-');
+		return ['RLB', T.code + S.depth, SHAPES[S.shape].code, size, light, MOUNTS[S.mount].code, FINISHES[S.finish].code].concat(S.ip === 'ip65' ? ['IP65'] : []).join('-');
 	}
 
 	function specText() {
@@ -742,7 +792,7 @@
 
 	/* ------------------------------------------------------------ share link */
 
-	var KEYS = ['type', 'shape', 'w', 'h', 'r', 'd', 'band', 'cw', 'ch', 'depth', 'engine', 'light', 'cct', 'control', 'graphic', 'mount', 'finish', 'ral', 'qty'];
+	var KEYS = ['type', 'shape', 'w', 'h', 'r', 'd', 'band', 'cw', 'ch', 'depth', 'engine', 'light', 'cct', 'control', 'graphic', 'fabric', 'mount', 'finish', 'ral', 'driver', 'ip', 'qty'];
 	function toHash() {
 		var q = new URLSearchParams();
 		KEYS.forEach(function (k) { if (String(S[k]) !== String(DEFAULTS[k]) || k === 'type') { q.set(k, S[k]); } });
@@ -763,6 +813,9 @@
 		if (!SHAPES[S.shape]) { S.shape = 'rect'; }
 		if (!LIGHTS[S.light]) { S.light = 'white'; }
 		if (!GRAPHICS[S.graphic]) { S.graphic = 'print'; }
+		if (!/^#[0-9a-f]{6}$/i.test(S.fabric)) { S.fabric = DEFAULTS.fabric; }
+		if (S.driver !== 'remote') { S.driver = 'builtin'; }
+		if (S.ip !== 'ip65') { S.ip = 'indoor'; }
 		if (!MOUNTS[S.mount]) { S.mount = 'wall'; }
 		if (!FINISHES[S.finish]) { S.finish = 'silver'; }
 		if (!CONTROLS[S.control]) { S.control = 'onoff'; }
@@ -818,7 +871,7 @@
 			geo: { kind: S.shape, w: S.w, h: S.h, r: S.shape === 'custom' ? customR() : S.r, d: S.d, band: S.band, cw: S.cw, ch: S.ch, cr: cutR() },
 			depth: S.depth, face: profile().face || 20, sides: TYPES[S.type].sides, mount: S.mount,
 			finishColor: FINISHES[S.finish].color, metal: S.finish === 'silver',
-			light: S.light, cct: S.cct, cctColor: CCT_COL[S.cct] || '#ffffff', graphic: S.graphic, art: S.graphic === 'print' ? ART : null, lit: LIT
+			light: S.light, cct: S.cct, cctColor: CCT_COL[S.cct] || '#ffffff', graphic: S.graphic, fabricColor: S.fabric, art: S.graphic === 'print' ? ART : null, lit: LIT
 		};
 	}
 	function queue3d() {
@@ -846,15 +899,41 @@
 		}).catch(function () { setView('2d'); els.tab3d.hidden = true; });
 	}
 
+	/* --------------------------------------------------------------- gallery */
+
+	function gallery() {
+		var grid = h('div', { class: 'lbx-gal-grid' });
+		PROJECTS.forEach(function (p) {
+			var b = h('button', { type: 'button', class: 'lbx-gal-btn', text: 'Build one like this →' });
+			b.addEventListener('click', function () {
+				S = assign({}, DEFAULTS, p.s);
+				ART = null;
+				update(true);
+				if (VIEW3D) { VIEW3D.resetView(); }
+				els.side.scrollIntoView({ behavior: 'smooth', block: 'start' });
+			});
+			grid.appendChild(h('figure', { class: 'lbx-gal-card' }, [
+				h('img', { src: IMG + 'projects/' + p.img, alt: p.name + ' fabric light box', loading: 'lazy', width: 640, height: 480 }),
+				h('figcaption', null, [h('strong', { text: p.name }), h('small', { text: p.sub }), b])
+			]));
+		});
+		return h('section', { class: 'lbx-gal' }, [
+			h('p', { class: 'kick', text: 'Installed examples' }),
+			h('h2', { text: 'Fabric light boxes in the real world' }),
+			grid
+		]);
+	}
+
 	/* -------------------------------------------------------- features band */
 
 	function features() {
 		var items = [
 			['Seamless fabric face', 'The graphic is tensioned edge to edge, with no visible frame from the front.'],
 			['Change graphics in minutes', 'The silicone-edged fabric pulls out and pushes back in. No tools needed.'],
-			['Any size, any shape', 'Circles, rings, cut-outs and runs over 20 m, built in sections and joined on site.'],
-			['White to full-colour', 'Static white, tunable white, RGBW, or pixel lighting for moving skies and content.'],
+			['Any size, any shape', 'Up to 4.9 m wide and any length. Circles, rings and cut-outs too. Large units ship as components and are built in the UK.'],
+			['White to full colour', '3000K to 6500K white, tunable white, RGB, RGBW or pixel addressable (SPI). Controlled by DALI, 0–10V, a mains dimmer, Casambi or DMX.'],
 			['Flame-retardant fabric', '100% FR polyester with dye-sublimation print, so colours stay vivid.'],
+			['Indoor or IP65', 'Standard boxes are for indoor use. An IP65 version is available for wet areas. Fabric comes in white or colours.'],
 			['3-year warranty', 'CE and RoHS compliant.']
 		];
 		return h('section', { class: 'lbx-feat' }, items.map(function (i) {
