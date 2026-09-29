@@ -34,8 +34,8 @@
 			var btn = f.querySelector('button[type=submit]');
 			function err(t) { if (msg) { msg.hidden = false; msg.className = 'rm-tradeform-msg rm-tradeform-msg--err'; msg.textContent = t; } }
 
-			if (!g('firstname') || !g('lastname') || !emailOk(g('email'))) {
-				err('Please enter your first name, last name and a valid email.');
+			if (!g('firstname') || !g('lastname') || !g('company') || !g('jobrole') || !emailOk(g('email'))) {
+				err('Please enter your name, company, job role and a valid email.');
 				return;
 			}
 

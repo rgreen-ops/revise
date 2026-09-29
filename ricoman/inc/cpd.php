@@ -81,10 +81,10 @@ function ricoman_cpd_form_sc( $atts ) {
 			</label>
 		</div>
 		<div class="rm-tradeform-row">
-			<label class="rm-tradeform-label">Company name
+			<label class="rm-tradeform-label">Company name *
 				<input type="text" name="company" autocomplete="organization">
 			</label>
-			<label class="rm-tradeform-label">Job role
+			<label class="rm-tradeform-label">Job role *
 				<input type="text" name="jobrole" autocomplete="organization-title">
 			</label>
 		</div>
@@ -129,8 +129,8 @@ function ricoman_cpd_capture() {
 
 	$name = trim( $first . ' ' . $last );
 
-	if ( '' === $first || '' === $last || ! is_email( $email ) ) {
-		wp_send_json_error( array( 'msg' => __( 'Please enter your first name, last name and a valid email.', 'ricoman' ) ) );
+	if ( '' === $first || '' === $last || '' === $company || '' === $role || ! is_email( $email ) ) {
+		wp_send_json_error( array( 'msg' => __( 'Please enter your name, company, job role and a valid email.', 'ricoman' ) ) );
 	}
 	// Honeypot + shared spam screen — silently acknowledge, store nothing.
 	if ( '' !== $hp || ( function_exists( 'ricoman_lead_is_spam' ) && ricoman_lead_is_spam( array( 'ts' => $ts, 'fields' => array( $name, $company, $msg ) ) ) ) ) {
