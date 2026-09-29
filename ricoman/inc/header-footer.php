@@ -174,7 +174,12 @@ add_shortcode( 'ricoman_header', function () {
 			continue;
 		}
 		if ( preg_match( '/^[-\x{2013}\x{2014}]\s*/u', $label ) ) {
-			$child = array( 'label' => preg_replace( '/^[-\x{2013}\x{2014}]\s*/u', '', $label ), 'url' => $url );
+			$child = array(
+				'label' => preg_replace( '/^[-\x{2013}\x{2014}]\s*/u', '', $label ),
+				'url'   => $url,
+				'desc'  => isset( $p[2] ) ? trim( $p[2] ) : '',
+				'img'   => isset( $p[3] ) ? trim( $p[3] ) : '',
+			);
 			if ( $nav_tree ) {
 				$nav_tree[ count( $nav_tree ) - 1 ]['children'][] = $child;
 			}
@@ -190,11 +195,33 @@ add_shortcode( 'ricoman_header', function () {
 		if ( '#products' === $url ) {
 			$items .= '<li class="rm-has-mega"><a href="' . esc_url( ricoman_opt( 'mega_heading_url' ) ) . '">' . esc_html( $label ) . '</a>' . $mega . '</li>';
 		} elseif ( ! empty( $node['children'] ) ) {
-			$sub = '';
+			// Rich mega panel when any child has a description or image; otherwise a
+			// compact text dropdown.
+			$rich = false;
 			foreach ( $node['children'] as $c ) {
-				$sub .= '<li><a href="' . esc_url( $c['url'] ) . '">' . esc_html( $c['label'] ) . '</a></li>';
+				if ( '' !== $c['desc'] || '' !== $c['img'] ) {
+					$rich = true;
+					break;
+				}
 			}
-			$items .= '<li class="rm-has-sub"><a href="' . esc_url( $url ) . '">' . esc_html( $label ) . ' <span class="rm-sub-caret" aria-hidden="true">&#9662;</span></a><ul class="rm-subnav">' . $sub . '</ul></li>';
+			if ( $rich ) {
+				$cells = '';
+				foreach ( $node['children'] as $c ) {
+					$media = '' !== $c['img'] ? '<span class="rm-submega-img" style="background-image:url(' . esc_url( $c['img'] ) . ')" aria-hidden="true"></span>' : '';
+					$cells .= '<a class="rm-submega-item" href="' . esc_url( $c['url'] ) . '">' . $media
+						. '<span class="rm-submega-t">' . esc_html( $c['label'] ) . '</span>'
+						. ( '' !== $c['desc'] ? '<span class="rm-submega-d">' . esc_html( $c['desc'] ) . '</span>' : '' )
+						. '</a>';
+				}
+				$items .= '<li class="rm-has-submega"><a href="' . esc_url( $url ) . '">' . esc_html( $label ) . ' <span class="rm-sub-caret" aria-hidden="true">&#9662;</span></a>'
+					. '<div class="rm-submega"><div class="rm-submega-inner">' . $cells . '</div></div></li>';
+			} else {
+				$sub = '';
+				foreach ( $node['children'] as $c ) {
+					$sub .= '<li><a href="' . esc_url( $c['url'] ) . '">' . esc_html( $c['label'] ) . '</a></li>';
+				}
+				$items .= '<li class="rm-has-sub"><a href="' . esc_url( $url ) . '">' . esc_html( $label ) . ' <span class="rm-sub-caret" aria-hidden="true">&#9662;</span></a><ul class="rm-subnav">' . $sub . '</ul></li>';
+			}
 		} else {
 			$items .= '<li><a href="' . esc_url( $url ) . '">' . esc_html( $label ) . '</a></li>';
 		}

@@ -678,6 +678,16 @@ body:not(.rm-pe-preview) .rm-mediapanel{width:100vw;margin-left:calc(50% - 50vw)
 .rm-subnav li{margin:0}
 .rm-subnav a{display:block;padding:9px 22px;white-space:nowrap;font-family:Poppins;font-weight:500;font-size:.82rem;letter-spacing:.02em;color:#fff}
 .rm-subnav a:hover{background:rgba(255,255,255,.08);color:#9ec1ff}
+/* Rich mega dropdown (e.g. About) — columns with image + title + description */
+.rm-has-submega{position:static}
+.rm-submega{position:absolute;top:100%;left:0;right:0;background:var(--paper);color:var(--ink);border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,.28);padding:clamp(24px,3vw,44px);opacity:0;visibility:hidden;transform:translateY(8px);transition:.22s ease;z-index:75}
+.rm-has-submega:hover .rm-submega,.rm-has-submega:focus-within .rm-submega{opacity:1;visibility:visible;transform:none}
+.rm-submega-inner{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:clamp(20px,2.6vw,44px);max-width:1280px;margin:0 auto}
+.rm-submega-item{display:block;text-decoration:none;color:inherit}
+.rm-submega-img{display:block;width:100%;height:120px;border-radius:10px;background:#2a2a2a center/cover no-repeat;margin-bottom:14px}
+.rm-submega-t{display:block;font-family:Poppins;font-weight:600;font-size:1.05rem;letter-spacing:-.01em;color:var(--ink);margin-bottom:.5em}
+.rm-submega-d{display:block;font-family:Poppins;font-weight:300;font-size:.86rem;line-height:1.5;color:#5b5b57}
+.rm-submega-item:hover .rm-submega-t{color:var(--blue)}
 /* Hide the redundant "See All Products" CTA + the column labels (Categories /
    Collections / By Application) in the mega — now shown as requested. */
 
@@ -763,6 +773,13 @@ body:not(.rm-pe-preview) .rm-mediapanel{width:100vw;margin-left:calc(50% - 50vw)
   .rm-subnav{position:static;opacity:1;visibility:visible;transform:none;box-shadow:none;background:transparent;border-radius:0;padding:4px 0 8px}
   .rm-subnav a{padding:8px 0 8px 18px;color:rgba(255,255,255,.85)}
   .rm-sub-caret{display:none}
+  /* Rich mega dropdown folds into a simple indented list on mobile */
+  .rm-submega{position:static;opacity:1;visibility:visible;transform:none;box-shadow:none;background:transparent;color:#fff;border-radius:0;padding:6px 0 8px;display:none}
+  .rm-has-submega:focus-within .rm-submega,.rm-navtoggle:checked ~ .rm-nav .rm-has-submega .rm-submega{display:block}
+  .rm-submega-inner{grid-template-columns:1fr;gap:14px}
+  .rm-submega-img{display:none}
+  .rm-submega-t{color:#fff;font-size:.95rem;margin-bottom:.2em}
+  .rm-submega-d{color:rgba(255,255,255,.6);font-size:.8rem}
   .rm-mega{position:static;opacity:1;visibility:visible;transform:none;box-shadow:none;background:transparent;color:#fff;padding:12px 0 0;border-radius:0;display:none}
   .rm-has-mega:focus-within .rm-mega,.rm-navtoggle:checked ~ .rm-nav .rm-has-mega .rm-mega{display:block}
   .rm-mega-head{color:#fff!important;font-size:1.1rem;margin-bottom:.8em}

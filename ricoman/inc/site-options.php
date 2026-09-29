@@ -188,7 +188,7 @@ function ricoman_settings_page() {
 			<table class="form-table" role="presentation">
 				<?php
 				ricoman_field( 'brand_logo', __( 'Logo (white, for the dark header)', 'ricoman' ), 'image', __( 'Optional. Leave blank to use the RICOMAN wordmark.', 'ricoman' ) );
-				ricoman_field( 'nav_primary', __( 'Top menu items', 'ricoman' ), 'textarea', $line_hint . ' ' . __( 'Use <code>#products</code> as the URL to open the mega menu. Start a line with <code>-</code> to make it a dropdown sub-item of the menu item above it (e.g. <code>- CPD Seminars | /cpd/</code> under <code>About | /about/</code>).', 'ricoman' ), 9 );
+				ricoman_field( 'nav_primary', __( 'Top menu items', 'ricoman' ), 'textarea', $line_hint . ' ' . __( 'Use <code>#products</code> as the URL to open the mega menu. Start a line with <code>-</code> to make it a dropdown sub-item of the menu item above it (e.g. <code>- CPD Seminars | /cpd/</code> under <code>About | /about/</code>). Add a short description (and optional image URL) to a sub-item to turn the dropdown into a rich panel like Products: <code>- CPD Seminars | /cpd/ | Book a CPD with our team | https://…/img.jpg</code>.', 'ricoman' ), 9 );
 				ricoman_field( 'show_search', __( 'Show search box (1 = yes, 0 = no)', 'ricoman' ), 'text' );
 				ricoman_field( 'login_url', __( 'Login link URL (blank = WordPress login)', 'ricoman' ), 'text' );
 				ricoman_field( 'login_label', __( 'Login link label (blank = hide)', 'ricoman' ), 'text' );
