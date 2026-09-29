@@ -234,12 +234,38 @@ export function create(container) {
 		scene.remove(world); world = null;
 	}
 
+	/** A 1.75 m architectural scale figure (simple, well-proportioned, matte). */
 	function person(dark) {
-		const g = new Group(), mat = new MeshStandardMaterial({ color: dark ? 0x3a3d45 : 0x9a978f, roughness: 0.9 });
-		const body = new Mesh(new CapsuleGeometry(0.19, 0.62, 6, 14), mat); body.position.y = 1.18; body.scale.z = 0.6;
-		const head = new Mesh(new SphereGeometry(0.11, 18, 14), mat); head.position.y = 1.64;
-		[-0.09, 0.09].forEach((x) => { const leg = new Mesh(new CapsuleGeometry(0.07, 0.72, 4, 10), mat); leg.position.set(x, 0.43, 0); g.add(leg); });
-		g.add(body, head);
+		const g = new Group();
+		const mat = new MeshStandardMaterial({ color: dark ? 0x4a4e58 : 0x8f8b84, roughness: 0.85 });
+		const add = (geo, x, y, z, rx, rz, sx, sz) => {
+			const m = new Mesh(geo, mat);
+			m.position.set(x, y, z);
+			if (rx) { m.rotation.x = rx; }
+			if (rz) { m.rotation.z = rz; }
+			if (sx || sz) { m.scale.set(sx || 1, 1, sz || 1); }
+			g.add(m); return m;
+		};
+		// Head + neck.
+		const head = add(new SphereGeometry(0.095, 24, 18), 0, 1.655, 0);
+		head.scale.set(0.9, 1.12, 0.95);
+		add(new CylinderGeometry(0.045, 0.05, 0.09, 12), 0, 1.53, 0);
+		// Torso: shoulders taper to waist, flattened front to back.
+		add(new CylinderGeometry(0.2, 0.15, 0.52, 20), 0, 1.24, 0, 0, 0, 1, 0.55);
+		add(new SphereGeometry(0.2, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2), 0, 1.48, 0, 0, 0, 1, 0.55).scale.y = 0.28;
+		// Hips.
+		add(new CylinderGeometry(0.15, 0.16, 0.16, 20), 0, 0.91, 0, 0, 0, 1, 0.6);
+		// Legs (slightly apart) + feet.
+		[-0.085, 0.085].forEach((x) => {
+			add(new CapsuleGeometry(0.068, 0.34, 6, 12), x, 0.64, 0);
+			add(new CapsuleGeometry(0.055, 0.34, 6, 12), x, 0.25, 0);
+			add(new BoxGeometry(0.09, 0.05, 0.23), x, 0.025, 0.05);
+		});
+		// Arms hang by the sides with a slight outward angle.
+		[-1, 1].forEach((sd) => {
+			add(new CapsuleGeometry(0.045, 0.26, 6, 12), sd * 0.235, 1.3, 0, 0, sd * 0.1);
+			add(new CapsuleGeometry(0.038, 0.24, 6, 12), sd * 0.262, 0.99, 0.01, 0, sd * 0.05);
+		});
 		return g;
 	}
 
@@ -312,6 +338,7 @@ export function create(container) {
 			if (glowMesh) { glowMesh.position.z = 0.0; }
 			center.set(0, ceilH - dep - 0.15, 0);
 			man.position.set(Math.min(bw * 0.3, 1.2), 0, bh * 0.25);
+			man.rotation.y = -0.6;
 			world.add(man);
 			fit = Math.max(span * 1.05, 3.4);
 			if (!orbit.touched) { orbit.az = 0.5; orbit.el = -0.55; }
@@ -332,8 +359,9 @@ export function create(container) {
 			if (m.mount === 'freestanding') {
 				[-bw * 0.32, bw * 0.32].forEach((x) => { const ft = new Mesh(new BoxGeometry(0.08, 0.06, Math.max(0.45, bh * 0.25)), frameMat); ft.position.set(x, 0.03, 0); world.add(ft); });
 			}
-			center.set(0, yBottom + bh / 2, 0);
-			man.position.set(bw / 2 + 0.9, 0, 0.25);
+			center.set(-0.35, Math.max(yBottom + bh / 2, 0.95), 0);
+			man.position.set(-(bw / 2 + 0.7), 0, m.mount === 'wall' ? 0.45 : 0.1);
+			man.rotation.y = 0.9;
 			world.add(man);
 			fit = Math.max(span, 1.9) * 1.25;
 			if (!orbit.touched) { orbit.az = 0.45; orbit.el = 0.1; }
