@@ -48,6 +48,7 @@ function ricoman_cpd_form_sc( $atts ) {
 
 	ob_start();
 	?>
+	<div id="book-cpd" style="scroll-margin-top:100px">
 	<form class="rm-cpdform rm-tradeform" method="post" data-ajax="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" data-nonce="<?php echo esc_attr( wp_create_nonce( 'rm_cpd' ) ); ?>" data-ts="<?php echo (int) time(); ?>" data-redirect="<?php echo esc_url( $a['thankyou'] ); ?>" novalidate>
 		<div aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px"><label>Website<input type="text" name="rm_hp" tabindex="-1" autocomplete="off"></label></div>
 		<?php if ( $a['title'] ) : ?><h2 class="rm-tradeform-h"><?php echo esc_html( $a['title'] ); ?></h2><?php endif; ?>
@@ -110,6 +111,7 @@ function ricoman_cpd_form_sc( $atts ) {
 		<p class="rm-tradeform-msg" role="status" hidden></p>
 		<div class="rm-tradeform-actions"><button type="submit" class="btn btn-solid rm-tradeform-go">Submit your enquiry →</button></div>
 	</form>
+	</div>
 	<?php
 	return (string) ob_get_clean();
 }
