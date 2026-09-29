@@ -676,17 +676,17 @@ body:not(.rm-pe-preview) .rm-mediapanel{width:100vw;margin-left:calc(50% - 50vw)
 .rm-subnav{list-style:none;margin:0;padding:8px 0;position:absolute;top:100%;left:0;min-width:220px;background:#000;border-radius:0 0 10px 10px;box-shadow:0 24px 60px rgba(0,0,0,.35);opacity:0;visibility:hidden;transform:translateY(8px);transition:.2s ease;z-index:80}
 .rm-has-sub:hover .rm-subnav,.rm-has-sub:focus-within .rm-subnav{opacity:1;visibility:visible;transform:none}
 .rm-subnav li{margin:0}
-.rm-subnav a{display:block;padding:9px 22px;white-space:nowrap;font-family:Poppins;font-weight:500;font-size:.82rem;letter-spacing:.02em;color:#fff}
+.rm-subnav a{display:block;padding:9px 22px;white-space:nowrap;font-family:Poppins;font-weight:500;font-size:.82rem;letter-spacing:.02em;text-transform:none;color:#fff}
 .rm-subnav a:hover{background:rgba(255,255,255,.08);color:#9ec1ff}
 /* Rich mega dropdown (e.g. About) — columns with image + title + description */
 .rm-has-submega{position:static}
 .rm-submega{position:absolute;top:100%;left:0;right:0;background:var(--paper);color:var(--ink);border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,.28);padding:clamp(24px,3vw,44px);opacity:0;visibility:hidden;transform:translateY(8px);transition:.22s ease;z-index:75}
 .rm-has-submega:hover .rm-submega,.rm-has-submega:focus-within .rm-submega{opacity:1;visibility:visible;transform:none}
 .rm-submega-inner{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:clamp(20px,2.6vw,44px);max-width:1280px;margin:0 auto}
-.rm-submega-item{display:block;text-decoration:none;color:inherit}
+.rm-submega-item{display:block;text-decoration:none;color:inherit;text-transform:none;letter-spacing:normal}
 .rm-submega-img{display:block;width:100%;height:120px;border-radius:10px;background:#2a2a2a center/cover no-repeat;margin-bottom:14px}
-.rm-submega-t{display:block;font-family:Poppins;font-weight:600;font-size:1.05rem;letter-spacing:-.01em;color:var(--ink);margin-bottom:.5em}
-.rm-submega-d{display:block;font-family:Poppins;font-weight:300;font-size:.86rem;line-height:1.5;color:#5b5b57}
+.rm-submega-t{display:block;font-family:Poppins;font-weight:600;font-size:1.05rem;letter-spacing:-.01em;text-transform:none;color:var(--ink);margin-bottom:.5em}
+.rm-submega-d{display:block;font-family:Poppins;font-weight:300;font-size:.86rem;line-height:1.5;text-transform:none;letter-spacing:normal;color:#5b5b57}
 .rm-submega-item:hover .rm-submega-t{color:var(--blue)}
 /* Hide the redundant "See All Products" CTA + the column labels (Categories /
    Collections / By Application) in the mega — now shown as requested. */
