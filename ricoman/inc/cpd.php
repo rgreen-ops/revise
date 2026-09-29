@@ -72,6 +72,13 @@ function ricoman_cpd_form_sc( $atts ) {
 			<textarea name="address" rows="2" placeholder="Where should we deliver the CPD? Building, street, town, postcode"></textarea>
 		</label>
 
+		<label class="rm-tradeform-label">Include a guided tour of our manufacturing facilities?
+			<select name="tour">
+				<option value="No">No</option>
+				<option value="Yes">Yes</option>
+			</select>
+		</label>
+
 		<div class="rm-tradeform-row">
 			<label class="rm-tradeform-label">First name *
 				<input type="text" name="firstname" autocomplete="given-name">
@@ -123,6 +130,7 @@ function ricoman_cpd_capture() {
 	$session = isset( $_POST['session'] ) ? sanitize_text_field( wp_unslash( $_POST['session'] ) ) : '';
 	$loc     = isset( $_POST['location'] ) ? sanitize_text_field( wp_unslash( $_POST['location'] ) ) : '';
 	$address = isset( $_POST['address'] ) ? sanitize_textarea_field( wp_unslash( $_POST['address'] ) ) : '';
+	$tour    = isset( $_POST['tour'] ) ? sanitize_text_field( wp_unslash( $_POST['tour'] ) ) : '';
 	$msg     = isset( $_POST['message'] ) ? sanitize_textarea_field( wp_unslash( $_POST['message'] ) ) : '';
 	$ts      = isset( $_POST['ts'] ) ? (int) $_POST['ts'] : 0;
 	$hp      = isset( $_POST['rm_hp'] ) ? (string) wp_unslash( $_POST['rm_hp'] ) : '';
@@ -155,6 +163,7 @@ function ricoman_cpd_capture() {
 	if ( '' !== $address ) {
 		$lines[] = 'Address: ' . $address;
 	}
+	$lines[] = 'Guided tour of manufacturing: ' . ( '' !== $tour ? $tour : 'No' );
 	if ( '' !== $role ) {
 		$lines[] = 'Job role: ' . $role;
 	}
@@ -197,7 +206,7 @@ function ricoman_cpd_capture() {
 	// Notify the marketing team — numbered subject.
 	$subject = sprintf( 'CPD booking request %s', $ref );
 	$body    = sprintf(
-		"New CPD booking request %s\n\nName: %s\nCompany: %s\nJob role: %s\nEmail: %s\nPhone: %s\n\nCPD session: %s\nLocation: %s\n%s%s\n",
+		"New CPD booking request %s\n\nName: %s\nCompany: %s\nJob role: %s\nEmail: %s\nPhone: %s\n\nCPD session: %s\nLocation: %s\nGuided tour of manufacturing: %s\n%s%s\n",
 		$ref,
 		$name,
 		( '' !== $company ? $company : '—' ),
@@ -206,6 +215,7 @@ function ricoman_cpd_capture() {
 		( '' !== $phone ? $phone : '—' ),
 		( '' !== $session ? $session : '—' ),
 		( '' !== $loc ? $loc : '—' ),
+		( '' !== $tour ? $tour : 'No' ),
 		( '' !== $address ? "\nAddress:\n" . $address . "\n" : '' ),
 		( '' !== $msg ? "\nComments:\n" . $msg . "\n" : '' )
 	);

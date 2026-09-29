@@ -43,7 +43,7 @@
 			body.set('action', 'rm_cpd');
 			body.set('nonce', f.dataset.nonce || '');
 			body.set('ts', f.dataset.ts || '');
-			['session', 'location', 'address', 'firstname', 'lastname', 'company', 'jobrole', 'email', 'phone', 'message'].forEach(function (n) { body.set(n, g(n)); });
+			['session', 'location', 'address', 'tour', 'firstname', 'lastname', 'company', 'jobrole', 'email', 'phone', 'message'].forEach(function (n) { body.set(n, g(n)); });
 
 			if (btn) { btn.disabled = true; }
 			fetch(f.dataset.ajax, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body.toString() })
