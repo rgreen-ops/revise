@@ -161,16 +161,40 @@ add_shortcode( 'ricoman_header', function () {
 		. $card( ricoman_opt( 'mega_card2_img' ), ricoman_opt( 'mega_card2_title' ), ricoman_opt( 'mega_card2_url' ) )
 		. '</div></div></div></div>';
 
-	// Top nav.
-	$items = '';
+	// Top nav. A line whose label starts with "-" (or an en/em dash) is a
+	// dropdown child of the preceding top-level item, e.g.
+	//   About | /about/
+	//   - CPD Seminars | /cpd/
+	//   - Lighting Design | /lighting-design/
+	$nav_tree = array();
 	foreach ( ricoman_opt_lines( 'nav_primary' ) as $p ) {
-		$label = isset( $p[0] ) ? $p[0] : '';
+		$label = isset( $p[0] ) ? trim( $p[0] ) : '';
 		$url   = isset( $p[1] ) ? $p[1] : '#';
 		if ( '' === $label ) {
 			continue;
 		}
+		if ( preg_match( '/^[-\x{2013}\x{2014}]\s*/u', $label ) ) {
+			$child = array( 'label' => preg_replace( '/^[-\x{2013}\x{2014}]\s*/u', '', $label ), 'url' => $url );
+			if ( $nav_tree ) {
+				$nav_tree[ count( $nav_tree ) - 1 ]['children'][] = $child;
+			}
+			continue;
+		}
+		$nav_tree[] = array( 'label' => $label, 'url' => $url, 'children' => array() );
+	}
+
+	$items = '';
+	foreach ( $nav_tree as $node ) {
+		$label = $node['label'];
+		$url   = $node['url'];
 		if ( '#products' === $url ) {
 			$items .= '<li class="rm-has-mega"><a href="' . esc_url( ricoman_opt( 'mega_heading_url' ) ) . '">' . esc_html( $label ) . '</a>' . $mega . '</li>';
+		} elseif ( ! empty( $node['children'] ) ) {
+			$sub = '';
+			foreach ( $node['children'] as $c ) {
+				$sub .= '<li><a href="' . esc_url( $c['url'] ) . '">' . esc_html( $c['label'] ) . '</a></li>';
+			}
+			$items .= '<li class="rm-has-sub"><a href="' . esc_url( $url ) . '">' . esc_html( $label ) . ' <span class="rm-sub-caret" aria-hidden="true">&#9662;</span></a><ul class="rm-subnav">' . $sub . '</ul></li>';
 		} else {
 			$items .= '<li><a href="' . esc_url( $url ) . '">' . esc_html( $label ) . '</a></li>';
 		}

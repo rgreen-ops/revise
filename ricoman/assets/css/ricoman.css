@@ -670,6 +670,14 @@ body:not(.rm-pe-preview) .rm-mediapanel{width:100vw;margin-left:calc(50% - 50vw)
 .rm-has-mega{position:static}
 .rm-mega{position:absolute;top:100%;left:0;right:0;background:var(--paper);color:var(--ink);border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,.28);padding:clamp(24px,3vw,44px);opacity:0;visibility:hidden;transform:translateY(8px);transition:.22s ease;z-index:70}
 .rm-has-mega:hover .rm-mega,.rm-has-mega:focus-within .rm-mega{opacity:1;visibility:visible;transform:none}
+/* Simple dropdown submenu (e.g. About) */
+.rm-has-sub{position:relative}
+.rm-sub-caret{font-size:.6em;opacity:.8}
+.rm-subnav{list-style:none;margin:0;padding:8px 0;position:absolute;top:100%;left:0;min-width:220px;background:#000;border-radius:0 0 10px 10px;box-shadow:0 24px 60px rgba(0,0,0,.35);opacity:0;visibility:hidden;transform:translateY(8px);transition:.2s ease;z-index:80}
+.rm-has-sub:hover .rm-subnav,.rm-has-sub:focus-within .rm-subnav{opacity:1;visibility:visible;transform:none}
+.rm-subnav li{margin:0}
+.rm-subnav a{display:block;padding:9px 22px;white-space:nowrap;font-family:Poppins;font-weight:500;font-size:.82rem;letter-spacing:.02em;color:#fff}
+.rm-subnav a:hover{background:rgba(255,255,255,.08);color:#9ec1ff}
 /* Hide the redundant "See All Products" CTA + the column labels (Categories /
    Collections / By Application) in the mega — now shown as requested. */
 
@@ -751,6 +759,10 @@ body:not(.rm-pe-preview) .rm-mediapanel{width:100vw;margin-left:calc(50% - 50vw)
 
 /* mega + search on mobile: fold into the slide-in menu */
 @media(max-width:1024px){
+  /* Dropdown submenus become an indented static list inside the burger menu */
+  .rm-subnav{position:static;opacity:1;visibility:visible;transform:none;box-shadow:none;background:transparent;border-radius:0;padding:4px 0 8px}
+  .rm-subnav a{padding:8px 0 8px 18px;color:rgba(255,255,255,.85)}
+  .rm-sub-caret{display:none}
   .rm-mega{position:static;opacity:1;visibility:visible;transform:none;box-shadow:none;background:transparent;color:#fff;padding:12px 0 0;border-radius:0;display:none}
   .rm-has-mega:focus-within .rm-mega,.rm-navtoggle:checked ~ .rm-nav .rm-has-mega .rm-mega{display:block}
   .rm-mega-head{color:#fff!important;font-size:1.1rem;margin-bottom:.8em}
