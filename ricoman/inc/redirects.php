@@ -750,6 +750,7 @@ function ricoman_launch_redirect_map() {
 		'products/fusion-ii'                             => '/products/ugr19-tpa-backlit-panel-core-ugr/',
 		// Old ricomanled.com URLs that 404'd (domain now aliased to ricoman.com, 2026-10-01).
 		'about-stock-and-availability'                   => '/contact/',
+		'stock-and-availability'                         => '/contact/',
 		'download/all-ldt-revit-files'                   => '/downloads/',
 		'download/credit-account-application-form'       => '/downloads/',
 		'download/ricoman-catalogue'                     => '/downloads/',
@@ -783,7 +784,7 @@ function ricoman_launch_redirect_map() {
 	);
 }
 add_action( 'admin_init', function () {
-	if ( get_option( 'ricoman_launch_redirects_v2' ) ) {
+	if ( get_option( 'ricoman_launch_redirects_v3' ) ) {
 		return;
 	}
 	$launch = ricoman_launch_redirect_map();
@@ -806,7 +807,7 @@ add_action( 'admin_init', function () {
 	if ( $changed ) {
 		update_option( 'ricoman_404_log', $log, false );
 	}
-	update_option( 'ricoman_launch_redirects_v2', 1 );
+	update_option( 'ricoman_launch_redirects_v3', 1 );
 } );
 
 /* Daily: auto-prune the 404 log of links that now resolve, so the admin
