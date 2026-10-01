@@ -748,10 +748,42 @@ function ricoman_launch_redirect_map() {
 		'products/square-led-wallwasher-vela'            => '/product-category/led-downlights/',
 		'products/kontor-free-standing-light'            => '/products/',
 		'products/fusion-ii'                             => '/products/ugr19-tpa-backlit-panel-core-ugr/',
+		// Old ricomanled.com URLs that 404'd (domain now aliased to ricoman.com, 2026-10-01).
+		'about-stock-and-availability'                   => '/contact/',
+		'download/all-ldt-revit-files'                   => '/downloads/',
+		'download/credit-account-application-form'       => '/downloads/',
+		'download/ricoman-catalogue'                     => '/downloads/',
+		'download/ricoman-energy-saving-calculator'      => '/downloads/',
+		'grab-your-free-8gb-usb-memory-card'             => '/',
+		'our-projects'                                   => '/projects/',
+		'r3-downlight-sample'                            => '/product-category/led-downlights/',
+		'product-cat/estrella-linear-lighting'           => '/estrella-pro-linear-lighting-collection/',
+		'product-cat/free-standing'                      => '/products/',
+		'product/capella-commercial-downlight'           => '/product-category/led-downlights/',
+		'product/estrella-pro-ip65'                      => '/estrella-pro-linear-lighting-collection/',
+		'product/estrella-pro-mirror-louvre'             => '/products/office-linear-lighting-estrella-pro-white-louvre/',
+		'product/estrella-pro-recessed-dark-louvre'      => '/products/louvre-linear-lighting-estrella-pro-dark-louvre/',
+		'product/estrella-pro-recessed-opal'             => '/products/linear-led-lighting-system-estrella-pro-opal/',
+		'product/estrella-pro-recessed-round-aperture'   => '/products/architectural-linear-lighting-estrella-pro-square-aperture/',
+		'product/estrella-pro-recessed-ugr'              => '/products/low-glare-tpa-linear-lighting-estrella-pro-ugr/',
+		'product/estrella-pro-recessed-wallwash'         => '/products/linear-led-lighting-system-estrella-wallwasher/',
+		'product/fusion-ii'                              => '/products/ugr19-tpa-backlit-panel-core-ugr/',
+		'product/ida-exterior-led-bollard'               => '/products/exterior-led-bollard/',
+		'product/kontor'                                 => '/products/',
+		'product/l-clip-panel-ceiling-lighting'          => '/product-category/accessories/',
+		'product/o2-black-louvre'                        => '/products/duoline/',
+		'product/o2-white-louvre'                        => '/products/duoline/',
+		'product/o2-wallwasher'                          => '/products/duoline/',
+		'product/polestar'                               => '/products/',
+		'product/sirius'                                 => '/products/',
+		'product/square-led-downlights-ultra-slim-s-series-slim' => '/products/slim-round-downlight-ultra-slim-r/',
+		'product/vela-commercial-wallwasher'             => '/product-category/led-downlights/',
+		'product/venus-tiltable-spot-downlight'          => '/product-category/led-downlights/',
+		'product/zeta-recessed-wall-light'               => '/products/',
 	);
 }
 add_action( 'admin_init', function () {
-	if ( get_option( 'ricoman_launch_redirects_v1' ) ) {
+	if ( get_option( 'ricoman_launch_redirects_v2' ) ) {
 		return;
 	}
 	$launch = ricoman_launch_redirect_map();
@@ -774,7 +806,7 @@ add_action( 'admin_init', function () {
 	if ( $changed ) {
 		update_option( 'ricoman_404_log', $log, false );
 	}
-	update_option( 'ricoman_launch_redirects_v1', 1 );
+	update_option( 'ricoman_launch_redirects_v2', 1 );
 } );
 
 /* Daily: auto-prune the 404 log of links that now resolve, so the admin
