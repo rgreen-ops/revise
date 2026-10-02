@@ -87,6 +87,7 @@ require_once get_theme_file_path( 'inc/news.php' );           // News master lis
 require_once get_theme_file_path( 'inc/sector.php' );         // Sector landing pages (SEO + conversion + lead-gen).
 require_once get_theme_file_path( 'inc/redirects.php' );      // Links & Redirects manager + 404 watch.
 require_once get_theme_file_path( 'inc/partner-pages.php' );  // Bespoke, noindexed prospect landing pages (/obi, /office-innovations).
+require_once get_theme_file_path( 'inc/partner-pages-admin.php' ); // wp-admin → Ricoman → Prospect pages (Marketing self-serve).
 require_once get_theme_file_path( 'inc/tracking.php' );       // Tracking & Scripts (GTM/GA4/custom) + delay-until-interaction.
 require_once get_theme_file_path( 'inc/projects.php' );       // Project single (short/long) from ACF.
 require_once get_theme_file_path( 'inc/category-meta.php' );  // Per-category Studio / In-situ images + SEO copy / display order (admin) + helpers.

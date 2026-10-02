@@ -126,7 +126,7 @@ add_action( 'admin_menu', function () {
 	// 2) Group what's left under the Control Center section names (exact match).
 	$groups = array(
 		'Design'             => array( 'Header', 'Edit layout' ),
-		'Growth & marketing' => array( 'SEO Targets', 'SEO Optimiser', 'Tracking' ),
+		'Growth & marketing' => array( 'Prospect pages', 'SEO Targets', 'SEO Optimiser', 'Tracking' ),
 		'Catalogue & media'  => array( 'Product Templates', 'Filter Data', 'Studio', 'Image WebP', 'RICOBOT' ),
 		'Launch'             => array( 'Links', 'Redirects', 'Go Live', 'Push to Live' ),
 	);

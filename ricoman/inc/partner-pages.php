@@ -9,7 +9,11 @@
  * (private outreach, not for public search); the slugs are also in
  * ricoman_seo_noindex_page_uris() as belt-and-braces.
  *
- * To add a prospect: add one row to ricoman_partner_pages(). That's it.
+ * To add a prospect: Marketing use wp-admin → Ricoman → Prospect pages (saved in
+ * the `ricoman_partner_pages_custom` option). Developers can still hard-code a
+ * row in ricoman_partner_pages(). Each row may name its own Ricoman contact
+ * (rep / rep_mob / rep_email); the page, WhatsApp button and contact form then
+ * go to that person instead of Richard.
  *
  * @package Ricoman
  */
@@ -20,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /** The prospects. Key = the URL slug (lower-case). */
 function ricoman_partner_pages() {
-	return array(
+	$pages = array(
 		'obi' => array(
 			'name'  => 'OBI',
 			'logo'  => 'partners/obi.png',       // drop the prospect's logo here; falls back to their name if absent.
@@ -31,12 +35,47 @@ function ricoman_partner_pages() {
 			'logo'  => 'partners/office-innovations.png',
 			'intro' => 'You turn empty floors into workspaces that work. We make the lighting that brings them to life, engineered in-house, in Manchester, right on your doorstep.',
 		),
+		'tsk' => array(
+			'name'      => 'TSK',
+			'logo'      => 'partners/tsk.svg',
+			'intro'     => 'Strategy, design and fit-out, building workplaces people genuinely want to come back to, from your London and Manchester studios. We make the lighting that finishes them, engineered in-house a few minutes from your Metroplex studio, and kind to people and the planet.',
+			'rep'       => 'Colin Shockledge',
+			'rep_mob'   => '07572 378 867',
+			'rep_email' => 'cshockledge@ricoman.com',
+		),
 	);
+	// Pages Marketing created in wp-admin. Hard-coded rows above always win.
+	$custom = get_option( 'ricoman_partner_pages_custom', array() );
+	if ( is_array( $custom ) ) {
+		foreach ( $custom as $slug => $row ) {
+			if ( ! isset( $pages[ $slug ] ) && is_array( $row ) && ! empty( $row['name'] ) ) {
+				$pages[ $slug ] = $row;
+			}
+		}
+	}
+	return $pages;
+}
+
+/** The page's named Ricoman contact (defaults to Richard). */
+function ricoman_partner_rep( array $p ) {
+	$rep = array(
+		'name'  => ! empty( $p['rep'] ) ? (string) $p['rep'] : 'Richard Green',
+		'mob'   => ! empty( $p['rep_mob'] ) ? (string) $p['rep_mob'] : '07802 832 849',
+		'email' => ! empty( $p['rep_email'] ) && is_email( $p['rep_email'] ) ? (string) $p['rep_email'] : 'rgreen@ricoman.com',
+	);
+	$rep['mob_raw'] = preg_replace( '/[^0-9+]/', '', $rep['mob'] );
+	$wa             = preg_replace( '/[^0-9]/', '', $rep['mob'] );
+	$rep['wa']      = 0 === strpos( $wa, '0' ) ? '44' . substr( $wa, 1 ) : $wa; // wa.me wants 447…
+	$rep['first']   = strtok( $rep['name'], ' ' );
+	return $rep;
 }
 
 /** The prospect's own logo (on a light chip) if we have the file, else their name. */
 function ricoman_partner_logo_html( array $p, $h = 40 ) {
 	$file = isset( $p['logo'] ) ? (string) $p['logo'] : '';
+	if ( preg_match( '#^https?://#i', $file ) ) { // Media Library upload (admin-created pages).
+		return '<img class="plogo" style="height:' . (int) $h . 'px" src="' . esc_url( $file ) . '" alt="' . esc_attr( $p['name'] ) . '">';
+	}
 	if ( '' !== $file && file_exists( get_theme_file_path( 'assets/' . $file ) ) ) {
 		return '<img class="plogo" style="height:' . (int) $h . 'px" src="' . esc_url( get_theme_file_uri( 'assets/' . $file ) ) . '" alt="' . esc_attr( $p['name'] ) . '">';
 	}
@@ -155,7 +194,14 @@ function ricoman_partner_contact_submit() {
 	if ( is_email( $email ) ) {
 		$headers[] = 'Reply-To: ' . $name . ' <' . $email . '>';
 	}
-	wp_mail( 'rgreen@ricoman.com', $subject, $body, $headers );
+	// Route to the page's named contact (looked up server-side, never trusted from the form).
+	$slug = strtolower( trim( (string) wp_parse_url( $source, PHP_URL_PATH ), '/' ) );
+	$all  = ricoman_partner_pages();
+	$to   = isset( $all[ $slug ] ) ? ricoman_partner_rep( $all[ $slug ] )['email'] : 'rgreen@ricoman.com';
+	if ( 'rgreen@ricoman.com' !== $to ) {
+		$headers[] = 'Cc: rgreen@ricoman.com';
+	}
+	wp_mail( $to, $subject, $body, $headers );
 	wp_safe_redirect( add_query_arg( 'sent', '1', $back ) . '#contact' );
 	exit;
 }
@@ -170,12 +216,13 @@ function ricoman_render_partner_page( array $p ) {
 	$logo  = esc_url( home_url( '/wp-content/uploads/2025/09/header-logo.png' ) );
 	$tel   = '0161 877 1399';
 	$mail  = 'sales@ricoman.com';
-	$wa    = '447802832849'; // WhatsApp (Richard), international format for wa.me.
-	// Your named point of contact on the page.
-	$rep       = 'Richard Green';
-	$rep_mob   = '07802 832 849';
-	$rep_mobrw = '07802832849';
-	$rep_email = 'rgreen@ricoman.com';
+	// Your named point of contact on the page (per page; defaults to Richard).
+	$r         = ricoman_partner_rep( $p );
+	$wa        = $r['wa'];
+	$rep       = $r['name'];
+	$rep_mob   = $r['mob'];
+	$rep_mobrw = $r['mob_raw'];
+	$rep_email = $r['email'];
 	$self      = home_url( isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '/' );
 	$sent      = ! empty( $_GET['sent'] ); // phpcs:ignore WordPress.Security.NonceVerification
 
@@ -408,7 +455,7 @@ footer .links a{margin-left:20px}
 	<p>Come and see the machine that makes it: a 20-minute walk round our Manchester factory, or a scheme designed for your live enquiry. Whichever's more use to you.</p>
 	<div class="cta">
 		<a class="btn btn-primary" href="#contact">Start a conversation</a>
-		<a class="btn btn-wa" href="https://wa.me/<?php echo esc_attr( $wa ); ?>?text=<?php echo rawurlencode( 'Hi Richard, I saw the ' . $name . ' lighting page and would like to chat.' ); ?>" target="_blank" rel="noopener">💬 WhatsApp me</a>
+		<a class="btn btn-wa" href="https://wa.me/<?php echo esc_attr( $wa ); ?>?text=<?php echo rawurlencode( 'Hi ' . $r['first'] . ', I saw the ' . $name . ' lighting page and would like to chat.' ); ?>" target="_blank" rel="noopener">💬 WhatsApp me</a>
 	</div>
 </div></div>
 
