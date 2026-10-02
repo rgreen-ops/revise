@@ -38,6 +38,7 @@ function ricoman_admin_links() {
 		'transporter' => admin_url( 'tools.php?page=ricoman-transporter' ),
 		// Marketing / growth tools.
 		'tracking'    => admin_url( 'admin.php?page=ricoman-tracking' ),
+		'prospects'   => admin_url( 'admin.php?page=ricoman-prospect-pages' ),
 		'pageseo'     => admin_url( 'admin.php?page=ricoman-page-seo' ),
 		'catseo'      => admin_url( 'admin.php?page=ricoman-category-seo' ),
 		'seoopt'      => admin_url( 'admin.php?page=ricoman-seo-optimiser' ),
@@ -260,6 +261,7 @@ function ricoman_render_hub() {
 		<div class="rm-grid">
 			<?php
 			$tile( $l['leads'], 'email', __( 'Leads', 'ricoman' ), __( 'Enquiries & CRM', 'ricoman' ) );
+			$tile( $l['prospects'], 'id-alt', __( 'Prospect pages', 'ricoman' ), __( '"Prepared for" pages, e.g. /tsk', 'ricoman' ) );
 			$tile( $l['seotargets'], 'chart-line', __( 'SEO Targets', 'ricoman' ), __( 'Focus keywords + coverage review', 'ricoman' ) );
 			$tile( $l['tracking'], 'chart-area', __( 'Tracking & Scripts', 'ricoman' ), __( 'GA4, GTM, pixels, custom code', 'ricoman' ) );
 			$tile( $l['speed'], 'performance', __( 'SEO & Speed', 'ricoman' ), __( 'Scores + PageSpeed', 'ricoman' ) );
