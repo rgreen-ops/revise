@@ -67,6 +67,7 @@ require_once get_theme_file_path( 'inc/trade-form.php' );    // "Apply for a tra
 require_once get_theme_file_path( 'inc/thankyou-pages.php' );// One-time: create the form thank-you pages.
 require_once get_theme_file_path( 'inc/design-call.php' );   // "Request a 30-min call with our lighting designers" form.
 require_once get_theme_file_path( 'inc/cpd.php' );           // CPD booking form (book a CPD at HQ or your premises).
+require_once get_theme_file_path( 'inc/datasheet-audit.php' );// Ricoman → Datasheet Audit: flag products with old family datasheets.
 require_once get_theme_file_path( 'inc/projects-showcase.php' );// Projects carousel + hand-pick "Featured Projects" admin.
 require_once get_theme_file_path( 'inc/tabs.php' );          // "Why Ricoman" tabbed image+text pattern.
 require_once get_theme_file_path( 'inc/shortcodes.php' );    // Product spec/variant/datasheet output.
