@@ -792,7 +792,12 @@ add_action( 'enqueue_block_assets', function () {
 		. '.rm-opt-img{margin:0;flex:0 0 auto}'
 		. '.rm-opt-img img{width:64px;height:64px;object-fit:cover;border-radius:8px;display:block}'
 		. '.rm-opt-name{font-family:Poppins,sans-serif;font-weight:600;font-size:1rem;line-height:1.25;margin:0}'
+		. '.rm-opt-name a{color:inherit;text-decoration:none}'
+		. '.rm-opt-name a:hover{text-decoration:underline}'
 		. '.rm-opt-row .wp-block-column>p{margin:0;font-size:.92rem;line-height:1.4}'
+		// Datasheet download cell — blue link with a ↓, matching the product gallery.
+		. '.rm-opt-ds a{color:var(--blue,#004899);font-family:Poppins,sans-serif;font-weight:600;font-size:.85rem;text-decoration:none;white-space:nowrap}'
+		. '.rm-opt-ds a:hover{text-decoration:underline}'
 		. '@media(max-width:781px){.rm-opt-head{display:none}.rm-opt-name{font-size:1.05rem}}';
 	wp_register_style( 'ricoman-collections-inline', false );
 	wp_enqueue_style( 'ricoman-collections-inline' );
@@ -809,22 +814,25 @@ add_action( 'init', function () {
 	};
 	$p    = function ( $t ) { return '<!-- wp:paragraph --><p>' . $t . '</p><!-- /wp:paragraph -->'; };
 	$hc   = function ( $t ) { return '<!-- wp:paragraph {"className":"rm-opt-h"} --><p class="rm-opt-h">' . $t . '</p><!-- /wp:paragraph -->'; };
+	// Option name is a link (edit the URL in the editor: select the name → link).
 	$name = function ( $n ) use ( $img ) {
 		return '<!-- wp:image {"sizeSlug":"thumbnail","className":"rm-opt-img"} --><figure class="wp-block-image size-thumbnail rm-opt-img"><img src="' . $img . '" alt=""/></figure><!-- /wp:image -->'
-			. '<!-- wp:heading {"level":4,"className":"rm-opt-name"} --><h4 class="wp-block-heading rm-opt-name">' . $n . '</h4><!-- /wp:heading -->';
+			. '<!-- wp:heading {"level":4,"className":"rm-opt-name"} --><h4 class="wp-block-heading rm-opt-name"><a href="#">' . $n . '</a></h4><!-- /wp:heading -->';
 	};
-	$row = function ( $c1, $c2, $c3, $c4, $c5 ) use ( $col ) {
+	// Datasheet download cell (edit the link to point at the option's PDF).
+	$ds = function () { return '<!-- wp:paragraph {"className":"rm-opt-ds"} --><p class="rm-opt-ds"><a href="#">Datasheet ↓</a></p><!-- /wp:paragraph -->'; };
+	$row = function ( $c1, $c2, $c3, $c4, $c5, $c6 ) use ( $col ) {
 		return '<!-- wp:columns {"verticalAlignment":"center","className":"rm-opt-row"} --><div class="wp-block-columns are-vertically-aligned-center rm-opt-row">'
-			. $col( '22%', $c1 ) . $col( '30%', $c2 ) . $col( '16%', $c3 ) . $col( '16%', $c4 ) . $col( '16%', $c5 )
+			. $col( '20%', $c1 ) . $col( '27%', $c2 ) . $col( '13%', $c3 ) . $col( '12%', $c4 ) . $col( '12%', $c5 ) . $col( '16%', $c6 )
 			. '</div><!-- /wp:columns -->';
 	};
 
 	$content  = '<!-- wp:columns {"className":"rm-opt-row rm-opt-head"} --><div class="wp-block-columns rm-opt-row rm-opt-head">'
-		. $col( '22%', $hc( 'Optic' ) ) . $col( '30%', $hc( 'Best for' ) ) . $col( '16%', $hc( 'Efficacy' ) ) . $col( '16%', $hc( 'Glare (UGR)' ) ) . $col( '16%', $hc( 'Beam' ) )
+		. $col( '20%', $hc( 'Optic' ) ) . $col( '27%', $hc( 'Best for' ) ) . $col( '13%', $hc( 'Efficacy' ) ) . $col( '12%', $hc( 'Glare (UGR)' ) ) . $col( '12%', $hc( 'Beam' ) ) . $col( '16%', $hc( 'Datasheet' ) )
 		. '</div><!-- /wp:columns -->';
-	$content .= "\n\n" . $row( $name( 'Opal' ), $p( 'General area lighting, high uniformity' ), $p( 'Up to 120 lm/W' ), $p( '&lt;24' ), $p( '100°' ) );
-	$content .= "\n\n" . $row( $name( 'Square Aperture' ), $p( 'Offices, meeting rooms, screen-based spaces' ), $p( 'Up to 125 lm/W' ), $p( '&lt;14' ), $p( '90°' ) );
-	$content .= "\n\n" . $row( $name( 'Wallwash' ), $p( 'Feature walls, retail displays, accent lighting' ), $p( 'Up to 116 lm/W' ), $p( '&lt;22' ), $p( '60°' ) );
+	$content .= "\n\n" . $row( $name( 'Opal' ), $p( 'General area lighting, high uniformity' ), $p( 'Up to 120 lm/W' ), $p( '&lt;24' ), $p( '100°' ), $ds() );
+	$content .= "\n\n" . $row( $name( 'Square Aperture' ), $p( 'Offices, meeting rooms, screen-based spaces' ), $p( 'Up to 125 lm/W' ), $p( '&lt;14' ), $p( '90°' ), $ds() );
+	$content .= "\n\n" . $row( $name( 'Wallwash' ), $p( 'Feature walls, retail displays, accent lighting' ), $p( 'Up to 116 lm/W' ), $p( '&lt;22' ), $p( '60°' ), $ds() );
 
 	register_block_pattern( 'ricoman/collection-options-table', array(
 		'title'       => __( 'Collection · Options table (photo + info)', 'ricoman' ),
