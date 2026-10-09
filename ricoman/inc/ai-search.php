@@ -166,7 +166,20 @@ function ricoman_product_spec_summary( $pid ) {
 	return $specs;
 }
 
-/** Plain-text product summary for AI: SEO desc → excerpt → ACF short desc → key features. */
+/**
+ * Is this text a usable product summary? Rejects short strings, template
+ * placeholders, order-code dumps ("R091801/105 R091802/105…") and keyword
+ * soup ("Track Lighting Track Track Light Track parts").
+ */
+function ricoman_ai_desc_ok( $c ) {
+	if ( strlen( $c ) < 30 || false !== strpos( $c, '%%' ) || preg_match_all( '/R\d{5,}/', $c ) >= 3 ) {
+		return false;
+	}
+	$w = preg_split( '/\W+/u', strtolower( $c ), -1, PREG_SPLIT_NO_EMPTY );
+	return count( $w ) >= 6 && count( array_unique( $w ) ) / count( $w ) >= 0.6;
+}
+
+/** Plain-text product summary for AI: SEO desc → excerpt → ACF short desc → key features → generated. */
 function ricoman_product_ai_desc( $pid, $words = 45 ) {
 	$cands = array(
 		get_post_meta( $pid, '_ricoman_seo_desc', true ),
@@ -180,13 +193,14 @@ function ricoman_product_ai_desc( $pid, $words = 45 ) {
 	$cands[] = strip_shortcodes( (string) get_post_field( 'post_content', $pid ) );
 	foreach ( $cands as $c ) {
 		$c = is_scalar( $c ) ? trim( preg_replace( '/\s+/', ' ', html_entity_decode( wp_strip_all_tags( (string) $c ), ENT_QUOTES, 'UTF-8' ) ) ) : '';
-		// Skip template placeholders and order-code dumps ("R091801/105 R091802/105…").
-		$codes = preg_match_all( '/R\d{5,}/', $c );
-		if ( strlen( $c ) >= 30 && false === strpos( $c, '%%' ) && $codes < 3 ) {
+		if ( ricoman_ai_desc_ok( $c ) ) {
 			return wp_trim_words( $c, $words, '…' );
 		}
 	}
-	return '';
+	// Nothing usable stored — a plain factual line beats junk.
+	$terms = get_the_terms( $pid, 'product-cat' );
+	$cat   = ( $terms && ! is_wp_error( $terms ) ) ? $terms[0]->name : 'commercial LED lighting';
+	return html_entity_decode( get_the_title( $pid ), ENT_QUOTES, 'UTF-8' ) . ' — ' . $cat . ' from Ricoman Lighting, a UK manufacturer of commercial LED lighting.';
 }
 
 /* --------------------------------------------- Product schema (Yoast mode) */
@@ -203,14 +217,8 @@ add_filter( 'wpseo_schema_graph', function ( $graph, $context ) {
 		// Product node falls back to the auto excerpt, which on some migrated
 		// products is just a list of R-codes).
 		$cur = trim( (string) ( $node['description'] ?? '' ) );
-		if ( strlen( $cur ) < 30 || preg_match_all( '/R\d{5,}/', $cur ) >= 3 ) {
-			$d = ricoman_product_ai_desc( $id );
-			if ( '' === $d && is_object( $context ) && ! empty( $context->description ) ) {
-				$d = wp_strip_all_tags( (string) $context->description );
-			}
-			if ( '' !== $d ) {
-				$graph[ $i ]['description'] = $d;
-			}
+		if ( ! ricoman_ai_desc_ok( $cur ) ) {
+			$graph[ $i ]['description'] = ricoman_product_ai_desc( $id );
 		}
 		if ( empty( $node['additionalProperty'] ) ) {
 			$props = array();
@@ -278,13 +286,13 @@ add_action( 'wp_loaded', function () {
 	if ( 'llms-full.txt' !== $path ) {
 		return;
 	}
-	$body = get_transient( 'rm_llms_full3' );
+	$body = get_transient( 'rm_llms_full4' );
 	if ( ! is_string( $body ) || '' === $body ) {
 		if ( function_exists( 'set_time_limit' ) ) {
 			@set_time_limit( 300 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
 		}
 		$body = ricoman_llms_full_txt();
-		set_transient( 'rm_llms_full3', $body, 12 * HOUR_IN_SECONDS );
+		set_transient( 'rm_llms_full4', $body, 12 * HOUR_IN_SECONDS );
 	}
 	header( 'Content-Type: text/plain; charset=utf-8' );
 	header( 'X-Robots-Tag: noindex' );
