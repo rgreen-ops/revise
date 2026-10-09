@@ -199,7 +199,11 @@ add_filter( 'wpseo_schema_graph', function ( $graph, $context ) {
 		if ( ! is_array( $node ) || 'Product' !== ( $node['@type'] ?? '' ) ) {
 			continue;
 		}
-		if ( empty( $node['description'] ) ) {
+		// Replace a missing / title-only / order-code-dump description (the base
+		// Product node falls back to the auto excerpt, which on some migrated
+		// products is just a list of R-codes).
+		$cur = trim( (string) ( $node['description'] ?? '' ) );
+		if ( strlen( $cur ) < 30 || preg_match_all( '/R\d{5,}/', $cur ) >= 3 ) {
 			$d = ricoman_product_ai_desc( $id );
 			if ( '' === $d && is_object( $context ) && ! empty( $context->description ) ) {
 				$d = wp_strip_all_tags( (string) $context->description );
@@ -254,7 +258,7 @@ function ricoman_llms_full_txt() {
 	foreach ( $groups as $cat => $items ) {
 		$out .= "\n## " . $cat . "\n";
 		foreach ( $items as $p ) {
-			$out .= "\n### [" . get_the_title( $p ) . '](' . get_permalink( $p ) . ")\n";
+			$out .= "\n### [" . html_entity_decode( get_the_title( $p ), ENT_QUOTES, 'UTF-8' ) . ']('. get_permalink( $p ) . ")\n";
 			$d = ricoman_product_ai_desc( $p->ID, 40 );
 			if ( '' !== $d ) {
 				$out .= $d . "\n";
@@ -274,13 +278,13 @@ add_action( 'wp_loaded', function () {
 	if ( 'llms-full.txt' !== $path ) {
 		return;
 	}
-	$body = get_transient( 'rm_llms_full2' );
+	$body = get_transient( 'rm_llms_full3' );
 	if ( ! is_string( $body ) || '' === $body ) {
 		if ( function_exists( 'set_time_limit' ) ) {
 			@set_time_limit( 300 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
 		}
 		$body = ricoman_llms_full_txt();
-		set_transient( 'rm_llms_full2', $body, 12 * HOUR_IN_SECONDS );
+		set_transient( 'rm_llms_full3', $body, 12 * HOUR_IN_SECONDS );
 	}
 	header( 'Content-Type: text/plain; charset=utf-8' );
 	header( 'X-Robots-Tag: noindex' );
