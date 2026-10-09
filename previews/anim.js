@@ -1,0 +1,75 @@
+/* Ricoman previews — subtle motion layer (progressive enhancement).
+   - Gentle reveal-on-scroll for sections/cards (slight fade + rise, light stagger)
+   - Count-up for leading numeric stats (projects, components, sq ft, %)
+   Respects prefers-reduced-motion. Degrades to fully static if it can't run. */
+(function () {
+  "use strict";
+  try {
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var supportsIO = "IntersectionObserver" in window;
+
+    /* ---------- reveal on scroll ---------- */
+    var revealSel = [
+      ".shead", ".rcard", ".pc", ".pj", ".acard", ".vcard", ".step", ".cap",
+      ".fstep", ".dcard", ".ncard", ".statband .s", ".cs-meta > div", ".app",
+      ".feat .body", ".britain .body", ".split .body", ".intro .copy",
+      ".intro .facts", ".metastrip .m", ".gal2 img", ".three .dcard"
+    ].join(",");
+
+    var els = [].slice.call(document.querySelectorAll(revealSel));
+    els.forEach(function (el) {
+      el.classList.add("reveal");
+      // light per-group stagger
+      var sibs = el.parentNode ? [].slice.call(el.parentNode.children).filter(function (n) { return n.classList && n.classList.contains("reveal"); }) : [];
+      var idx = sibs.indexOf(el);
+      if (idx > 0) el.style.transitionDelay = Math.min(idx, 6) * 0.06 + "s";
+    });
+
+    if (reduce || !supportsIO) {
+      els.forEach(function (el) { el.classList.add("in"); });
+    } else {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+        });
+      }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
+      els.forEach(function (el) { io.observe(el); });
+    }
+
+    /* ---------- count-up for leading numbers ---------- */
+    function animateNumber(el) {
+      var html = el.innerHTML;
+      var m = html.match(/\d[\d,]*/);
+      if (!m) return;
+      // only animate when the number leads (ignore mid-string numbers like "~6-day")
+      var pre = html.slice(0, m.index);
+      if (pre.replace(/\s/g, "") !== "") return;
+      var target = parseInt(m[0].replace(/,/g, ""), 10);
+      if (isNaN(target)) return;
+      var post = html.slice(m.index + m[0].length);
+      var dur = 1100, start = null;
+      function fmt(n) { return n.toLocaleString("en-GB"); }
+      function frame(ts) {
+        if (!start) start = ts;
+        var p = Math.min((ts - start) / dur, 1);
+        var eased = 1 - Math.pow(1 - p, 3);
+        el.innerHTML = pre + fmt(Math.round(eased * target)) + post;
+        if (p < 1) requestAnimationFrame(frame);
+      }
+      el.innerHTML = pre + "0" + post;
+      requestAnimationFrame(frame);
+    }
+
+    var nums = [].slice.call(document.querySelectorAll(".statband .big, .facts b, .cs-meta b"))
+      .filter(function (el) { return !el.hasAttribute("data-nocount"); });
+
+    if (!reduce && supportsIO) {
+      var io2 = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) { animateNumber(e.target); io2.unobserve(e.target); }
+        });
+      }, { threshold: 0.4 });
+      nums.forEach(function (el) { io2.observe(el); });
+    }
+  } catch (err) { /* stay static on any error */ }
+})();
