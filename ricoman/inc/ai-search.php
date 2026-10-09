@@ -64,7 +64,7 @@ function ricoman_product_spec_summary( $pid ) {
 	if ( ! $pid || ! post_type_exists( 'variant-product' ) ) {
 		return array();
 	}
-	$key    = 'rm_ai_specs_' . $pid;
+	$key    = 'rm_ai_specs2_' . $pid;
 	$stamp  = (string) get_post_field( 'post_modified_gmt', $pid );
 	$cached = get_transient( $key );
 	if ( is_array( $cached ) && isset( $cached['stamp'] ) && $cached['stamp'] === $stamp ) {
@@ -79,6 +79,21 @@ function ricoman_product_spec_summary( $pid ) {
 		'fields'         => 'ids',
 		'meta_query'     => array( array( 'key' => 'parent_product', 'value' => (string) $pid ) ),
 	) );
+	// No variants of its own (e.g. an Estrella aperture whose rows live on the
+	// family) → summarise the configure family, as the variant table does.
+	if ( ! $ids && function_exists( 'ricoman_pf_family_products' ) ) {
+		$fam = array_map( 'strval', (array) ricoman_pf_family_products( $pid ) );
+		if ( count( $fam ) > 1 ) {
+			$ids = get_posts( array(
+				'post_type'      => 'variant-product',
+				'post_status'    => 'publish',
+				'posts_per_page' => 3000,
+				'no_found_rows'  => true,
+				'fields'         => 'ids',
+				'meta_query'     => array( array( 'key' => 'parent_product', 'value' => $fam, 'compare' => 'IN' ) ),
+			) );
+		}
+	}
 
 	$raw = array(); // label => [ value => true ].
 	foreach ( array_chunk( $ids, 200 ) as $chunk ) {
@@ -102,7 +117,7 @@ function ricoman_product_spec_summary( $pid ) {
 						$val = is_scalar( $m ) ? (string) $m : '';
 					}
 					$val = trim( wp_strip_all_tags( function_exists( 'ricoman_fix_text' ) ? ricoman_fix_text( $val ) : $val ) );
-					if ( '' !== $val && ! in_array( strtolower( $val ), array( 'n/a', 'na', '-', 'none', 'no' ), true ) ) {
+					if ( '' !== $val && ! in_array( strtolower( $val ), array( 'n/a', 'na', '-', 'none', 'no' ), true ) && 0 !== stripos( $val, 'non ' ) && 0 !== stripos( $val, 'non-' ) ) {
 						$raw[ $label ][ $val ] = true;
 						break;
 					}
@@ -165,7 +180,9 @@ function ricoman_product_ai_desc( $pid, $words = 45 ) {
 	$cands[] = strip_shortcodes( (string) get_post_field( 'post_content', $pid ) );
 	foreach ( $cands as $c ) {
 		$c = is_scalar( $c ) ? trim( preg_replace( '/\s+/', ' ', html_entity_decode( wp_strip_all_tags( (string) $c ), ENT_QUOTES, 'UTF-8' ) ) ) : '';
-		if ( strlen( $c ) >= 30 && false === strpos( $c, '%%' ) ) {
+		// Skip template placeholders and order-code dumps ("R091801/105 R091802/105…").
+		$codes = preg_match_all( '/R\d{5,}/', $c );
+		if ( strlen( $c ) >= 30 && false === strpos( $c, '%%' ) && $codes < 3 ) {
 			return wp_trim_words( $c, $words, '…' );
 		}
 	}
@@ -257,13 +274,13 @@ add_action( 'wp_loaded', function () {
 	if ( 'llms-full.txt' !== $path ) {
 		return;
 	}
-	$body = get_transient( 'rm_llms_full' );
+	$body = get_transient( 'rm_llms_full2' );
 	if ( ! is_string( $body ) || '' === $body ) {
 		if ( function_exists( 'set_time_limit' ) ) {
 			@set_time_limit( 300 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
 		}
 		$body = ricoman_llms_full_txt();
-		set_transient( 'rm_llms_full', $body, 12 * HOUR_IN_SECONDS );
+		set_transient( 'rm_llms_full2', $body, 12 * HOUR_IN_SECONDS );
 	}
 	header( 'Content-Type: text/plain; charset=utf-8' );
 	header( 'X-Robots-Tag: noindex' );
