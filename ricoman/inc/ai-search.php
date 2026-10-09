@@ -40,13 +40,13 @@ function ricoman_ai_spec_sources() {
 }
 
 /** Pull every number out of a list of strings → [min, max] or null. */
-function ricoman_ai_num_range( $vals ) {
+function ricoman_ai_num_range( $vals, $lo = 0, $hi = PHP_INT_MAX ) {
 	$nums = array();
 	foreach ( $vals as $v ) {
 		if ( preg_match_all( '/\d[\d,]*(?:\.\d+)?/', (string) $v, $m ) ) {
 			foreach ( $m[0] as $n ) {
 				$f = (float) str_replace( ',', '', $n );
-				if ( $f > 0 ) {
+				if ( $f > 0 && $f >= $lo && $f <= $hi ) { // drop obvious data-entry errors.
 					$nums[] = $f;
 				}
 			}
@@ -64,7 +64,7 @@ function ricoman_product_spec_summary( $pid ) {
 	if ( ! $pid || ! post_type_exists( 'variant-product' ) ) {
 		return array();
 	}
-	$key    = 'rm_ai_specs2_' . $pid;
+	$key    = 'rm_ai_specs3_' . $pid;
 	$stamp  = (string) get_post_field( 'post_modified_gmt', $pid );
 	$cached = get_transient( $key );
 	if ( is_array( $cached ) && isset( $cached['stamp'] ) && $cached['stamp'] === $stamp ) {
@@ -133,7 +133,9 @@ function ricoman_product_spec_summary( $pid ) {
 	foreach ( $raw as $label => $set ) {
 		$vals = array_keys( $set );
 		if ( in_array( $label, array( 'Luminous flux', 'Wattage', 'Efficacy' ), true ) ) {
-			$r = ricoman_ai_num_range( $vals );
+			// Plausible bounds — e.g. some migrated variants hold lumens in the efficacy field.
+			$bounds = array( 'Luminous flux' => array( 10, 200000 ), 'Wattage' => array( 0.3, 3000 ), 'Efficacy' => array( 20, 250 ) )[ $label ];
+			$r      = ricoman_ai_num_range( $vals, $bounds[0], $bounds[1] );
 			if ( ! $r ) {
 				continue;
 			}
@@ -159,7 +161,11 @@ function ricoman_product_spec_summary( $pid ) {
 		if ( count( $parts ) > 8 ) {
 			$parts = array_merge( array_slice( $parts, 0, 8 ), array( '…' ) );
 		}
-		$specs[ $label ] = implode( ', ', $parts );
+		$v = implode( ', ', $parts );
+		if ( 'Warranty' === $label && preg_match( '/^\d+$/', $v ) ) {
+			$v .= ' years';
+		}
+		$specs[ $label ] = $v;
 	}
 
 	set_transient( $key, array( 'stamp' => $stamp, 'specs' => $specs ), DAY_IN_SECONDS );
@@ -172,7 +178,7 @@ function ricoman_product_spec_summary( $pid ) {
  * soup ("Track Lighting Track Track Light Track parts").
  */
 function ricoman_ai_desc_ok( $c ) {
-	if ( strlen( $c ) < 30 || false !== strpos( $c, '%%' ) || preg_match_all( '/R\d{5,}/', $c ) >= 3 ) {
+	if ( strlen( $c ) < 30 || false !== strpos( $c, '%%' ) || preg_match_all( '/\bR[O0-9][0-9\/-]{3,}/i', $c ) >= 2 ) {
 		return false;
 	}
 	$w = preg_split( '/\W+/u', strtolower( $c ), -1, PREG_SPLIT_NO_EMPTY );
@@ -286,13 +292,13 @@ add_action( 'wp_loaded', function () {
 	if ( 'llms-full.txt' !== $path ) {
 		return;
 	}
-	$body = get_transient( 'rm_llms_full4' );
+	$body = get_transient( 'rm_llms_full5' );
 	if ( ! is_string( $body ) || '' === $body ) {
 		if ( function_exists( 'set_time_limit' ) ) {
 			@set_time_limit( 300 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
 		}
 		$body = ricoman_llms_full_txt();
-		set_transient( 'rm_llms_full4', $body, 12 * HOUR_IN_SECONDS );
+		set_transient( 'rm_llms_full5', $body, 12 * HOUR_IN_SECONDS );
 	}
 	header( 'Content-Type: text/plain; charset=utf-8' );
 	header( 'X-Robots-Tag: noindex' );
