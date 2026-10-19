@@ -366,7 +366,7 @@ const SV={G:null,send:null,save:null,
   else if(t==="meld"&&a.t==="sub"){if(a.k!=null&&a.k!==ph.k)return;const w=norm(a.v);if(w&&ph.subs[ph.k][id]===undefined){ph.subs[ph.k][id]=w;
     if(this.allIn(ph.subs[ph.k])){this.meldStep();return}}}
   else if(t==="riddles"&&a.t==="riddle"){const i=a.i,ans=norm(a.v);if(ph.solved[i]||!ans)return;
-    if(ph.q[i][1].some(k=>ans.includes(k)))ph.solved[i]=id;else{ph.wrong.push({id,i,v:String(a.v).slice(0,30)});ph.wrong=ph.wrong.slice(-8)}
+    if(ph.q[i][1].some(k=>ans.includes(k)))ph.solved[i]=id;else{if(ph.wrong.some(w=>w.id===id&&w.i===i&&norm(w.v)===ans))return;ph.wrong.push({id,i,v:String(a.v).slice(0,30)});ph.wrong=ph.wrong.slice(-8)}
     if(ph.solved.every(Boolean))return this.endMission()}
   else if(t==="sync"&&a.t==="tap"){if(ph.tapped.includes(id))return;const tm=now();
     if(ph.tapped.length&&tm-ph.last<1000){ph.resets++;ph.flash=tm;ph.tapped=[];ph.last=tm}else{ph.tapped.push(id);ph.last=tm}
@@ -562,34 +562,39 @@ async function keepAwake(){try{await navigator.wakeLock.request("screen")}catch(
 const ICE={iceServers:[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun1.l.google.com:19302"},{urls:"turn:openrelay.metered.ca:80",username:"openrelayproject",credential:"openrelayproject"},{urls:"turn:openrelay.metered.ca:443",username:"openrelayproject",credential:"openrelayproject"},{urls:"turn:openrelay.metered.ca:443?transport=tcp",username:"openrelayproject",credential:"openrelayproject"}]};
 let pend=[],aid=0;
 function act(a){a._p=V?V.pub.phase:null;a._r=V?V.pub.round:null;if(isHost){SV.act("p0",a);return}a._id=++aid;a._s=0;pend.push(a);flush()}
-function flush(){if(!(hostConn&&hostConn.open))return;const t=Date.now();for(const a of pend){if(a._s&&t-a._s<2500)continue;a._s=t;try{hostConn.send({t:"act",a})}catch(e){}}}
+function flush(){if(!(hostConn&&hostConn.open))return;const t=Date.now();pend=pend.filter(a=>(a._n||0)<10);for(const a of pend){if(a._s&&t-a._s<2500)continue;a._s=t;a._n=(a._n||0)+1;try{hostConn.send({t:"act",a})}catch(e){}}}
 function gm(a){if(!isHost)return;if(a.t==="kick"){const c=conns[a.id];if(c){try{c.send({t:"err",m:"The game master removed you from the game."})}catch(e){}setTimeout(()=>{try{c.close()}catch(e){}},300);delete conns[a.id]}}SV.gm(a)}
 let offT=null;function setOnline(o){online=o;clearTimeout(offT);if(o||!ME){$("#net").hidden=true}else{offT=setTimeout(()=>{if(!online&&ME)$("#net").hidden=false},1500)}}
 function hostUp(){
  if(!V)wait("Opening the castle…");
- try{peer&&peer.destroy()}catch(e){}
- peer=new Peer("traitors-"+ME.code.toLowerCase(),{debug:0,config:ICE});
- peer.on("open",()=>{setOnline(true);SV.commit()});
- peer.on("connection",c=>{
-  c.on("data",d=>{try{
+ const oldPeer=peer;peer=null;try{oldPeer&&oldPeer.destroy()}catch(e){}
+ const p=new Peer("traitors-"+ME.code.toLowerCase(),{debug:0,config:ICE});peer=p;
+ p.on("open",()=>{if(peer!==p)return;setOnline(true);SV.commit()});
+ p.on("connection",c=>{if(peer!==p){try{c.close()}catch(e){}return}c._last=Date.now();
+  c.on("data",d=>{c._last=Date.now();try{
+   if(d.t==="pong")return;
    if(d.t==="join"){const r=SV.join(d.token,d.name);if(r.err){c.send({t:"err",m:r.err});return}const old=conns[r.id];c.pid=r.id;conns[r.id]=c;if(old&&old!==c){try{old.close()}catch(e){}}SV.setConn(r.id,true);c.send({t:"view",v:SV.view(r.id)})}
    else if(d.t==="act"&&c.pid){SV.act(c.pid,d.a);try{c.send({t:"ack",id:d.a._id})}catch(e){}}}catch(e){console.error(e)}});
   const gone=()=>{if(c.pid&&conns[c.pid]===c){delete conns[c.pid];SV.setConn(c.pid,false)}};c.on("close",gone);c.on("error",gone)});
- peer.on("disconnected",()=>{setTimeout(()=>{if(!leaving&&peer&&!peer.destroyed&&peer.disconnected)try{peer.reconnect()}catch(x){}},800)});
- peer.on("error",e=>{if(e.type==="peer-unavailable")return;if(peer.destroyed){setOnline(false);setTimeout(()=>{if(!leaving)hostUp()},e.type==="unavailable-id"?4000:2000)}});
+ p.on("disconnected",()=>{if(peer!==p)return;setTimeout(()=>{if(!leaving&&peer===p&&!p.destroyed&&p.disconnected)try{p.reconnect()}catch(x){}},800)});
+ p.on("error",e=>{if(peer!==p)return;if(e.type==="peer-unavailable")return;if(p.destroyed){setOnline(false);setTimeout(()=>{if(!leaving&&peer===p)hostUp()},e.type==="unavailable-id"?4000:2000)}});
 }
+function hostBeat(){const t=Date.now();for(const id in conns){const c=conns[id];if(!c.open)continue;if(t-(c._last||t)>15000){delete conns[id];SV.setConn(id,false);try{c.close()}catch(e){}continue}try{c.send({t:"ping"})}catch(e){}}}
+let lastRx=0;
 function connect(){
- if(leaving)return;try{peer&&peer.destroy()}catch(e){}
- peer=new Peer({debug:0,config:ICE});let opened=false;
- peer.on("open",()=>{
-  hostConn=peer.connect("traitors-"+ME.code.toLowerCase(),{reliable:true,serialization:"json"});
-  hostConn.on("open",()=>{opened=true;setOnline(true);hostConn.send({t:"join",token:ME.token,name:ME.name})});
-  hostConn.on("data",d=>{if(d.t==="view"){setView(d.v);flush()}else if(d.t==="ack")pend=pend.filter(x=>x._id!==d.id);else if(d.t==="err"){err=d.m;bail()}});
-  hostConn.on("close",()=>{setOnline(false);retry()});hostConn.on("error",()=>{setOnline(false);retry()});
-  setTimeout(()=>{if(!opened&&!leaving){setOnline(false);retry()}},9000)});
- peer.on("error",e=>{if(e.type==="peer-unavailable"){if(!V)waitMsg("No game is open with code "+ME.code+" at the moment. If the game master is reloading, this will connect by itself in a few seconds. Otherwise check the code.");setOnline(false);retry();return}if(peer.destroyed){setOnline(false);retry()}});
- peer.on("disconnected",()=>{if(hostConn&&hostConn.open){setTimeout(()=>{if(!leaving&&peer&&!peer.destroyed&&peer.disconnected)try{peer.reconnect()}catch(x){}},800)}else{setOnline(false);retry()}});
+ if(leaving)return;clearTimeout(rt);
+ const oldPeer=peer;peer=null;try{oldPeer&&oldPeer.destroy()}catch(e){}
+ const p=new Peer({debug:0,config:ICE});peer=p;let opened=false;
+ p.on("open",()=>{if(peer!==p)return;
+  const hc=p.connect("traitors-"+ME.code.toLowerCase(),{reliable:true,serialization:"json"});hostConn=hc;
+  hc.on("open",()=>{if(hostConn!==hc)return;opened=true;lastRx=Date.now();setOnline(true);hc.send({t:"join",token:ME.token,name:ME.name})});
+  hc.on("data",d=>{if(hostConn!==hc)return;lastRx=Date.now();if(d.t==="ping"){try{hc.send({t:"pong"})}catch(e){}return}if(d.t==="view"){setView(d.v);flush()}else if(d.t==="ack")pend=pend.filter(x=>x._id!==d.id);else if(d.t==="err"){err=d.m;bail()}});
+  hc.on("close",()=>{if(hostConn!==hc)return;setOnline(false);retry()});hc.on("error",()=>{if(hostConn!==hc)return;setOnline(false);retry()});
+  setTimeout(()=>{if(!opened&&!leaving&&hostConn===hc){setOnline(false);retry()}},9000)});
+ p.on("error",e=>{if(peer!==p)return;if(e.type==="peer-unavailable"){if(!V)waitMsg("No game is open with code "+ME.code+" at the moment. If the game master is reloading, this will connect by itself in a few seconds. Otherwise check the code.");setOnline(false);retry();return}if(p.destroyed){setOnline(false);retry()}});
+ p.on("disconnected",()=>{if(peer!==p)return;if(hostConn&&hostConn.open){setTimeout(()=>{if(!leaving&&peer===p&&!p.destroyed&&p.disconnected)try{p.reconnect()}catch(x){}},800)}else{setOnline(false);retry()}});
 }
+function watchdog(){if(isHost||!ME||leaving||document.visibilityState!=="visible")return;if(hostConn&&hostConn.open&&lastRx&&Date.now()-lastRx>15000){lastRx=Date.now();setOnline(false);connect()}}
 function retry(){if(leaving)return;clearTimeout(rt);rt=setTimeout(connect,3000)}
 function bail(){leaving=true;clearTimeout(rt);sv(MK,null);try{peer&&peer.destroy()}catch(e){}hostConn=null;V=null;ME=null;$("#bar").hidden=true;$("#gm").hidden=true;$("#net").hidden=true;home();leaving=false}
 function leave(){leaving=true;sv(MK,null);if(isHost)sv(HK,null);try{peer&&peer.destroy()}catch(e){}location.hash="";location.reload()}
@@ -686,6 +691,7 @@ function render(){
  if(!V)return;const {pub,me}=V,ph=pub.ph;bar();gmBar();
  if(A.active&&pub.phase==="armoury"&&me.priv.sub==null)return;
  const keep=snapInputs();after=[];let h="";const n=pub.players.length,done=pub.players.filter(p=>p.done).length;
+ const sending=!isHost&&pend.some(a=>a._p===pub.phase&&a._r===pub.round);const SENDING=`<div class="panel center"><p class="lede">Sending to the game master…</p><p class="small">Your answer is safe on this phone and will be delivered as soon as the connection is back.</p></div>`;
  switch(pub.phase){
   case "lobby":{const link=location.origin+location.pathname+"#"+pub.code;const msg=`Join my game of The Traitors tonight. Open ${link} and enter room code ${pub.code} with your name. Keep the call open too.`;
    h=`<div class="hd"><p class="eyebrow">The castle gates are open</p><div class="rule"><i></i></div><h1 class="mega">${esc(pub.code)}</h1><p class="small">Room code</p></div>
@@ -709,31 +715,31 @@ function render(){
   case "mission":{const t=ph.type,info=MINFO[t];
    h=`<div class="card"><p class="eyebrow">Mission ${pub.round+1}</p><h2>${esc(info.t)}</h2><p>${esc(info.how(n))}</p><p class="pot">${esc(info.pot)}</p></div>`;
    if(pub.left!=null&&t!=="estimate")h+=`<p class="cd" id="cd">${fmt(left())}</p>`;
-   if(t==="target"){if(me.priv.sub!=null)h+=lock(`You locked in ${me.priv.sub}.`,done,n);else{h+=`<p class="small center">Target: ${ph.lo} to ${ph.hi}. Pick your number.</p><div class="nums">${[1,2,3,4,5,6,7,8,9,10].map(v=>`<button data-num="${v}">${v}</button>`).join("")}</div>`;after.push(()=>qa("[data-num]",b=>act({t:"sub",v:+b.dataset.num})))}}
-   else if(t==="bridge"){if(me.priv.sub!=null)h+=lock(`You chose ${me.priv.sub==="X"?"BREAK":"BUILD"}.`,done,n);else{h+=`<div class="stack"><button class="btn big" data-br="B">Build</button><button class="btn big blood" data-br="X">Break</button></div><p class="small center">Faithful must build. Only a Traitor would break.</p>`;after.push(()=>qa("[data-br]",b=>act({t:"sub",v:b.dataset.br})))}}
+   if(t==="target"){if(me.priv.sub!=null)h+=lock(`You locked in ${me.priv.sub}.`,done,n);else if(sending)h+=SENDING;else{h+=`<p class="small center">Target: ${ph.lo} to ${ph.hi}. Pick your number.</p><div class="nums">${[1,2,3,4,5,6,7,8,9,10].map(v=>`<button data-num="${v}">${v}</button>`).join("")}</div>`;after.push(()=>qa("[data-num]",b=>act({t:"sub",v:+b.dataset.num})))}}
+   else if(t==="bridge"){if(me.priv.sub!=null)h+=lock(`You chose ${me.priv.sub==="X"?"BREAK":"BUILD"}.`,done,n);else if(sending)h+=SENDING;else{h+=`<div class="stack"><button class="btn big" data-br="B">Build</button><button class="btn big blood" data-br="X">Break</button></div><p class="small center">Faithful must build. Only a Traitor would break.</p>`;after.push(()=>qa("[data-br]",b=>act({t:"sub",v:b.dataset.br})))}}
    else if(t==="heist"){const hand=me.priv.hand||[],top=ph.pile[ph.pile.length-1];
     h+=`<div class="center"><p class="eyebrow">The pile</p>${top?`<div class="hand"><div class="pc top ${top.bad?"bad":""} new">${top.c}</div></div><p class="small">${pname(top.id)} played ${top.c}${top.bad?", too early":""}</p>`:`<p class="small">Nothing played yet. Cards run 1 to 60.</p>`}<p class="small">${ph.played} played · ${ph.mistakes} mistake${ph.mistakes===1?"":"s"} · ${Object.values(ph.left).reduce((a,b)=>a+b,0)} cards still in hands</p></div>
     <p class="eyebrow center">Your hand</p><div class="hand">${hand.length?hand.map(c=>`<div class="pc">${c}</div>`).join(""):`<p class="small">You are out of cards.</p>`}</div>${hand.length?`<button class="btn big" id="play">Play my ${hand[0]}</button>`:""}`;
     after.push(()=>{const b=$("#play");if(b)b.onclick=()=>act({t:"play",n:hand[0]})})}
    else if(t==="memory"){if(ph.sub==="show")h+=`<div class="words">${ph.words.map((w,i)=>`<span style="animation-delay:${i*70}ms">${esc(w)}</span>`).join("")}</div><p class="small center">Memorise them. They vanish when the clock runs out.</p>`;
     else if(me.priv.sub!=null)h+=lock(`You listed ${me.priv.sub.length} words.`,done,n);
-    else{h+=`<form id="mrf"><textarea class="txt" id="mr" placeholder="Type the words you remember, one per line"></textarea><button class="btn big" style="margin-top:10px">Submit my list</button></form>`;after.push(()=>qf("#mrf",()=>act({t:"sub",v:$("#mr").value.split(/[\n,;]+|\s+/).map(s=>s.trim()).filter(Boolean)})))}}
+    else if(sending)h+=SENDING;else{h+=`<form id="mrf"><textarea class="txt" id="mr" placeholder="Type the words you remember, one per line"></textarea><button class="btn big" style="margin-top:10px">Submit my list</button></form>`;after.push(()=>qf("#mrf",()=>act({t:"sub",v:$("#mr").value.split(/[\n,;]+|\s+/).map(s=>s.trim()).filter(Boolean)})))}}
    else if(t==="riddles"){h+=ph.q.map((q,i)=>`<div class="rid ${ph.solved[i]?"ok":""}"><p>${i+1}. ${esc(q)}</p>${ph.solved[i]?`<p class="small" style="margin:0">Solved by ${pname(ph.solved[i])}</p>`:`<form class="row" data-ri="${i}"><input class="txt" id="r${i}" autocomplete="off" placeholder="Answer"><button class="btn sm">Try</button></form>`}</div>`).join("");
     h+=ph.wrong.slice(-4).reverse().map(w=>`<p class="feed">${pname(w.id)} tried "${esc(w.v)}" on riddle ${w.i+1}</p>`).join("");
     after.push(()=>qf("form[data-ri]",f=>{const i=+f.dataset.ri,inp=$("#r"+i),v=inp.value.trim();if(v){act({t:"riddle",i,v});inp.value=""}}))}
    else if(t==="sync"){h+=`<div class="center ${ph.recent?"flash":""}"><p class="cd" style="margin:0">${ph.n} of ${n}</p><p class="small">${ph.resets} reset${ph.resets===1?"":"s"}. No talking. Feel the moment.</p><button class="tapbtn" id="sy" ${me.priv.sub?"disabled":""}>${me.priv.sub?"DONE":"TAP"}</button></div>`;after.push(()=>{const b=$("#sy");if(b&&!b.disabled)b.onclick=()=>act({t:"tap"})})}
    else if(t==="estimate"){if(ph.sub==="show"){h+=`<p class="cd" id="cd">${fmt(left())}</p><canvas id="cv" width="340" height="340"></canvas><p class="small center">Count fast.</p>`;after.push(()=>drawCoins(ph.seed,ph.count))}
     else if(me.priv.sub!=null)h+=lock(`You guessed ${me.priv.sub}.`,done,n);
-    else{h+=`<form id="ef" class="row"><input class="txt" type="number" inputmode="numeric" id="eg" placeholder="How many coins?"><button class="btn sm">Lock</button></form>`;after.push(()=>qf("#ef",()=>{const v=+$("#eg").value;if(v>=0)act({t:"sub",v})}))}}
+    else if(sending)h+=SENDING;else{h+=`<form id="ef" class="row"><input class="txt" type="number" inputmode="numeric" id="eg" placeholder="How many coins?"><button class="btn sm">Lock</button></form>`;after.push(()=>qf("#ef",()=>{const v=+$("#eg").value;if(v>=0)act({t:"sub",v})}))}}
    else if(t==="meld"){const k=ph.k;h+=ph.res.map((r,i)=>`<div class="vrow ${r.hit?"fin":""}"><span>${esc(ph.prompts[i])}</span><b>${r.hit?esc(r.word)+" ✓":"no match"}</b></div>`).join("");
     if(me.priv.sub!=null)h+=lock(`You typed "${esc(me.priv.sub)}".`,done,n);
-    else{h+=`<p class="eyebrow center" style="margin-top:16px">Prompt ${k+1} of 3</p><p class="lede center">${esc(ph.prompts[k])}</p><form id="mlf" class="row"><input class="txt" id="ml" autocomplete="off" placeholder="One word"><button class="btn sm">Lock</button></form>`;after.push(()=>qf("#mlf",()=>{const v=$("#ml").value.trim();if(v)act({t:"sub",v,k})}))}}
+    else if(sending)h+=SENDING;else{h+=`<p class="eyebrow center" style="margin-top:16px">Prompt ${k+1} of 3</p><p class="lede center">${esc(ph.prompts[k])}</p><form id="mlf" class="row"><input class="txt" id="ml" autocomplete="off" placeholder="One word"><button class="btn sm">Lock</button></form>`;after.push(()=>qf("#mlf",()=>{const v=$("#ml").value.trim();if(v)act({t:"sub",v,k})}))}}
    break}
   case "mresult":h=`${hd("Mission "+(pub.round+1),ph.g?"+"+ph.g+" gold":"No gold")}<div class="panel center"><p class="lede">${esc(ph.detail)}</p><p class="small">Prize pot: ${pub.pot} gold</p></div><p class="small center">The game master opens the Round Table next.</p>`;break;
   case "debate":h=`${hd("The Round Table","Debate")}${pub.silenced?`<p class="notice">${pname(pub.silenced)} was murdered and may not speak or vote this round.</p>`:""}<p class="lede center">Who acted strangely in the mission? Talk it out on the call.</p>${pub.left!=null?`<p class="cd" id="cd">${fmt(left())}</p>`:""}<p class="small center">The game master opens the vote when the debate is done.</p>`;break;
   case "vote":{const nv=pub.players.filter(p=>p.id!==pub.silenced).length;
    if(!me.priv.voter)h=`${hd("The Round Table","Silenced")}<p class="lede center">You were murdered last night. You watch the vote in silence.</p>${lock("",done,nv)}`;
-   else if(me.priv.sub)h=`${hd("The Round Table","Vote locked")}<p class="lede center">You voted for ${pname(me.priv.sub.on)}${me.priv.sub.d?" with your Dagger":""}.</p>${lock("",done,nv)}`;
+   else if(me.priv.sub||sending)h=`${hd("The Round Table",sending?"Sending your vote":"Vote locked")}<p class="lede center">${sending?"Your vote is on its way to the game master.":`You voted for ${pname(me.priv.sub.on)}${me.priv.sub.d?" with your Dagger":""}.`}</p>${lock("",done,nv)}`;
    else{h=`${hd("The Round Table","Who is the Traitor?")}${me.inv.D>0?`<label class="toggle"><input type="checkbox" id="dag"> Use my Dagger: vote counts twice, double gold if right</label>`:""}<div class="stack t">${pub.players.filter(p=>p.id!==me.id).map(p=>`<button class="btn ghost pick" data-on="${p.id}">${esc(p.name)}</button>`).join("")}</div>`;after.push(()=>qa("[data-on]",b=>act({t:"vote",on:b.dataset.on,d:!!($("#dag")&&$("#dag").checked)})))}break}
   case "vreveal":h=`${hd("The Round Table","The votes")}<div class="stack t">${ph.list.map((x,i)=>`<div class="vrow ${i===ph.list.length-1?"new":""}"><span>${pname(x.by)}</span><span class="ar">voted for</span><b>${pname(x.on)}${x.d?" ×2":""}</b></div>`).join("")}</div><p class="small center">${ph.list.length} of ${ph.total}</p>`;break;
   case "banish":{const c=ph.counts,mx=Math.max(1,...Object.values(c));
@@ -742,13 +748,13 @@ function render(){
   case "armoury":{const info=AINFO[ph.type];
    h=`<div class="card steel"><p class="eyebrow">Armoury ${pub.round+1}</p><h2>${esc(info.t)}</h2><p>${esc(info.how)}</p><p class="pot">Winner draws a reward card: a Shield, a Dagger or gold.</p></div>`;
    if(me.priv.sub!=null)h+=lock(`Your result: ${fmtScore(ph.type,me.priv.sub,me.priv.roll)}`,done,n);
-   else{h+=`<div id="ag"></div>`;after.push(()=>startGame(ph.type,ph.seed))}break}
+   else if(sending)h+=SENDING;else{h+=`<div id="ag"></div>`;after.push(()=>startGame(ph.type,ph.seed))}break}
   case "areward":{const info=AINFO[ph.type];
    h=`${hd("Armoury",ph.win.length?ph.win.map(pname).join(" & ")+(ph.win.length>1?" win":" wins"):"No winner")}<div class="stack t">${pub.players.map(p=>[p.id,ph.scores[p.id]]).sort((a,b)=>{const x=a[1]==null?1:0,y=b[1]==null?1:0;if(x!==y)return x-y;return info.best==="low"?a[1]-b[1]:b[1]-a[1]}).map(([id,v])=>`<div class="vrow ${ph.win.includes(id)?"fin":""}"><span>${pname(id)}</span><b>${v==null?"no result":fmtScore(ph.type,v,ph.rolls&&ph.rolls[id])}</b></div>`).join("")}</div>
    ${me.priv.draw?hold("Hold to see your reward",`<p class="eyebrow">Your reward</p><p class="role" style="font-size:30px">${REW[me.priv.draw]}</p><p class="small">${RDESC[me.priv.draw]}</p>`,"reward"):""}`;break}
   case "night":{const T=me.role==="T";
    h=`<div class="scene"><div class="moon"></div><p class="eyebrow">Night ${pub.round+1}</p><h1>The castle sleeps</h1><p class="small">${ph.done?"A decision has been made. Dawn is coming.":"Somewhere, a Traitor is awake."}</p></div>`;
-   if(T&&!ph.done){const al=me.allies||[];h+=`<p class="eyebrow red center">Traitor only</p><p class="lede center">Did you complete your assignment? If so, choose your victim.</p><div class="stack t">${pub.players.filter(p=>p.id!==me.id&&!al.includes(p.name)).map(p=>`<button class="btn blood pick" data-k="${p.id}">${esc(p.name)}</button>`).join("")}<button class="btn ghost" data-k="">No murder tonight</button></div>`;after.push(()=>qa("[data-k]",b=>act({t:"murder",v:b.dataset.k||null})))}
+   if(T&&!ph.done&&!sending){const al=me.allies||[];h+=`<p class="eyebrow red center">Traitor only</p><p class="lede center">Did you complete your assignment? If so, choose your victim.</p><div class="stack t">${pub.players.filter(p=>p.id!==me.id&&!al.includes(p.name)).map(p=>`<button class="btn blood pick" data-k="${p.id}">${esc(p.name)}</button>`).join("")}<button class="btn ghost" data-k="">No murder tonight</button></div>`;after.push(()=>qa("[data-k]",b=>act({t:"murder",v:b.dataset.k||null})))}
    else if(T)h+=`<p class="small center">Your choice is sealed.</p>`;break}
   case "morning":{const m=ph.m;let t,d;
    if(!m||!m.v){t="Everyone lives";d="The castle wakes and counts heads. Nobody is missing. Was the assignment failed, or is the Traitor biding their time?"}
@@ -762,7 +768,7 @@ function render(){
   case "scores":h=`${hd("End Game","The treasure chests")}<div class="stack t">${ph.ord.map(id=>{const p=pl(id);return `<div class="vrow ${ph.fin.includes(id)?"fin":""}"><span>${esc(p.name)}${ph.traitors.includes(id)?' <em class="red">Traitor</em>':""}</span><b>${p.gold} gold</b>${(ph.lines[id]||[]).length?`<span class="full">${esc(ph.lines[id].join(", "))}</span>`:""}</div>`}).join("")}</div><div class="panel center"><p class="lede">${pname(ph.fin[0])} and ${pname(ph.fin[1])} go to the Final for a prize pot of <b>${pub.pot} gold</b>.</p></div>`;break;
   case "final":{const fin=ph.fin,inF=fin.includes(me.id);
    h=`${hd("The Final","Faithful or Traitor?")}<p class="lede center">${pname(fin[0])} and ${pname(fin[1])} may talk on the call. Then each secretly chooses.</p><ul class="small" style="padding-left:20px"><li>Both choose Faithful: they share the prize pot and their gold.</li><li>One chooses Traitor: that player takes everything.</li><li>Both choose Traitor: ${ph.third?pname(ph.third)+", in third place,":"third place"} takes it all.</li></ul>`;
-   if(inF&&!me.priv.sub){h+=`<div class="stack"><button class="btn big" data-f="F">Faithful</button><button class="btn big blood" data-f="T">Traitor</button></div>`;after.push(()=>qa("[data-f]",b=>act({t:"final",v:b.dataset.f})))}
+   if(inF&&!me.priv.sub&&!sending){h+=`<div class="stack"><button class="btn big" data-f="F">Faithful</button><button class="btn big blood" data-f="T">Traitor</button></div>`;after.push(()=>qa("[data-f]",b=>act({t:"final",v:b.dataset.f})))}
    else if(inF)h+=`<p class="lede center">Your choice is sealed.</p>`;else h+=`<p class="small center">Waiting for the finalists.</p>`;break}
   case "finale":{const o=ph.out,[a,b]=ph.fin;let txt;
    if(o.kind==="share")txt=`Both chose Faithful. ${pname(a)} and ${pname(b)} share the gold: ${o.each} each.`;
@@ -817,14 +823,15 @@ function fxFinale(ph){const o=ph.out;hostSay("The game is over.");const coins=Ar
 /* ---------- boot ---------- */
 function init(){
  SV.save=g=>sv(HK,{G:g});
+ setInterval(()=>{if(isHost)hostBeat()},3000);
  SV.send=(id,v)=>{if(id==="p0"){if(isHost)setView(v)}else{const c=conns[id];if(c&&c.open)try{c.send({t:"view",v})}catch(e){}}};
- setInterval(()=>{if(isHost&&SV.G)SV.tick();else flush();const el=$("#cd");if(el&&V&&V.pub.left!=null){const l=left();el.textContent=fmt(l);el.classList.toggle("hot",l<10000)}},400);
+ setInterval(()=>{if(isHost&&SV.G)SV.tick();else{flush();watchdog()}const el=$("#cd");if(el&&V&&V.pub.left!=null){const l=left();el.textContent=fmt(l);el.classList.toggle("hot",l<10000)}},400);
  const me=ld(MK),hs=ld(HK);const hash=(location.hash||"").replace("#","").toUpperCase();
  if(me&&me.host&&hs&&hs.G&&hs.G.code===me.code&&(hash===""||hash===me.code)){hostResume();return}
  if(me&&!me.host&&me.code&&(hash===""||hash===me.code)){joinGame(me.code,me.name);return}
  home();
 }
-document.addEventListener("visibilitychange",()=>{if(document.visibilityState!=="visible"||leaving||!ME)return;
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState!=="visible"||leaving||!ME)return;lastRx=Date.now();
  if(isHost){if(peer&&peer.destroyed)hostUp();else if(peer&&peer.disconnected)try{peer.reconnect()}catch(e){}}
  else{if(!(hostConn&&hostConn.open)){clearTimeout(rt);connect()}else if(peer&&peer.disconnected)try{peer.reconnect()}catch(e){}}});
 init();
