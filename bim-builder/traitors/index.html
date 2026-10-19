@@ -432,7 +432,7 @@ const SV={G:null,send:null,save:null,
  /* ----- night ----- */
  murder(id,v){const G=this.G,ph=G.ph;if(ph.done)return;if(id&&this.P(id).role!=="T")return;
   let rec={v:null,shield:false};const vic=v&&this.P(v);
-  if(vic&&vic.role!=="T"){rec.v=v;if(vic.inv.S>0){vic.inv.S--;rec.shield=true}else{this.gold(v,-2);G.silenced=v}}
+  if(vic&&(vic.role!=="T"||v===id)){rec.v=v;if(vic.inv.S>0){vic.inv.S--;rec.shield=true}else{this.gold(v,-2);G.silenced=v}}
   G.murders[G.round]=rec;ph.done=true;ph.at=now()+4000+rnd(2500);this.commit()},
 
  /* ----- end game ----- */
@@ -447,7 +447,7 @@ const SV={G:null,send:null,save:null,
   G.votes.forEach(list=>(list||[]).forEach(x=>{if(!tr.includes(x.by)&&tr.includes(x.on)){const g=x.d?4:2;this.gold(x.by,g);L(x.by,`+${g} for naming a Traitor`)}}));
   G.murders.forEach((m,r)=>{if(!m||!m.v||m.shield)return;
    if(res[r]!==false){tr.forEach(t=>{this.gold(t,2);L(t,"+2 for a murder")})}
-   else{tr.forEach(t=>{this.gold(t,-2);L(t,"-2 for an unearned murder")});this.gold(m.v,4);L(m.v,"+4 compensation")}});
+   else{tr.forEach(t=>{this.gold(t,-2);L(t,"-2 for an unearned murder")});if(!tr.includes(m.v)){this.gold(m.v,4);L(m.v,"+4 compensation")}}});
   const ord=[...G.players].sort((a,b)=>b.gold-a.gold||Math.random()-.5).map(p=>p.id);
   this.to("scores",{lines,judged:res,ord,fin:ord.slice(0,2),third:ord[2]||null});
  },
@@ -754,7 +754,7 @@ function render(){
    ${me.priv.draw?hold("Hold to see your reward",`<p class="eyebrow">Your reward</p><p class="role" style="font-size:30px">${REW[me.priv.draw]}</p><p class="small">${RDESC[me.priv.draw]}</p>`,"reward"):""}`;break}
   case "night":{const T=me.role==="T";
    h=`<div class="scene"><div class="moon"></div><p class="eyebrow">Night ${pub.round+1}</p><h1>The castle sleeps</h1><p class="small">${ph.done?"A decision has been made. Dawn is coming.":"Somewhere, a Traitor is awake."}</p></div>`;
-   if(T&&!ph.done&&!sending){const al=me.allies||[];h+=`<p class="eyebrow red center">Traitor only</p><p class="lede center">Did you complete your assignment? If so, choose your victim.</p><div class="stack t">${pub.players.filter(p=>p.id!==me.id&&!al.includes(p.name)).map(p=>`<button class="btn blood pick" data-k="${p.id}">${esc(p.name)}</button>`).join("")}<button class="btn ghost" data-k="">No murder tonight</button></div>`;after.push(()=>qa("[data-k]",b=>act({t:"murder",v:b.dataset.k||null})))}
+   if(T&&!ph.done&&!sending){const al=me.allies||[];h+=`<p class="eyebrow red center">Traitor only</p><p class="lede center">Did you complete your assignment? If so, choose your victim.</p><div class="stack t">${pub.players.filter(p=>p.id!==me.id&&!al.includes(p.name)).map(p=>`<button class="btn blood pick" data-k="${p.id}">${esc(p.name)}</button>`).join("")}<button class="btn ghost pick" data-k="${me.id}">Murder myself (the bluff)</button><button class="btn ghost" data-k="">No murder tonight</button></div><p class="small center">Murdering yourself costs you 2 gold and your next vote, but who would ever suspect you? It still counts as a murder if your assignment stands.</p>`;after.push(()=>qa("[data-k]",b=>act({t:"murder",v:b.dataset.k||null})))}
    else if(T)h+=`<p class="small center">Your choice is sealed.</p>`;break}
   case "morning":{const m=ph.m;let t,d;
    if(!m||!m.v){t="Everyone lives";d="The castle wakes and counts heads. Nobody is missing. Was the assignment failed, or is the Traitor biding their time?"}
