@@ -280,8 +280,9 @@ const SV={G:null,send:null,save:null,
  },
  join(token,name){
   const G=this.G;let p=G.players.find(x=>x.token===token);
+  if(!p&&G.phase!=="lobby"){const nm=String(name||"").trim().toLowerCase();const c=G.players.filter(x=>!x.host&&x.name.toLowerCase()===nm);p=c.find(x=>!x.conn)||c[0];if(p)p.token=token}
   if(p){p.conn=true;this.commit();return {id:p.id}}
-  if(G.phase!=="lobby")return {err:"This game has already started. Ask the game master to start a new one."};
+  if(G.phase!=="lobby")return {err:"This game has already started. To get back in, join again with exactly the same name you used before."};
   if(G.players.length>=12)return {err:"The castle is full (12 players)."};
   name=String(name||"").trim().slice(0,16)||"Guest";
   let base=name,k=2;while(G.players.some(x=>x.name.toLowerCase()===name.toLowerCase()))name=base+" "+(k++);
@@ -568,7 +569,7 @@ function hostUp(){
  peer.on("open",()=>{setOnline(true);SV.commit()});
  peer.on("connection",c=>{
   c.on("data",d=>{try{
-   if(d.t==="join"){const r=SV.join(d.token,d.name);if(r.err){c.send({t:"err",m:r.err});return}c.pid=r.id;conns[r.id]=c;SV.setConn(r.id,true);c.send({t:"view",v:SV.view(r.id)})}
+   if(d.t==="join"){const r=SV.join(d.token,d.name);if(r.err){c.send({t:"err",m:r.err});return}const old=conns[r.id];c.pid=r.id;conns[r.id]=c;if(old&&old!==c){try{old.close()}catch(e){}}SV.setConn(r.id,true);c.send({t:"view",v:SV.view(r.id)})}
    else if(d.t==="act"&&c.pid)SV.act(c.pid,d.a)}catch(e){console.error(e)}});
   const gone=()=>{if(c.pid&&conns[c.pid]===c){delete conns[c.pid];SV.setConn(c.pid,false)}};c.on("close",gone);c.on("error",gone)});
  peer.on("disconnected",()=>{setTimeout(()=>{if(!leaving&&peer&&!peer.destroyed&&peer.disconnected)try{peer.reconnect()}catch(x){}},800)});
@@ -583,15 +584,16 @@ function connect(){
   hostConn.on("data",d=>{if(d.t==="view")setView(d.v);else if(d.t==="err"){err=d.m;bail()}});
   hostConn.on("close",()=>{setOnline(false);retry()});hostConn.on("error",()=>{setOnline(false);retry()});
   setTimeout(()=>{if(!opened&&!leaving){setOnline(false);retry()}},9000)});
- peer.on("error",e=>{if(e.type==="peer-unavailable"){if(!V){err="No game found with code "+ME.code+". Check the code, and make sure the game master has the game open.";bail();return}setOnline(false);retry();return}if(peer.destroyed){setOnline(false);retry()}});
+ peer.on("error",e=>{if(e.type==="peer-unavailable"){if(!V)waitMsg("No game is open with code "+ME.code+" at the moment. If the game master is reloading, this will connect by itself in a few seconds. Otherwise check the code.");setOnline(false);retry();return}if(peer.destroyed){setOnline(false);retry()}});
  peer.on("disconnected",()=>{if(hostConn&&hostConn.open){setTimeout(()=>{if(!leaving&&peer&&!peer.destroyed&&peer.disconnected)try{peer.reconnect()}catch(x){}},800)}else{setOnline(false);retry()}});
 }
 function retry(){if(leaving)return;clearTimeout(rt);rt=setTimeout(connect,3000)}
-function bail(){leaving=true;sv(MK,null);try{peer&&peer.destroy()}catch(e){}V=null;ME=null;$("#bar").hidden=true;$("#gm").hidden=true;$("#net").hidden=true;home();leaving=false}
+function bail(){leaving=true;clearTimeout(rt);sv(MK,null);try{peer&&peer.destroy()}catch(e){}hostConn=null;V=null;ME=null;$("#bar").hidden=true;$("#gm").hidden=true;$("#net").hidden=true;home();leaving=false}
 function leave(){leaving=true;sv(MK,null);if(isHost)sv(HK,null);try{peer&&peer.destroy()}catch(e){}location.hash="";location.reload()}
 
 /* ---------- screens ---------- */
-function wait(t){app.innerHTML=`<div class="hd" style="padding-top:80px"><p class="eyebrow">The Traitors</p><div class="rule"><i></i></div><p class="lede">${esc(t)}</p></div>`}
+function wait(t,back){app.innerHTML=`<div class="hd" style="padding-top:80px"><p class="eyebrow">The Traitors</p><div class="rule"><i></i></div><p class="lede">${esc(t)}</p><p class="small center" id="wm"></p>${back?`<button class="link" id="wb">Use a different code or name</button>`:""}</div>`;const b=$("#wb");if(b)b.onclick=()=>{err="";bail()}}
+function waitMsg(t){const el=$("#wm");if(el)el.textContent=t}
 function home(){
  const saved=ld(HK),me=ld(MK);const hash=(location.hash||"").replace("#","").toUpperCase();
  app.innerHTML=`<section class="hd" style="padding-top:44px"><p class="eyebrow">Welcome to the castle</p><div class="rule"><i></i></div><h1 class="mega">The Traitors</h1><p class="lede">Play live from anywhere. One game master hosts, everyone else joins with a code.</p></section>
@@ -609,7 +611,7 @@ function home(){
 }
 function hostNew(name){const code=mkCode();ME={code,token:tok(),name,host:true};sv(MK,ME);isHost=true;leaving=false;SV.create(code,name,ME.token);location.hash=code;hostUp()}
 function hostResume(){const s=ld(HK);if(!s||!s.G){home();return}SV.G=s.G;const p0=s.G.players[0];ME={code:s.G.code,token:p0.token,name:p0.name,host:true};sv(MK,ME);isHost=true;leaving=false;s.G.players.forEach(p=>p.conn=p.id==="p0");location.hash=s.G.code;hostUp()}
-function joinGame(code,name){const old=ld(MK);ME={code,token:(old&&old.code===code&&old.token)||tok(),name,host:false};sv(MK,ME);isHost=false;leaving=false;location.hash=code;wait("Knocking on the castle door…");connect();setTimeout(()=>{if(!V&&ME&&!ME.host){const a=$("#app");if(a&&!$("#hint"))a.insertAdjacentHTML("beforeend",`<p class="small center" id="hint">Still knocking? Check the code with the game master, then switch between Wi-Fi and mobile data and reload this page. Keep this page open: it keeps trying every few seconds.</p>`)}},12000)}
+function joinGame(code,name){const old=ld(MK);ME={code,token:(old&&old.code===code&&old.token)||tok(),name,host:false};sv(MK,ME);isHost=false;leaving=false;location.hash=code;wait("Knocking on the castle door…",true);connect();setTimeout(()=>{if(!V&&ME&&!ME.host&&!$("#wm").textContent)waitMsg("Still knocking? Check the code with the game master, then switch between Wi-Fi and mobile data. Keep this page open: it keeps trying every few seconds.")},12000)}
 
 /* ---------- view handling ---------- */
 function setView(v){v.at=Date.now();const prev=V;V=v;
