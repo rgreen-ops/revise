@@ -399,6 +399,7 @@ const SV={G:null,send:null,save:null,
    case "force":this.force();break;
    case "debate":if(G.phase==="debate"){G.ph.until=a.v?now()+a.v*1000:null;this.commit()}break;
    case "again":this.again();break;
+   case "abandon":this.abandon();break;
   }
  },
  start(){
@@ -409,6 +410,7 @@ const SV={G:null,send:null,save:null,
   Object.assign(G,{round:0,pot:0,votes:[],murders:[],silenced:null,deck:shuffle([..."SSSDDD111222"]),judge:null,lines:null});
   this.to("role",{});
  },
+ abandon(){const G=this.G;if(G.phase==="lobby")return;G.players.forEach(p=>{delete p.role;p.gold=8;p.inv={S:0,D:0}});Object.assign(G,{round:0,pot:0,votes:[],murders:[],silenced:null,judge:null,lines:null});this.to("lobby",{})},
  again(){const G=this.G;G.players.forEach(p=>{delete p.role;p.gold=8;p.inv={S:0,D:0}});G.adv=(G.adv+1)%ADV.length;G.round=0;G.pot=0;this.to("lobby",{})},
  next(){
   const G=this.G;
@@ -717,7 +719,7 @@ async function keepAwake(){try{await navigator.wakeLock.request("screen")}catch(
 
 /* ---------- networking ---------- */
 const ICE={iceServers:[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun1.l.google.com:19302"},{urls:"turn:openrelay.metered.ca:80",username:"openrelayproject",credential:"openrelayproject"},{urls:"turn:openrelay.metered.ca:443",username:"openrelayproject",credential:"openrelayproject"},{urls:"turn:openrelay.metered.ca:443?transport=tcp",username:"openrelayproject",credential:"openrelayproject"}]};
-let pend=[],aid=0;
+let pend=[],aid=0,endArm=0;
 function act(a){a._p=V?V.pub.phase:null;a._r=V?V.pub.round:null;if(isHost){SV.act("p0",a);return}a._id=++aid;a._s=0;pend.push(a);flush()}
 function flush(){if(!(hostConn&&hostConn.open))return;const t=Date.now();pend=pend.filter(a=>(a._n||0)<10);for(const a of pend){if(a._s&&t-a._s<2500)continue;a._s=t;a._n=(a._n||0)+1;try{hostConn.send({t:"act",a})}catch(e){}}}
 function gm(a){if(!isHost)return;if(a.t==="kick"){const c=conns[a.id];if(c){try{c.send({t:"err",m:"The game master removed you from the game."})}catch(e){}setTimeout(()=>{try{c.close()}catch(e){}},300);delete conns[a.id]}}SV.gm(a)}
@@ -822,7 +824,7 @@ function sheetPlayers(){const s=$("#sheet");s.hidden=false;confirmLeave=false;co
  <div class="stack t" style="margin-top:14px">${pub.players.map(p=>`<div class="vrow"><span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.conn?"var(--gold)":"#555"};margin-right:8px"></i>${esc(p.name)}${p.host?" (GM)":""}${p.id===pub.silenced?' <em class="red">silenced</em>':""}</span><b>${p.gold} gold</b>${me.host&&pub.phase==="lobby"&&!p.host?`<button class="btn sm ghost" data-kick="${p.id}">Remove</button>`:""}</div>`).join("")}</div>
  <p class="small">Room ${esc(pub.code)}. ${me.inv.S?`You hold ${me.inv.S} Shield${me.inv.S>1?"s":""}. `:""}${me.inv.D?`You hold ${me.inv.D} Dagger${me.inv.D>1?"s":""}.`:""}</p>
  <h2 class="sect">Sound on this phone</h2><label class="toggle" style="border-color:var(--gold-d);background:var(--panel)"><input type="checkbox" id="sfx" ${SND.fx?"checked":""}> Atmosphere and effects</label><label class="toggle" style="border-color:var(--gold-d);background:var(--panel)"><input type="checkbox" id="svo" ${voiceOn()?"checked":""}> Narrator voice${me.host?"":" (off by default, the game master's phone speaks on the call)"}</label>
- <button class="link" id="leave">${me.host?"End this game for everyone":"Leave this game"}</button>`;
+ <button class="link" id="leave">${me.host?"Close the room and send everyone home":"Leave this game"}</button>`;
  $("#sx").onclick=()=>s.hidden=true;$("#sfx").onchange=e=>{SND.fx=e.target.checked;sv("tl_snd",SND);if(!SND.fx)bedStop();else if(V)phaseAudio(V.pub.phase)};$("#svo").onchange=e=>{SND.voice=e.target.checked;sv("tl_snd",SND);if(SND.voice)hostSay("Narrator on.")};
  s.querySelectorAll("[data-kick]").forEach(b=>b.onclick=()=>{gm({t:"kick",id:b.dataset.kick});s.hidden=true});
  $("#leave").onclick=()=>{if(!confirmLeave){confirmLeave=true;$("#leave").textContent="Tap again to confirm";return}leave()}}
@@ -847,7 +849,10 @@ function gmBar(){const g=$("#gm");if(!isHost||!V){g.hidden=true;return}const {pu
   case "final":h=B("Force the result",{t:"force"},"ghost");break;
   case "finale":h=B("Play again",{t:"again"});break;
  }
+ const arm=Date.now()-endArm<6000;
+ if(pub.phase!=="finale")h+=`<button class="btn sm ${arm?"blood":"ghost"}" id="gmend" style="align-self:center">${arm?"Tap again to end the game for everyone":"End game"}</button>`;
  g.hidden=false;g.querySelector(".in").innerHTML=`<p class="lab">Game master</p>`+h;
+ const ge=$("#gmend");if(ge)ge.onclick=()=>{if(Date.now()-endArm<6000){endArm=0;gm({t:"abandon"})}else{endArm=Date.now();gmBar();setTimeout(()=>{if(Date.now()-endArm>=6000)gmBar()},6200)}};
  g.querySelectorAll("[data-gm]").forEach(b=>b.onclick=()=>gm(JSON.parse(b.dataset.gm)));
  g.querySelectorAll("[data-deb]").forEach(b=>b.onclick=()=>gm({t:"debate",v:+b.dataset.deb}))}
 
