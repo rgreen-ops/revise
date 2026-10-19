@@ -200,6 +200,7 @@ canvas{display:block;max-width:100%;margin:10px auto;border-radius:6px;border:1p
 .mapgrid button.dug{background:#3a2c14;border-color:var(--gold-d)}
 .mapgrid button.gold{background:var(--gold);color:#241606}
 .mapgrid button:disabled{opacity:.9}
+em.ai{font-style:normal;font-family:var(--display);font-size:10px;letter-spacing:.12em;color:var(--steel);border:1px solid #55687a;border-radius:8px;padding:0 5px;margin-left:4px}
 .tag{font-style:normal;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--blood-l);border:1px solid #6a2420;border-radius:10px;padding:1px 6px;margin-top:3px}
 .arena{position:relative;width:100%;aspect-ratio:3/4;max-height:68vh;background:radial-gradient(circle at 50% 20%,#1a1626,#07060a 75%);border:1px solid var(--gold-d);border-radius:6px;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
 .hud{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;padding:8px 12px;font-family:var(--display);font-size:18px;color:var(--gold-l);z-index:2;pointer-events:none}
@@ -441,6 +442,12 @@ const VOICE_CLIPS={
  over:"https://dnznrvs05pmza.cloudfront.net/text_to_speech/0694100c-1986-4119-a15b-073095037307/Traitors_narrator__game_over.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiZjUwMjBlM2E2ODYwYTljYyIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MjYxMzQzNH0.gekdD_h3VSENmhiMXQ15iqDms8ZU3x0Gw4quJ5t9T1g",
  mission:"https://dnznrvs05pmza.cloudfront.net/text_to_speech/51bc7aaf-ced3-4a35-91b6-4367b8e9d706/Traitors_narrator__mission.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiYzFkMGExZGJkZTMyNzI3YyIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MjU1MjQxMX0.bo6usDOPm_dSiIlyubKX3Ceyu34svGSRdQHaTgJFKzQ"
 };
+const MUSIC_CLIPS={
+ vote:"https://dnznrvs05pmza.cloudfront.net/lyria3-pro/b475daee-5943-4b5e-b81a-41e864146a74/Traitors_Castle__Round_Table_vote.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiZDI4Yzc3OTgyNWYxMTBhNyIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MjU4NDIxNn0.IoWZclCKo7V5-2a87G4QRuweoK4R9_zCo4wR6QXnqBc",
+ night:"https://dnznrvs05pmza.cloudfront.net/lyria3-pro/5cc56f86-aac4-458e-90a0-199a1f1bb770/Traitors_Castle__Night.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMDU5ODIwNjkxZTYzN2NhMyIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MjU2NjI0OX0.QzcG0kzRIS0BS3qreP0GYWqZQ9XzSfPZgDK3ZIEwWSQ",
+ title:"https://dnznrvs05pmza.cloudfront.net/lyria3-pro/4758580a-b022-4ffe-af55-ae7f1b00fa46/Traitors_Castle__Title_theme.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiNmQ5ZWVjZDkwMTY5NDg1YiIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MjU2MjI2NX0.t3FlIMtRJDSFJC87YdVYpURXuMXy4Fk_-lHCG4iypxM",
+ sting:"https://dnznrvs05pmza.cloudfront.net/lyria3-clip/e584aa1a-497e-4546-9047-2decde9ba859/Traitors_Castle__Reveal_sting.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMmY4N2QyNGZjMmIxOGIxMyIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MjU4NTU1MX0.kTiiEdq2mCxtjprFqj-H1hY3vt9KDlbYjVvstH307Iw"
+};
 /* ---------- game engine (runs on the host phone) ---------- */
 const rnd=n=>Math.floor(Math.random()*n);
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
@@ -461,7 +468,7 @@ const SV={G:null,send:null,save:null,
  },
  join(token,name){
   const G=this.G;let p=G.players.find(x=>x.token===token);
-  if(!p&&G.phase!=="lobby"){const nm=String(name||"").trim().toLowerCase();const c=G.players.filter(x=>!x.host&&x.name.toLowerCase()===nm);p=c.find(x=>!x.conn)||c[0];if(p)p.token=token}
+  if(!p&&G.phase!=="lobby"){const nm=String(name||"").trim().toLowerCase();const c=G.players.filter(x=>!x.host&&!x.bot&&x.name.toLowerCase()===nm);p=c.find(x=>!x.conn)||c[0];if(p)p.token=token}
   if(p){p.conn=true;this.commit();return {id:p.id}}
   if(G.phase!=="lobby")return {err:"This game has already started. To get back in, join again with exactly the same name you used before."};
   if(G.players.length>=12)return {err:"The castle is full (12 players)."};
@@ -488,6 +495,7 @@ const SV={G:null,send:null,save:null,
    case "debate":if(G.phase==="debate"){G.ph.until=a.v?now()+a.v*1000:null;this.commit()}break;
    case "again":this.again();break;
    case "abandon":this.abandon();break;
+   case "bot":this.addBot();break;
   }
  },
  start(){
@@ -620,7 +628,7 @@ const SV={G:null,send:null,save:null,
  vote(id,a){const ph=this.G.ph,p=this.P(id);if(!this.voters().includes(id)||ph.subs[id]||!this.P(a.on)||a.on===id)return;
   const d=!!a.d&&p.inv.D>0;if(d)p.inv.D--;ph.subs[id]={on:a.on,d};
   if(this.allIn(ph.subs,this.voters()))return this.startReveal();this.commit()},
- startReveal(){const s=this.G.ph.subs;const list=shuffle(Object.entries(s).map(([by,v])=>({by,on:v.on,d:v.d})));
+ startReveal(){const s=this.G.ph.subs;const list=shuffle(Object.entries(s).map(([by,v])=>({by,on:v.on,d:v.d})));if(this.botNoteVotes)this.botNoteVotes(list);
   this.G.votes[this.G.round]=list;this.to("vreveal",{list,shown:0,nextAt:now()+2500})},
  banish(){
   const G=this.G,list=G.ph.list,c={};list.forEach(x=>c[x.on]=(c[x.on]||0)+(x.d?2:1));
@@ -661,7 +669,7 @@ const SV={G:null,send:null,save:null,
   G.murders[G.round]=rec;ph.done=true;ph.at=now()+4000+rnd(2500);this.commit()},
 
  /* ----- end game ----- */
- startJudge(){const G=this.G;const items=G.murders.map((m,r)=>m&&m.v&&!m.shield?r:-1).filter(r=>r>=0);
+ startJudge(){const G=this.G;const allBots=this.traitors().every(i=>this.P(i).bot);const items=allBots?[]:G.murders.map((m,r)=>m&&m.v&&!m.shield?r:-1).filter(r=>r>=0);
   if(!items.length)return this.score({});this.to("judge",{items,subs:{}})},
  faithful(){return this.G.players.filter(p=>p.role!=="T").map(p=>p.id)},
  jAct(id,a){const ph=this.G.ph;if(!this.faithful().includes(id))return;ph.subs[id]=ph.subs[id]||{};ph.subs[id][a.r]=!!a.ok;
@@ -699,7 +707,7 @@ const SV={G:null,send:null,save:null,
   else if(G.phase==="final"&&a.t==="final")this.fAct(id,a);
  },
  tick(){
-  const G=this.G;if(!G)return;const ph=G.ph,t=now();
+  const G=this.G;if(!G)return;const ph=G.ph,t=now();if(this.botTick)this.botTick(t);
   if(G.phase==="mission"){
    if(ph.type==="memory"&&ph.sub==="show"&&t>=ph.until){ph.sub="recall";ph.until=t+75000;delete ph.wordsShown;return this.commit()}
    if(ph.type==="estimate"&&ph.sub==="show"&&t>=ph.until){ph.sub="guess";ph.until=null;return this.commit()}
@@ -724,7 +732,7 @@ const SV={G:null,send:null,save:null,
  view(id){
   const G=this.G,ph=G.ph,p=this.P(id),t=now();
   const pub={code:G.code,phase:G.phase,seq:G.seq,round:G.round,adv:G.adv,nT:G.nT,pot:G.pot,silenced:G.silenced,
-   players:G.players.map(x=>({id:x.id,name:x.name,gold:x.gold,conn:x.conn,host:!!x.host,done:this.done(x.id)})),
+   players:G.players.map(x=>({id:x.id,name:x.name,gold:x.gold,conn:x.conn,host:!!x.host,bot:!!x.bot,done:this.done(x.id)})),
    left:ph.until?Math.max(0,ph.until-t):null,ph:{}};
   const me={id,name:p.name,host:!!p.host,role:G.phase==="lobby"?null:p.role,inv:p.inv,priv:{}};
   if(p.role==="T"&&G.phase!=="lobby"){me.allies=this.traitors().filter(x=>x!==id).map(x=>this.P(x).name)}
@@ -767,6 +775,53 @@ const SV={G:null,send:null,save:null,
  }
 };
 if(typeof module!=="undefined")module.exports={SV};
+/* ---------- AI players (run on the host phone) ---------- */
+const BOTNAMES=["Lady Ashcroft","Sir Rowan","Brother Elias","Mistress Hale","The Gamekeeper","Vicar Penhaligon","Captain Moray","Dame Isolde","The Cook","Young Wilfred","Old Agnes","The Falconer"];
+const ANIMALS={a:["ant","ape","antelope","alpaca","armadillo"],b:["bear","bat","badger","beaver","bison"],c:["cat","cow","camel","cheetah","crab","crow"],d:["dog","deer","donkey","dolphin","duck"],e:["eagle","elephant","elk","emu","eel"],f:["fox","frog","ferret","flamingo","falcon"],g:["goat","gorilla","giraffe","goose","gecko"],h:["horse","hare","hamster","hawk","hedgehog"],i:["iguana","ibis","impala"],j:["jaguar","jackal","jellyfish"],k:["kangaroo","koala","kiwi"],l:["lion","lizard","llama","lobster","leopard"],m:["mouse","monkey","moose","mole","magpie"],n:["newt","narwhal","nightingale"],o:["owl","otter","octopus","ostrich"],p:["pig","panda","penguin","parrot","puma"],q:["quail","quokka"],r:["rabbit","rat","raven","rhino","robin"],s:["snake","sheep","seal","shark","swan","squirrel"],t:["tiger","toad","turkey","turtle","trout"],u:["urchin"],v:["vulture","vole","viper"],w:["wolf","whale","walrus","weasel","wombat"],x:["xerus"],y:["yak"],z:["zebra","zebu"]};
+const MELDBOT={"A colour":"blue","A farm animal":"cow","A pizza topping":"pepperoni","A fruit":"apple","Something in a castle":"throne","A number from 1 to 10":"7","A day of the week":"friday","A breakfast food":"toast","A famous detective":"sherlock","A planet":"mars","A card game":"poker","Something you find at the beach":"sand","A sweet treat":"chocolate","Something in a garage":"car","A famous London landmark":"big ben"};
+const SCATTERBOT={"A colour":["magenta","teal","maroon","ochre","indigo"],"A fruit":["kiwi","lychee","fig","plum","quince"],"Something in a kitchen":["whisk","spatula","colander","ladle","grater"],"A country":["peru","nepal","latvia","chile","malta"],"An animal":["lemur","newt","yak","okapi","stoat"],"A sport":["curling","fencing","polo","squash","rowing"],"A boy's name":["otis","rupert","felix","hugo","barnaby"],"A vegetable":["leek","turnip","kale","parsnip","chard"],"A type of weather":["sleet","drizzle","hail","mist","gale"]};
+const ARMBOT={reaction:()=>220+rnd(260),taps:()=>18+rnd(22),maths:()=>12+rnd(22),tenseconds:()=>Math.round(rnd(130))/100,digits:()=>5+rnd(5),bid:(p)=>Math.min(p.gold,rnd(3)),higherlower:()=>2+rnd(7),lock:()=>9+rnd(14),pairs:()=>13+rnd(12),arrows:()=>11+rnd(14),shade:()=>14+rnd(22),spell:()=>14+rnd(28),catch:()=>8+rnd(13),whack:()=>9+rnd(13),nerve:()=>Math.round((15+rnd(55))/10*10)/10,flap:()=>1+rnd(9)};
+const ch=a=>a[rnd(a.length)];
+Object.assign(SV,{
+ addBot(){const G=this.G;if(G.phase!=="lobby"||G.players.length>=12)return;const used=G.players.map(p=>p.name);const name=BOTNAMES.find(n=>!used.includes(n))||("Stranger "+G.nid);
+  G.players.push({id:"b"+(G.nid++),name,bot:true,token:null,conn:true,gold:8,inv:{S:0,D:0}});this.commit()},
+ bots(){return this.G.players.filter(p=>p.bot)},
+ bm(id){const G=this.G;G.bm=G.bm||{};return G.bm[id]=G.bm[id]||{next:0,va:{},tries:0}},
+ botTick(t){const G=this.G;if(!G||G.phase==="lobby")return;for(const b of this.bots()){const m=this.bm(b.id);if(t<m.next)continue;m.next=t+1500+rnd(2500);try{this.botAct(b,m,t)}catch(e){console.error(e)}}},
+ botAct(b,m,t){const G=this.G,ph=G.ph,id=b.id,T=b.role==="T",P=G.phase,r=Math.random();
+  const act=a=>this.act(id,Object.assign({_p:P,_r:G.round},a));
+  if(P==="mission"){const tp=ph.type;
+   if(tp==="target"&&ph.subs[id]===undefined){m.next=t+3000+rnd(9000);act({t:"sub",v:T&&r<.35?(r<.17?10:1):Math.max(1,Math.min(10,5+rnd(3)-1))});return}
+   if(tp==="bridge"&&ph.subs[id]===undefined){m.next=t+3000+rnd(9000);act({t:"sub",v:T&&r<.35?"X":"B"});return}
+   if(tp==="estimate"&&ph.sub==="guess"&&ph.subs[id]===undefined){m.next=t+4000+rnd(8000);const f=T&&r<.5?(r<.25?0.55:1.5):0.86+Math.random()*0.28;act({t:"sub",v:Math.round(ph.count*f)});return}
+   if(tp==="memory"&&ph.sub==="recall"&&ph.subs[id]===undefined){m.next=t+8000+rnd(15000);const w=shuffle([...ph.words]);const v=T?w.slice(0,3).concat(["raven","goblet","lamp"]):w.slice(0,6+rnd(4));act({t:"sub",v});return}
+   if(tp==="meld"&&ph.subs[ph.k]&&ph.subs[ph.k][id]===undefined){m.next=t+4000+rnd(6000);const pr=ph.prompts[ph.k];act({t:"sub",v:T&&r<.4?"something":(MELDBOT[pr]||"thing"),k:ph.k});return}
+   if(tp==="scatter"&&ph.subs[ph.k]&&ph.subs[ph.k][id]===undefined){m.next=t+4000+rnd(6000);const pr=ph.prompts[ph.k];const list=SCATTERBOT[pr]||["thing"];act({t:"sub",v:T&&r<.4?(MELDBOT[pr]||list[0]):ch(list),k:ph.k});return}
+   if(tp==="quiz"&&ph.subs[ph.k]&&ph.subs[ph.k][id]===undefined){m.next=t+3000+rnd(7000);const ans=ph.qs[ph.k].a;const ok=T?r<.4:r<.78;act({t:"sub",v:ok?ans:(ans+1+rnd(3))%4,k:ph.k});return}
+   if(tp==="riddles"){m.next=t+9000+rnd(16000);const open=ph.solved.map((s,i)=>s?-1:i).filter(i=>i>=0);if(!open.length)return;const i=ch(open);if(T&&r<.65||!T&&r<.3)act({t:"riddle",i,v:ch(["a key","a river","the wind","a mirror","a shadow","a clock"])});else act({t:"riddle",i,v:ph.q[i][1][0]});return}
+   if(tp==="sync"){if(ph.tapped.includes(id))return;m.next=t+2500+rnd(6000);if(r<.55)act({t:"tap"});return}
+   if(tp==="heist"){const h=ph.hands[id]||[];if(!h.length)return;const wait=h[0]*(T&&r<.4?350:700)+1500;if(t-ph.start>=wait)act({t:"play",n:h[0]});m.next=t+900;return}
+   if(tp==="code"){if(ph.cracked||ph.guesses.length>=ph.max)return;m.next=t+8000+rnd(14000);let g;
+    if(!T||r<.4){const cands=[];for(let a=0;a<10;a++)for(let b2=0;b2<10;b2++)for(let c=0;c<10;c++){if(a===b2||b2===c||a===c)continue;const s=""+a+b2+c;let ok=true;for(const q of ph.guesses){let bb=0,ww=0;for(let i=0;i<3;i++){if(q.g[i]===s[i])bb++;else if(s.includes(q.g[i]))ww++}if(bb!==q.b||ww!==q.w){ok=false;break}}if(ok&&!ph.guesses.some(q=>q.g===s))cands.push(s)}g=cands.length?ch(cands):null}
+    if(!g){const d=shuffle([0,1,2,3,4,5,6,7,8,9]).slice(0,3);g=d.join("")}act({t:"guess",v:g});return}
+   if(tp==="map"){if(ph.found||ph.digs.length>=ph.max)return;m.next=t+6000+rnd(10000);const cells=[];for(let x=0;x<6;x++)for(let y=0;y<6;y++){if(ph.digs.some(q=>q.x===x&&q.y===y))continue;const ok=!T&&ph.digs.every(q=>Math.max(Math.abs(x-q.x),Math.abs(y-q.y))===q.d);cells.push({x,y,ok})}
+    const good=cells.filter(c=>c.ok);const c=(good.length&&(!T||r<.4))?ch(good):ch(cells);if(c)act({t:"dig",x:c.x,y:c.y});return}
+   if(tp==="chain"){const cur=ph.order[ph.turn%ph.order.length];if(cur!==id)return;if(T&&r<.3){m.next=t+20000;return}m.next=t+3000+rnd(5000);const L=ph.letter||ch("abcdefghlmprstw");const used=ph.links.map(l=>l.w);const opts=(ANIMALS[L]||[]).filter(w=>!used.includes(w));if(opts.length)act({t:"word",v:ch(opts)});return}
+   if(tp==="draw"){const d=ph.order[ph.k%ph.order.length];if(d===id)return;m.next=t+5000+rnd(9000);const w=ph.words[ph.k];if(T?r<.15:r<.3)act({t:"guess",v:w});else act({t:"guess",v:ch(["a hat","a boat","a cat","a house","a dragon","a tree","a sword","a face"])});return}
+   if(tp==="team"&&ph.subs[id]===undefined){m.next=t+(TEAM[ph.game].secs+6)*1000;const per=TEAM[ph.game].per;act({t:"sub",v:Math.round(per*(T?0.3+Math.random()*0.4:0.7+Math.random()*0.6))});return}
+   return}
+  if(P==="vote"){if(ph.subs[id]||!this.voters().includes(id))return;m.next=t+4000+rnd(10000);const tr=this.traitors();const tally=G.lastTally||{};
+   const cands=this.voters().filter(x=>x!==id&&!(T&&tr.includes(x)));if(!cands.length)return;
+   const score=x=>Math.random()*2+(m.va[x]||0)*2.5+(tally[x]||0)*0.8+(T&&this.P(x).role!=="T"&&(tally[x]||0)>0?1.5:0);
+   const on=cands.sort((a,c)=>score(c)-score(a))[0];act({t:"vote",on,d:b.inv.D>0&&Math.random()<.5});return}
+  if(P==="armoury"){if(ph.scores[id]!==undefined)return;m.next=t+6000+rnd(16000);if(ph.type==="dice")act({t:"roll"});else act({t:"score",v:ARMBOT[ph.type]?ARMBOT[ph.type](b):0});return}
+  if(P==="night"){if(ph.done||!T)return;const tr=this.traitors();if(tr.some(x=>!this.P(x).bot))return;m.next=t+5000+rnd(6000);if(Math.random()<.22){act({t:"murder",v:null});return}
+   const f=G.players.filter(p=>p.role!=="T");if(!f.length)return;const pick=f.sort((a,c)=>((m.va[c.id]||0)*2+Math.random()*2)-((m.va[a.id]||0)*2+Math.random()*2))[0];act({t:"murder",v:pick.id});return}
+  if(P==="judge"){if(T||!ph.items.length)return;const mine=ph.subs[id]||{};const todo=ph.items.find(rr=>mine[rr]===undefined);if(todo===undefined)return;m.next=t+2500+rnd(5000);act({t:"judge",r:todo,ok:Math.random()<.8});return}
+  if(P==="final"){if(!ph.fin.includes(id)||ph.subs[id])return;m.next=t+5000+rnd(8000);act({t:"final",v:Math.random()<.7?"F":"T"});return}
+ },
+ botNoteVotes(list){const c={};list.forEach(x=>{c[x.on]=(c[x.on]||0)+(x.d?2:1);const tgt=this.P(x.on);if(tgt&&tgt.bot){const m=this.bm(x.on);m.va[x.by]=(m.va[x.by]||0)+1}});this.G.lastTally=c}
+});
 /* ---------- client ---------- */
 const $=s=>document.querySelector(s),app=$("#app");
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -791,7 +846,7 @@ const qf=(s,fn)=>document.querySelectorAll(s).forEach(el=>el.onsubmit=e=>{e.prev
 /* sound */
 const SND=Object.assign({fx:true,voice:null,mute:false},ld("tl_snd")||{});
 let actx=null,master=null,bed=null;
-function audioInit(){try{let fresh=false;if(!actx){actx=new (window.AudioContext||window.webkitAudioContext)();master=actx.createGain();master.gain.value=0.55;master.connect(actx.destination);fresh=true}if(actx.state==="suspended")actx.resume();if(fresh&&V)phaseAudio(V.pub.phase)}catch(e){}unlockClips()}
+function audioInit(){try{let fresh=false;if(!actx){actx=new (window.AudioContext||window.webkitAudioContext)();master=actx.createGain();master.gain.value=0.55;master.connect(actx.destination);fresh=true}if(actx.state==="suspended")actx.resume();if(fresh&&V)phaseAudio(V.pub.phase)}catch(e){}unlockClips();musicInit()}
 ["pointerdown","keydown","touchstart"].forEach(ev=>document.addEventListener(ev,audioInit,{passive:true}));
 const T0=()=>actx.currentTime;
 function osc(type,f,t0,t1,g,dest,slide){try{const o=actx.createOscillator(),a=actx.createGain();o.type=type;o.frequency.setValueAtTime(f,t0);if(slide)o.frequency.exponentialRampToValueAtTime(slide,t1);a.gain.setValueAtTime(0.0001,t0);a.gain.linearRampToValueAtTime(g,t0+0.03);a.gain.exponentialRampToValueAtTime(0.0001,t1);o.connect(a);a.connect(dest||master);o.start(t0);o.stop(t1+0.05)}catch(e){}}
@@ -825,12 +880,23 @@ function bedStart(kind){if(!ok())return;if(bed&&bed.kind===kind)return;bedStop()
  const hb=(kind==="night"||kind==="vote")?setInterval(()=>FX.heart(),kind==="night"?1400:1700):null;
  bed={kind,g,nodes,hb}}catch(e){}}
 function bedStop(){if(!bed)return;const b=bed;bed=null;try{clearInterval(b.hb);b.g.gain.cancelScheduledValues(actx.currentTime);b.g.gain.setValueAtTime(b.g.gain.value||0.0001,actx.currentTime);b.g.gain.exponentialRampToValueAtTime(0.0001,actx.currentTime+1.5);setTimeout(()=>b.nodes.forEach(n=>{try{n.stop();n.disconnect()}catch(e){}}),1700)}catch(e){}}
-function phaseAudio(phase){if(["vote","vreveal"].includes(phase))bedStart("vote");else if(phase==="night"||phase==="reveal")bedStart("night");else if(phase==="debate")bedStart("debate");else bedStop()}
+const MUS={};let musicOn=null,musicFade=null;
+function musicInit(){if(typeof MUSIC_CLIPS==="undefined")return;for(const k in MUSIC_CLIPS){if(MUS[k])continue;try{const a=new Audio(MUSIC_CLIPS[k]);a.preload="auto";a.loop=k!=="sting";MUS[k]=a;const p=a.play();if(p&&p.then)p.then(()=>{a.pause();a.currentTime=0}).catch(()=>{})}catch(e){}}}
+function musicPlay(k,vol){if(!SND.fx||SND.mute)return false;const a=MUS[k];if(!a)return false;if(musicOn&&musicOn!==a)musicStop();clearInterval(musicFade);musicOn=a;try{a.volume=0.0001;if(a.paused){a.currentTime=0;const p=a.play();if(p&&p.catch)p.catch(()=>{})}let v=0;musicFade=setInterval(()=>{v=Math.min(vol,v+vol/12);try{a.volume=v}catch(e){}if(v>=vol)clearInterval(musicFade)},120)}catch(e){return false}return true}
+function musicStop(){const a=musicOn;if(!a)return;musicOn=null;clearInterval(musicFade);let v=a.volume;const f=setInterval(()=>{v-=0.06;if(v<=0.01){clearInterval(f);try{a.pause();a.currentTime=0}catch(e){}}else try{a.volume=v}catch(e){}},100)}
+function musicSting(){if(!SND.fx||SND.mute)return false;const a=MUS.sting;if(!a)return false;try{a.volume=0.9;a.currentTime=0;const p=a.play();if(p&&p.catch)p.catch(()=>{})}catch(e){return false}return true}
+function phaseAudio(phase){
+ if(["vote","vreveal"].includes(phase)){bedStop();if(!musicPlay("vote",0.55))bedStart("vote")}
+ else if(phase==="night"){bedStop();if(!musicPlay("night",0.5))bedStart("night")}
+ else if(phase==="lobby"||phase==="role"){bedStop();if(!musicPlay("title",0.4))bedStop()}
+ else if(phase==="reveal"){bedStop();if(!musicPlay("night",0.45))bedStart("night")}
+ else if(phase==="debate"){musicStop();bedStart("debate")}
+ else{musicStop();bedStop()}}
 let VOICE=null;
 function pickVoice(){try{const vs=speechSynthesis.getVoices();if(!vs.length)return;const pref=[/Google UK English Female/i,/Google UK English Male/i,/en[-_]GB.*(Natural|Neural|Premium|Enhanced|Online)/i,/(Libby|Sonia|Mia|Ryan|Thomas).*(GB|British|United Kingdom)/i,/Daniel/i,/Serena/i,/Kate/i,/Martha/i,/en[-_]GB/i,/English.*(United Kingdom|UK)/i,/Google US English/i,/Samantha/i,/en[-_]/i];for(const r of pref){const v=vs.find(x=>r.test(x.name+" "+x.lang));if(v){VOICE=v;return}}}catch(e){}}
 try{pickVoice();speechSynthesis.onvoiceschanged=pickVoice}catch(e){}
 function voiceOn(){return !SND.mute&&(SND.voice==null?isHost:SND.voice)}
-function setMute(m){SND.mute=m;sv("tl_snd",SND);if(m){bedStop();try{speechSynthesis.cancel()}catch(e){}}else if(V)phaseAudio(V.pub.phase);if(V)bar()}
+function setMute(m){SND.mute=m;sv("tl_snd",SND);if(m){bedStop();musicStop();for(const k in CLIP)try{CLIP[k].pause()}catch(e){}try{speechSynthesis.cancel()}catch(e){}}else if(V)phaseAudio(V.pub.phase);if(V)bar()}
 const CLIP={};let clipsReady=false;
 function unlockClips(){if(clipsReady||typeof VOICE_CLIPS==="undefined")return;clipsReady=true;for(const k in VOICE_CLIPS){try{const a=new Audio(VOICE_CLIPS[k]);a.preload="auto";CLIP[k]=a;const p=a.play();if(p&&p.then)p.then(()=>{a.pause();a.currentTime=0}).catch(()=>{})}catch(e){}}}
 function narrate(key,text){if(!voiceOn())return;const a=CLIP[key];if(!a){hostSay(text);return}try{speechSynthesis.cancel()}catch(e){}try{a.currentTime=0;const p=a.play();if(p&&p.catch)p.catch(()=>hostSay(text))}catch(e){hostSay(text)}}
@@ -882,7 +948,7 @@ function leave(){leaving=true;sv(MK,null);if(isHost)sv(HK,null);try{peer&&peer.d
 /* ---------- screens ---------- */
 function wait(t,back){app.innerHTML=`<div class="hd" style="padding-top:80px"><p class="eyebrow">The Traitors</p><div class="rule"><i></i></div><p class="lede">${esc(t)}</p><p class="small center" id="wm"></p>${back?`<button class="link" id="wb">Use a different code or name</button>`:""}</div>`;const b=$("#wb");if(b)b.onclick=()=>{err="";bail()}}
 function waitMsg(t){const el=$("#wm");if(el)el.textContent=t}
-function home(){
+function home(){musicStop();
  const saved=ld(HK),me=ld(MK);const hash=(location.hash||"").replace("#","").toUpperCase();
  app.innerHTML=`<section class="hd" style="padding-top:44px"><p class="eyebrow">Welcome to the castle</p><div class="rule"><i></i></div><h1 class="mega">The Traitors</h1><p class="lede">Play live from anywhere. One game master hosts, everyone else joins with a code.</p></section>
  ${err?`<p class="err center">${esc(err)}</p>`:""}
@@ -942,11 +1008,11 @@ function bar(){const b=$("#bar");b.hidden=false;const {pub,me}=V;const mine=pl(m
  $("#plb").onclick=sheetPlayers;$("#mute").onclick=()=>setMute(!SND.mute)}
 function sheetPlayers(){const s=$("#sheet");s.hidden=false;confirmLeave=false;const {pub,me}=V;
  s.querySelector(".in").innerHTML=`<div class="row" style="justify-content:space-between;align-items:center"><h2 class="sect" style="margin:0">Players</h2><button class="btn sm ghost" id="sx">Close</button></div>
- <div class="stack t" style="margin-top:14px">${pub.players.map(p=>`<div class="vrow"><span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.conn?"var(--gold)":"#555"};margin-right:8px"></i>${esc(p.name)}${p.host?" (GM)":""}${p.id===pub.silenced?' <em class="red">silenced</em>':""}</span><b>${p.gold} gold</b>${me.host&&pub.phase==="lobby"&&!p.host?`<button class="btn sm ghost" data-kick="${p.id}">Remove</button>`:""}</div>`).join("")}</div>
+ <div class="stack t" style="margin-top:14px">${pub.players.map(p=>`<div class="vrow"><span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.conn?"var(--gold)":"#555"};margin-right:8px"></i>${esc(p.name)}${p.host?" (GM)":""}${p.bot?" <em class=\"ai\">AI</em>":""}${p.id===pub.silenced?' <em class="red">silenced</em>':""}</span><b>${p.gold} gold</b>${me.host&&pub.phase==="lobby"&&!p.host?`<button class="btn sm ghost" data-kick="${p.id}">Remove</button>`:""}</div>`).join("")}</div>
  <p class="small">Room ${esc(pub.code)}. ${me.inv.S?`You hold ${me.inv.S} Shield${me.inv.S>1?"s":""}. `:""}${me.inv.D?`You hold ${me.inv.D} Dagger${me.inv.D>1?"s":""}.`:""}</p>
  <h2 class="sect">Sound on this phone</h2><label class="toggle" style="border-color:var(--gold-d);background:var(--panel)"><input type="checkbox" id="sfx" ${SND.fx?"checked":""}> Atmosphere and effects</label><label class="toggle" style="border-color:var(--gold-d);background:var(--panel)"><input type="checkbox" id="svo" ${voiceOn()?"checked":""}> Narrator voice${me.host?"":" (off by default, the game master's phone speaks on the call)"}</label>
  <button class="link" id="leave">${me.host?"Close the room and send everyone home":"Leave this game"}</button>`;
- $("#sx").onclick=()=>s.hidden=true;$("#sfx").onchange=e=>{SND.fx=e.target.checked;sv("tl_snd",SND);if(!SND.fx)bedStop();else if(V)phaseAudio(V.pub.phase)};$("#svo").onchange=e=>{SND.voice=e.target.checked;sv("tl_snd",SND);if(SND.voice){unlockClips();narrate("mission","Narrator on.")}};
+ $("#sx").onclick=()=>s.hidden=true;$("#sfx").onchange=e=>{SND.fx=e.target.checked;sv("tl_snd",SND);if(!SND.fx){bedStop();musicStop()}else if(V)phaseAudio(V.pub.phase)};$("#svo").onchange=e=>{SND.voice=e.target.checked;sv("tl_snd",SND);if(SND.voice){unlockClips();narrate("mission","Narrator on.")}};
  s.querySelectorAll("[data-kick]").forEach(b=>b.onclick=()=>{gm({t:"kick",id:b.dataset.kick});s.hidden=true});
  $("#leave").onclick=()=>{if(!confirmLeave){confirmLeave=true;$("#leave").textContent="Tap again to confirm";return}leave()}}
 function fitBar(){const g=$("#gm");const h=g.hidden?16:g.offsetHeight+12;document.body.style.paddingBottom=`calc(${h}px + env(safe-area-inset-bottom,0px))`}
@@ -989,14 +1055,15 @@ function render(){
  switch(pub.phase){
   case "lobby":{const link=location.origin+location.pathname+"#"+pub.code;const msg=`Join my game of The Traitors tonight. Open ${link} and enter room code ${pub.code} with your name. Keep the call open too.`;
    h=`<div class="hd"><p class="eyebrow">The castle gates are open</p><div class="rule"><i></i></div><h1 class="mega">${esc(pub.code)}</h1><p class="small">Room code</p></div>
-   <div class="chips" style="justify-content:center">${pub.players.map(p=>`<span class="chip ${p.conn?"ok":"off"}"><i class="d"></i>${esc(p.name)}${p.host?" (GM)":""}</span>`).join("")}</div>
+   <div class="chips" style="justify-content:center">${pub.players.map(p=>`<span class="chip ${p.conn?"ok":"off"}"><i class="d"></i>${esc(p.name)}${p.host?" (GM)":""}${p.bot?" <em class=\"ai\">AI</em>":""}</span>`).join("")}</div>
    <div class="stack t"><a class="btn wa" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">Share on WhatsApp</a><button class="btn ghost" id="cp">Copy invite</button></div>`;
    if(me.host)h+=`<h2 class="sect">Adventure</h2><div class="advs">${ADV.map((a,i)=>`<button class="adv ${i===pub.adv?"on":""}" data-adv="${i}"><b>${i+1}</b><span>${esc(a.name)}</span>${a.fun?`<i class="tag">arcade</i>`:""}</button>`).join("")}</div>
+   <h2 class="sect">AI players</h2><p class="small">Short of people? Add AI players to fill the castle. They take missions, vote, murder and bluff, and can be Traitors.</p><button class="btn ghost" id="addbot" ${n>=12?"disabled":""}>Add an AI player</button>
    <h2 class="sect">Traitors</h2><div class="seg"><button data-nt="1" class="${pub.nT===1?"on":""}">One Traitor</button><button data-nt="2" class="${pub.nT===2?"on":""}">Two Traitors</button></div><p class="small">Two works well with 7 or more. You need at least 3 players.</p>
    <button class="btn big" id="start" ${n<3?"disabled":""}>Start the game</button>`;
    else h+=`<p class="lede center">Waiting for ${pname("p0")} to start.</p><p class="small center">${esc(ADV[pub.adv].name)} · ${pub.nT} Traitor${pub.nT>1?"s":""}</p>`;
    after.push(()=>{$("#cp").onclick=async()=>{try{if(navigator.share){await navigator.share({text:msg})}else{await navigator.clipboard.writeText(msg);$("#cp").textContent="Copied"}}catch(e){}};
-    qa("[data-adv]",b=>gm({t:"adv",v:+b.dataset.adv}));qa("[data-nt]",b=>gm({t:"nT",v:+b.dataset.nt}));const s=$("#start");if(s)s.onclick=()=>gm({t:"start"})});break}
+    qa("[data-adv]",b=>gm({t:"adv",v:+b.dataset.adv}));const ab=$("#addbot");if(ab)ab.onclick=()=>gm({t:"bot"});qa("[data-nt]",b=>gm({t:"nT",v:+b.dataset.nt}));const s=$("#start");if(s)s.onclick=()=>gm({t:"start"})});break}
   case "role":{const T=me.role==="T";
    h=`${hd(esc(ADV[pub.adv].name),"Your role")}<p class="small center">Tap the card to turn it. Tap again to hide. Only you can see this screen.</p>
    <div class="flip ${UI.flip?"on":""}" id="flip"><div class="fi"><div class="fa"><div class="seal">T</div><p class="eyebrow">Tap to reveal</p></div><div class="fb ${T?"t":""}"><p class="eyebrow ${T?"red":""}">You are</p><p class="role ${T?"red":""}">${T?"a Traitor":"Faithful"}</p><p class="small">${T?((me.allies&&me.allies.length)?"Fellow Traitor"+(me.allies.length>1?"s":"")+": "+esc(me.allies.join(", "))+". ":"You work alone. ")+"Complete each round's secret assignment to earn a murder.":"Find the Traitor. Win gold. Trust no one."}</p></div></div></div>
@@ -1206,10 +1273,10 @@ function fxMorning(m){
  if(!m||!m.v){bedStop();FX.dawn();narrate("nomurder","Nobody died last night.");fx(`<p class="cap" style="color:#fff3d0">Dawn breaks</p><div class="nm" style="color:#fff">No one died</div>`,4500,`<div class="dawn"></div><div class="sun"></div>`);return}
  const name=pname(m.v);
  if(m.shield){bedStop();FX.sting();setTimeout(()=>FX.dawn(),1200);narrate("shield",`${rawname(m.v)} was attacked, but a shield held.`);fx(`<svg class="shieldsvg" viewBox="0 0 100 120"><path d="M50 4 L92 20 V58 C92 88 70 108 50 116 C30 108 8 88 8 58 V20 Z" fill="#8fa3b5" stroke="#dfe8ef" stroke-width="3"/><path d="M50 18 L78 29 V58 C78 78 64 94 50 101 C36 94 22 78 22 58 V29 Z" fill="#55687a"/></svg><p class="cap">Shield</p><div class="nm" style="color:#dfe8ef">${name} survives</div>`,5000,`<div class="rays"></div>`);return}
- bedStop();FX.murder();narrate("murder",`${rawname(m.v)} has been murdered.`);buzz([200,100,400]);
+ bedStop();if(!musicSting())FX.murder();narrate("murder",`${rawname(m.v)} has been murdered.`);buzz([200,100,400]);
  const spots=Array.from({length:9},()=>`<i style="width:${20+Math.random()*70}px;height:${20+Math.random()*70}px;left:${-80+Math.random()*120}px;top:${-60+Math.random()*120}px;animation-delay:${1.3+Math.random()*.4}s"></i>`).join("");
  fx(`<p class="cap red" style="margin-top:110px">In the night</p><div class="nm nmin" style="animation-delay:3.4s">${name}<div class="strike" style="animation-delay:4.2s"></div></div><br><span class="stamp" style="animation-delay:4.6s">Murdered</span>`,8500,`<div class="splat">${spots}</div><svg class="dagger" viewBox="0 0 40 160"><circle cx="20" cy="10" r="8" fill="#c9a45c"/><rect x="14" y="16" width="12" height="40" fill="#3b2a12"/><rect x="2" y="56" width="36" height="8" fill="#7d6534"/><polygon points="12,64 28,64 20,160" fill="#d9d9d9"/><polygon points="20,64 28,64 20,160" fill="#9a9a9a"/></svg>`)}
-function fxReveal(tr){FX.rise();setTimeout(()=>FX.sting(),2800);narrate("reveal","The traitor"+(tr.length>1?"s were ":" was ")+tr.map(rawname).join(", and ")+".");
+function fxReveal(tr){if(!musicSting()){FX.rise();setTimeout(()=>FX.sting(),2800)}narrate("reveal","The traitor"+(tr.length>1?"s were ":" was ")+tr.map(rawname).join(", and ")+".");
  fx(`<p class="cap red">The Traitor${tr.length>1?"s":""}</p>${tr.map(id=>`<div class="nm glitch red">${pname(id)}</div>`).join("<br>")}`,6000,`<div class="redpulse"></div>`)}
 function fxFinale(ph){const o=ph.out;bedStop();FX.coins();setTimeout(()=>FX.toll(),600);narrate("over","The game is over.");const coins=Array.from({length:40},()=>`<i class="coin" style="left:${Math.random()*100}%;animation-duration:${2+Math.random()*2.5}s;animation-delay:${Math.random()*2}s"></i>`).join("");
  fx(`<p class="cap">${o.kind==="share"?"Shared":o.kind==="both"?"Double cross":"Stolen"}</p><div class="nm" style="color:var(--gold-l)">${o.win.length?o.win.map(pname).join(" & "):"No one"}</div>`,6000,coins)}
