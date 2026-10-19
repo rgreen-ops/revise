@@ -578,7 +578,7 @@ function connect(){
  if(leaving)return;try{peer&&peer.destroy()}catch(e){}
  peer=new Peer({debug:0,config:ICE});let opened=false;
  peer.on("open",()=>{
-  hostConn=peer.connect("traitors-"+ME.code.toLowerCase(),{reliable:true});
+  hostConn=peer.connect("traitors-"+ME.code.toLowerCase(),{reliable:true,serialization:"json"});
   hostConn.on("open",()=>{opened=true;setOnline(true);hostConn.send({t:"join",token:ME.token,name:ME.name})});
   hostConn.on("data",d=>{if(d.t==="view")setView(d.v);else if(d.t==="err"){err=d.m;bail()}});
   hostConn.on("close",()=>{setOnline(false);retry()});hostConn.on("error",()=>{setOnline(false);retry()});
@@ -679,7 +679,7 @@ function gmBar(){const g=$("#gm");if(!isHost||!V){g.hidden=true;return}const {pu
 
 function render(){
  if(!V)return;const {pub,me}=V,ph=pub.ph;bar();gmBar();
- if(A.active&&pub.phase==="armoury"&&me.priv.sub===undefined)return;
+ if(A.active&&pub.phase==="armoury"&&me.priv.sub==null)return;
  const keep=snapInputs();after=[];let h="";const n=pub.players.length,done=pub.players.filter(p=>p.done).length;
  switch(pub.phase){
   case "lobby":{const link=location.origin+location.pathname+"#"+pub.code;const msg=`Join my game of The Traitors tonight. Open ${link} and enter room code ${pub.code} with your name. Keep the call open too.`;
@@ -704,24 +704,24 @@ function render(){
   case "mission":{const t=ph.type,info=MINFO[t];
    h=`<div class="card"><p class="eyebrow">Mission ${pub.round+1}</p><h2>${esc(info.t)}</h2><p>${esc(info.how(n))}</p><p class="pot">${esc(info.pot)}</p></div>`;
    if(pub.left!=null&&t!=="estimate")h+=`<p class="cd" id="cd">${fmt(left())}</p>`;
-   if(t==="target"){if(me.priv.sub!==undefined)h+=lock(`You locked in ${me.priv.sub}.`,done,n);else{h+=`<p class="small center">Target: ${ph.lo} to ${ph.hi}. Pick your number.</p><div class="nums">${[1,2,3,4,5,6,7,8,9,10].map(v=>`<button data-num="${v}">${v}</button>`).join("")}</div>`;after.push(()=>qa("[data-num]",b=>act({t:"sub",v:+b.dataset.num})))}}
-   else if(t==="bridge"){if(me.priv.sub!==undefined)h+=lock(`You chose ${me.priv.sub==="X"?"BREAK":"BUILD"}.`,done,n);else{h+=`<div class="stack"><button class="btn big" data-br="B">Build</button><button class="btn big blood" data-br="X">Break</button></div><p class="small center">Faithful must build. Only a Traitor would break.</p>`;after.push(()=>qa("[data-br]",b=>act({t:"sub",v:b.dataset.br})))}}
+   if(t==="target"){if(me.priv.sub!=null)h+=lock(`You locked in ${me.priv.sub}.`,done,n);else{h+=`<p class="small center">Target: ${ph.lo} to ${ph.hi}. Pick your number.</p><div class="nums">${[1,2,3,4,5,6,7,8,9,10].map(v=>`<button data-num="${v}">${v}</button>`).join("")}</div>`;after.push(()=>qa("[data-num]",b=>act({t:"sub",v:+b.dataset.num})))}}
+   else if(t==="bridge"){if(me.priv.sub!=null)h+=lock(`You chose ${me.priv.sub==="X"?"BREAK":"BUILD"}.`,done,n);else{h+=`<div class="stack"><button class="btn big" data-br="B">Build</button><button class="btn big blood" data-br="X">Break</button></div><p class="small center">Faithful must build. Only a Traitor would break.</p>`;after.push(()=>qa("[data-br]",b=>act({t:"sub",v:b.dataset.br})))}}
    else if(t==="heist"){const hand=me.priv.hand||[],top=ph.pile[ph.pile.length-1];
     h+=`<div class="center"><p class="eyebrow">The pile</p>${top?`<div class="hand"><div class="pc top ${top.bad?"bad":""} new">${top.c}</div></div><p class="small">${pname(top.id)} played ${top.c}${top.bad?", too early":""}</p>`:`<p class="small">Nothing played yet. Cards run 1 to 60.</p>`}<p class="small">${ph.played} played · ${ph.mistakes} mistake${ph.mistakes===1?"":"s"} · ${Object.values(ph.left).reduce((a,b)=>a+b,0)} cards still in hands</p></div>
     <p class="eyebrow center">Your hand</p><div class="hand">${hand.length?hand.map(c=>`<div class="pc">${c}</div>`).join(""):`<p class="small">You are out of cards.</p>`}</div>${hand.length?`<button class="btn big" id="play">Play my ${hand[0]}</button>`:""}`;
     after.push(()=>{const b=$("#play");if(b)b.onclick=()=>act({t:"play"})})}
    else if(t==="memory"){if(ph.sub==="show")h+=`<div class="words">${ph.words.map((w,i)=>`<span style="animation-delay:${i*70}ms">${esc(w)}</span>`).join("")}</div><p class="small center">Memorise them. They vanish when the clock runs out.</p>`;
-    else if(me.priv.sub!==undefined)h+=lock(`You listed ${me.priv.sub.length} words.`,done,n);
+    else if(me.priv.sub!=null)h+=lock(`You listed ${me.priv.sub.length} words.`,done,n);
     else{h+=`<form id="mrf"><textarea class="txt" id="mr" placeholder="Type the words you remember, one per line"></textarea><button class="btn big" style="margin-top:10px">Submit my list</button></form>`;after.push(()=>qf("#mrf",()=>act({t:"sub",v:$("#mr").value.split(/[\n,;]+|\s+/).map(s=>s.trim()).filter(Boolean)})))}}
    else if(t==="riddles"){h+=ph.q.map((q,i)=>`<div class="rid ${ph.solved[i]?"ok":""}"><p>${i+1}. ${esc(q)}</p>${ph.solved[i]?`<p class="small" style="margin:0">Solved by ${pname(ph.solved[i])}</p>`:`<form class="row" data-ri="${i}"><input class="txt" id="r${i}" autocomplete="off" placeholder="Answer"><button class="btn sm">Try</button></form>`}</div>`).join("");
     h+=ph.wrong.slice(-4).reverse().map(w=>`<p class="feed">${pname(w.id)} tried "${esc(w.v)}" on riddle ${w.i+1}</p>`).join("");
     after.push(()=>qf("form[data-ri]",f=>{const i=+f.dataset.ri,inp=$("#r"+i),v=inp.value.trim();if(v){act({t:"riddle",i,v});inp.value=""}}))}
    else if(t==="sync"){h+=`<div class="center ${ph.recent?"flash":""}"><p class="cd" style="margin:0">${ph.n} of ${n}</p><p class="small">${ph.resets} reset${ph.resets===1?"":"s"}. No talking. Feel the moment.</p><button class="tapbtn" id="sy" ${me.priv.sub?"disabled":""}>${me.priv.sub?"DONE":"TAP"}</button></div>`;after.push(()=>{const b=$("#sy");if(b&&!b.disabled)b.onclick=()=>act({t:"tap"})})}
    else if(t==="estimate"){if(ph.sub==="show"){h+=`<p class="cd" id="cd">${fmt(left())}</p><canvas id="cv" width="340" height="340"></canvas><p class="small center">Count fast.</p>`;after.push(()=>drawCoins(ph.seed,ph.count))}
-    else if(me.priv.sub!==undefined)h+=lock(`You guessed ${me.priv.sub}.`,done,n);
+    else if(me.priv.sub!=null)h+=lock(`You guessed ${me.priv.sub}.`,done,n);
     else{h+=`<form id="ef" class="row"><input class="txt" type="number" inputmode="numeric" id="eg" placeholder="How many coins?"><button class="btn sm">Lock</button></form>`;after.push(()=>qf("#ef",()=>{const v=+$("#eg").value;if(v>=0)act({t:"sub",v})}))}}
    else if(t==="meld"){const k=ph.k;h+=ph.res.map((r,i)=>`<div class="vrow ${r.hit?"fin":""}"><span>${esc(ph.prompts[i])}</span><b>${r.hit?esc(r.word)+" ✓":"no match"}</b></div>`).join("");
-    if(me.priv.sub!==undefined)h+=lock(`You typed "${esc(me.priv.sub)}".`,done,n);
+    if(me.priv.sub!=null)h+=lock(`You typed "${esc(me.priv.sub)}".`,done,n);
     else{h+=`<p class="eyebrow center" style="margin-top:16px">Prompt ${k+1} of 3</p><p class="lede center">${esc(ph.prompts[k])}</p><form id="mlf" class="row"><input class="txt" id="ml" autocomplete="off" placeholder="One word"><button class="btn sm">Lock</button></form>`;after.push(()=>qf("#mlf",()=>{const v=$("#ml").value.trim();if(v)act({t:"sub",v})}))}}
    break}
   case "mresult":h=`${hd("Mission "+(pub.round+1),ph.g?"+"+ph.g+" gold":"No gold")}<div class="panel center"><p class="lede">${esc(ph.detail)}</p><p class="small">Prize pot: ${pub.pot} gold</p></div><p class="small center">The game master opens the Round Table next.</p>`;break;
@@ -736,7 +736,7 @@ function render(){
    <div class="tally">${Object.entries(c).sort((a,b)=>b[1]-a[1]).map(([id,v])=>`<span>${pname(id)}</span><span class="bar"><i style="width:${v/mx*100}%"></i></span><b>${v}</b>`).join("")}</div>`;break}
   case "armoury":{const info=AINFO[ph.type];
    h=`<div class="card steel"><p class="eyebrow">Armoury ${pub.round+1}</p><h2>${esc(info.t)}</h2><p>${esc(info.how)}</p><p class="pot">Winner draws a reward card: a Shield, a Dagger or gold.</p></div>`;
-   if(me.priv.sub!==undefined)h+=lock(`Your result: ${fmtScore(ph.type,me.priv.sub,me.priv.roll)}`,done,n);
+   if(me.priv.sub!=null)h+=lock(`Your result: ${fmtScore(ph.type,me.priv.sub,me.priv.roll)}`,done,n);
    else{h+=`<div id="ag"></div>`;after.push(()=>startGame(ph.type,ph.seed))}break}
   case "areward":{const info=AINFO[ph.type];
    h=`${hd("Armoury",ph.win.length?ph.win.map(pname).join(" & ")+(ph.win.length>1?" win":" wins"):"No winner")}<div class="stack t">${Object.entries(ph.scores).sort((a,b)=>info.best==="low"?a[1]-b[1]:b[1]-a[1]).map(([id,v])=>`<div class="vrow ${ph.win.includes(id)?"fin":""}"><span>${pname(id)}</span><b>${fmtScore(ph.type,v,ph.rolls&&ph.rolls[id])}</b></div>`).join("")}</div>
