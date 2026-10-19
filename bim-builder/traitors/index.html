@@ -537,6 +537,7 @@ const sv=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,J
 const HK="tl_host",MK="tl_me";
 const REW={S:"Shield",D:"Dagger","1":"1 gold piece","2":"2 gold pieces"};
 const RDESC={S:"If you are murdered, it saves you once. Used automatically.",D:"At a Round Table, tick the box to make your vote count twice (and earn double if you are right).","1":"Added to your treasure chest.","2":"Added to your treasure chest."};
+const UI={flip:false,holding:null};let lastHtml="";
 let V=null,ME=null,isHost=false,peer=null,hostConn=null,conns={},A={},leaving=false,err="",confirmLeave=false,after=[],online=false,rt=null;
 const pl=id=>V&&V.pub.players.find(x=>x.id===id);
 const pname=id=>{const p=pl(id);return p?esc(p.name):"?"};
@@ -612,7 +613,7 @@ function joinGame(code,name){const old=ld(MK);ME={code,token:(old&&old.code===co
 
 /* ---------- view handling ---------- */
 function setView(v){v.at=Date.now();const prev=V;V=v;
- if(!prev||prev.pub.phase!==v.pub.phase||prev.pub.round!==v.pub.round){A={};onPhase(v)}
+ if(!prev||prev.pub.phase!==v.pub.phase||prev.pub.round!==v.pub.round){A={};UI.flip=false;lastHtml="";onPhase(v)}
  else if(v.pub.phase==="vreveal"&&prev.pub.ph.list.length!==v.pub.ph.list.length)beep(520,120);
  else if(v.pub.phase==="mission"&&v.pub.ph.type==="sync"&&prev.pub.ph.flash!==v.pub.ph.flash)buzz(200);
  document.body.classList.toggle("night",v.pub.phase==="night");
@@ -633,9 +634,11 @@ function onPhase(v){const {pub}=v,ph=pub.ph;buzz(60);
 function snapInputs(){const m={};app.querySelectorAll("input[id],textarea[id]").forEach(i=>{m[i.id]=i.type==="checkbox"?i.checked:i.value});return {m,f:document.activeElement&&document.activeElement.id}}
 function restoreInputs(k){for(const id in k.m){const el=document.getElementById(id);if(el){if(el.type==="checkbox")el.checked=k.m[id];else el.value=k.m[id]}}if(k.f){const el=document.getElementById(k.f);if(el&&el!==document.activeElement)el.focus()}}
 const hd=(e,t)=>`<div class="hd"><p class="eyebrow">${e}</p><div class="rule"><i></i></div><h1>${t}</h1></div>`;
-const hold=(cv,inner)=>`<div class="hold" tabindex="0"><div class="cv"><span>${cv}</span><span style="font-size:11px;opacity:.7">Let go to hide</span></div><div class="in">${inner}</div></div>`;
+const hold=(cv,inner,key="h")=>`<div class="hold" data-hk="${key}" tabindex="0"><div class="cv"><span>${cv}</span><span style="font-size:11px;opacity:.7">Let go to hide</span></div><div class="in">${inner}</div></div>`;
 const lock=(msg,done,n)=>`<div class="panel center">${msg?`<p class="lede">${msg}</p>`:""}<p class="small">Locked in. ${done} of ${n} ready.</p></div>`;
-function wireHold(){app.querySelectorAll(".hold").forEach(el=>{const on=e=>{e.preventDefault();el.classList.add("show")},off=()=>el.classList.remove("show");el.addEventListener("pointerdown",on);["pointerup","pointerleave","pointercancel"].forEach(t=>el.addEventListener(t,off));el.addEventListener("contextmenu",e=>e.preventDefault())})}
+function wireHold(){app.querySelectorAll(".hold").forEach(el=>{const k=el.dataset.hk;if(UI.holding&&UI.holding===k)el.classList.add("show");el.addEventListener("pointerdown",e=>{e.preventDefault();UI.holding=k;el.classList.add("show")});el.addEventListener("contextmenu",e=>e.preventDefault())})}
+function releaseHold(){UI.holding=null;document.querySelectorAll(".hold.show").forEach(el=>el.classList.remove("show"))}
+document.addEventListener("pointerup",releaseHold);document.addEventListener("pointercancel",releaseHold);
 function fmtScore(t,v,roll){if(v==null)return "no score";switch(t){case "reaction":return v>=99999?"Too early":v+" ms";case "taps":return v+" taps";case "maths":return v+" s";case "tenseconds":return Number(v).toFixed(2)+" s off";case "digits":return v+" digits";case "bid":return v+" gold";case "dice":return roll?roll[0]+" + "+roll[1]+" = "+v:v;case "higherlower":return v+" in a row"}return v}
 
 function bar(){const b=$("#bar");b.hidden=false;const {pub,me}=V;const mine=pl(me.id);const endgame=["reveal","judge","scores","final","finale"].includes(pub.phase);
@@ -691,12 +694,12 @@ function render(){
     qa("[data-adv]",b=>gm({t:"adv",v:+b.dataset.adv}));qa("[data-nt]",b=>gm({t:"nT",v:+b.dataset.nt}));const s=$("#start");if(s)s.onclick=()=>gm({t:"start"})});break}
   case "role":{const T=me.role==="T";
    h=`${hd(esc(ADV[pub.adv].name),"Your role")}<p class="small center">Tap the card to turn it. Tap again to hide. Only you can see this screen.</p>
-   <div class="flip" id="flip"><div class="fi"><div class="fa"><div class="seal">T</div><p class="eyebrow">Tap to reveal</p></div><div class="fb ${T?"t":""}"><p class="eyebrow ${T?"red":""}">You are</p><p class="role ${T?"red":""}">${T?"a Traitor":"Faithful"}</p><p class="small">${T?((me.allies&&me.allies.length)?"Fellow Traitor"+(me.allies.length>1?"s":"")+": "+esc(me.allies.join(", "))+". ":"You work alone. ")+"Complete each round's secret assignment to earn a murder.":"Find the Traitor. Win gold. Trust no one."}</p></div></div></div>
+   <div class="flip ${UI.flip?"on":""}" id="flip"><div class="fi"><div class="fa"><div class="seal">T</div><p class="eyebrow">Tap to reveal</p></div><div class="fb ${T?"t":""}"><p class="eyebrow ${T?"red":""}">You are</p><p class="role ${T?"red":""}">${T?"a Traitor":"Faithful"}</p><p class="small">${T?((me.allies&&me.allies.length)?"Fellow Traitor"+(me.allies.length>1?"s":"")+": "+esc(me.allies.join(", "))+". ":"You work alone. ")+"Complete each round's secret assignment to earn a murder.":"Find the Traitor. Win gold. Trust no one."}</p></div></div></div>
    <p class="small center">${pub.players.filter(p=>p.conn).length} of ${n} in the castle.</p>`;
-   after.push(()=>{$("#flip").onclick=()=>$("#flip").classList.toggle("on")});break}
+   after.push(()=>{$("#flip").onclick=()=>{UI.flip=!UI.flip;$("#flip").classList.toggle("on",UI.flip)}});break}
   case "secret":{const T=me.role==="T";const m=MINFO[ADV[pub.adv].rounds[pub.round].m.type];
    h=`${hd("Round "+RNAME[pub.round],"Secret assignment")}<p class="small center">Everyone checks now. Hold to read.</p>
-   ${hold("Hold to read",T?`<p class="eyebrow red">Traitor assignment ${pub.round+1}</p><p class="lede"><i>${esc(me.assign)}</i></p><p class="small">Do it during the mission without being noticed. Then you may murder tonight.</p>`:`<p class="eyebrow">Faithful</p><p class="lede"><i>You have no secret assignment. Watch the others closely.</i></p>`)}
+   ${hold("Hold to read",T?`<p class="eyebrow red">Traitor assignment ${pub.round+1}</p><p class="lede"><i>${esc(me.assign)}</i></p><p class="small">Do it during the mission without being noticed. Then you may murder tonight.</p>`:`<p class="eyebrow">Faithful</p><p class="lede"><i>You have no secret assignment. Watch the others closely.</i></p>`,"secret")}
    <h2 class="sect">Next: ${esc(m.t)}</h2><p class="small">${esc(m.how(n))}</p>`;break}
   case "mission":{const t=ph.type,info=MINFO[t];
    h=`<div class="card"><p class="eyebrow">Mission ${pub.round+1}</p><h2>${esc(info.t)}</h2><p>${esc(info.how(n))}</p><p class="pot">${esc(info.pot)}</p></div>`;
@@ -737,7 +740,7 @@ function render(){
    else{h+=`<div id="ag"></div>`;after.push(()=>startGame(ph.type,ph.seed))}break}
   case "areward":{const info=AINFO[ph.type];
    h=`${hd("Armoury",ph.win.length?ph.win.map(pname).join(" & ")+(ph.win.length>1?" win":" wins"):"No winner")}<div class="stack t">${Object.entries(ph.scores).sort((a,b)=>info.best==="low"?a[1]-b[1]:b[1]-a[1]).map(([id,v])=>`<div class="vrow ${ph.win.includes(id)?"fin":""}"><span>${pname(id)}</span><b>${fmtScore(ph.type,v,ph.rolls&&ph.rolls[id])}</b></div>`).join("")}</div>
-   ${me.priv.draw?hold("Hold to see your reward",`<p class="eyebrow">Your reward</p><p class="role" style="font-size:30px">${REW[me.priv.draw]}</p><p class="small">${RDESC[me.priv.draw]}</p>`):""}`;break}
+   ${me.priv.draw?hold("Hold to see your reward",`<p class="eyebrow">Your reward</p><p class="role" style="font-size:30px">${REW[me.priv.draw]}</p><p class="small">${RDESC[me.priv.draw]}</p>`,"reward"):""}`;break}
   case "night":{const T=me.role==="T";
    h=`<div class="scene"><div class="moon"></div><p class="eyebrow">Night ${pub.round+1}</p><h1>The castle sleeps</h1><p class="small">${ph.done?"A decision has been made. Dawn is coming.":"Somewhere, a Traitor is awake."}</p></div>`;
    if(T&&!ph.done){const al=me.allies||[];h+=`<p class="eyebrow red center">Traitor only</p><p class="lede center">Did you complete your assignment? If so, choose your victim.</p><div class="stack t">${pub.players.filter(p=>p.id!==me.id&&!al.includes(p.name)).map(p=>`<button class="btn blood pick" data-k="${p.id}">${esc(p.name)}</button>`).join("")}<button class="btn ghost" data-k="">No murder tonight</button></div>`;after.push(()=>qa("[data-k]",b=>act({t:"murder",v:b.dataset.k||null})))}
@@ -763,7 +766,7 @@ function render(){
    h=`${hd("The Final","The verdict")}<div class="stack t"><div class="vrow"><span>${pname(a)}</span><b>${ph.choices[a]==="F"?"Faithful":"Traitor"}</b></div><div class="vrow"><span>${pname(b)}</span><b>${ph.choices[b]==="F"?"Faithful":"Traitor"}</b></div></div><div class="scene"><p class="eyebrow">Winner${o.win.length>1?"s":""}</p><p class="role">${o.win.length?o.win.map(pname).join(" & "):"No one"}</p><p class="lede">${txt}</p></div>
    <h2 class="sect">Who was who</h2><div class="chips">${pub.players.map(p=>`<span class="chip ${ph.roles[p.id]==="T"?"":"ok"}" ${ph.roles[p.id]==="T"?'style="border-color:#c0453c;color:var(--blood-l)"':""}>${esc(p.name)}: ${ph.roles[p.id]==="T"?"Traitor":"Faithful"}</span>`).join("")}</div>`;break}
  }
- app.innerHTML=h;restoreInputs(keep);after.forEach(f=>f());wireHold();
+ if(h===lastHtml)return;lastHtml=h;app.innerHTML=h;restoreInputs(keep);after.forEach(f=>f());wireHold();
 }
 
 /* ---------- armoury mini games ---------- */
