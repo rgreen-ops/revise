@@ -94,12 +94,12 @@ textarea.txt{min-height:150px;resize:vertical}
 .flip .fb{transform:rotateY(180deg)}
 .flip .fb.t{background:radial-gradient(circle at 50% 35%,#4a1210,#140707 70%);border-color:#c0453c}
 .seal{width:78px;height:78px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#b53a2e,#6e1010 70%);box-shadow:0 0 0 6px #4a0a0a,0 8px 24px rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:900;font-size:40px;color:#f0c6bd;margin:14px}
-.nums{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
-.nums button{aspect-ratio:1;background:var(--panel);border:1px solid var(--gold-d);font-family:var(--display);font-size:24px;border-radius:3px}
+.nums{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
+.nums button{aspect-ratio:1;max-height:62px;background:var(--panel);border:1px solid var(--gold-d);font-family:var(--display);font-size:22px;border-radius:3px}
 .nums button.on{background:#3a2c14;border-color:var(--gold-l);color:var(--gold-l)}
-.hand{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:14px 0}
+.hand{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:8px 0}
 .pc{width:64px;height:90px;border-radius:6px;background:linear-gradient(160deg,#f3ead5,#d8c9a6);color:#2a1d0c;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:900;font-size:28px;box-shadow:0 6px 16px rgba(0,0,0,.5);border:2px solid #fff6e0}
-.pc.top{width:110px;height:154px;font-size:52px}
+.pc.top{width:84px;height:118px;font-size:42px}
 .pc.bad{background:linear-gradient(160deg,#e4b0a8,#b46a60)}
 .pc.new{animation:deal .6s cubic-bezier(.2,.9,.3,1.3)}
 @keyframes deal{from{transform:translateY(-60px) rotate(-12deg) scale(.6);opacity:0}}
@@ -108,14 +108,16 @@ textarea.txt{min-height:150px;resize:vertical}
 .tapbtn:disabled{filter:grayscale(.8);opacity:.5}
 .flash{animation:redflash .8s}
 @keyframes redflash{0%{background:#7a1414}100%{background:transparent}}
-.words{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.words span{background:var(--panel2);border:1px solid var(--line);padding:10px 4px;text-align:center;font-size:19px;font-weight:700;animation:fadein .4s both}
+.words{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.words span{background:var(--panel2);border:1px solid var(--line);padding:8px 4px;text-align:center;font-size:17px;font-weight:700;animation:fadein .4s both}
 @keyframes fadein{from{opacity:0;transform:scale(.9)}}
-.rid{padding:12px 14px;border:1px solid var(--line);background:var(--panel);margin:8px 0}
+.rid{padding:7px 10px;border:1px solid var(--line);background:var(--panel);margin:5px 0}
+.rid .txt{padding:7px 10px;font-size:16px}
 .rid.ok{border-color:var(--gold-d)}
-.rid p{margin:0 0 8px}
+.rid p{margin:0 0 5px;font-size:15px;line-height:1.3}
 .feed{font-size:16px;color:var(--muted);margin:4px 0}
-canvas{display:block;max-width:100%;margin:10px auto;border-radius:6px;border:1px solid var(--gold-d)}
+canvas{display:block;max-width:100%;margin:8px auto;border-radius:6px;border:1px solid var(--gold-d)}
+canvas#cv{max-width:min(300px,calc(100vh - 500px))}
 .vrow{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:3px 10px;padding:9px 12px;background:var(--panel);border:1px solid var(--line);border-radius:3px}
 .vrow .ar{color:var(--muted);font-style:italic;font-size:16px}
 .vrow b{font-family:var(--display);font-size:17px;letter-spacing:.04em;font-variant-numeric:tabular-nums}
@@ -128,7 +130,7 @@ canvas{display:block;max-width:100%;margin:10px auto;border-radius:6px;border:1p
 .toggle{display:flex;gap:10px;align-items:center;padding:12px;border:1px solid var(--blood);background:#1d0f0d;margin:10px 0}
 .toggle input{width:22px;height:22px;accent-color:var(--blood)}
 .scene{text-align:center;padding:16px 14px;margin:10px 0;border:1px solid #2b2f45;background:radial-gradient(circle at 50% 20%,#1c2036,#09090f 70%);border-radius:4px;overflow:hidden;position:relative}
-.moon{width:70px;height:70px;border-radius:50%;margin:0 auto 10px;background:radial-gradient(circle at 35% 35%,#f4efe0,#bdb6a0);box-shadow:0 0 50px rgba(240,235,210,.35)}
+.moon{width:46px;height:46px;border-radius:50%;margin:0 auto 6px;background:radial-gradient(circle at 35% 35%,#f4efe0,#bdb6a0);box-shadow:0 0 50px rgba(240,235,210,.35)}
 .candle{width:22px;height:70px;margin:18px auto 0;background:linear-gradient(90deg,#d9cba8,#f4ead2,#cbbb94);border-radius:3px;position:relative;border:0;display:block}
 .candle::before{content:"";position:absolute;left:50%;top:-30px;width:16px;height:28px;margin-left:-8px;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;
  background:radial-gradient(circle at 50% 70%,#fff6c8,#ffb43b 45%,rgba(255,90,20,.0) 75%);animation:flick .18s infinite alternate;filter:blur(.4px)}
@@ -190,21 +192,21 @@ canvas{display:block;max-width:100%;margin:10px auto;border-radius:6px;border:1p
 .lockbar.miss{background:#5a1a1a;border-color:#c0453c}
 .lockbar .zone{position:absolute;top:0;bottom:0;width:18%;background:rgba(201,164,92,.4)}
 .lockbar .pin{position:absolute;top:3px;width:6px;height:24px;margin-left:-3px;background:var(--gold-l);border-radius:3px;box-shadow:0 0 8px var(--gold)}
-.pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
+.pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:8px auto;max-width:min(340px,calc((100vh - 470px) * 1.1))}
 .pcard{aspect-ratio:3/4;background:radial-gradient(circle at 50% 35%,#2a2011,#100c08 70%);border:1px solid var(--gold-d);border-radius:6px;font-size:34px;color:var(--gold-l)}
 .pcard.up{background:linear-gradient(160deg,#f3ead5,#d8c9a6);color:#7a1414;border-color:#fff6e0}
 .arrows{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .arrows button{aspect-ratio:1;font-size:36px;background:var(--panel);border:1px solid var(--gold-d);border-radius:6px;color:var(--gold-l)}
 .shade{display:grid;gap:6px;margin:12px 0}
 .shade button{aspect-ratio:1;border:0;border-radius:4px}
-.mapgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin:12px 0}
-.mapgrid button{aspect-ratio:1;background:#1c2618;border:1px solid #3a4a33;border-radius:4px;font-family:var(--display);font-size:20px;color:var(--cream)}
+.mapgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin:8px auto;max-width:min(300px,calc(100vh - 470px))}
+.mapgrid button{aspect-ratio:1;background:#1c2618;border:1px solid #3a4a33;border-radius:4px;font-family:var(--display);font-size:17px;color:var(--cream);padding:0}
 .mapgrid button.dug{background:#3a2c14;border-color:var(--gold-d)}
 .mapgrid button.gold{background:var(--gold);color:#241606}
 .mapgrid button:disabled{opacity:.9}
 em.ai{font-style:normal;font-family:var(--display);font-size:10px;letter-spacing:.12em;color:var(--steel);border:1px solid #55687a;border-radius:8px;padding:0 5px;margin-left:4px}
 .tag{font-style:normal;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--blood-l);border:1px solid #6a2420;border-radius:10px;padding:1px 6px;margin-top:3px}
-.arena{position:relative;width:100%;aspect-ratio:3/4;max-height:min(60vh,520px);margin:0 auto;background:radial-gradient(circle at 50% 20%,#1a1626,#07060a 75%);border:1px solid var(--gold-d);border-radius:6px;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+.arena{position:relative;width:100%;aspect-ratio:3/4;max-height:min(50vh,440px);margin:0 auto;background:radial-gradient(circle at 50% 20%,#1a1626,#07060a 75%);border:1px solid var(--gold-d);border-radius:6px;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
 .hud{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;padding:8px 12px;font-family:var(--display);font-size:18px;color:var(--gold-l);z-index:2;pointer-events:none}
 .bat{position:absolute;width:19%;aspect-ratio:64/40;margin:-5% 0 0 -9%;animation:batin .25s both;filter:drop-shadow(0 4px 6px rgba(0,0,0,.6))}
 .bat svg{width:100%;height:100%;display:block}
@@ -218,9 +220,9 @@ em.ai{font-style:normal;font-family:var(--display);font-size:10px;letter-spacing
 .gate{position:absolute;left:12%;width:76%;height:58%;top:-62%;background:repeating-linear-gradient(90deg,#8a7a5c 0 9px,transparent 9px 26px),repeating-linear-gradient(0deg,#8a7a5c 0 8px,transparent 8px 34px);border-bottom:7px solid var(--gold-l)}
 .floor{position:absolute;left:0;right:0;bottom:0;height:4px;background:var(--gold)}
 canvas.arcade{display:block;width:100%;max-width:min(340px,calc((100vh - 340px) * 0.76));margin:10px auto;border:1px solid var(--gold-d);border-radius:6px;touch-action:none}
-.drawwrap{width:100%;max-width:min(360px,calc(100vh - 380px));margin:6px auto}
+.drawwrap{width:100%;max-width:min(340px,calc(100vh - 470px));margin:6px auto}
 canvas.drawc{display:block;width:100%;aspect-ratio:1;border:2px solid var(--gold-d);border-radius:6px;touch-action:none;background:#f3ead5}
-.holes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.holes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px auto;max-width:min(340px,calc(100vh - 470px))}
 .hole{position:relative;aspect-ratio:1;background:#07060a;border:2px solid #3a2c14;border-radius:40% 40% 6px 6px;overflow:hidden;padding:0}
 .wghost{position:absolute;left:22%;width:56%;bottom:-70%;height:70%;background:#efe6d2;border-radius:50% 50% 10% 10%;transition:bottom .12s;box-shadow:0 0 14px rgba(239,230,210,.5)}
 .wghost::before,.wghost::after{content:"";position:absolute;top:28%;width:14%;height:16%;background:#1a1410;border-radius:50%}.wghost::before{left:26%}.wghost::after{right:26%}
@@ -232,8 +234,7 @@ canvas.drawc{display:block;width:100%;aspect-ratio:1;border:2px solid var(--gold
 #scene .layer.on{opacity:1}
 #scene::after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(13,11,9,.45),rgba(13,11,9,.72) 40%,rgba(13,11,9,.95) 85%,var(--bg))}
 #embers{position:fixed;inset:0;z-index:0;pointer-events:none}
-#wrap,#gm,#sheet,#fx{position:relative}
-#wrap{z-index:1}
+#wrap{position:relative;z-index:1}
 .crest{vertical-align:-6px;margin-right:2px;flex:none}
 #rounds{display:flex;gap:4px;padding:0}
 #rounds svg{width:12px;height:13px}
@@ -360,7 +361,7 @@ Object.assign(MINFO,{
 Object.assign(AINFO,{
  lock:{t:"The Lockpick",how:"A pin sweeps across the lock. Tap Set Pin while it is inside the gold zone. Five pins, and every miss costs 2 seconds. Fastest wins.",best:"low",unit:"s"},
  pairs:{t:"Memory Pairs",how:"Twelve cards, six pairs. Find them all in as few flips as you can.",best:"low",unit:"flips"},
- arrows:{t:"Arrow Storm",how:"Twenty arrows, one at a time. Tap the matching direction. A wrong tap costs a second. Fastest wins.",best:"low",unit:"s"},
+ arrows:{t:"Arrow Storm",how:"Twenty-five arrows, one at a time. Tap the matching direction. A wrong tap costs a second. Fastest wins.",best:"low",unit:"s"},
  shade:{t:"The Odd Shade",how:"One square is a slightly different shade. Tap it. Eight levels, getting harder. A wrong tap costs 2 seconds. Fastest wins.",best:"low",unit:"s"},
  spell:{t:"The Scrambled Scroll",how:"Three scrambled words from the castle. Unscramble each one. A wrong answer costs 2 seconds, a skip costs 10. Fastest wins.",best:"low",unit:"s"}
 });
@@ -878,7 +879,7 @@ const sv=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,J
 const HK="tl_host",MK="tl_me";
 const REW={S:"Shield",D:"Dagger","1":"1 gold piece","2":"2 gold pieces"};
 const RDESC={S:"If you are murdered, it saves you once. Used automatically.",D:"At a Round Table, tick the box to make your vote count twice (and earn double if you are right).","1":"Added to your treasure chest.","2":"Added to your treasure chest."};
-const UI={flip:false,holding:null,how:true};let lastHtml="";
+const UI={flip:false,holding:null,how:false};let lastHtml="";
 let homeMode=false;
 let V=null,ME=null,isHost=false,peer=null,hostConn=null,conns={},A={},leaving=false,err="",confirmLeave=false,after=[],online=false,rt=null;
 const pl=id=>V&&V.pub.players.find(x=>x.id===id);
@@ -1035,7 +1036,7 @@ function joinGame(code,name){homeMode=false;const old=ld(MK);ME={code,token:(old
 
 /* ---------- view handling ---------- */
 function setView(v){v.at=Date.now();const prev=V;V=v;if(ME&&!ME.host&&(!ME.at||v.at-ME.at>15000)){ME.at=v.at;sv(MK,ME)}
- if(!prev||prev.pub.phase!==v.pub.phase||prev.pub.round!==v.pub.round){if(A.raf)cancelAnimationFrame(A.raf);if(A.timers)A.timers.forEach(clearTimeout);clearTimeout(A.nerveT);A={};UI.flip=false;UI.how=true;lastHtml="";onPhase(v)}
+ if(!prev||prev.pub.phase!==v.pub.phase||prev.pub.round!==v.pub.round){if(A.raf)cancelAnimationFrame(A.raf);if(A.timers)A.timers.forEach(clearTimeout);clearTimeout(A.nerveT);A={};UI.flip=false;UI.how=false;lastHtml="";onPhase(v)}
  else if(v.pub.phase==="vreveal"&&prev.pub.ph.list.length!==v.pub.ph.list.length)FX.vote();
  else if(v.pub.phase==="mission"&&v.pub.ph.type==="sync"&&prev.pub.ph.flash!==v.pub.ph.flash){buzz(200);FX.fail()}
  document.body.classList.toggle("night",v.pub.phase==="night");
@@ -1210,8 +1211,8 @@ function render(){
    h=`${hd("Armoury",ph.win.length?ph.win.map(pname).join(" & ")+(ph.win.length>1?" win":" wins"):"No winner")}<div class="stack t">${pub.players.map(p=>[p.id,ph.scores[p.id]]).sort((a,b)=>{const x=a[1]==null?1:0,y=b[1]==null?1:0;if(x!==y)return x-y;return info.best==="low"?a[1]-b[1]:b[1]-a[1]}).map(([id,v])=>`<div class="vrow ${ph.win.includes(id)?"fin":""}"><span>${pname(id)}</span><b>${v==null?(pl(id)&&!pl(id).conn?"reconnecting…":"no result"):fmtScore(ph.type,v,ph.rolls&&ph.rolls[id])}${(ph.late||[]).includes(id)?" <span class=\"small\">(late)</span>":""}</b></div>`).join("")}</div>
    ${me.priv.draw?hold("Hold to see your reward",`<p class="eyebrow">Your reward</p><p class="role" style="font-size:30px">${REW[me.priv.draw]}</p><p class="small">${RDESC[me.priv.draw]}</p>`,"reward"):""}`;break}
   case "night":{const T=me.role==="T";
-   h=`<div class="scene"><div class="moon"></div><p class="eyebrow">Night ${pub.round+1}</p><h1>The castle sleeps</h1><p class="small">${ph.done?"A decision has been made. Dawn is coming.":"Somewhere, a Traitor is awake."}</p></div>`;
-   if(T&&!ph.done&&!sending){const al=me.allies||[];h+=`<p class="eyebrow red center">Traitor only</p><p class="lede center">Did you complete your assignment? If so, choose your victim.</p><div class="stack t">${pub.players.filter(p=>p.id!==me.id&&!al.includes(p.name)).map(p=>`<button class="btn blood pick" data-k="${p.id}">${esc(p.name)}</button>`).join("")}<button class="btn ghost pick" data-k="${me.id}">Murder myself (the bluff)</button><button class="btn ghost" data-k="">No murder tonight</button></div><p class="small center">Murdering yourself costs you 2 gold and your next vote, but who would ever suspect you? It still counts as a murder if your assignment stands.</p>`;after.push(()=>qa("[data-k]",b=>act({t:"murder",v:b.dataset.k||null})))}
+   h=`<div class="scene"><div class="moon"></div><p class="eyebrow">Night ${pub.round+1}</p><h1>The castle sleeps</h1><p class="small" style="margin:2px 0 0">${ph.done?"A decision has been made. Dawn is coming.":"Somewhere, a Traitor is awake."}</p></div>`;
+   if(T&&!ph.done&&!sending){const al=me.allies||[];h+=`<p class="eyebrow red center">Traitor only</p><p class="small center">Completed your assignment? Choose your victim.</p><div class="stack t">${pub.players.filter(p=>p.id!==me.id&&!al.includes(p.name)).map(p=>`<button class="btn blood pick" data-k="${p.id}">${esc(p.name)}</button>`).join("")}<button class="btn ghost pick" data-k="${me.id}">Murder myself (the bluff)</button><button class="btn ghost" data-k="">No murder tonight</button></div><p class="small center">Murdering yourself costs you 2 gold and your next vote, but who would ever suspect you? It still counts as a murder if your assignment stands.</p>`;after.push(()=>qa("[data-k]",b=>act({t:"murder",v:b.dataset.k||null})))}
    else if(T)h+=`<p class="small center">Your choice is sealed.</p>`;break}
   case "morning":{const m=ph.m;let t,d;
    if(!m||!m.v){t="Everyone lives";d="The castle wakes and counts heads. Nobody is missing. Was the assignment failed, or is the Traitor biding their time?"}
@@ -1386,5 +1387,5 @@ document.addEventListener("visibilitychange",()=>{if(document.visibilityState!==
  if(isHost){if(peer&&peer.destroyed)hostUp();else if(peer&&peer.disconnected)try{peer.reconnect()}catch(e){}}
  else{if(!(hostConn&&hostConn.open)){clearTimeout(rt);connect()}else if(peer&&peer.disconnected)try{peer.reconnect()}catch(e){}}});
 init();
-if(location.hash==="#debug")window.__tl={SV,setView,home,get:()=>({V,ME,isHost}),setHost:h=>{isHost=h},setME:m=>{ME=m}};
+if(location.hash==="#debug")window.__tl={SV,setView,home,get:()=>({V,ME,isHost}),setHost:h=>{isHost=h},setME:m=>{ME=m},play:()=>{homeMode=false}};
 </script></body></html>
