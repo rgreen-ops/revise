@@ -180,6 +180,21 @@ canvas{display:block;max-width:100%;margin:10px auto;border-radius:6px;border:1p
 .glitch{animation:glitch .25s steps(2) 6}
 @keyframes glitch{50%{transform:translateX(-4px);text-shadow:4px 0 #c3241c,-4px 0 #3b5cff}}
 .redpulse{position:absolute;inset:0;background:radial-gradient(circle,rgba(160,20,20,.55),transparent 70%);animation:pulse 1.2s infinite}
+.lockbar{position:relative;height:30px;background:var(--panel);border:1px solid var(--gold-d);margin:16px 0;border-radius:15px;overflow:hidden}
+.lockbar .zone{position:absolute;top:0;bottom:0;width:18%;background:rgba(201,164,92,.4)}
+.lockbar .pin{position:absolute;top:3px;width:6px;height:24px;margin-left:-3px;background:var(--gold-l);border-radius:3px;box-shadow:0 0 8px var(--gold)}
+.pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
+.pcard{aspect-ratio:3/4;background:radial-gradient(circle at 50% 35%,#2a2011,#100c08 70%);border:1px solid var(--gold-d);border-radius:6px;font-size:34px;color:var(--gold-l)}
+.pcard.up{background:linear-gradient(160deg,#f3ead5,#d8c9a6);color:#7a1414;border-color:#fff6e0}
+.arrows{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.arrows button{aspect-ratio:1;font-size:36px;background:var(--panel);border:1px solid var(--gold-d);border-radius:6px;color:var(--gold-l)}
+.shade{display:grid;gap:6px;margin:12px 0}
+.shade button{aspect-ratio:1;border:0;border-radius:4px}
+.mapgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin:12px 0}
+.mapgrid button{aspect-ratio:1;background:#1c2618;border:1px solid #3a4a33;border-radius:4px;font-family:var(--display);font-size:20px;color:var(--cream)}
+.mapgrid button.dug{background:#3a2c14;border-color:var(--gold-d)}
+.mapgrid button.gold{background:var(--gold);color:#241606}
+.mapgrid button:disabled{opacity:.9}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}}
 </style></head><body>
 <div id="wrap"><div id="bar" hidden></div><main id="app"></main></div>
@@ -260,6 +275,84 @@ const AINFO={
  higherlower:{t:"Higher or Lower",how:"Call higher or lower on the next card. Everyone gets the same cards in the same order. Longest streak wins.",best:"high",unit:"in a row"}
 };
 const RNAME=["One","Two","Three","Four"];
+const SCATTER={a:["A colour","A fruit","Something in a kitchen"],b:["A country","An animal","A sport"],c:["A boy's name","A vegetable","A type of weather"]};
+const QUIZ={
+ A:[{q:"What is the capital of Australia?",o:["Sydney","Canberra","Melbourne","Perth"],a:1},{q:"How many sides does a hexagon have?",o:["Five","Six","Seven","Eight"],a:1},{q:"Which planet is known as the Red Planet?",o:["Venus","Jupiter","Mars","Mercury"],a:2},{q:"What is the largest ocean on Earth?",o:["Atlantic","Indian","Arctic","Pacific"],a:3},{q:"In which country is the Eiffel Tower?",o:["Italy","Spain","France","Belgium"],a:2}],
+ B:[{q:"How many minutes are there in a day?",o:["1,440","1,240","1,640","1,000"],a:0},{q:"How many players does a football team have on the pitch?",o:["Nine","Ten","Eleven","Twelve"],a:2},{q:"What is H2O better known as?",o:["Salt","Water","Oxygen","Hydrogen"],a:1},{q:"Which bird is a symbol of peace?",o:["Dove","Eagle","Owl","Swan"],a:0},{q:"What is 15 multiplied by 4?",o:["45","50","60","64"],a:2}],
+ C:[{q:"Which is the smallest planet in our solar system?",o:["Mars","Mercury","Neptune","Venus"],a:1},{q:"How many strings does a standard guitar have?",o:["Four","Five","Six","Seven"],a:2},{q:"What is the currency of Japan?",o:["Yuan","Won","Yen","Ringgit"],a:2},{q:"Which gas do plants take in from the air?",o:["Oxygen","Nitrogen","Carbon dioxide","Helium"],a:2},{q:"How many bones are in an adult human body?",o:["106","206","306","406"],a:1}],
+ D:[{q:"Which continent is Egypt in?",o:["Asia","Africa","Europe","South America"],a:1},{q:"What is the square root of 81?",o:["Seven","Eight","Nine","Eleven"],a:2},{q:"Which is the tallest animal in the world?",o:["Elephant","Giraffe","Ostrich","Camel"],a:1},{q:"How many days are in a leap year?",o:["364","365","366","367"],a:2},{q:"Which language has the most native speakers?",o:["English","Spanish","Mandarin","Hindi"],a:2}]
+};
+Object.assign(MINFO,{
+ code:{t:"The Vault",how:()=>"A three digit code with no repeated digits. Anyone can submit a guess. After each guess you learn how many digits are right and in the right place, and how many are right but in the wrong place. Eight guesses, three minutes.",pot:"Cracked in 5 guesses or fewer: 6 gold. Cracked at all: 3 gold."},
+ map:{t:"The Treasure Map",how:()=>"The treasure is buried under one square of the map. Anyone can dig. Every dig shows how many squares away the treasure is. Six digs.",pot:"Found in 4 digs or fewer: 6 gold. Found at all: 3 gold."},
+ chain:{t:"The Chain",how:()=>"Name animals, one player at a time, each starting with the last letter of the one before. 15 seconds a turn, no repeats. Run out of time and the chain breaks. Three breaks and it's over.",pot:"12 links: 6 gold. 8 links: 3 gold."},
+ scatter:{t:"Scatter",how:()=>"Three prompts. Everyone types one word, with no conferring. A prompt scores only if nobody types the same word as anyone else.",pot:"All three prompts clean: 6 gold. Two: 3 gold."},
+ quiz:{t:"The Interrogation",how:()=>"Five questions, four options each. Everyone answers. The group's answer is whatever most of you pick, and a tie counts as wrong.",pot:"5 of 5: 6 gold. 3 or 4: 3 gold."}
+});
+Object.assign(AINFO,{
+ lock:{t:"The Lockpick",how:"A pin sweeps across the lock. Tap Set Pin while it is inside the gold zone. Five pins, and every miss costs 2 seconds. Fastest wins.",best:"low",unit:"s"},
+ pairs:{t:"Memory Pairs",how:"Twelve cards, six pairs. Find them all in as few flips as you can.",best:"low",unit:"flips"},
+ arrows:{t:"Arrow Storm",how:"Twenty arrows, one at a time. Tap the matching direction. A wrong tap costs a second. Fastest wins.",best:"low",unit:"s"},
+ shade:{t:"The Odd Shade",how:"One square is a slightly different shade. Tap it. Eight levels, getting harder. A wrong tap costs 2 seconds. Fastest wins.",best:"low",unit:"s"},
+ spell:{t:"The Scrambled Scroll",how:"Three scrambled words from the castle. Unscramble each one. A wrong answer costs 2 seconds, a skip costs 10. Fastest wins.",best:"low",unit:"s"}
+});
+RIDDLES.E=[["What has a bottom at the top?",["leg"]],["What can fill a room but takes up no space?",["light"]],["What has a thumb and four fingers but is not alive?",["glove"]],["What breaks every morning but never falls?",["day","dawn"]]];
+WORDS.ocean=["anchor","whale","coral","tide","shell","harbour","compass","lighthouse","seal","kelp","pearl","dolphin","wave","sand","gull","net"];
+MELD.e=["A sweet treat","Something in a garage","A famous London landmark"];
+QUIZ.E=[{q:"How many legs does a spider have?",o:["Six","Eight","Ten","Twelve"],a:1},{q:"What is the hardest natural substance?",o:["Gold","Iron","Diamond","Quartz"],a:2},{q:"Which ocean is the Titanic in?",o:["Pacific","Indian","Atlantic","Arctic"],a:2},{q:"How many hours are there in a week?",o:["144","168","192","210"],a:1},{q:"What colour do you get mixing blue and yellow?",o:["Orange","Purple","Green","Brown"],a:2}];
+ADV.length=2;
+ADV.push(
+{name:"The Crypt",rounds:[
+ {m:{type:"riddles",set:"B"},a:"reaction",s:"Solve at least one riddle yourself."},
+ {m:{type:"code"},a:"lock",s:"Submit the very first guess."},
+ {m:{type:"map"},a:"pairs",s:"Dig in one of the four corner squares."},
+ {m:{type:"quiz",set:"A"},a:"arrows",s:"Answer the final question wrongly on purpose."}]},
+{name:"The Library",rounds:[
+ {m:{type:"chain"},a:"shade",s:"Give an animal with exactly four letters."},
+ {m:{type:"scatter",set:"a"},a:"spell",s:"On one prompt, type the same word as another player on purpose."},
+ {m:{type:"heist"},a:"taps",s:"Play your first card within 5 seconds of the heist starting."},
+ {m:{type:"target"},a:"bid",s:"Lock in a number higher than 8."}]},
+{name:"The Great Hall",rounds:[
+ {m:{type:"bridge"},a:"tenseconds",s:"Be the first player to lock in."},
+ {m:{type:"sync"},a:"dice",s:"Be the last player to tap in the attempt that succeeds, or the final attempt."},
+ {m:{type:"memory",pool:"kitchen"},a:"maths",s:"Include the word RAVEN in your list. It will not be one of the words."},
+ {m:{type:"meld",set:"b"},a:"digits",s:"Match the group on the final prompt."}]},
+{name:"The Loch",rounds:[
+ {m:{type:"riddles",set:"C"},a:"lock",s:"Submit a wrong answer to riddle 2."},
+ {m:{type:"code"},a:"pairs",s:"Submit a guess containing the digit 0."},
+ {m:{type:"map"},a:"arrows",s:"Make the final dig, whether it finds the treasure or not."},
+ {m:{type:"estimate"},a:"higherlower",s:"Submit a guess that ends in 3."}]},
+{name:"The Dungeon",rounds:[
+ {m:{type:"quiz",set:"B"},a:"reaction",s:"Be the first player to answer question 3."},
+ {m:{type:"chain"},a:"shade",s:"Let your turn run out once."},
+ {m:{type:"scatter",set:"b"},a:"spell",s:"Type a word starting with S on prompt 2."},
+ {m:{type:"heist"},a:"bid",s:"Be the player who plays the very last card."}]},
+{name:"The Gatehouse",rounds:[
+ {m:{type:"target"},a:"taps",s:"Lock in the number 7."},
+ {m:{type:"bridge"},a:"dice",s:"Wait at least 20 seconds before you lock in."},
+ {m:{type:"sync"},a:"maths",s:"Tap within 3 seconds of the mission starting."},
+ {m:{type:"memory",pool:"forest"},a:"digits",s:"Type at least three words that were not on the list."}]},
+{name:"The Observatory",rounds:[
+ {m:{type:"meld",set:"c"},a:"tenseconds",s:"Get another player to say the word \"suspicious\" on the call."},
+ {m:{type:"riddles",set:"D"},a:"lock",s:"Solve the final riddle yourself."},
+ {m:{type:"code"},a:"pairs",s:"Make the guess that cracks the vault, or the final guess if it isn't cracked."},
+ {m:{type:"map"},a:"arrows",s:"Make the first dig in one of the four centre squares."}]},
+{name:"The Keep",rounds:[
+ {m:{type:"estimate"},a:"higherlower",s:"Submit the highest guess at the table."},
+ {m:{type:"quiz",set:"C"},a:"reaction",s:"Get at least one question wrong."},
+ {m:{type:"chain"},a:"shade",s:"Give a bird as one of your animals."},
+ {m:{type:"scatter",set:"c"},a:"spell",s:"Type the same word as another player on the final prompt."}]},
+{name:"The Orchard",rounds:[
+ {m:{type:"heist"},a:"bid",s:"Be the player who plays the first card."},
+ {m:{type:"target"},a:"taps",s:"Lock in the number 1."},
+ {m:{type:"bridge"},a:"dice",s:"Be the last player to lock in your choice."},
+ {m:{type:"sync"},a:"maths",s:"Be the third player to tap in the attempt that succeeds, or the final attempt."}]},
+{name:"The Moat",rounds:[
+ {m:{type:"memory",pool:"ocean"},a:"digits",s:"List no more than four words."},
+ {m:{type:"meld",set:"d"},a:"lock",s:"Type a word longer than 7 letters on any prompt."},
+ {m:{type:"riddles",set:"E"},a:"pairs",s:"Submit at least one wrong answer before riddle 1 is solved."},
+ {m:{type:"quiz",set:"E"},a:"arrows",s:"Answer question 1 within 3 seconds."}]}
+);
 /* ---------- game engine (runs on the host phone) ---------- */
 const rnd=n=>Math.floor(Math.random()*n);
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
@@ -354,6 +447,11 @@ const SV={G:null,send:null,save:null,
   if(m.type==="sync"){ph.tapped=[];ph.last=0;ph.resets=0;ph.flash=0;ph.until=now()+120000;ph.start=now()}
   if(m.type==="heist"){const per=n<=5?3:2;const deck=shuffle(Array.from({length:60},(_,i)=>i+1)).slice(0,per*n);
    ph.hands={};G.players.forEach((p,i)=>ph.hands[p.id]=deck.slice(i*per,i*per+per).sort((a,b)=>a-b));ph.pile=[];ph.lost=[];ph.mistakes=0;ph.start=now()}
+  if(m.type==="code"){const d=shuffle([0,1,2,3,4,5,6,7,8,9]).slice(0,3);ph.code=d.join("");ph.guesses=[];ph.max=8;ph.cracked=null;ph.until=now()+180000}
+  if(m.type==="map"){ph.tx=rnd(6);ph.ty=rnd(6);ph.digs=[];ph.max=6;ph.found=null;ph.until=now()+150000}
+  if(m.type==="chain"){ph.cat="an animal";ph.order=shuffle(this.ids());ph.turn=0;ph.links=[];ph.breaks=0;ph.letter=null;ph.turnUntil=now()+15000;ph.until=now()+150000;ph.target=12}
+  if(m.type==="scatter"){ph.k=0;ph.prompts=SCATTER[m.set];ph.subs=[{},{},{}];ph.res=[]}
+  if(m.type==="quiz"){ph.k=0;ph.qs=QUIZ[m.set];ph.subs=[{},{},{},{},{}];ph.res=[]}
   this.to("mission",ph);
  },
  allIn(subs,ids){return (ids||this.ids()).every(id=>subs[id]!==undefined)},
@@ -375,10 +473,17 @@ const SV={G:null,send:null,save:null,
     for(const k in ph.hands){while(ph.hands[k].length&&ph.hands[k][0]<c)lost.push(ph.hands[k].shift())}
     if(lost.length){ph.mistakes++;ph.lost.push(...lost)}ph.pile.push({id,c,bad:lost.length>0});
     if(Object.values(ph.hands).every(x=>!x.length))return this.endMission()}
+  else if(t==="code"&&a.t==="guess"){const g=String(a.v||"").replace(/\D/g,"");if(g.length!==3||ph.cracked||ph.guesses.some(x=>x.g===g))return;let b=0,w=0;for(let i=0;i<3;i++){if(g[i]===ph.code[i])b++;else if(ph.code.includes(g[i]))w++}ph.guesses.push({id,g,b,w});if(b===3){ph.cracked=id;return this.endMission()}if(ph.guesses.length>=ph.max)return this.endMission()}
+  else if(t==="map"&&a.t==="dig"){const x=+a.x,y=+a.y;if(!(x>=0&&x<6&&y>=0&&y<6)||ph.found||ph.digs.some(q=>q.x===x&&q.y===y))return;const d=Math.max(Math.abs(x-ph.tx),Math.abs(y-ph.ty));ph.digs.push({id,x,y,d});if(d===0){ph.found=id;return this.endMission()}if(ph.digs.length>=ph.max)return this.endMission()}
+  else if(t==="chain"&&a.t==="word"){if(ph.order[ph.turn%ph.order.length]!==id)return;const w=norm(a.v);if(w.length<3||(ph.letter&&w[0]!==ph.letter)||ph.links.some(l=>l.w===w))return;ph.links.push({id,w});ph.letter=w[w.length-1];ph.turn++;ph.turnUntil=now()+15000;if(ph.links.length>=ph.target)return this.endMission()}
+  else if(t==="scatter"&&a.t==="sub"){if(a.k!=null&&a.k!==ph.k)return;const w=norm(a.v);if(w&&ph.subs[ph.k][id]===undefined){ph.subs[ph.k][id]=w;if(this.allIn(ph.subs[ph.k])){this.scatterStep();return}}}
+  else if(t==="quiz"&&a.t==="sub"){if(a.k!=null&&a.k!==ph.k)return;const v=+a.v;if(!(v>=0&&v<4)||ph.subs[ph.k][id]!==undefined)return;ph.subs[ph.k][id]=v;if(this.allIn(ph.subs[ph.k])){this.quizStep();return}}
   else return;
   if(["target","bridge","estimate","memory"].includes(t)&&this.allIn(ph.subs))return this.endMission();
   this.commit();
  },
+ scatterStep(){const ph=this.G.ph,s=ph.subs[ph.k],c={};Object.values(s).forEach(w=>c[w]=(c[w]||0)+1);const dup=Object.entries(c).filter(([w,n])=>n>1).map(([w])=>w);ph.res[ph.k]={hit:dup.length===0,dup};ph.k++;if(ph.k>=3)return this.endMission();this.commit()},
+ quizStep(){const ph=this.G.ph,s=ph.subs[ph.k],c=[0,0,0,0];Object.values(s).forEach(v=>c[v]++);const mx=Math.max(...c);const top=c.map((n,i)=>n===mx?i:-1).filter(i=>i>=0);const ans=ph.qs[ph.k].a;ph.res[ph.k]={pick:top.length===1?top[0]:-1,ok:top.length===1&&top[0]===ans,ans};ph.k++;if(ph.k>=5)return this.endMission();this.commit()},
  meldStep(){const ph=this.G.ph,s=ph.subs[ph.k],c={};Object.values(s).forEach(w=>c[w]=(c[w]||0)+1);
   const top=Object.entries(c).sort((a,b)=>b[1]-a[1])[0]||["",0];
   ph.res[ph.k]={word:top[0],n:top[1],hit:top[1]>=Math.ceil(this.G.players.length/2)&&top[1]>1};
@@ -394,6 +499,11 @@ const SV={G:null,send:null,save:null,
   if(t==="riddles"){const s=ph.solved.filter(Boolean).length;g=s===4?6:s>=2?3:0;detail=`${s} of 4 riddles solved.`}
   if(t==="sync"){const ok=ph.tapped.length===n;g=ok&&ph.resets<=2?6:ok?3:0;detail=ok?`Everyone tapped, with ${ph.resets} reset${ph.resets===1?"":"s"}.`:`Only ${ph.tapped.length} of ${n} tapped in time. ${ph.resets} resets.`}
   if(t==="heist"){const left=Object.values(ph.hands).some(h=>h.length);g=!left&&ph.mistakes===0?6:!left&&ph.mistakes===1?3:0;detail=left?"The heist ran out of time.":`${ph.mistakes} mistake${ph.mistakes===1?"":"s"}. ${ph.lost.length} card${ph.lost.length===1?"":"s"} lost.`}
+  if(t==="code"){const k=ph.guesses.length;g=ph.cracked?(k<=5?6:3):0;detail=ph.cracked?`Cracked in ${k} guess${k===1?"":"es"} by ${this.P(ph.cracked).name}. The code was ${ph.code}.`:`Not cracked. The code was ${ph.code}.`}
+  if(t==="map"){const k=ph.digs.length;g=ph.found?(k<=4?6:3):0;detail=ph.found?`Found in ${k} dig${k===1?"":"s"} by ${this.P(ph.found).name}.`:`Never found. It was buried at ${"ABCDEF"[ph.tx]}${ph.ty+1}.`}
+  if(t==="chain"){const k=ph.links.length;g=k>=12?6:k>=8?3:0;detail=`${k} link${k===1?"":"s"} and ${ph.breaks} break${ph.breaks===1?"":"s"}.`}
+  if(t==="scatter"){while(ph.res.length<3)ph.res.push({hit:false,dup:[]});const h=ph.res.filter(r=>r.hit).length;g=h===3?6:h===2?3:0;detail=`${h} of 3 prompts with no clashes.`}
+  if(t==="quiz"){while(ph.res.length<5)ph.res.push({pick:-1,ok:false,ans:ph.qs[ph.res.length].a});const k=ph.res.filter(r=>r.ok).length;g=k===5?6:k>=3?3:0;detail=`${k} of 5 answered correctly by the group.`}
   G.pot+=g;this.to("mresult",{g,detail,type:t});
  },
 
@@ -476,7 +586,8 @@ const SV={G:null,send:null,save:null,
   if(G.phase==="mission"){
    if(ph.type==="memory"&&ph.sub==="show"&&t>=ph.until){ph.sub="recall";ph.until=t+75000;delete ph.wordsShown;return this.commit()}
    if(ph.type==="estimate"&&ph.sub==="show"&&t>=ph.until){ph.sub="guess";ph.until=null;return this.commit()}
-   if(ph.until&&t>=ph.until&&["memory","riddles","sync"].includes(ph.type))return this.endMission();
+   if(ph.type==="chain"&&t>=ph.turnUntil){ph.breaks++;ph.turn++;ph.turnUntil=t+15000;if(ph.breaks>=3)return this.endMission();return this.commit()}
+   if(ph.until&&t>=ph.until&&["memory","riddles","sync","code","map","chain"].includes(ph.type))return this.endMission();
   }
   if(G.phase==="vreveal"&&t>=ph.nextAt){if(ph.shown<ph.list.length){ph.shown++;ph.nextAt=t+(ph.shown<ph.list.length?3000:2500);return this.commit()}return this.banish()}
   if(G.phase==="night"&&ph.done&&t>=ph.at)return this.to("morning",{m:G.murders[G.round]});
@@ -485,7 +596,7 @@ const SV={G:null,send:null,save:null,
  /* ----- what each phone may see ----- */
  done(id){const G=this.G,ph=G.ph;
   switch(G.phase){
-   case "mission":if(ph.type==="meld")return ph.subs[ph.k]&&ph.subs[ph.k][id]!==undefined;if(ph.type==="sync")return ph.tapped.includes(id);if(ph.type==="heist")return !(ph.hands[id]||[]).length;
+   case "mission":if(ph.type==="meld"||ph.type==="scatter"||ph.type==="quiz")return !!(ph.subs[ph.k]&&ph.subs[ph.k][id]!==undefined);if(["code","map","chain"].includes(ph.type))return false;if(ph.type==="sync")return ph.tapped.includes(id);if(ph.type==="heist")return !(ph.hands[id]||[]).length;
     return ph.subs&&ph.subs[id]!==undefined;
    case "vote":return !!ph.subs[id];
    case "armoury":return ph.scores[id]!==undefined;
@@ -510,6 +621,11 @@ const SV={G:null,send:null,save:null,
     if(ph.type==="meld"){P.k=ph.k;P.prompts=ph.prompts;P.res=ph.res;M.sub=ph.subs[ph.k]&&ph.subs[ph.k][id]}
     if(ph.type==="riddles"){P.q=ph.q.map(x=>x[0]);P.solved=ph.solved;P.wrong=ph.wrong}
     if(ph.type==="sync"){P.n=ph.tapped.length;P.resets=ph.resets;P.flash=ph.flash;P.recent=t-ph.flash<1800;M.sub=ph.tapped.includes(id)}
+    if(ph.type==="code"){P.guesses=ph.guesses;P.max=ph.max;P.cracked=ph.cracked}
+    if(ph.type==="map"){P.digs=ph.digs;P.max=ph.max;P.found=ph.found}
+    if(ph.type==="chain"){P.cat=ph.cat;P.cur=ph.order[ph.turn%ph.order.length];P.links=ph.links.slice(-8);P.n=ph.links.length;P.letter=ph.letter;P.target=ph.target;P.breaks=ph.breaks;P.turnLeft=Math.max(0,ph.turnUntil-t)}
+    if(ph.type==="scatter"){P.k=ph.k;P.prompts=ph.prompts;P.res=ph.res;M.sub=ph.subs[ph.k]&&ph.subs[ph.k][id]}
+    if(ph.type==="quiz"){P.k=ph.k;P.q=ph.qs[ph.k]?{q:ph.qs[ph.k].q,o:ph.qs[ph.k].o}:null;P.res=ph.res;M.sub=ph.subs[ph.k]&&ph.subs[ph.k][id]}
     if(ph.type==="heist"){P.pile=ph.pile.slice(-6);P.played=ph.pile.length;P.mistakes=ph.mistakes;P.lost=ph.lost;P.left=Object.fromEntries(Object.entries(ph.hands).map(([k,v])=>[k,v.length]));M.hand=ph.hands[id]||[]}
     break;
    case "mresult":Object.assign(P,ph);break;
@@ -664,7 +780,7 @@ function joinGame(code,name){const old=ld(MK);ME={code,token:(old&&old.code===co
 
 /* ---------- view handling ---------- */
 function setView(v){v.at=Date.now();const prev=V;V=v;
- if(!prev||prev.pub.phase!==v.pub.phase||prev.pub.round!==v.pub.round){A={};UI.flip=false;lastHtml="";onPhase(v)}
+ if(!prev||prev.pub.phase!==v.pub.phase||prev.pub.round!==v.pub.round){if(A.raf)cancelAnimationFrame(A.raf);A={};UI.flip=false;lastHtml="";onPhase(v)}
  else if(v.pub.phase==="vreveal"&&prev.pub.ph.list.length!==v.pub.ph.list.length)FX.vote();
  else if(v.pub.phase==="mission"&&v.pub.ph.type==="sync"&&prev.pub.ph.flash!==v.pub.ph.flash){buzz(200);FX.fail()}
  document.body.classList.toggle("night",v.pub.phase==="night");
@@ -696,7 +812,7 @@ const lock=(msg,done,n)=>`<div class="panel center">${msg?`<p class="lede">${msg
 function wireHold(){app.querySelectorAll(".hold").forEach(el=>{const k=el.dataset.hk;if(UI.holding&&UI.holding===k)el.classList.add("show");el.addEventListener("pointerdown",e=>{e.preventDefault();UI.holding=k;el.classList.add("show")});el.addEventListener("contextmenu",e=>e.preventDefault())})}
 function releaseHold(){UI.holding=null;document.querySelectorAll(".hold.show").forEach(el=>el.classList.remove("show"))}
 document.addEventListener("pointerup",releaseHold);document.addEventListener("pointercancel",releaseHold);
-function fmtScore(t,v,roll){if(v==null)return "no score";switch(t){case "reaction":return v>=99999?"Too early":v+" ms";case "taps":return v+" taps";case "maths":return v+" s";case "tenseconds":return Number(v).toFixed(2)+" s off";case "digits":return v+" digits";case "bid":return v+" gold";case "dice":return roll?roll[0]+" + "+roll[1]+" = "+v:v;case "higherlower":return v+" in a row"}return v}
+function fmtScore(t,v,roll){if(v==null)return "no score";if(["lock","arrows","shade","spell"].includes(t))return v+" s";if(t==="pairs")return v+" flips";switch(t){case "reaction":return v>=99999?"Too early":v+" ms";case "taps":return v+" taps";case "maths":return v+" s";case "tenseconds":return Number(v).toFixed(2)+" s off";case "digits":return v+" digits";case "bid":return v+" gold";case "dice":return roll?roll[0]+" + "+roll[1]+" = "+v:v;case "higherlower":return v+" in a row"}return v}
 
 function bar(){const b=$("#bar");b.hidden=false;const {pub,me}=V;const mine=pl(me.id);const endgame=["reveal","judge","scores","final","finale"].includes(pub.phase);
  b.innerHTML=`<span class="rl">${pub.phase==="lobby"?"Room "+esc(pub.code):esc(ADV[pub.adv].name)+(endgame?" · End Game":" · Round "+RNAME[pub.round])}</span><button class="pill" id="plb" aria-label="Players">${pub.players.filter(p=>p.conn).length}/${pub.players.length}</button><span class="pill">Pot <b>${pub.pot}</b></span><span class="pill">Me <b>${mine?mine.gold:0}</b></span><button class="pill ${SND.mute?"sec":""}" id="mute" aria-label="${SND.mute?"Unmute":"Mute"}">${SND.mute?"Muted":"Mute"}</button>`;
@@ -782,6 +898,17 @@ function render(){
    else if(t==="meld"){const k=ph.k;h+=ph.res.map((r,i)=>`<div class="vrow ${r.hit?"fin":""}"><span>${esc(ph.prompts[i])}</span><b>${r.hit?esc(r.word)+" ✓":"no match"}</b></div>`).join("");
     if(me.priv.sub!=null)h+=lock(`You typed "${esc(me.priv.sub)}".`,done,n);
     else if(sending)h+=SENDING;else{h+=`<p class="eyebrow center" style="margin-top:16px">Prompt ${k+1} of 3</p><p class="lede center">${esc(ph.prompts[k])}</p><form id="mlf" class="row"><input class="txt" id="ml" autocomplete="off" placeholder="One word"><button class="btn sm">Lock</button></form>`;after.push(()=>qf("#mlf",()=>{const v=$("#ml").value.trim();if(v)act({t:"sub",v,k})}))}}
+   else if(t==="code"){h+=`<div class="stack t">${ph.guesses.map(g=>`<div class="vrow"><span>${pname(g.id)}: <b style="letter-spacing:.25em">${g.g}</b></span><b>${g.b+g.w===0?"nothing right":"●".repeat(g.b)+"○".repeat(g.w)}</b></div>`).join("")}</div>
+    ${ph.cracked?`<p class="lede center">Cracked by ${pname(ph.cracked)}.</p>`:`<p class="small center">${ph.max-ph.guesses.length} guesses left. ● right digit in the right place. ○ right digit, wrong place.</p><form id="cdf" class="row"><input class="txt code" id="cdi" inputmode="numeric" maxlength="3" autocomplete="off" placeholder="000" aria-label="Three digit guess"><button class="btn sm">Try</button></form>`}`;
+    after.push(()=>qf("#cdf",()=>{const v=$("#cdi").value.replace(/\D/g,"");if(v.length===3){act({t:"guess",v});$("#cdi").value=""}}))}
+   else if(t==="map"){const dug={};ph.digs.forEach(d=>dug[d.x+","+d.y]=d);h+=`<p class="small center">${ph.found?"Treasure found by "+pname(ph.found)+"!":(ph.max-ph.digs.length)+" digs left. A number shows how many squares away the treasure is."}</p><div class="mapgrid">${Array.from({length:36},(_,k)=>{const x=k%6,y=Math.floor(k/6),d=dug[x+","+y];return `<button data-x="${x}" data-y="${y}" class="${d?(d.d===0?"gold":"dug"):""}" ${d||ph.found?"disabled":""} aria-label="${"ABCDEF"[x]}${y+1}">${d?(d.d===0?"★":d.d):""}</button>`}).join("")}</div>`;after.push(()=>qa("[data-x]",b=>act({t:"dig",x:+b.dataset.x,y:+b.dataset.y})))}
+   else if(t==="chain"){const mine=ph.cur===me.id;h+=`<p class="small center">Category: ${esc(ph.cat)}. ${ph.n} of ${ph.target} links. ${ph.breaks} of 3 breaks.</p><div class="chips" style="justify-content:center">${ph.links.map(l=>`<span class="chip ok">${esc(l.w)}</span>`).join("")}</div>
+    <div class="panel center"><p class="eyebrow">${mine?"Your turn":pname(ph.cur)+"'s turn"}</p><p class="lede">${ph.letter?"Starts with <b>"+esc(ph.letter.toUpperCase())+"</b>":"Any animal to start"}</p><p class="cd" data-until="${V.at+ph.turnLeft}">${Math.ceil(ph.turnLeft/1000)}</p></div>
+    ${mine?`<form id="chf" class="row"><input class="txt" id="chi" autocomplete="off" placeholder="${ph.letter?esc(ph.letter.toUpperCase())+"…":"An animal"}" aria-label="Your animal"><button class="btn sm">Go</button></form>`:""}`;after.push(()=>{qf("#chf",()=>{const v=$("#chi").value.trim();if(v){act({t:"word",v});$("#chi").value=""}});const i=$("#chi");if(i&&document.activeElement!==i)i.focus()})}
+   else if(t==="scatter"){const k=ph.k;h+=ph.res.map((r,i)=>`<div class="vrow ${r.hit?"fin":""}"><span>${esc(ph.prompts[i])}</span><b>${r.hit?"all different ✓":"clash: "+esc(r.dup.join(", "))}</b></div>`).join("");
+    if(me.priv.sub!=null)h+=lock(`You typed "${esc(me.priv.sub)}".`,done,n);else if(sending)h+=SENDING;else{h+=`<p class="eyebrow center" style="margin-top:16px">Prompt ${k+1} of 3</p><p class="lede center">${esc(ph.prompts[k])}</p><p class="small center">Pick something nobody else will.</p><form id="scf" class="row"><input class="txt" id="sci" autocomplete="off" placeholder="One word" aria-label="Your word"><button class="btn sm">Lock</button></form>`;after.push(()=>qf("#scf",()=>{const v=$("#sci").value.trim();if(v)act({t:"sub",v,k})}))}}
+   else if(t==="quiz"){h+=ph.res.map((r,i)=>`<div class="vrow ${r.ok?"fin":""}"><span>Question ${i+1}</span><b>${r.ok?"correct ✓":"wrong"}</b></div>`).join("");
+    if(ph.q){if(me.priv.sub!=null)h+=lock(`You answered ${"ABCD"[me.priv.sub]}.`,done,n);else if(sending)h+=SENDING;else{h+=`<p class="eyebrow center" style="margin-top:16px">Question ${ph.k+1} of 5</p><p class="lede center">${esc(ph.q.q)}</p><div class="stack t">${ph.q.o.map((o,i)=>`<button class="btn ghost pick" data-q="${i}">${"ABCD"[i]}. ${esc(o)}</button>`).join("")}</div>`;after.push(()=>qa("[data-q]",b=>act({t:"sub",v:+b.dataset.q,k:ph.k})))}}}
    break}
   case "mresult":h=`${hd("Mission "+(pub.round+1),ph.g?"+"+ph.g+" gold":"No gold")}<div class="panel center"><p class="lede">${esc(ph.detail)}</p><p class="small">Prize pot: ${pub.pot} gold</p></div><p class="small center">The game master opens the Round Table next.</p>`;break;
   case "debate":h=`${hd("The Round Table","Debate")}${pub.silenced?`<p class="notice">${pname(pub.silenced)} was murdered and may not speak or vote this round.</p>`:""}<p class="lede center">Who acted strangely in the mission? Talk it out on the call.</p>${pub.left!=null?`<p class="cd" id="cd">${fmt(left())}</p>`:""}<p class="small center">The game master opens the vote when the debate is done.</p>`;break;
@@ -848,6 +975,24 @@ function startGame(type,seed){const el=$("#ag");if(!el)return;A.active=true;cons
  else if(type==="higherlower"){const cards=[];let last=0;for(let i=0;i<22;i++){let c;do{c=1+Math.floor(R()*13)}while(c===last);cards.push(c);last=c}
    const nm=c=>c===1?"A":c===11?"J":c===12?"Q":c===13?"K":c;let i=0,streak=0;const draw=()=>{set(`<p class="eyebrow center">Streak: ${streak}</p><div class="hand"><div class="pc top new">${nm(cards[i])}</div></div><div class="row"><button class="btn" id="hi">Higher</button><button class="btn ghost" id="lo">Lower</button></div><p class="small center">Ace low, King high. 20 in a row maxes out.</p>`);
     const pick=up=>{const ok=up?cards[i+1]>cards[i]:cards[i+1]<cards[i];i++;if(ok){streak++;if(streak>=20){set(`<p class="lede center">20 in a row. Flawless.</p>`);send(20)}else draw()}else{set(`<div class="hand"><div class="pc top bad">${nm(cards[i])}</div></div><p class="lede center">Wrong. ${streak} in a row.</p>`);send(streak)}};$("#hi").onclick=()=>pick(true);$("#lo").onclick=()=>pick(false)};draw()}
+ else if(type==="lock"){let pin=0,pen=0,t0=0,pos=0,dir=1,zone=0,speed=0.9;const zones=Array.from({length:5},()=>Math.floor(6+R()*76));
+  const draw=()=>{set(`<p class="eyebrow center">Pin ${pin+1} of 5${pen?" · +"+pen+"s":""}</p><div class="lockbar"><div class="zone" style="left:${zone}%"></div><div class="pin" id="lp"></div></div><button class="tapbtn" id="lk" style="width:160px;height:160px;font-size:22px">SET PIN</button>`);
+   $("#lk").onclick=()=>{if(pos>=zone&&pos<=zone+18){pin++;FX.chime();if(pin>=5){cancelAnimationFrame(A.raf);const s=Math.round(((performance.now()-t0)/1000+pen)*10)/10;set(`<p class="lede center">Unlocked in ${s} seconds</p>`);send(s);return}zone=zones[pin];speed+=0.3;draw()}else{pen+=2;FX.fail();draw()}}};
+  const loop=()=>{pos+=dir*speed;if(pos>=100){pos=100;dir=-1}if(pos<=0){pos=0;dir=1}const p=$("#lp");if(p)p.style.left=pos+"%";A.raf=requestAnimationFrame(loop)};
+  set(`<button class="btn big" id="ls">Pick the lock</button>`);$("#ls").onclick=()=>{t0=performance.now();zone=zones[0];draw();loop()}}
+ else if(type==="pairs"){const syms=["♠","♥","♦","♣","★","☾"];const deck=[...syms,...syms];for(let i=deck.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]]}let open=[],found=new Set(),flips=0,busy=false;
+  const draw=()=>{set(`<p class="eyebrow center">${flips} flips · ${found.size/2} of 6 pairs</p><div class="pgrid">${deck.map((s,i)=>`<button class="pcard ${found.has(i)||open.includes(i)?"up":""}" data-i="${i}" aria-label="Card ${i+1}">${found.has(i)||open.includes(i)?s:""}</button>`).join("")}</div>`);
+   el.querySelectorAll(".pcard").forEach(b=>b.onclick=()=>{const i=+b.dataset.i;if(busy||found.has(i)||open.includes(i))return;open.push(i);flips++;draw();if(open.length===2){busy=true;const [x,y]=open;if(deck[x]===deck[y]){found.add(x);found.add(y);open=[];busy=false;FX.chime();if(found.size===12){set(`<p class="lede center">All six pairs in ${flips} flips</p>`);send(flips);return}draw()}else setTimeout(()=>{open=[];busy=false;draw()},700)}})};draw()}
+ else if(type==="arrows"){const DIRS=["↑","→","↓","←"];const seq=Array.from({length:20},()=>Math.floor(R()*4));let i=0,pen=0,t0=0;
+  const draw=()=>{if(i>=20){const s=Math.round(((performance.now()-t0)/1000+pen)*10)/10;set(`<p class="lede center">${s} seconds</p>`);send(s);return}set(`<p class="eyebrow center">${i+1} of 20${pen?" · +"+pen+"s":""}</p><p class="bigg center" style="font-size:96px">${DIRS[seq[i]]}</p><div class="arrows">${DIRS.map((d,k)=>`<button data-d="${k}" aria-label="${["Up","Right","Down","Left"][k]}">${d}</button>`).join("")}</div>`);el.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{if(+b.dataset.d===seq[i]){i++;draw()}else{pen+=1;FX.fail();draw()}})};
+  set(`<button class="btn big" id="as">Start</button>`);$("#as").onclick=()=>{t0=performance.now();draw()}}
+ else if(type==="shade"){let lvl=0,pen=0,t0=0;const draw=()=>{if(lvl>=8){const s=Math.round(((performance.now()-t0)/1000+pen)*10)/10;set(`<p class="lede center">${s} seconds</p>`);send(s);return}const g=3+Math.min(3,Math.floor(lvl/2));const odd=Math.floor(R()*g*g);const hue=Math.floor(R()*360);const dl=13-lvl*1.3;
+   set(`<p class="eyebrow center">Level ${lvl+1} of 8${pen?" · +"+pen+"s":""}</p><div class="shade" style="grid-template-columns:repeat(${g},1fr)">${Array.from({length:g*g},(_,k)=>`<button data-k="${k}" style="background:hsl(${hue},55%,${k===odd?42+dl:42}%)" aria-label="Square ${k+1}"></button>`).join("")}</div><p class="small center">Tap the square that is a different shade.</p>`);el.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{if(+b.dataset.k===odd){lvl++;FX.chime();draw()}else{pen+=2;FX.fail()}})};
+  set(`<button class="btn big" id="ss">Start</button>`);$("#ss").onclick=()=>{t0=performance.now();draw()}}
+ else if(type==="spell"){const LIST=["LANTERN","DAGGER","CASTLE","GOBLET","TURRET","SHIELD","BANNER","THRONE","DUNGEON","CANDLE","TRAITOR","FAITHFUL","BETRAYAL","MURDER","BANISH","CHALICE","ARMOURY","PARAPET"];const pool=[...LIST],pick=[];for(let i=0;i<3;i++)pick.push(pool.splice(Math.floor(R()*pool.length),1)[0]);
+  const scr=w=>{const a=w.split("");for(let i=a.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[a[i],a[j]]=[a[j],a[i]]}const s=a.join("");return s===w?w.split("").reverse().join(""):s};const shown=pick.map(scr);let i=0,pen=0,t0=0;
+  const draw=()=>{if(i>=3){const s=Math.round(((performance.now()-t0)/1000+pen)*10)/10;set(`<p class="lede center">${s} seconds</p>`);send(s);return}set(`<p class="eyebrow center">Word ${i+1} of 3${pen?" · +"+pen+"s":""}</p><p class="bigg center" style="font-size:40px;letter-spacing:.18em">${shown[i]}</p><form id="spf" class="row"><input class="txt" id="spi" autocomplete="off" autocapitalize="characters" aria-label="Unscrambled word"><button class="btn sm">Go</button></form><button class="link" id="spk">Skip this word (+10s)</button>`);$("#spi").focus();$("#spf").onsubmit=e=>{e.preventDefault();if($("#spi").value.trim().toUpperCase()===pick[i]){i++;FX.chime();draw()}else{pen+=2;FX.fail();$("#spi").value="";$("#spi").focus()}};$("#spk").onclick=()=>{pen+=10;i++;draw()}};
+  set(`<button class="btn big" id="sps">Start</button>`);$("#sps").onclick=()=>{t0=performance.now();draw()}}
  else{A.active=false}
 }
 function drawCoins(seed,count){const c=$("#cv");if(!c)return;const R=rng(seed),x=c.getContext("2d");x.fillStyle="#1a1409";x.fillRect(0,0,c.width,c.height);for(let i=0;i<count;i++){const px=18+R()*(c.width-36),py=18+R()*(c.height-36),r=8+R()*4;const g=x.createRadialGradient(px-3,py-3,2,px,py,r);g.addColorStop(0,"#fff2c0");g.addColorStop(.5,"#d4a849");g.addColorStop(1,"#8a6420");x.fillStyle=g;x.beginPath();x.arc(px,py,r,0,7);x.fill();x.strokeStyle="#f4dc98";x.lineWidth=1;x.stroke()}}
@@ -873,7 +1018,7 @@ function init(){
  SV.save=g=>sv(HK,{G:g});
  setInterval(()=>{if(isHost)hostBeat()},3000);
  SV.send=(id,v)=>{if(id==="p0"){if(isHost)setView(v)}else{const c=conns[id];if(c&&c.open)try{c.send({t:"view",v})}catch(e){}}};
- setInterval(()=>{if(isHost&&SV.G)SV.tick();else{flush();watchdog()}const el=$("#cd");if(el&&V&&V.pub.left!=null){const l=left();const s=Math.ceil(l/1000);el.textContent=fmt(l);el.classList.toggle("hot",l<10000);if(l>0&&s<=10&&s!==el._s){el._s=s;FX.tick()}}},400);
+ setInterval(()=>{if(isHost&&SV.G)SV.tick();else{flush();watchdog()}const el=$("#cd");if(el&&V&&V.pub.left!=null){const l=left();const s=Math.ceil(l/1000);el.textContent=fmt(l);el.classList.toggle("hot",l<10000);if(l>0&&s<=10&&s!==el._s){el._s=s;FX.tick()}}document.querySelectorAll("[data-until]").forEach(x=>{x.textContent=Math.max(0,Math.ceil((+x.dataset.until-Date.now())/1000))});},400);
  const me=ld(MK),hs=ld(HK);const hash=(location.hash||"").replace("#","").toUpperCase();
  if(me&&me.host&&hs&&hs.G&&hs.G.code===me.code&&(hash===""||hash===me.code)){hostResume();return}
  if(me&&!me.host&&me.code&&(hash===""||hash===me.code)){joinGame(me.code,me.name);return}
