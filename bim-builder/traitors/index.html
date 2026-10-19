@@ -559,9 +559,9 @@ async function keepAwake(){try{await navigator.wakeLock.request("screen")}catch(
 const ICE={iceServers:[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun1.l.google.com:19302"},{urls:"turn:openrelay.metered.ca:80",username:"openrelayproject",credential:"openrelayproject"},{urls:"turn:openrelay.metered.ca:443",username:"openrelayproject",credential:"openrelayproject"},{urls:"turn:openrelay.metered.ca:443?transport=tcp",username:"openrelayproject",credential:"openrelayproject"}]};
 function act(a){if(isHost)SV.act("p0",a);else if(hostConn&&hostConn.open)try{hostConn.send({t:"act",a})}catch(e){}}
 function gm(a){if(!isHost)return;if(a.t==="kick"){const c=conns[a.id];if(c){try{c.send({t:"err",m:"The game master removed you from the game."})}catch(e){}setTimeout(()=>{try{c.close()}catch(e){}},300);delete conns[a.id]}}SV.gm(a)}
-function setOnline(o){online=o;$("#net").hidden=o||!ME}
+let offT=null;function setOnline(o){online=o;clearTimeout(offT);if(o||!ME){$("#net").hidden=true}else{offT=setTimeout(()=>{if(!online&&ME)$("#net").hidden=false},1500)}}
 function hostUp(){
- wait("Opening the castle…");
+ if(!V)wait("Opening the castle…");
  try{peer&&peer.destroy()}catch(e){}
  peer=new Peer("traitors-"+ME.code.toLowerCase(),{debug:0,config:ICE});
  peer.on("open",()=>{setOnline(true);SV.commit()});
@@ -570,8 +570,8 @@ function hostUp(){
    if(d.t==="join"){const r=SV.join(d.token,d.name);if(r.err){c.send({t:"err",m:r.err});return}c.pid=r.id;conns[r.id]=c;SV.setConn(r.id,true);c.send({t:"view",v:SV.view(r.id)})}
    else if(d.t==="act"&&c.pid)SV.act(c.pid,d.a)}catch(e){console.error(e)}});
   const gone=()=>{if(c.pid&&conns[c.pid]===c){delete conns[c.pid];SV.setConn(c.pid,false)}};c.on("close",gone);c.on("error",gone)});
- peer.on("disconnected",()=>{setOnline(false);setTimeout(()=>{if(!leaving)try{peer.reconnect()}catch(e){}},1500)});
- peer.on("error",e=>{setOnline(false);if(e.type==="peer-unavailable")return;setTimeout(()=>{if(!leaving)hostUp()},5000)});
+ peer.on("disconnected",()=>{setTimeout(()=>{if(!leaving&&peer&&!peer.destroyed&&peer.disconnected)try{peer.reconnect()}catch(x){}},800)});
+ peer.on("error",e=>{if(e.type==="peer-unavailable")return;if(peer.destroyed){setOnline(false);setTimeout(()=>{if(!leaving)hostUp()},e.type==="unavailable-id"?4000:2000)}});
 }
 function connect(){
  if(leaving)return;try{peer&&peer.destroy()}catch(e){}
@@ -582,8 +582,8 @@ function connect(){
   hostConn.on("data",d=>{if(d.t==="view")setView(d.v);else if(d.t==="err"){err=d.m;bail()}});
   hostConn.on("close",()=>{setOnline(false);retry()});hostConn.on("error",()=>{setOnline(false);retry()});
   setTimeout(()=>{if(!opened&&!leaving){setOnline(false);retry()}},9000)});
- peer.on("error",e=>{setOnline(false);if(e.type==="peer-unavailable"&&!V){err="No game found with code "+ME.code+". Check the code, and make sure the game master has the game open.";bail();return}retry()});
- peer.on("disconnected",()=>{setOnline(false);retry()});
+ peer.on("error",e=>{if(e.type==="peer-unavailable"){if(!V){err="No game found with code "+ME.code+". Check the code, and make sure the game master has the game open.";bail();return}setOnline(false);retry();return}if(peer.destroyed){setOnline(false);retry()}});
+ peer.on("disconnected",()=>{if(hostConn&&hostConn.open){setTimeout(()=>{if(!leaving&&peer&&!peer.destroyed&&peer.disconnected)try{peer.reconnect()}catch(x){}},800)}else{setOnline(false);retry()}});
 }
 function retry(){if(leaving)return;clearTimeout(rt);rt=setTimeout(connect,3000)}
 function bail(){leaving=true;sv(MK,null);try{peer&&peer.destroy()}catch(e){}V=null;ME=null;$("#bar").hidden=true;$("#gm").hidden=true;$("#net").hidden=true;home();leaving=false}
@@ -816,5 +816,8 @@ function init(){
  if(me&&!me.host&&me.code&&(hash===""||hash===me.code)){joinGame(me.code,me.name);return}
  home();
 }
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState!=="visible"||leaving||!ME)return;
+ if(isHost){if(peer&&peer.destroyed)hostUp();else if(peer&&peer.disconnected)try{peer.reconnect()}catch(e){}}
+ else{if(!(hostConn&&hostConn.open)){clearTimeout(rt);connect()}else if(peer&&peer.disconnected)try{peer.reconnect()}catch(e){}}});
 init();
 </script></body></html>
