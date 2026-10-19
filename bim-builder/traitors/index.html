@@ -87,7 +87,7 @@ textarea.txt{min-height:150px;resize:vertical}
 .flip{perspective:1200px;margin:18px auto;width:min(300px,100%);aspect-ratio:5/7}
 .flip .fi{position:relative;width:100%;height:100%;transition:transform .9s cubic-bezier(.2,.8,.2,1);transform-style:preserve-3d}
 .flip.on .fi{transform:rotateY(180deg)}
-.flip .fa,.flip .fb{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border:1px solid var(--gold);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center;
+.flip .fa,.flip .fb{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border:1px solid var(--gold);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;overflow:hidden;text-align:center;
  background:radial-gradient(circle at 50% 35%,#2a2011,#100c08 70%);box-shadow:inset 0 0 0 6px #100c08,inset 0 0 0 7px var(--gold-d),0 20px 50px rgba(0,0,0,.6)}
 .flip .fb{transform:rotateY(180deg)}
 .flip .fb.t{background:radial-gradient(circle at 50% 35%,#4a1210,#140707 70%);border-color:#c0453c}
@@ -220,13 +220,36 @@ canvas.arcade{display:block;width:100%;max-width:340px;margin:10px auto;border:1
 canvas.drawc{display:block;width:100%;aspect-ratio:1;border:2px solid var(--gold-d);border-radius:6px;touch-action:none;background:#f3ead5}
 .holes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
 .hole{position:relative;aspect-ratio:1;background:#07060a;border:2px solid #3a2c14;border-radius:40% 40% 6px 6px;overflow:hidden;padding:0}
-.ghost{position:absolute;left:22%;width:56%;bottom:-70%;height:70%;background:#efe6d2;border-radius:50% 50% 10% 10%;transition:bottom .12s;box-shadow:0 0 14px rgba(239,230,210,.5)}
-.ghost::before,.ghost::after{content:"";position:absolute;top:28%;width:14%;height:16%;background:#1a1410;border-radius:50%}.ghost::before{left:26%}.ghost::after{right:26%}
-.hole.up .ghost{bottom:4%}.hole.hit{background:#3a1414}
+.wghost{position:absolute;left:22%;width:56%;bottom:-70%;height:70%;background:#efe6d2;border-radius:50% 50% 10% 10%;transition:bottom .12s;box-shadow:0 0 14px rgba(239,230,210,.5)}
+.wghost::before,.wghost::after{content:"";position:absolute;top:28%;width:14%;height:16%;background:#1a1410;border-radius:50%}.wghost::before{left:26%}.wghost::after{right:26%}
+.hole.up .wghost{bottom:4%}.hole.hit{background:#3a1414}
 .fuse{height:16px;background:var(--panel);border:1px solid var(--gold-d);border-radius:8px;margin:18px 0;overflow:hidden}
 .burn{height:100%;width:0;background:linear-gradient(90deg,#c9a45c,#ff7a1a,#ff3a1a)}
+#scene{position:fixed;inset:0;z-index:-2;overflow:hidden;background:var(--bg)}
+#scene .layer{position:absolute;inset:0;background-size:cover;background-position:center top;opacity:0;transition:opacity 1.4s ease}
+#scene .layer.on{opacity:1}
+#scene::after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(13,11,9,.45),rgba(13,11,9,.72) 40%,rgba(13,11,9,.95) 85%,var(--bg))}
+#embers{position:fixed;inset:0;z-index:0;pointer-events:none}
+#wrap,#gm,#sheet,#fx{position:relative}
+#wrap{z-index:1}
+.crest{vertical-align:-6px;margin-right:2px;flex:none}
+#rounds{display:flex;gap:6px;justify-content:center;padding:4px 0 2px;flex-basis:100%}
+#rounds svg{width:14px;height:15px}
+#rounds svg path{fill:transparent;stroke:var(--gold-d);stroke-width:3}
+#rounds svg.done path{fill:var(--gold);stroke:var(--gold)}
+#rounds svg.cur path{fill:#3a2c14;stroke:var(--gold-l);filter:drop-shadow(0 0 4px rgba(231,201,131,.8))}
+#bar{flex-wrap:wrap}
+.roleart{width:62%;max-width:180px;border-radius:6px;border:1px solid var(--gold-d);margin-bottom:8px;box-shadow:0 8px 24px rgba(0,0,0,.6)}
+.flycoin{position:fixed;z-index:50;width:24px;height:24px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff2c0,#d4a849 50%,#8a6420);border:1px solid #f4dc98;pointer-events:none;box-shadow:0 0 10px rgba(212,168,73,.6)}
+.pill.pulse{transform:scale(1.15);transition:transform .15s}
+.menu{display:grid;gap:12px;margin:18px 0}
+.menu .btn{padding:18px;font-size:16px}
+.menu .sub{display:block;font-family:var(--body);font-size:15px;text-transform:none;letter-spacing:0;font-weight:500;opacity:.8;margin-top:2px}
+.rules h3{font-family:var(--display);font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:18px 0 6px}
+.rules p{margin:6px 0}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}}
 </style></head><body>
+<div id="scene" aria-hidden="true"></div>
 <div id="wrap"><div id="bar" hidden></div><main id="app"></main></div>
 <div id="gm" hidden><div class="in"></div></div>
 <div id="sheet" hidden><div class="in"></div></div>
@@ -447,6 +470,16 @@ const MUSIC_CLIPS={
  night:"https://dnznrvs05pmza.cloudfront.net/lyria3-pro/5cc56f86-aac4-458e-90a0-199a1f1bb770/Traitors_Castle__Night.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMDU5ODIwNjkxZTYzN2NhMyIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MjU2NjI0OX0.QzcG0kzRIS0BS3qreP0GYWqZQ9XzSfPZgDK3ZIEwWSQ",
  title:"https://dnznrvs05pmza.cloudfront.net/lyria3-pro/4758580a-b022-4ffe-af55-ae7f1b00fa46/Traitors_Castle__Title_theme.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiNmQ5ZWVjZDkwMTY5NDg1YiIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MjU2MjI2NX0.t3FlIMtRJDSFJC87YdVYpURXuMXy4Fk_-lHCG4iypxM",
  sting:"https://dnznrvs05pmza.cloudfront.net/lyria3-clip/e584aa1a-497e-4546-9047-2decde9ba859/Traitors_Castle__Reveal_sting.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMmY4N2QyNGZjMmIxOGIxMyIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MjU4NTU1MX0.kTiiEdq2mCxtjprFqj-H1hY3vt9KDlbYjVvstH307Iw"
+};
+const ART={
+ castle:"https://dnznrvs05pmza.cloudfront.net/gemini/gemini-3-pro-image/images/16f824ef-7288-402b-91b9-f44c29f34b7f/63196afb-5cba-496d-9d11-523cbdd2429b/Dark_gothic_Scottish_highland_castle_at_night_on_a_cliff_abo.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMDA4OTZhMmE0ZDQyMTEyNiIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MjU2MDgxMH0.ZhOeZb1zHbq-wHD9IZW90CM4dK_kXNL3qSlWKQqRUkU",
+ faithful:"https://dnznrvs05pmza.cloudfront.net/gemini/gemini-3-pro-image/images/f7472cfd-0ae2-4f1a-a67a-ec4f7db75e75/1a3942a5-a046-49d4-820d-53cd1930d87e/Heraldic_crest_for_the_Faithful__a_white_marble_shield_with_.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMWEyZjgwOTYyOWVjM2QxNCIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MjYwMzkyNn0.8T0bXNUebs0PV-EfYtcj9hq6wSNGJq2D912QzrdJ2to",
+ traitor:"https://dnznrvs05pmza.cloudfront.net/gemini/gemini-3-pro-image/images/ea09373f-d8d5-40d7-8fc1-c24eece6b5ec/a48a388c-c5dc-43a7-bb9a-83eac4b4d687/Heraldic_crest_for_the_Traitors__a_black_shield_with_a_crims.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiZTA0ODU0ZmJiMmZlMDk5MyIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MjU3MTEzMX0.ZmvccwgWWAlKW2QpTtQTxtvXb2Tz9Woo52m7Mg_BJg4",
+ table:"https://dnznrvs05pmza.cloudfront.net/gemini/gemini-3-pro-image/images/219b1139-f2b8-42d0-93bc-097810588c69/16666077-15ba-4467-bcc7-3ea79b64aa1f/A_grand_candlelit_round_table_in_a_gothic_castle_hall__empty.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiZjY4ZTUxNWRhZTI5MWRkYSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MjU3NjQ3N30.AcvNk1demCwMZSHfeGYVRgoHGJhFG9go0Dg3A2wd1hA",
+ corridor:"https://dnznrvs05pmza.cloudfront.net/gemini/gemini-3-pro-image/images/6db2ad74-7d6a-4483-bb8b-4a710e1061d9/4adcf937-2ae4-4a74-9d04-43324be71a4b/A_castle_corridor_at_midnight_lit_by_a_single_lantern__a_lon.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiNjlkYmUwOWVjNTUxNzAzMCIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MjYwNjM2Nn0.xP80ThB-ZMpikunDTwl7EJBAZm-HhVZ33qTWmgOnJoI",
+ dawn:"https://dnznrvs05pmza.cloudfront.net/gemini/gemini-3-pro-image/images/ef444844-c4f8-4195-901f-ffd3c640e037/80824315-5a1f-4c1e-9cad-e8eb6eaafb46/Dawn_breaking_over_a_gothic_Scottish_castle__pale_gold_sunri.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMDMwM2FhMzc0MGZmNGY2MCIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MjU2ODYzMX0.45ZM45tZNcWmN1AfqXjFDBcFZLcyXfAPhBEuTttUkE4",
+ gates:"https://dnznrvs05pmza.cloudfront.net/gemini/gemini-3-pro-image/images/6d85c5f1-8f76-488a-914d-0ae1df217690/86adeb0f-1c95-4dda-a2a4-5cbf8f6106c7/Heavy_iron_studded_castle_gates_swinging_open_onto_a_dark_ra.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMmM5NGQ0ZDM1NjEwMThjNyIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MjYxMzcxNX0.CZDtilPdnYLSTo9chV_IePXBk5IVV0OEHkUVrTdgwY0",
+ treasure:"https://dnznrvs05pmza.cloudfront.net/gemini/gemini-3-pro-image/images/dcc93582-bb71-4258-bec3-3b3d4233d2b1/f752a00c-d0da-4abe-b208-cdd243a8c8db/A_vast_treasure_pile_of_gold_coins_and_a_golden_chalice_on_a.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiYzk0NTZjNjdiMzJhYjZmNSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MjUzOTc1MX0.kBvDFu7ha75-nfwGsvsCIENy_Ogx3iWRenkxn7_Y9G0"
 };
 /* ---------- game engine (runs on the host phone) ---------- */
 const rnd=n=>Math.floor(Math.random()*n);
@@ -831,6 +864,7 @@ const HK="tl_host",MK="tl_me";
 const REW={S:"Shield",D:"Dagger","1":"1 gold piece","2":"2 gold pieces"};
 const RDESC={S:"If you are murdered, it saves you once. Used automatically.",D:"At a Round Table, tick the box to make your vote count twice (and earn double if you are right).","1":"Added to your treasure chest.","2":"Added to your treasure chest."};
 const UI={flip:false,holding:null};let lastHtml="";
+let homeMode=false;
 let V=null,ME=null,isHost=false,peer=null,hostConn=null,conns={},A={},leaving=false,err="",confirmLeave=false,after=[],online=false,rt=null;
 const pl=id=>V&&V.pub.players.find(x=>x.id===id);
 const pname=id=>{const p=pl(id);return p?esc(p.name):"?"};
@@ -911,7 +945,7 @@ function act(a){a._p=V?V.pub.phase:null;a._r=V?V.pub.round:null;if(isHost){SV.ac
 function flush(){if(!(hostConn&&hostConn.open))return;const t=Date.now();pend=pend.filter(a=>(a._n||0)<10);for(const a of pend){if(a._s&&t-a._s<2500)continue;a._s=t;a._n=(a._n||0)+1;try{hostConn.send({t:"act",a})}catch(e){}}}
 function gm(a){if(!isHost)return;if(a.t==="kick"){const c=conns[a.id];if(c){try{c.send({t:"err",m:"The game master removed you from the game."})}catch(e){}setTimeout(()=>{try{c.close()}catch(e){}},300);delete conns[a.id]}}SV.gm(a)}
 let offT=null;function setOnline(o){online=o;clearTimeout(offT);if(o||!ME){$("#net").hidden=true}else{offT=setTimeout(()=>{if(!online&&ME)$("#net").hidden=false},1500)}}
-function hostUp(){
+function hostUp(){homeMode=false;
  if(!V)wait("Opening the castle…");
  const oldPeer=peer;peer=null;try{oldPeer&&oldPeer.destroy()}catch(e){}
  const p=new Peer("traitors-"+ME.code.toLowerCase(),{debug:0,config:ICE});peer=p;
@@ -942,30 +976,47 @@ function connect(){
 }
 function watchdog(){if(isHost||!ME||leaving||document.visibilityState!=="visible")return;if(hostConn&&hostConn.open&&lastRx&&Date.now()-lastRx>15000){lastRx=Date.now();setOnline(false);connect()}}
 function retry(){if(leaving)return;clearTimeout(rt);rt=setTimeout(connect,3000)}
-function bail(){leaving=true;clearTimeout(rt);sv(MK,null);try{peer&&peer.destroy()}catch(e){}hostConn=null;V=null;ME=null;$("#bar").hidden=true;$("#gm").hidden=true;$("#net").hidden=true;home();leaving=false}
+function bail(){leaving=true;clearTimeout(rt);sv(MK,null);try{peer&&peer.destroy()}catch(e){}hostConn=null;V=null;ME=null;homeMode=false;$("#bar").hidden=true;$("#gm").hidden=true;$("#net").hidden=true;home();leaving=false}
 function leave(){leaving=true;sv(MK,null);if(isHost)sv(HK,null);try{peer&&peer.destroy()}catch(e){}location.hash="";location.reload()}
 
 /* ---------- screens ---------- */
 function wait(t,back){app.innerHTML=`<div class="hd" style="padding-top:80px"><p class="eyebrow">The Traitors</p><div class="rule"><i></i></div><p class="lede">${esc(t)}</p><p class="small center" id="wm"></p>${back?`<button class="link" id="wb">Use a different code or name</button>`:""}</div>`;const b=$("#wb");if(b)b.onclick=()=>{err="";bail()}}
 function waitMsg(t){const el=$("#wm");if(el)el.textContent=t}
-function home(){musicStop();
- const saved=ld(HK),me=ld(MK);const hash=(location.hash||"").replace("#","").toUpperCase();
- app.innerHTML=`<section class="hd" style="padding-top:44px"><p class="eyebrow">Welcome to the castle</p><div class="rule"><i></i></div><h1 class="mega">The Traitors</h1><p class="lede">Play live from anywhere. One game master hosts, everyone else joins with a code.</p></section>
+function home(){musicStop();setScene("castle");homeMode=true;$("#bar").hidden=true;$("#gm").hidden=true;fitBar();
+ const saved=ld(HK),me=ld(MK);const hash=(location.hash||"").replace("#","").toUpperCase();const live=!!(V&&ME);
+ const cont=live?{code:ME.code,host:isHost}:(me&&me.host&&saved&&saved.G&&saved.G.phase!=="finale")?{code:saved.G.code,host:true}:(me&&!me.host&&me.code)?{code:me.code,host:false}:null;
+ app.innerHTML=`<section class="hd" style="padding-top:36px"><p class="eyebrow">Welcome to the castle</p><div class="rule"><i></i></div><h1 class="mega">The Traitors</h1><p class="lede">Missions, murders and a Round Table of lies. Play live, from anywhere, on your phones.</p></section>
  ${err?`<p class="err center">${esc(err)}</p>`:""}
- <h2 class="sect">Join a game</h2>
- <form id="jf" class="stack t"><input class="txt code" id="jc" maxlength="4" placeholder="CODE" value="${esc(hash.length===4?hash:(me&&!me.host?me.code:""))}" autocomplete="off" autocapitalize="characters" aria-label="Room code"><input class="txt" id="jn" maxlength="16" placeholder="Your name" value="${esc(me?me.name:"")}" autocomplete="off" aria-label="Your name"><button class="btn big">Join the game</button></form>
- <h2 class="sect">Or host a game</h2>
- <form id="hf" class="stack t"><input class="txt" id="hn" maxlength="16" placeholder="Your name" value="${esc(me&&me.host?me.name:"")}" autocomplete="off" aria-label="Your name"><button class="btn big ghost">Host a new game</button></form>
- ${saved&&saved.G?`<button class="btn ghost" id="res">Resume game ${esc(saved.G.code)}</button>`:""}
+ <div class="menu">
+  ${cont?`<button class="btn big" id="cont">Continue game<span class="sub">Room ${esc(cont.code)}${cont.host?", you are the game master":""}</span></button>`:""}
+  <button class="btn ${cont?"ghost":""} big" id="bhost">Host a new game<span class="sub">You run it and invite the others</span></button>
+  <button class="btn ghost big" id="bjoin">Join a game<span class="sub">Enter a room code from the game master</span></button>
+  <button class="btn ghost big" id="bhow">How to play<span class="sub">Two minutes, then you are ready</span></button>
+ </div>
+ <div id="homeform"></div>
  <p class="small center">Have a voice or video call running alongside. Everything else happens here.</p>`;
  err="";
- $("#jf").onsubmit=e=>{e.preventDefault();const c=$("#jc").value.trim().toUpperCase(),n=$("#jn").value.trim();if(c.length!==4||!n){err="Enter the 4 letter room code and your name.";home();return}keepAwake();joinGame(c,n)};
- $("#hf").onsubmit=e=>{e.preventDefault();const n=$("#hn").value.trim();if(!n){err="Enter your name first.";home();return}keepAwake();hostNew(n)};
- const r=$("#res");if(r)r.onclick=()=>{keepAwake();hostResume()};
+ const showForm=which=>{const f=$("#homeform");if(which==="join"){f.innerHTML=`<form id="jf" class="stack t"><input class="txt code" id="jc" maxlength="4" placeholder="CODE" value="${esc(hash.length===4?hash:(me&&!me.host?me.code:""))}" autocomplete="off" autocapitalize="characters" aria-label="Room code"><input class="txt" id="jn" maxlength="16" placeholder="Your name" value="${esc(me?me.name:"")}" autocomplete="off" aria-label="Your name"><button class="btn big">Join the game</button></form>`;
+   $("#jf").onsubmit=e=>{e.preventDefault();const cd=$("#jc").value.trim().toUpperCase(),n=$("#jn").value.trim();if(cd.length!==4||!n){err="Enter the 4 letter room code and your name.";home();showForm("join");return}keepAwake();leaveQuiet();joinGame(cd,n)};$("#jn").focus()}
+  else{f.innerHTML=`<form id="hf" class="stack t"><input class="txt" id="hn" maxlength="16" placeholder="Your name" value="${esc(me?me.name:"")}" autocomplete="off" aria-label="Your name"><button class="btn big">Open the castle</button></form>`;
+   $("#hf").onsubmit=e=>{e.preventDefault();const n=$("#hn").value.trim();if(!n){err="Enter your name first.";home();showForm("host");return}keepAwake();leaveQuiet();hostNew(n)};$("#hn").focus()}
+  f.scrollIntoView({behavior:"smooth",block:"center"})};
+ $("#bjoin").onclick=()=>showForm("join");$("#bhost").onclick=()=>showForm("host");$("#bhow").onclick=howTo;
+ const ct=$("#cont");if(ct)ct.onclick=()=>{keepAwake();homeMode=false;if(live){render();return}if(cont.host)hostResume();else joinGame(cont.code,me.name)};
+ if(hash.length===4&&!cont)showForm("join");
 }
+function leaveQuiet(){leaving=true;clearTimeout(rt);try{peer&&peer.destroy()}catch(e){}peer=null;hostConn=null;conns={};V=null;ME=null;isHost=false;homeMode=false;leaving=false}
+function howTo(){const s=$("#sheet");s.hidden=false;s.querySelector(".in").innerHTML=`<div class="row" style="justify-content:space-between;align-items:center"><h2 class="sect" style="margin:0">How to play</h2><button class="btn sm ghost" id="hx">Close</button></div>
+ <div class="rules">
+ <h3>The idea</h3><p>Everyone is Faithful except one or two secret Traitors. The Faithful win gold together and try to spot the Traitors. The Traitors sabotage quietly, murder at night, and try to reach the final unmasked.</p>
+ <h3>Setting up</h3><p>One person hosts and gets a four letter room code. Everyone else opens the link, enters the code and their name. Have a call running so you can argue. Short of people? Add AI players.</p>
+ <h3>Each round</h3><p><b>Secret assignment.</b> Everyone checks their phone. Traitors get a sneaky task to complete during the mission.</p><p><b>Mission.</b> Play together for the prize pot. Arcade games, puzzles, drawing and memory.</p><p><b>Round Table.</b> Debate, then vote in secret on your own phone. The votes are revealed one by one and the most voted player loses 2 gold.</p><p><b>Armoury.</b> Every player for themselves. The winner draws a Shield, a Dagger or gold.</p><p><b>Night.</b> If a Traitor completed their assignment, they may murder a player, who loses 2 gold and sits out the next vote. A Shield saves you once. Traitors can even murder themselves as a bluff.</p>
+ <h3>The end game</h3><p>After four rounds the Traitors are revealed. Faithful earn gold for every vote they cast against a Traitor; Traitors earn gold for each murder the Faithful agree was earned. The two richest players reach the final and secretly choose Faithful or Traitor: both Faithful share the pot, one Traitor steals it, two Traitors hand it to third place.</p>
+ <h3>Tips</h3><p>Keep this page open on your phone during the game. Tap the player count at the top for scores, sound settings and to leave. The game master has an End game button and can end a mission early if someone drops out.</p>
+ </div>`;$("#hx").onclick=()=>{s.hidden=true}}
 function hostNew(name){const code=mkCode();ME={code,token:tok(),name,host:true};sv(MK,ME);isHost=true;leaving=false;SV.create(code,name,ME.token);location.hash=code;hostUp()}
-function hostResume(){const s=ld(HK);if(!s||!s.G){home();return}SV.G=s.G;const p0=s.G.players[0];ME={code:s.G.code,token:p0.token,name:p0.name,host:true};sv(MK,ME);isHost=true;leaving=false;s.G.players.forEach(p=>p.conn=p.id==="p0");location.hash=s.G.code;hostUp()}
-function joinGame(code,name){const old=ld(MK);ME={code,token:(old&&old.code===code&&old.token)||tok(),name,host:false};sv(MK,ME);isHost=false;leaving=false;location.hash=code;wait("Knocking on the castle door…",true);connect();setTimeout(()=>{if(!V&&ME&&!ME.host&&!$("#wm").textContent)waitMsg("Still knocking? Check the code with the game master, then switch between Wi-Fi and mobile data. Keep this page open: it keeps trying every few seconds.")},12000)}
+function hostResume(){const s=ld(HK);if(!s||!s.G){home();return}SV.G=s.G;const p0=s.G.players[0];ME={code:s.G.code,token:p0.token,name:p0.name,host:true};sv(MK,ME);isHost=true;leaving=false;s.G.players.forEach(p=>p.conn=p.id==="p0"||!!p.bot);location.hash=s.G.code;hostUp()}
+function joinGame(code,name){homeMode=false;const old=ld(MK);ME={code,token:(old&&old.code===code&&old.token)||tok(),name,host:false};sv(MK,ME);isHost=false;leaving=false;location.hash=code;wait("Knocking on the castle door…",true);connect();setTimeout(()=>{if(!V&&ME&&!ME.host&&!$("#wm").textContent)waitMsg("Still knocking? Check the code with the game master, then switch between Wi-Fi and mobile data. Keep this page open: it keeps trying every few seconds.")},12000)}
 
 /* ---------- view handling ---------- */
 function setView(v){v.at=Date.now();const prev=V;V=v;
@@ -979,7 +1030,7 @@ function onPhase(v){const {pub}=v,ph=pub.ph;buzz(60);phaseAudio(pub.phase);
   case "role":FX.rise();narrate("welcome","Welcome to the castle. Some of you are Faithful. Some of you are Traitors.");break;
   case "secret":FX.chime();break;
   case "mission":FX.ready();narrate("mission","Your mission starts now.");break;
-  case "mresult":if(ph.g)FX.coins();else FX.fail();break;
+  case "mresult":if(ph.g){FX.coins();setTimeout(()=>flyCoins(ph.g*2),300)}else FX.fail();break;
   case "debate":break;
   case "vote":FX.thud();narrate("vote","Cast your votes.");break;
   case "vreveal":break;
@@ -995,6 +1046,7 @@ function onPhase(v){const {pub}=v,ph=pub.ph;buzz(60);phaseAudio(pub.phase);
  }}
 function snapInputs(){const m={};app.querySelectorAll("input[id],textarea[id]").forEach(i=>{m[i.id]=i.type==="checkbox"?i.checked:i.value});return {m,f:document.activeElement&&document.activeElement.id}}
 function restoreInputs(k){for(const id in k.m){const el=document.getElementById(id);if(el){if(el.type==="checkbox")el.checked=k.m[id];else el.value=k.m[id]}}if(k.f){const el=document.getElementById(k.f);if(el&&el!==document.activeElement)el.focus()}}
+function crest(id,sz=26){const p=pl(id);const i=p?V.pub.players.indexOf(p):0;const hue=(i*53+25)%360;const L=esc(((p&&p.name)||"?").trim()[0].toUpperCase());return `<svg class="crest" width="${sz}" height="${sz}" viewBox="0 0 40 44" aria-hidden="true"><path d="M20 2 L36 8 V22 C36 33 28 40 20 43 C12 40 4 33 4 22 V8 Z" fill="hsl(${hue},42%,26%)" stroke="hsl(${hue},55%,62%)" stroke-width="2"/><path d="M20 6 L32 10.5 V22 C32 30 26 36 20 38.5 C14 36 8 30 8 22 V10.5 Z" fill="none" stroke="hsl(${hue},40%,45%)" stroke-width="1"/><text x="20" y="29" text-anchor="middle" font-family="Cinzel,Georgia,serif" font-weight="700" font-size="19" fill="#f3e6c8">${L}</text></svg>`}
 const hd=(e,t)=>`<div class="hd"><p class="eyebrow">${e}</p><div class="rule"><i></i></div><h1>${t}</h1></div>`;
 const hold=(cv,inner,key="h")=>`<div class="hold" data-hk="${key}" tabindex="0"><div class="cv"><span>${cv}</span><span style="font-size:11px;opacity:.7">Let go to hide</span></div><div class="in">${inner}</div></div>`;
 const lock=(msg,done,n)=>`<div class="panel center">${msg?`<p class="lede">${msg}</p>`:""}<p class="small">Locked in. ${done} of ${n} ready.</p></div>`;
@@ -1003,16 +1055,23 @@ function releaseHold(){UI.holding=null;document.querySelectorAll(".hold.show").f
 document.addEventListener("pointerup",releaseHold);document.addEventListener("pointercancel",releaseHold);
 function fmtScore(t,v,roll){if(v==null)return "no score";if(["lock","arrows","shade","spell"].includes(t))return v+" s";if(t==="pairs")return v+" flips";if(t==="catch")return v+" coins";if(t==="whack")return v+" ghosts";if(t==="flap")return v+" walls";if(t==="nerve")return v>0?Number(v).toFixed(1)+" s":"Boom";switch(t){case "reaction":return v>=99999?"Too early":v+" ms";case "taps":return v+" taps";case "maths":return v+" s";case "tenseconds":return Number(v).toFixed(2)+" s off";case "digits":return v+" digits";case "bid":return v+" gold";case "dice":return roll?roll[0]+" + "+roll[1]+" = "+v:v;case "higherlower":return v+" in a row"}return v}
 
-function bar(){const b=$("#bar");b.hidden=false;const {pub,me}=V;const mine=pl(me.id);const endgame=["reveal","judge","scores","final","finale"].includes(pub.phase);
- b.innerHTML=`<span class="rl">${pub.phase==="lobby"?"Room "+esc(pub.code):esc(ADV[pub.adv].name)+(endgame?" · End Game":" · Round "+RNAME[pub.round])}</span><button class="pill" id="plb" aria-label="Players">${pub.players.filter(p=>p.conn).length}/${pub.players.length}</button><span class="pill">Pot <b>${pub.pot}</b></span><span class="pill">Me <b>${mine?mine.gold:0}</b></span><button class="pill ${SND.mute?"sec":""}" id="mute" aria-label="${SND.mute?"Unmute":"Mute"}">${SND.mute?"Muted":"Mute"}</button>`;
+const SCENE_FOR={lobby:"castle",role:"castle",debate:"table",vote:"table",vreveal:"table",banish:"gates",night:"corridor",reveal:"corridor",morning:"dawn",scores:"treasure",final:"treasure",finale:"treasure"};
+let sceneNow="";
+function setScene(key){const art=(typeof ART!=="undefined")&&key?ART[key]:null;const k=art?key:"";if(k===sceneNow)return;sceneNow=k;const host=$("#scene");if(!host)return;const old=[...host.children];
+ if(art){const l=document.createElement("div");l.className="layer";l.style.backgroundImage=`url("${art}")`;host.appendChild(l);requestAnimationFrame(()=>requestAnimationFrame(()=>l.classList.add("on")))}
+ old.forEach(o=>{o.classList.remove("on");setTimeout(()=>o.remove(),1500)})}
+function roundStrip(){const {pub}=V;if(pub.phase==="lobby")return"";const end=["reveal","judge","scores","final","finale"].includes(pub.phase);return `<div id="rounds" aria-label="Round ${pub.round+1} of 4">${[0,1,2,3].map(i=>`<svg viewBox="0 0 40 44" class="${end||i<pub.round?"done":i===pub.round?"cur":""}"><path d="M20 2 L36 8 V22 C36 33 28 40 20 43 C12 40 4 33 4 22 V8 Z"/></svg>`).join("")}</div>`}
+function bar(){const b=$("#bar");b.hidden=false;const {pub,me}=V;const mine=pl(me.id);const endgame=["reveal","judge","scores","final","finale"].includes(pub.phase);setScene(SCENE_FOR[pub.phase]||"");
+ b.innerHTML=`<span class="rl">${pub.phase==="lobby"?"Room "+esc(pub.code):esc(ADV[pub.adv].name)+(endgame?" · End Game":" · Round "+RNAME[pub.round])}</span><button class="pill" id="plb" aria-label="Players">${pub.players.filter(p=>p.conn).length}/${pub.players.length}</button><span class="pill" id="potpill">Pot <b>${pub.pot}</b></span><span class="pill">Me <b>${mine?mine.gold:0}</b></span><button class="pill ${SND.mute?"sec":""}" id="mute" aria-label="${SND.mute?"Unmute":"Mute"}">${SND.mute?"Muted":"Mute"}</button>`+roundStrip();
  $("#plb").onclick=sheetPlayers;$("#mute").onclick=()=>setMute(!SND.mute)}
 function sheetPlayers(){const s=$("#sheet");s.hidden=false;confirmLeave=false;const {pub,me}=V;
  s.querySelector(".in").innerHTML=`<div class="row" style="justify-content:space-between;align-items:center"><h2 class="sect" style="margin:0">Players</h2><button class="btn sm ghost" id="sx">Close</button></div>
- <div class="stack t" style="margin-top:14px">${pub.players.map(p=>`<div class="vrow"><span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.conn?"var(--gold)":"#555"};margin-right:8px"></i>${esc(p.name)}${p.host?" (GM)":""}${p.bot?" <em class=\"ai\">AI</em>":""}${p.id===pub.silenced?' <em class="red">silenced</em>':""}</span><b>${p.gold} gold</b>${me.host&&pub.phase==="lobby"&&!p.host?`<button class="btn sm ghost" data-kick="${p.id}">Remove</button>`:""}</div>`).join("")}</div>
+ <div class="stack t" style="margin-top:14px">${pub.players.map(p=>`<div class="vrow"><span>${crest(p.id,22)} <i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.conn?"var(--gold)":"#555"};margin:0 6px 0 2px"></i>${esc(p.name)}${p.host?" (GM)":""}${p.bot?" <em class=\"ai\">AI</em>":""}${p.id===pub.silenced?' <em class="red">silenced</em>':""}</span><b>${p.gold} gold</b>${me.host&&pub.phase==="lobby"&&!p.host?`<button class="btn sm ghost" data-kick="${p.id}">Remove</button>`:""}</div>`).join("")}</div>
  <p class="small">Room ${esc(pub.code)}. ${me.inv.S?`You hold ${me.inv.S} Shield${me.inv.S>1?"s":""}. `:""}${me.inv.D?`You hold ${me.inv.D} Dagger${me.inv.D>1?"s":""}.`:""}</p>
  <h2 class="sect">Sound on this phone</h2><label class="toggle" style="border-color:var(--gold-d);background:var(--panel)"><input type="checkbox" id="sfx" ${SND.fx?"checked":""}> Atmosphere and effects</label><label class="toggle" style="border-color:var(--gold-d);background:var(--panel)"><input type="checkbox" id="svo" ${voiceOn()?"checked":""}> Narrator voice${me.host?"":" (off by default, the game master's phone speaks on the call)"}</label>
+ <button class="btn ghost" id="gohome" style="margin-top:14px">Home menu (the game keeps running)</button>
  <button class="link" id="leave">${me.host?"Close the room and send everyone home":"Leave this game"}</button>`;
- $("#sx").onclick=()=>s.hidden=true;$("#sfx").onchange=e=>{SND.fx=e.target.checked;sv("tl_snd",SND);if(!SND.fx){bedStop();musicStop()}else if(V)phaseAudio(V.pub.phase)};$("#svo").onchange=e=>{SND.voice=e.target.checked;sv("tl_snd",SND);if(SND.voice){unlockClips();narrate("mission","Narrator on.")}};
+ $("#sx").onclick=()=>s.hidden=true;$("#gohome").onclick=()=>{s.hidden=true;home()};$("#sfx").onchange=e=>{SND.fx=e.target.checked;sv("tl_snd",SND);if(!SND.fx){bedStop();musicStop()}else if(V)phaseAudio(V.pub.phase)};$("#svo").onchange=e=>{SND.voice=e.target.checked;sv("tl_snd",SND);if(SND.voice){unlockClips();narrate("mission","Narrator on.")}};
  s.querySelectorAll("[data-kick]").forEach(b=>b.onclick=()=>{gm({t:"kick",id:b.dataset.kick});s.hidden=true});
  $("#leave").onclick=()=>{if(!confirmLeave){confirmLeave=true;$("#leave").textContent="Tap again to confirm";return}leave()}}
 function fitBar(){const g=$("#gm");const h=g.hidden?16:g.offsetHeight+12;document.body.style.paddingBottom=`calc(${h}px + env(safe-area-inset-bottom,0px))`}
@@ -1048,14 +1107,14 @@ function gmBar(){const g=$("#gm");if(!isHost||!V){g.hidden=true;fitBar();return}
  g.querySelectorAll("[data-deb]").forEach(b=>b.onclick=()=>gm({t:"debate",v:+b.dataset.deb}))}
 
 function render(){
- if(!V)return;const {pub,me}=V,ph=pub.ph;bar();gmBar();
+ if(!V||homeMode)return;const {pub,me}=V,ph=pub.ph;bar();gmBar();
  if(A.active&&me.priv.sub==null&&(pub.phase==="armoury"||(pub.phase==="mission"&&ph.type==="team")))return;
  const keep=snapInputs();after=[];let h="";const n=pub.players.length,done=pub.players.filter(p=>p.done).length;
  const sending=!isHost&&pend.some(a=>a._p===pub.phase&&a._r===pub.round);const SENDING=`<div class="panel center"><p class="lede">Sending to the game master…</p><p class="small">Your answer is safe on this phone and will be delivered as soon as the connection is back.</p></div>`;
  switch(pub.phase){
   case "lobby":{const link=location.origin+location.pathname+"#"+pub.code;const msg=`Join my game of The Traitors tonight. Open ${link} and enter room code ${pub.code} with your name. Keep the call open too.`;
    h=`<div class="hd"><p class="eyebrow">The castle gates are open</p><div class="rule"><i></i></div><h1 class="mega">${esc(pub.code)}</h1><p class="small">Room code</p></div>
-   <div class="chips" style="justify-content:center">${pub.players.map(p=>`<span class="chip ${p.conn?"ok":"off"}"><i class="d"></i>${esc(p.name)}${p.host?" (GM)":""}${p.bot?" <em class=\"ai\">AI</em>":""}</span>`).join("")}</div>
+   <div class="chips" style="justify-content:center">${pub.players.map(p=>`<span class="chip ${p.conn?"ok":"off"}">${crest(p.id,20)}${esc(p.name)}${p.host?" (GM)":""}${p.bot?" <em class=\"ai\">AI</em>":""}</span>`).join("")}</div>
    <div class="stack t"><a class="btn wa" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">Share on WhatsApp</a><button class="btn ghost" id="cp">Copy invite</button></div>`;
    if(me.host)h+=`<h2 class="sect">Adventure</h2><div class="advs">${ADV.map((a,i)=>`<button class="adv ${i===pub.adv?"on":""}" data-adv="${i}"><b>${i+1}</b><span>${esc(a.name)}</span>${a.fun?`<i class="tag">arcade</i>`:""}</button>`).join("")}</div>
    <h2 class="sect">AI players</h2><p class="small">Short of people? Add AI players to fill the castle. They take missions, vote, murder and bluff, and can be Traitors.</p><button class="btn ghost" id="addbot" ${n>=12?"disabled":""}>Add an AI player</button>
@@ -1066,7 +1125,7 @@ function render(){
     qa("[data-adv]",b=>gm({t:"adv",v:+b.dataset.adv}));const ab=$("#addbot");if(ab)ab.onclick=()=>gm({t:"bot"});qa("[data-nt]",b=>gm({t:"nT",v:+b.dataset.nt}));const s=$("#start");if(s)s.onclick=()=>gm({t:"start"})});break}
   case "role":{const T=me.role==="T";
    h=`${hd(esc(ADV[pub.adv].name),"Your role")}<p class="small center">Tap the card to turn it. Tap again to hide. Only you can see this screen.</p>
-   <div class="flip ${UI.flip?"on":""}" id="flip"><div class="fi"><div class="fa"><div class="seal">T</div><p class="eyebrow">Tap to reveal</p></div><div class="fb ${T?"t":""}"><p class="eyebrow ${T?"red":""}">You are</p><p class="role ${T?"red":""}">${T?"a Traitor":"Faithful"}</p><p class="small">${T?((me.allies&&me.allies.length)?"Fellow Traitor"+(me.allies.length>1?"s":"")+": "+esc(me.allies.join(", "))+". ":"You work alone. ")+"Complete each round's secret assignment to earn a murder.":"Find the Traitor. Win gold. Trust no one."}</p></div></div></div>
+   <div class="flip ${UI.flip?"on":""}" id="flip"><div class="fi"><div class="fa"><div class="seal">T</div><p class="eyebrow">Tap to reveal</p></div><div class="fb ${T?"t":""}">${(typeof ART!=="undefined"&&ART[T?"traitor":"faithful"])?`<img class="roleart" src="${ART[T?"traitor":"faithful"]}" alt="" onerror="this.remove()">`:""}<p class="eyebrow ${T?"red":""}">You are</p><p class="role ${T?"red":""}">${T?"a Traitor":"Faithful"}</p><p class="small">${T?((me.allies&&me.allies.length)?"Fellow Traitor"+(me.allies.length>1?"s":"")+": "+esc(me.allies.join(", "))+". ":"You work alone. ")+"Complete each round's secret assignment to earn a murder.":"Find the Traitor. Win gold. Trust no one."}</p></div></div></div>
    <p class="small center">${pub.players.filter(p=>p.conn).length} of ${n} in the castle.</p>`;
    after.push(()=>{$("#flip").onclick=()=>{UI.flip=!UI.flip;$("#flip").classList.toggle("on",UI.flip)}});break}
   case "secret":{const T=me.role==="T";const mm=ADV[pub.adv].rounds[pub.round].m;const m=mm.type==="team"?{t:TEAM[mm.game].t,how:()=>TEAM[mm.game].how.replace("{T}",TEAM[mm.game].per*n)}:MINFO[mm.type];
@@ -1124,10 +1183,10 @@ function render(){
    if(!me.priv.voter)h=`${hd("The Round Table","Silenced")}<p class="lede center">You were murdered last night. You watch the vote in silence.</p>${lock("",done,nv)}`;
    else if(me.priv.sub||sending)h=`${hd("The Round Table",sending?"Sending your vote":"Vote locked")}<p class="lede center">${sending?"Your vote is on its way to the game master.":`You voted for ${pname(me.priv.sub.on)}${me.priv.sub.d?" with your Dagger":""}.`}</p>${lock("",done,nv)}`;
    else{h=`${hd("The Round Table","Who is the Traitor?")}${me.inv.D>0?`<label class="toggle"><input type="checkbox" id="dag"> Use my Dagger: vote counts twice, double gold if right</label>`:""}<div class="stack t">${pub.players.filter(p=>p.id!==me.id).map(p=>`<button class="btn ghost pick" data-on="${p.id}">${esc(p.name)}</button>`).join("")}</div>`;after.push(()=>qa("[data-on]",b=>act({t:"vote",on:b.dataset.on,d:!!($("#dag")&&$("#dag").checked)})))}break}
-  case "vreveal":h=`${hd("The Round Table","The votes")}<div class="stack t">${ph.list.map((x,i)=>`<div class="vrow ${i===ph.list.length-1?"new":""}"><span>${pname(x.by)}</span><span class="ar">voted for</span><b>${pname(x.on)}${x.d?" ×2":""}</b></div>`).join("")}</div><p class="small center">${ph.list.length} of ${ph.total}</p>`;break;
+  case "vreveal":h=`${hd("The Round Table","The votes")}<div class="stack t">${ph.list.map((x,i)=>`<div class="vrow ${i===ph.list.length-1?"new":""}"><span>${crest(x.by,22)} ${pname(x.by)}</span><span class="ar">voted for</span><b>${pname(x.on)}${x.d?" ×2":""}</b></div>`).join("")}</div><p class="small center">${ph.list.length} of ${ph.total}</p>`;break;
   case "banish":{const c=ph.counts,mx=Math.max(1,...Object.values(c));
    h=`${hd("Banishment",ph.top.length===1?pname(ph.top[0]):"A tie")}<div class="panel center"><p class="lede">${ph.top.length===1?`${pname(ph.top[0])} received the most votes and loses 2 gold.`:`${ph.top.map(pname).join(" and ")} tied and lose 1 gold each.`}</p><p class="small">Roles stay secret. The game goes on.</p></div>
-   <div class="tally">${Object.entries(c).sort((a,b)=>b[1]-a[1]).map(([id,v])=>`<span>${pname(id)}</span><span class="bar"><i style="width:${v/mx*100}%"></i></span><b>${v}</b>`).join("")}</div>`;break}
+   <div class="tally">${Object.entries(c).sort((a,b)=>b[1]-a[1]).map(([id,v])=>`<span>${crest(id,20)} ${pname(id)}</span><span class="bar"><i style="width:${v/mx*100}%"></i></span><b>${v}</b>`).join("")}</div>`;break}
   case "armoury":{const info=AINFO[ph.type];
    h=`<div class="card steel"><p class="eyebrow">Armoury ${pub.round+1}</p><h2>${esc(info.t)}</h2><p>${esc(info.how)}</p><p class="pot">Winner draws a reward card: a Shield, a Dagger or gold.</p></div>`;
    if(me.priv.sub!=null)h+=lock(`Your result: ${fmtScore(ph.type,me.priv.sub,me.priv.roll)}`,done,n);
@@ -1148,7 +1207,7 @@ function render(){
   case "judge":{h=`${hd("End Game","Were the murders earned?")}<p class="small center">For each murder, the Faithful decide whether that round's assignment was really completed. Majority rules. Unearned murders cost the Traitor 2 gold and pay the victim 4.</p>`;
    if(me.priv.judge){h+=ph.items.map(it=>`<div class="panel"><p class="eyebrow">Round ${RNAME[it.r]}: ${pname(it.v)} murdered</p><p>${esc(it.s)}</p><div class="seg"><button data-j="${it.r}" data-ok="1" class="${me.priv.sub[it.r]===true?"on":""}">Completed</button><button data-j="${it.r}" data-ok="0" class="${me.priv.sub[it.r]===false?"on":""}">Not completed</button></div></div>`).join("");after.push(()=>qa("[data-j]",b=>act({t:"judge",r:+b.dataset.j,ok:b.dataset.ok==="1"})))}
    else h+=`<p class="lede center">The Faithful are deciding your fate.</p>`;break}
-  case "scores":h=`${hd("End Game","The treasure chests")}<div class="stack t">${ph.ord.map(id=>{const p=pl(id);return `<div class="vrow ${ph.fin.includes(id)?"fin":""}"><span>${esc(p.name)}${ph.traitors.includes(id)?' <em class="red">Traitor</em>':""}</span><b>${p.gold} gold</b>${(ph.lines[id]||[]).length?`<span class="full">${esc(ph.lines[id].join(", "))}</span>`:""}</div>`}).join("")}</div><div class="panel center"><p class="lede">${pname(ph.fin[0])} and ${pname(ph.fin[1])} go to the Final for a prize pot of <b>${pub.pot} gold</b>.</p></div>`;break;
+  case "scores":h=`${hd("End Game","The treasure chests")}<div class="stack t">${ph.ord.map(id=>{const p=pl(id);return `<div class="vrow ${ph.fin.includes(id)?"fin":""}"><span>${crest(id,22)} ${esc(p.name)}${ph.traitors.includes(id)?' <em class="red">Traitor</em>':""}</span><b>${p.gold} gold</b>${(ph.lines[id]||[]).length?`<span class="full">${esc(ph.lines[id].join(", "))}</span>`:""}</div>`}).join("")}</div><div class="panel center"><p class="lede">${pname(ph.fin[0])} and ${pname(ph.fin[1])} go to the Final for a prize pot of <b>${pub.pot} gold</b>.</p></div>`;break;
   case "final":{const fin=ph.fin,inF=fin.includes(me.id);
    h=`${hd("The Final","Faithful or Traitor?")}<p class="lede center">${pname(fin[0])} and ${pname(fin[1])} may talk on the call. Then each secretly chooses.</p><ul class="small" style="padding-left:20px"><li>Both choose Faithful: they share the prize pot and their gold.</li><li>One chooses Traitor: that player takes everything.</li><li>Both choose Traitor: ${ph.third?pname(ph.third)+", in third place,":"third place"} takes it all.</li></ul>`;
    if(inF&&!me.priv.sub&&!sending){h+=`<div class="stack"><button class="btn big" data-f="F">Faithful</button><button class="btn big blood" data-f="T">Traitor</button></div>`;after.push(()=>qa("[data-f]",b=>act({t:"final",v:b.dataset.f})))}
@@ -1217,7 +1276,7 @@ function startGame(type,seed){const el=$("#ag");if(!el)return;A.active=true;cons
   draw(0,0);x.fillStyle="#efe6d2";x.font="18px Cormorant Garamond,serif";x.fillText("Tap to start, then slide to catch",48,220);
   cv.onpointerdown=e=>{e.preventDefault();move(e);if(!run){run=true;t0=performance.now();A.raf=requestAnimationFrame(loop)}};cv.onpointermove=e=>{if(e.buttons||e.pointerType==="touch")move(e)}}
  else if(type==="whack"){let score=0,t0=0;const seq=[];let tq=0;while(tq<20000){tq+=520+R()*380;seq.push({t:tq,h:Math.floor(R()*9),d:620+R()*300})}
-  el.innerHTML=`<div class="hud"><span id="ws">0</span><span id="wt">20.0</span></div><div class="holes">${Array.from({length:9},(_,i)=>`<button class="hole" data-h="${i}" aria-label="Window ${i+1}"><span class="ghost"></span></button>`).join("")}</div><button class="btn big" id="wg">Start</button>`;
+  el.innerHTML=`<div class="hud"><span id="ws">0</span><span id="wt">20.0</span></div><div class="holes">${Array.from({length:9},(_,i)=>`<button class="hole" data-h="${i}" aria-label="Window ${i+1}"><span class="wghost"></span></button>`).join("")}</div><button class="btn big" id="wg">Start</button>`;
   const holes=[...el.querySelectorAll(".hole")];let si=0;const up={};const timers=[];
   holes.forEach(b=>b.onpointerdown=e=>{e.preventDefault();const h=+b.dataset.h;if(up[h]){up[h]=false;b.classList.remove("up");b.classList.add("hit");timers.push(setTimeout(()=>b.classList.remove("hit"),200));score++;$("#ws").textContent=score;FX.chime()}});
   $("#wg").onclick=()=>{$("#wg").remove();t0=performance.now();const iv=setInterval(()=>{const e_=performance.now()-t0;const wt=$("#wt");if(wt)wt.textContent=Math.max(0,20-e_/1000).toFixed(1);
@@ -1238,6 +1297,9 @@ function startGame(type,seed){const el=$("#ag");if(!el)return;A.active=true;cons
   draw();x.fillStyle="#efe6d2";x.font="18px Cormorant Garamond,serif";x.fillText("Tap to flap. Tap to start.",82,220);cv.onpointerdown=e=>{e.preventDefault();if(over)return;if(!run){run=true;last=0;A.raf=requestAnimationFrame(loop)}vy=-330}}
  else{A.active=false}
 }
+function flyCoins(n){try{const pot=$("#potpill");if(!pot)return;const r=pot.getBoundingClientRect();const cx=innerWidth/2,cy=innerHeight*0.45;for(let i=0;i<n;i++){const e=document.createElement("i");e.className="flycoin";e.style.left=(cx-12+(Math.random()-0.5)*120)+"px";e.style.top=(cy-12+(Math.random()-0.5)*80)+"px";document.body.appendChild(e);
+ const dx=r.left+r.width/2-parseFloat(e.style.left)-12,dy=r.top+r.height/2-parseFloat(e.style.top)-12;
+ const a=e.animate([{transform:"translate(0,0) scale(1)",opacity:1},{transform:`translate(${dx*0.5}px,${dy*0.5-80}px) scale(1.1)`,opacity:1,offset:.5},{transform:`translate(${dx}px,${dy}px) scale(.3)`,opacity:.8}],{duration:900+Math.random()*300,delay:i*70,easing:"cubic-bezier(.3,.6,.3,1)",fill:"forwards"});a.onfinish=()=>{e.remove();pot.classList.add("pulse");setTimeout(()=>pot.classList.remove("pulse"),300)}}}catch(e){}}
 function paintDraw(){const cv=$("#dc");if(!cv||!V||V.pub.phase!=="mission"||V.pub.ph.type!=="draw")return;const x=cv.getContext("2d");x.fillStyle="#f3ead5";x.fillRect(0,0,600,600);x.lineWidth=7;x.lineCap="round";x.lineJoin="round";x.strokeStyle="#2a1d0c";
  const dr=s=>{if(!s||s.length<2)return;x.beginPath();x.moveTo(s[0]*0.6,s[1]*0.6);for(let i=2;i<s.length;i+=2)x.lineTo(s[i]*0.6,s[i+1]*0.6);if(s.length===2)x.lineTo(s[0]*0.6+1,s[1]*0.6+1);x.stroke()};
  (V.pub.ph.strokes||[]).forEach(dr);(A.local||[]).forEach(dr);if(A.cur)dr(A.cur)}
@@ -1282,14 +1344,19 @@ function fxFinale(ph){const o=ph.out;bedStop();FX.coins();setTimeout(()=>FX.toll
  fx(`<p class="cap">${o.kind==="share"?"Shared":o.kind==="both"?"Double cross":"Stolen"}</p><div class="nm" style="color:var(--gold-l)">${o.win.length?o.win.map(pname).join(" & "):"No one"}</div>`,6000,coins)}
 
 /* ---------- boot ---------- */
-function init(){
+function embers(){try{if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;const c=document.createElement("canvas");c.id="embers";document.body.appendChild(c);const x=c.getContext("2d");let W=0,H=0;const P=[];
+ const rs=()=>{W=c.width=innerWidth;H=c.height=innerHeight};addEventListener("resize",rs);rs();
+ const mk=init=>({x:Math.random()*W,y:init?Math.random()*H:H+10,r:0.5+Math.random()*1.6,vy:-(0.12+Math.random()*0.3),vx:(Math.random()-0.5)*0.12,a:0.15+Math.random()*0.5,t:Math.random()*6.28});
+ for(let i=0;i<34;i++)P.push(mk(true));
+ const loop=()=>{if(document.visibilityState==="visible"&&!(A&&A.active)){x.clearRect(0,0,W,H);for(const p of P){p.t+=0.02;p.x+=p.vx+Math.sin(p.t)*0.1;p.y+=p.vy;if(p.y<-10||p.x<-10||p.x>W+10)Object.assign(p,mk(false));const g=x.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*4);g.addColorStop(0,`rgba(255,205,120,${p.a*(0.7+0.3*Math.sin(p.t*3))})`);g.addColorStop(1,"rgba(255,120,30,0)");x.fillStyle=g;x.beginPath();x.arc(p.x,p.y,p.r*4,0,7);x.fill()}}requestAnimationFrame(loop)};requestAnimationFrame(loop)}catch(e){}}
+function init(){embers();
  SV.save=g=>sv(HK,{G:g});
  try{new ResizeObserver(()=>fitBar()).observe($("#gm"))}catch(e){}
  setInterval(()=>{if(isHost)hostBeat()},3000);
  SV.send=(id,v)=>{if(id==="p0"){if(isHost)setView(v)}else{const c=conns[id];if(c&&c.open)try{c.send({t:"view",v})}catch(e){}}};
  setInterval(()=>{if(isHost&&SV.G)SV.tick();else{flush();watchdog()}const el=$("#cd");if(el&&V&&V.pub.left!=null){const l=left();const s=Math.ceil(l/1000);el.textContent=fmt(l);el.classList.toggle("hot",l<10000);if(l>0&&s<=10&&s!==el._s){el._s=s;FX.tick()}}document.querySelectorAll("[data-until]").forEach(x=>{x.textContent=Math.max(0,Math.ceil((+x.dataset.until-Date.now())/1000))});},400);
  const me=ld(MK),hs=ld(HK);const hash=(location.hash||"").replace("#","").toUpperCase();
- if(me&&me.host&&hs&&hs.G&&hs.G.code===me.code&&(hash===""||hash===me.code)){hostResume();return}
+ if(me&&me.host&&hs&&hs.G&&hs.G.code===me.code&&(hash===""||hash===me.code)&&hs.G.phase!=="finale"){hostResume();return}
  if(me&&!me.host&&me.code&&(hash===""||hash===me.code)){joinGame(me.code,me.name);return}
  home();
 }
