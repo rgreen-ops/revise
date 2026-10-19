@@ -135,8 +135,12 @@ canvas{display:block;max-width:100%;margin:10px auto;border-radius:6px;border:1p
 .scene.blood{border-color:#4a1a17;background:radial-gradient(circle at 50% 30%,#3a0d0d,#0d0606 70%)}
 .coinrow{display:flex;justify-content:center;align-items:baseline;gap:10px;margin:10px 0}
 .bigg{font-family:var(--display);font-weight:900;font-size:72px;color:var(--gold-l);line-height:1}
-#gm{position:fixed;left:0;right:0;bottom:0;z-index:9;background:linear-gradient(transparent,var(--bg) 22%);padding:22px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+#gm{position:fixed;left:0;right:0;bottom:0;z-index:9;background:linear-gradient(transparent,var(--bg) 18%);padding:16px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
 #gm .in{max-width:540px;margin:0 auto;display:flex;flex-direction:column;gap:8px}
+.gmrow{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.gmrow .lab{flex:1}
+.gmend{background:none;border:1px solid var(--line);color:var(--muted);font-family:var(--display);font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:5px 10px;border-radius:14px;white-space:nowrap}
+.gmend.arm{border-color:#c0453c;color:var(--blood-l);background:#3a1414}
 #gm .lab{font-family:var(--display);font-size:11px;letter-spacing:.24em;color:var(--muted);text-transform:uppercase;text-align:center}
 #gm .chips{justify-content:center;margin:0}
 #gm .chip{cursor:pointer}
@@ -845,12 +849,13 @@ function sheetPlayers(){const s=$("#sheet");s.hidden=false;confirmLeave=false;co
  $("#sx").onclick=()=>s.hidden=true;$("#sfx").onchange=e=>{SND.fx=e.target.checked;sv("tl_snd",SND);if(!SND.fx)bedStop();else if(V)phaseAudio(V.pub.phase)};$("#svo").onchange=e=>{SND.voice=e.target.checked;sv("tl_snd",SND);if(SND.voice)hostSay("Narrator on.")};
  s.querySelectorAll("[data-kick]").forEach(b=>b.onclick=()=>{gm({t:"kick",id:b.dataset.kick});s.hidden=true});
  $("#leave").onclick=()=>{if(!confirmLeave){confirmLeave=true;$("#leave").textContent="Tap again to confirm";return}leave()}}
-function gmBar(){const g=$("#gm");if(!isHost||!V){g.hidden=true;return}const {pub}=V,ph=pub.ph;let h="";
+function fitBar(){const g=$("#gm");const h=g.hidden?16:g.offsetHeight+12;document.body.style.paddingBottom=`calc(${h}px + env(safe-area-inset-bottom,0px))`}
+function gmBar(){const g=$("#gm");if(!isHost||!V){g.hidden=true;fitBar();return}const {pub}=V,ph=pub.ph;let h="";
  const B=(txt,a,cls="")=>`<button class="btn ${cls}" data-gm='${JSON.stringify(a)}'>${txt}</button>`;
  const waiting=pub.players.filter(p=>!p.done).map(p=>esc(p.name)+(p.conn?"":" (reconnecting)"));
  const F=txt=>{if(!waiting.length)return B(txt,{t:"force"},"ghost");const armed=Date.now()-forceArm<6000;return `<button class="btn ${armed?"blood":"ghost"}" id="gmforce">${armed?"Tap again to end without them":txt}</button><p class="small center" style="margin:0">Still to finish: ${waiting.join(", ")}</p>`};
  switch(pub.phase){
-  case "lobby":case "vreveal":g.hidden=true;return;
+  case "lobby":case "vreveal":g.hidden=true;fitBar();return;
   case "role":h=B("Everyone has seen their role",{t:"next"});break;
   case "secret":h=B("Start the mission",{t:"next"});break;
   case "mission":h=F("End the mission now");break;
@@ -860,7 +865,7 @@ function gmBar(){const g=$("#gm");if(!isHost||!V){g.hidden=true;return}const {pu
   case "banish":h=B("To the Armoury",{t:"next"});break;
   case "armoury":h=F("End the Armoury now");break;
   case "areward":h=B("Night falls",{t:"next"},"blood");break;
-  case "night":if(ph.done){g.hidden=true;return}h=B("Skip the murder",{t:"force"},"ghost");break;
+  case "night":if(ph.done){g.hidden=true;fitBar();return}h=B("Skip the murder",{t:"force"},"ghost");break;
   case "morning":h=B(pub.round<3?"Begin Round "+RNAME[pub.round+1]:"To the End Game",{t:"next"});break;
   case "reveal":h=B("Judge the murders",{t:"next"});break;
   case "judge":h=B("Finish judging now",{t:"force"},"ghost");break;
@@ -869,8 +874,8 @@ function gmBar(){const g=$("#gm");if(!isHost||!V){g.hidden=true;return}const {pu
   case "finale":h=B("Play again",{t:"again"});break;
  }
  const arm=Date.now()-endArm<6000;
- if(pub.phase!=="finale")h+=`<button class="btn sm ${arm?"blood":"ghost"}" id="gmend" style="align-self:center">${arm?"Tap again to end the game for everyone":"End game"}</button>`;
- g.hidden=false;g.querySelector(".in").innerHTML=`<p class="lab">Game master</p>`+h;
+ g.hidden=false;g.querySelector(".in").innerHTML=`<div class="gmrow"><span class="lab">Game master</span>${pub.phase!=="finale"?`<button class="gmend ${arm?"arm":""}" id="gmend">${arm?"Tap again to end for everyone":"End game"}</button>`:""}</div>`+h;
+ fitBar();
  const gf=$("#gmforce");if(gf)gf.onclick=()=>{if(Date.now()-forceArm<6000){forceArm=0;gm({t:"force"})}else{forceArm=Date.now();gmBar();setTimeout(()=>{if(Date.now()-forceArm>=6000)gmBar()},6200)}};
  const ge=$("#gmend");if(ge)ge.onclick=()=>{if(Date.now()-endArm<6000){endArm=0;gm({t:"abandon"})}else{endArm=Date.now();gmBar();setTimeout(()=>{if(Date.now()-endArm>=6000)gmBar()},6200)}};
  g.querySelectorAll("[data-gm]").forEach(b=>b.onclick=()=>gm(JSON.parse(b.dataset.gm)));
@@ -1045,6 +1050,7 @@ function fxFinale(ph){const o=ph.out;bedStop();FX.coins();setTimeout(()=>FX.toll
 /* ---------- boot ---------- */
 function init(){
  SV.save=g=>sv(HK,{G:g});
+ try{new ResizeObserver(()=>fitBar()).observe($("#gm"))}catch(e){}
  setInterval(()=>{if(isHost)hostBeat()},3000);
  SV.send=(id,v)=>{if(id==="p0"){if(isHost)setView(v)}else{const c=conns[id];if(c&&c.open)try{c.send({t:"view",v})}catch(e){}}};
  setInterval(()=>{if(isHost&&SV.G)SV.tick();else{flush();watchdog()}const el=$("#cd");if(el&&V&&V.pub.left!=null){const l=left();const s=Math.ceil(l/1000);el.textContent=fmt(l);el.classList.toggle("hot",l<10000);if(l>0&&s<=10&&s!==el._s){el._s=s;FX.tick()}}document.querySelectorAll("[data-until]").forEach(x=>{x.textContent=Math.max(0,Math.ceil((+x.dataset.until-Date.now())/1000))});},400);
