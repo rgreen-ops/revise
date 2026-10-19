@@ -984,7 +984,7 @@ function wait(t,back){app.innerHTML=`<div class="hd" style="padding-top:80px"><p
 function waitMsg(t){const el=$("#wm");if(el)el.textContent=t}
 function home(){musicStop();setScene("castle");homeMode=true;$("#bar").hidden=true;$("#gm").hidden=true;fitBar();
  const saved=ld(HK),me=ld(MK);const hash=(location.hash||"").replace("#","").toUpperCase();const live=!!(V&&ME);
- const cont=live?{code:ME.code,host:isHost}:(me&&me.host&&saved&&saved.G&&saved.G.phase!=="finale")?{code:saved.G.code,host:true}:(me&&!me.host&&me.code)?{code:me.code,host:false}:null;
+ const fresh=x=>!!(x&&x.at&&Date.now()-x.at<6*3600e3);const cont=live?{code:ME.code,host:isHost}:(me&&me.host&&saved&&saved.G&&saved.G.phase!=="finale"&&fresh(saved))?{code:saved.G.code,host:true}:(me&&!me.host&&me.code&&fresh(me))?{code:me.code,host:false}:null;
  app.innerHTML=`<section class="hd" style="padding-top:36px"><p class="eyebrow">Welcome to the castle</p><div class="rule"><i></i></div><h1 class="mega">The Traitors</h1><p class="lede">Missions, murders and a Round Table of lies. Play live, from anywhere, on your phones.</p></section>
  ${err?`<p class="err center">${esc(err)}</p>`:""}
  <div class="menu">
@@ -1019,7 +1019,7 @@ function hostResume(){const s=ld(HK);if(!s||!s.G){home();return}SV.G=s.G;const p
 function joinGame(code,name){homeMode=false;const old=ld(MK);ME={code,token:(old&&old.code===code&&old.token)||tok(),name,host:false};sv(MK,ME);isHost=false;leaving=false;location.hash=code;wait("Knocking on the castle door…",true);connect();setTimeout(()=>{if(!V&&ME&&!ME.host&&!$("#wm").textContent)waitMsg("Still knocking? Check the code with the game master, then switch between Wi-Fi and mobile data. Keep this page open: it keeps trying every few seconds.")},12000)}
 
 /* ---------- view handling ---------- */
-function setView(v){v.at=Date.now();const prev=V;V=v;
+function setView(v){v.at=Date.now();const prev=V;V=v;if(ME&&!ME.host&&(!ME.at||v.at-ME.at>15000)){ME.at=v.at;sv(MK,ME)}
  if(!prev||prev.pub.phase!==v.pub.phase||prev.pub.round!==v.pub.round){if(A.raf)cancelAnimationFrame(A.raf);if(A.timers)A.timers.forEach(clearTimeout);clearTimeout(A.nerveT);A={};UI.flip=false;lastHtml="";onPhase(v)}
  else if(v.pub.phase==="vreveal"&&prev.pub.ph.list.length!==v.pub.ph.list.length)FX.vote();
  else if(v.pub.phase==="mission"&&v.pub.ph.type==="sync"&&prev.pub.ph.flash!==v.pub.ph.flash){buzz(200);FX.fail()}
@@ -1119,10 +1119,10 @@ function render(){
    if(me.host)h+=`<h2 class="sect">Adventure</h2><div class="advs">${ADV.map((a,i)=>`<button class="adv ${i===pub.adv?"on":""}" data-adv="${i}"><b>${i+1}</b><span>${esc(a.name)}</span>${a.fun?`<i class="tag">arcade</i>`:""}</button>`).join("")}</div>
    <h2 class="sect">AI players</h2><p class="small">Short of people? Add AI players to fill the castle. They take missions, vote, murder and bluff, and can be Traitors.</p><button class="btn ghost" id="addbot" ${n>=12?"disabled":""}>Add an AI player</button>
    <h2 class="sect">Traitors</h2><div class="seg"><button data-nt="1" class="${pub.nT===1?"on":""}">One Traitor</button><button data-nt="2" class="${pub.nT===2?"on":""}">Two Traitors</button></div><p class="small">Two works well with 7 or more. You need at least 3 players.</p>
-   <button class="btn big" id="start" ${n<3?"disabled":""}>Start the game</button>`;
+   <button class="btn big" id="start" ${n<3?"disabled":""}>Start the game</button><button class="link" id="newroom">Start a different game or room</button>`;
    else h+=`<p class="lede center">Waiting for ${pname("p0")} to start.</p><p class="small center">${esc(ADV[pub.adv].name)} · ${pub.nT} Traitor${pub.nT>1?"s":""}</p>`;
    after.push(()=>{$("#cp").onclick=async()=>{try{if(navigator.share){await navigator.share({text:msg})}else{await navigator.clipboard.writeText(msg);$("#cp").textContent="Copied"}}catch(e){}};
-    qa("[data-adv]",b=>gm({t:"adv",v:+b.dataset.adv}));const ab=$("#addbot");if(ab)ab.onclick=()=>gm({t:"bot"});qa("[data-nt]",b=>gm({t:"nT",v:+b.dataset.nt}));const s=$("#start");if(s)s.onclick=()=>gm({t:"start"})});break}
+    qa("[data-adv]",b=>gm({t:"adv",v:+b.dataset.adv}));const nr=$("#newroom");if(nr)nr.onclick=()=>home();const ab=$("#addbot");if(ab)ab.onclick=()=>gm({t:"bot"});qa("[data-nt]",b=>gm({t:"nT",v:+b.dataset.nt}));const s=$("#start");if(s)s.onclick=()=>gm({t:"start"})});break}
   case "role":{const T=me.role==="T";
    h=`${hd(esc(ADV[pub.adv].name),"Your role")}<p class="small center">Tap the card to turn it. Tap again to hide. Only you can see this screen.</p>
    <div class="flip ${UI.flip?"on":""}" id="flip"><div class="fi"><div class="fa"><div class="seal">T</div><p class="eyebrow">Tap to reveal</p></div><div class="fb ${T?"t":""}">${(typeof ART!=="undefined"&&ART[T?"traitor":"faithful"])?`<img class="roleart" src="${ART[T?"traitor":"faithful"]}" alt="" onerror="this.remove()">`:""}<p class="eyebrow ${T?"red":""}">You are</p><p class="role ${T?"red":""}">${T?"a Traitor":"Faithful"}</p><p class="small">${T?((me.allies&&me.allies.length)?"Fellow Traitor"+(me.allies.length>1?"s":"")+": "+esc(me.allies.join(", "))+". ":"You work alone. ")+"Complete each round's secret assignment to earn a murder.":"Find the Traitor. Win gold. Trust no one."}</p></div></div></div>
@@ -1350,14 +1350,15 @@ function embers(){try{if(matchMedia("(prefers-reduced-motion: reduce)").matches)
  for(let i=0;i<34;i++)P.push(mk(true));
  const loop=()=>{if(document.visibilityState==="visible"&&!(A&&A.active)){x.clearRect(0,0,W,H);for(const p of P){p.t+=0.02;p.x+=p.vx+Math.sin(p.t)*0.1;p.y+=p.vy;if(p.y<-10||p.x<-10||p.x>W+10)Object.assign(p,mk(false));const g=x.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*4);g.addColorStop(0,`rgba(255,205,120,${p.a*(0.7+0.3*Math.sin(p.t*3))})`);g.addColorStop(1,"rgba(255,120,30,0)");x.fillStyle=g;x.beginPath();x.arc(p.x,p.y,p.r*4,0,7);x.fill()}}requestAnimationFrame(loop)};requestAnimationFrame(loop)}catch(e){}}
 function init(){embers();
- SV.save=g=>sv(HK,{G:g});
+ SV.save=g=>sv(HK,{G:g,at:Date.now()});
  try{new ResizeObserver(()=>fitBar()).observe($("#gm"))}catch(e){}
  setInterval(()=>{if(isHost)hostBeat()},3000);
  SV.send=(id,v)=>{if(id==="p0"){if(isHost)setView(v)}else{const c=conns[id];if(c&&c.open)try{c.send({t:"view",v})}catch(e){}}};
  setInterval(()=>{if(isHost&&SV.G)SV.tick();else{flush();watchdog()}const el=$("#cd");if(el&&V&&V.pub.left!=null){const l=left();const s=Math.ceil(l/1000);el.textContent=fmt(l);el.classList.toggle("hot",l<10000);if(l>0&&s<=10&&s!==el._s){el._s=s;FX.tick()}}document.querySelectorAll("[data-until]").forEach(x=>{x.textContent=Math.max(0,Math.ceil((+x.dataset.until-Date.now())/1000))});},400);
  const me=ld(MK),hs=ld(HK);const hash=(location.hash||"").replace("#","").toUpperCase();
- if(me&&me.host&&hs&&hs.G&&hs.G.code===me.code&&(hash===""||hash===me.code)&&hs.G.phase!=="finale"){hostResume();return}
- if(me&&!me.host&&me.code&&(hash===""||hash===me.code)){joinGame(me.code,me.name);return}
+ const fresh=x=>!!(x&&x.at&&Date.now()-x.at<2*3600e3);
+ if(me&&me.host&&hs&&hs.G&&hs.G.code===me.code&&(hash===""||hash===me.code)&&!["lobby","finale"].includes(hs.G.phase)&&fresh(hs)){hostResume();return}
+ if(me&&!me.host&&me.code&&(hash===""||hash===me.code)&&fresh(me)){joinGame(me.code,me.name);return}
  home();
 }
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState!=="visible"||leaving||!ME)return;lastRx=Date.now();
