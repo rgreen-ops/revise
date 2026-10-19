@@ -556,13 +556,14 @@ function buzz(p){try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}}
 async function keepAwake(){try{await navigator.wakeLock.request("screen")}catch(e){}}
 
 /* ---------- networking ---------- */
+const ICE={iceServers:[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun1.l.google.com:19302"},{urls:"turn:openrelay.metered.ca:80",username:"openrelayproject",credential:"openrelayproject"},{urls:"turn:openrelay.metered.ca:443",username:"openrelayproject",credential:"openrelayproject"},{urls:"turn:openrelay.metered.ca:443?transport=tcp",username:"openrelayproject",credential:"openrelayproject"}]};
 function act(a){if(isHost)SV.act("p0",a);else if(hostConn&&hostConn.open)try{hostConn.send({t:"act",a})}catch(e){}}
 function gm(a){if(!isHost)return;if(a.t==="kick"){const c=conns[a.id];if(c){try{c.send({t:"err",m:"The game master removed you from the game."})}catch(e){}setTimeout(()=>{try{c.close()}catch(e){}},300);delete conns[a.id]}}SV.gm(a)}
 function setOnline(o){online=o;$("#net").hidden=o||!ME}
 function hostUp(){
  wait("Opening the castle…");
  try{peer&&peer.destroy()}catch(e){}
- peer=new Peer("traitors-"+ME.code.toLowerCase(),{debug:0});
+ peer=new Peer("traitors-"+ME.code.toLowerCase(),{debug:0,config:ICE});
  peer.on("open",()=>{setOnline(true);SV.commit()});
  peer.on("connection",c=>{
   c.on("data",d=>{try{
@@ -574,7 +575,7 @@ function hostUp(){
 }
 function connect(){
  if(leaving)return;try{peer&&peer.destroy()}catch(e){}
- peer=new Peer({debug:0});let opened=false;
+ peer=new Peer({debug:0,config:ICE});let opened=false;
  peer.on("open",()=>{
   hostConn=peer.connect("traitors-"+ME.code.toLowerCase(),{reliable:true});
   hostConn.on("open",()=>{opened=true;setOnline(true);hostConn.send({t:"join",token:ME.token,name:ME.name})});
@@ -607,7 +608,7 @@ function home(){
 }
 function hostNew(name){const code=mkCode();ME={code,token:tok(),name,host:true};sv(MK,ME);isHost=true;leaving=false;SV.create(code,name,ME.token);location.hash=code;hostUp()}
 function hostResume(){const s=ld(HK);if(!s||!s.G){home();return}SV.G=s.G;const p0=s.G.players[0];ME={code:s.G.code,token:p0.token,name:p0.name,host:true};sv(MK,ME);isHost=true;leaving=false;s.G.players.forEach(p=>p.conn=p.id==="p0");location.hash=s.G.code;hostUp()}
-function joinGame(code,name){const old=ld(MK);ME={code,token:(old&&old.code===code&&old.token)||tok(),name,host:false};sv(MK,ME);isHost=false;leaving=false;location.hash=code;wait("Knocking on the castle door…");connect()}
+function joinGame(code,name){const old=ld(MK);ME={code,token:(old&&old.code===code&&old.token)||tok(),name,host:false};sv(MK,ME);isHost=false;leaving=false;location.hash=code;wait("Knocking on the castle door…");connect();setTimeout(()=>{if(!V&&ME&&!ME.host){const a=$("#app");if(a&&!$("#hint"))a.insertAdjacentHTML("beforeend",`<p class="small center" id="hint">Still knocking? Check the code with the game master, then switch between Wi-Fi and mobile data and reload this page. Keep this page open: it keeps trying every few seconds.</p>`)}},12000)}
 
 /* ---------- view handling ---------- */
 function setView(v){v.at=Date.now();const prev=V;V=v;
