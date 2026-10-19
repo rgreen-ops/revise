@@ -553,14 +553,14 @@ const qa=(s,fn)=>document.querySelectorAll(s).forEach(el=>el.onclick=()=>fn(el))
 const qf=(s,fn)=>document.querySelectorAll(s).forEach(el=>el.onsubmit=e=>{e.preventDefault();fn(el)});
 
 /* sound */
-const SND=Object.assign({fx:true,voice:null},ld("tl_snd")||{});
+const SND=Object.assign({fx:true,voice:null,mute:false},ld("tl_snd")||{});
 let actx=null,master=null,bed=null;
 function audioInit(){try{let fresh=false;if(!actx){actx=new (window.AudioContext||window.webkitAudioContext)();master=actx.createGain();master.gain.value=0.55;master.connect(actx.destination);fresh=true}if(actx.state==="suspended")actx.resume();if(fresh&&V)phaseAudio(V.pub.phase)}catch(e){}}
 ["pointerdown","keydown","touchstart"].forEach(ev=>document.addEventListener(ev,audioInit,{passive:true}));
 const T0=()=>actx.currentTime;
 function osc(type,f,t0,t1,g,dest,slide){try{const o=actx.createOscillator(),a=actx.createGain();o.type=type;o.frequency.setValueAtTime(f,t0);if(slide)o.frequency.exponentialRampToValueAtTime(slide,t1);a.gain.setValueAtTime(0.0001,t0);a.gain.linearRampToValueAtTime(g,t0+0.03);a.gain.exponentialRampToValueAtTime(0.0001,t1);o.connect(a);a.connect(dest||master);o.start(t0);o.stop(t1+0.05)}catch(e){}}
 function noise(t0,t1,g,cut,dest){try{const len=Math.ceil(actx.sampleRate*(t1-t0));const b=actx.createBuffer(1,len,actx.sampleRate);const d=b.getChannelData(0);for(let i=0;i<len;i++)d[i]=Math.random()*2-1;const s=actx.createBufferSource();s.buffer=b;const f=actx.createBiquadFilter();f.type="lowpass";f.frequency.value=cut;const a=actx.createGain();a.gain.setValueAtTime(g,t0);a.gain.exponentialRampToValueAtTime(0.0001,t1);s.connect(f);f.connect(a);a.connect(dest||master);s.start(t0);s.stop(t1)}catch(e){}}
-const ok=()=>actx&&SND.fx;
+const ok=()=>actx&&SND.fx&&!SND.mute;
 const FX={
  thud(){if(!ok())return;const t=T0();osc("sine",80,t,t+0.4,0.6,null,40);noise(t,t+0.18,0.3,500)},
  heart(){if(!ok())return;const t=T0();osc("sine",58,t,t+0.2,0.5);osc("sine",52,t+0.3,t+0.55,0.35)},
@@ -593,7 +593,8 @@ function phaseAudio(phase){if(["vote","vreveal"].includes(phase))bedStart("vote"
 let VOICE=null;
 function pickVoice(){try{const vs=speechSynthesis.getVoices();if(!vs.length)return;const pref=[/Google UK English Female/i,/Google UK English Male/i,/en[-_]GB.*(Natural|Neural|Premium|Enhanced|Online)/i,/(Libby|Sonia|Mia|Ryan|Thomas).*(GB|British|United Kingdom)/i,/Daniel/i,/Serena/i,/Kate/i,/Martha/i,/en[-_]GB/i,/English.*(United Kingdom|UK)/i,/Google US English/i,/Samantha/i,/en[-_]/i];for(const r of pref){const v=vs.find(x=>r.test(x.name+" "+x.lang));if(v){VOICE=v;return}}}catch(e){}}
 try{pickVoice();speechSynthesis.onvoiceschanged=pickVoice}catch(e){}
-function voiceOn(){return SND.voice==null?isHost:SND.voice}
+function voiceOn(){return !SND.mute&&(SND.voice==null?isHost:SND.voice)}
+function setMute(m){SND.mute=m;sv("tl_snd",SND);if(m){bedStop();try{speechSynthesis.cancel()}catch(e){}}else if(V)phaseAudio(V.pub.phase);if(V)bar()}
 function hostSay(t){if(!voiceOn())return;try{const u=new SpeechSynthesisUtterance(t);if(VOICE)u.voice=VOICE;u.lang=(VOICE&&VOICE.lang)||"en-GB";u.rate=0.9;u.pitch=0.95;u.volume=1;speechSynthesis.cancel();setTimeout(()=>speechSynthesis.speak(u),60)}catch(e){}}
 function buzz(p){try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}}
 async function keepAwake(){try{await navigator.wakeLock.request("screen")}catch(e){}}
@@ -664,27 +665,27 @@ function joinGame(code,name){const old=ld(MK);ME={code,token:(old&&old.code===co
 /* ---------- view handling ---------- */
 function setView(v){v.at=Date.now();const prev=V;V=v;
  if(!prev||prev.pub.phase!==v.pub.phase||prev.pub.round!==v.pub.round){A={};UI.flip=false;lastHtml="";onPhase(v)}
- else if(v.pub.phase==="vreveal"&&prev.pub.ph.list.length!==v.pub.ph.list.length){FX.vote();const x=v.pub.ph.list[v.pub.ph.list.length-1];if(x)hostSay(`${rawname(x.by)} voted for ${rawname(x.on)}.`)}
+ else if(v.pub.phase==="vreveal"&&prev.pub.ph.list.length!==v.pub.ph.list.length)FX.vote();
  else if(v.pub.phase==="mission"&&v.pub.ph.type==="sync"&&prev.pub.ph.flash!==v.pub.ph.flash){buzz(200);FX.fail()}
  document.body.classList.toggle("night",v.pub.phase==="night");
  render()}
 function onPhase(v){const {pub}=v,ph=pub.ph;buzz(60);phaseAudio(pub.phase);
  switch(pub.phase){
-  case "role":FX.rise();hostSay("Welcome to the castle. Look around the table. Some of you are Faithful. And some of you are Traitors. Turn over your cards.");break;
-  case "secret":FX.chime();hostSay(pub.round===0?"Round one. Everyone, check your phones. Traitors, your first assignment is waiting.":pub.round===3?"The final round. Check your phones one last time. Traitors, make it count.":`Round ${RNAME[pub.round].toLowerCase()}. Check your phones. Traitors, you know what to do.`);break;
-  case "mission":FX.ready();hostSay("Your mission starts now. Good luck, everyone.");break;
-  case "mresult":if(ph.g){FX.coins();hostSay(`${ph.g} gold goes into the prize pot. Well done.`)}else{FX.fail();hostSay("Nothing goes into the prize pot. Somebody in this castle is very pleased about that.")}break;
-  case "debate":hostSay("To the Round Table. Who do you trust? And who has been lying to you all night?");break;
-  case "vote":FX.thud();hostSay("The talking stops here. Pick up your phones, and cast your vote.");break;
-  case "vreveal":hostSay("The votes are in. One by one, let's see them.");break;
+  case "role":FX.rise();break;
+  case "secret":FX.chime();break;
+  case "mission":FX.ready();break;
+  case "mresult":if(ph.g)FX.coins();else FX.fail();break;
+  case "debate":break;
+  case "vote":FX.thud();hostSay("Cast your votes.");break;
+  case "vreveal":break;
   case "banish":fxBanish(ph);break;
-  case "armoury":FX.chime();hostSay("To the Armoury. Every player for themselves.");break;
+  case "armoury":FX.chime();break;
   case "areward":if(ph.win.length)FX.coin();break;
-  case "night":hostSay("Night falls on the castle. Faithful, sleep well, if you can. Traitors, it's time to choose.");break;
+  case "night":hostSay("Night falls on the castle.");break;
   case "morning":fxMorning(ph.m);break;
   case "reveal":fxReveal(ph.traitors);break;
-  case "scores":FX.coins();hostSay("Count your gold. Only two of you will reach the final.");break;
-  case "final":hostSay("Finalists, the prize pot is yours to share, or to steal. Faithful, or Traitor? Decide.");break;
+  case "scores":FX.coins();break;
+  case "final":break;
   case "finale":fxFinale(ph);break;
  }}
 function snapInputs(){const m={};app.querySelectorAll("input[id],textarea[id]").forEach(i=>{m[i.id]=i.type==="checkbox"?i.checked:i.value});return {m,f:document.activeElement&&document.activeElement.id}}
@@ -698,15 +699,15 @@ document.addEventListener("pointerup",releaseHold);document.addEventListener("po
 function fmtScore(t,v,roll){if(v==null)return "no score";switch(t){case "reaction":return v>=99999?"Too early":v+" ms";case "taps":return v+" taps";case "maths":return v+" s";case "tenseconds":return Number(v).toFixed(2)+" s off";case "digits":return v+" digits";case "bid":return v+" gold";case "dice":return roll?roll[0]+" + "+roll[1]+" = "+v:v;case "higherlower":return v+" in a row"}return v}
 
 function bar(){const b=$("#bar");b.hidden=false;const {pub,me}=V;const mine=pl(me.id);const endgame=["reveal","judge","scores","final","finale"].includes(pub.phase);
- b.innerHTML=`<span class="rl">${pub.phase==="lobby"?"Room "+esc(pub.code):esc(ADV[pub.adv].name)+(endgame?" · End Game":" · Round "+RNAME[pub.round])}</span><button class="pill" id="plb" aria-label="Players">${pub.players.filter(p=>p.conn).length}/${pub.players.length}</button><span class="pill">Pot <b>${pub.pot}</b></span><span class="pill">Me <b>${mine?mine.gold:0}</b></span>`;
- $("#plb").onclick=sheetPlayers}
+ b.innerHTML=`<span class="rl">${pub.phase==="lobby"?"Room "+esc(pub.code):esc(ADV[pub.adv].name)+(endgame?" · End Game":" · Round "+RNAME[pub.round])}</span><button class="pill" id="plb" aria-label="Players">${pub.players.filter(p=>p.conn).length}/${pub.players.length}</button><span class="pill">Pot <b>${pub.pot}</b></span><span class="pill">Me <b>${mine?mine.gold:0}</b></span><button class="pill ${SND.mute?"sec":""}" id="mute" aria-label="${SND.mute?"Unmute":"Mute"}">${SND.mute?"Muted":"Mute"}</button>`;
+ $("#plb").onclick=sheetPlayers;$("#mute").onclick=()=>setMute(!SND.mute)}
 function sheetPlayers(){const s=$("#sheet");s.hidden=false;confirmLeave=false;const {pub,me}=V;
  s.querySelector(".in").innerHTML=`<div class="row" style="justify-content:space-between;align-items:center"><h2 class="sect" style="margin:0">Players</h2><button class="btn sm ghost" id="sx">Close</button></div>
  <div class="stack t" style="margin-top:14px">${pub.players.map(p=>`<div class="vrow"><span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.conn?"var(--gold)":"#555"};margin-right:8px"></i>${esc(p.name)}${p.host?" (GM)":""}${p.id===pub.silenced?' <em class="red">silenced</em>':""}</span><b>${p.gold} gold</b>${me.host&&pub.phase==="lobby"&&!p.host?`<button class="btn sm ghost" data-kick="${p.id}">Remove</button>`:""}</div>`).join("")}</div>
  <p class="small">Room ${esc(pub.code)}. ${me.inv.S?`You hold ${me.inv.S} Shield${me.inv.S>1?"s":""}. `:""}${me.inv.D?`You hold ${me.inv.D} Dagger${me.inv.D>1?"s":""}.`:""}</p>
  <h2 class="sect">Sound on this phone</h2><label class="toggle" style="border-color:var(--gold-d);background:var(--panel)"><input type="checkbox" id="sfx" ${SND.fx?"checked":""}> Atmosphere and effects</label><label class="toggle" style="border-color:var(--gold-d);background:var(--panel)"><input type="checkbox" id="svo" ${voiceOn()?"checked":""}> Narrator voice${me.host?"":" (off by default, the game master's phone speaks on the call)"}</label>
  <button class="link" id="leave">${me.host?"End this game for everyone":"Leave this game"}</button>`;
- $("#sx").onclick=()=>s.hidden=true;$("#sfx").onchange=e=>{SND.fx=e.target.checked;sv("tl_snd",SND);if(!SND.fx)bedStop();else if(V)phaseAudio(V.pub.phase)};$("#svo").onchange=e=>{SND.voice=e.target.checked;sv("tl_snd",SND);if(SND.voice)hostSay("The narrator is on.")};
+ $("#sx").onclick=()=>s.hidden=true;$("#sfx").onchange=e=>{SND.fx=e.target.checked;sv("tl_snd",SND);if(!SND.fx)bedStop();else if(V)phaseAudio(V.pub.phase)};$("#svo").onchange=e=>{SND.voice=e.target.checked;sv("tl_snd",SND);if(SND.voice)hostSay("Narrator on.")};
  s.querySelectorAll("[data-kick]").forEach(b=>b.onclick=()=>{gm({t:"kick",id:b.dataset.kick});s.hidden=true});
  $("#leave").onclick=()=>{if(!confirmLeave){confirmLeave=true;$("#leave").textContent="Tap again to confirm";return}leave()}}
 function gmBar(){const g=$("#gm");if(!isHost||!V){g.hidden=true;return}const {pub}=V,ph=pub.ph;let h="";
@@ -853,18 +854,18 @@ function drawCoins(seed,count){const c=$("#cv");if(!c)return;const R=rng(seed),x
 
 /* ---------- cinematics ---------- */
 function fx(html,ms,extra=""){const f=$("#fx");f.innerHTML=`<div class="bg"></div>${extra}<div class="ct">${html}</div>`;f.hidden=false;f.classList.add("on");f.classList.remove("out");clearTimeout(fx.t);const hide=()=>{f.classList.add("out");setTimeout(()=>{f.hidden=true;f.classList.remove("on","out");f.innerHTML=""},800)};fx.t=setTimeout(hide,ms);f.onclick=()=>{clearTimeout(fx.t);hide()}}
-function fxBanish(ph){const one=ph.top.length===1;bedStop();FX.toll();hostSay(one?`The Round Table has spoken. ${rawname(ph.top[0])}. I'm sorry. You have been banished.`:`It's a tie. ${ph.top.map(rawname).join(" and ")} each lose a little gold, and the castle keeps its secrets. For now.`);
+function fxBanish(ph){const one=ph.top.length===1;bedStop();FX.toll();hostSay(one?`${rawname(ph.top[0])}, you have been banished.`:"It's a tie.");
  fx(`<p class="cap">The Round Table has spoken</p><div class="nm nmin">${one?pname(ph.top[0]):"A tie"}<div class="strike"></div></div><br><span class="stamp">${one?"Banished":"No banishment"}</span>`,5500)}
 function fxMorning(m){
- if(!m||!m.v){bedStop();FX.dawn();hostSay("Good morning. The castle wakes, and everybody is still here. Nobody died last night. Make of that what you will.");fx(`<p class="cap" style="color:#fff3d0">Dawn breaks</p><div class="nm" style="color:#fff">No one died</div>`,4500,`<div class="dawn"></div><div class="sun"></div>`);return}
+ if(!m||!m.v){bedStop();FX.dawn();hostSay("Nobody died last night.");fx(`<p class="cap" style="color:#fff3d0">Dawn breaks</p><div class="nm" style="color:#fff">No one died</div>`,4500,`<div class="dawn"></div><div class="sun"></div>`);return}
  const name=pname(m.v);
- if(m.shield){bedStop();FX.sting();setTimeout(()=>FX.dawn(),1200);hostSay(`Good morning. Last night, the Traitors came for ${rawname(m.v)}. But a shield held firm. ${rawname(m.v)} lives.`);fx(`<svg class="shieldsvg" viewBox="0 0 100 120"><path d="M50 4 L92 20 V58 C92 88 70 108 50 116 C30 108 8 88 8 58 V20 Z" fill="#8fa3b5" stroke="#dfe8ef" stroke-width="3"/><path d="M50 18 L78 29 V58 C78 78 64 94 50 101 C36 94 22 78 22 58 V29 Z" fill="#55687a"/></svg><p class="cap">Shield</p><div class="nm" style="color:#dfe8ef">${name} survives</div>`,5000,`<div class="rays"></div>`);return}
- bedStop();FX.murder();hostSay(`Good morning. I'm afraid there has been a murder. ${rawname(m.v)}. You were murdered in the night.`);buzz([200,100,400]);
+ if(m.shield){bedStop();FX.sting();setTimeout(()=>FX.dawn(),1200);hostSay(`${rawname(m.v)} was attacked, but a shield held.`);fx(`<svg class="shieldsvg" viewBox="0 0 100 120"><path d="M50 4 L92 20 V58 C92 88 70 108 50 116 C30 108 8 88 8 58 V20 Z" fill="#8fa3b5" stroke="#dfe8ef" stroke-width="3"/><path d="M50 18 L78 29 V58 C78 78 64 94 50 101 C36 94 22 78 22 58 V29 Z" fill="#55687a"/></svg><p class="cap">Shield</p><div class="nm" style="color:#dfe8ef">${name} survives</div>`,5000,`<div class="rays"></div>`);return}
+ bedStop();FX.murder();hostSay(`${rawname(m.v)} has been murdered.`);buzz([200,100,400]);
  const spots=Array.from({length:9},()=>`<i style="width:${20+Math.random()*70}px;height:${20+Math.random()*70}px;left:${-80+Math.random()*120}px;top:${-60+Math.random()*120}px;animation-delay:${1.3+Math.random()*.4}s"></i>`).join("");
  fx(`<p class="cap red" style="margin-top:110px">In the night</p><div class="nm nmin">${name}<div class="strike"></div></div><br><span class="stamp">Murdered</span>`,6500,`<div class="splat">${spots}</div><svg class="dagger" viewBox="0 0 40 160"><circle cx="20" cy="10" r="8" fill="#c9a45c"/><rect x="14" y="16" width="12" height="40" fill="#3b2a12"/><rect x="2" y="56" width="36" height="8" fill="#7d6534"/><polygon points="12,64 28,64 20,160" fill="#d9d9d9"/><polygon points="20,64 28,64 20,160" fill="#9a9a9a"/></svg>`)}
-function fxReveal(tr){FX.rise();setTimeout(()=>FX.sting(),2800);hostSay("The time has come. Faithful, you have been living with "+(tr.length>1?"traitors":"a traitor")+" all along. "+(tr.length>1?"They were ":"It was ")+tr.map(rawname).join(", and ")+".");
+function fxReveal(tr){FX.rise();setTimeout(()=>FX.sting(),2800);hostSay("The traitor"+(tr.length>1?"s were ":" was ")+tr.map(rawname).join(", and ")+".");
  fx(`<p class="cap red">The Traitor${tr.length>1?"s":""}</p>${tr.map(id=>`<div class="nm glitch red">${pname(id)}</div>`).join("<br>")}`,6000,`<div class="redpulse"></div>`)}
-function fxFinale(ph){const o=ph.out;bedStop();FX.coins();setTimeout(()=>FX.toll(),600);hostSay(o.kind==="share"?`Faithful, both of you. You share the prize pot. The game is over.`:o.kind==="both"?`Two Traitors. You both chose to steal, and so neither of you gets a thing. ${o.win.length?rawname(o.win[0])+" takes it all.":""} The game is over.`:`${rawname(o.win[0])} chose Traitor, and takes everything. The game is over.`);const coins=Array.from({length:40},()=>`<i class="coin" style="left:${Math.random()*100}%;animation-duration:${2+Math.random()*2.5}s;animation-delay:${Math.random()*2}s"></i>`).join("");
+function fxFinale(ph){const o=ph.out;bedStop();FX.coins();setTimeout(()=>FX.toll(),600);hostSay("The game is over.");const coins=Array.from({length:40},()=>`<i class="coin" style="left:${Math.random()*100}%;animation-duration:${2+Math.random()*2.5}s;animation-delay:${Math.random()*2}s"></i>`).join("");
  fx(`<p class="cap">${o.kind==="share"?"Shared":o.kind==="both"?"Double cross":"Stolen"}</p><div class="nm" style="color:var(--gold-l)">${o.win.length?o.win.map(pname).join(" & "):"No one"}</div>`,6000,coins)}
 
 /* ---------- boot ---------- */
