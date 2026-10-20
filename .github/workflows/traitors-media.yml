@@ -1,0 +1,52 @@
+name: Fetch Traitors media
+
+# Downloads the generated music, voice clips and paintings listed in
+# bim-builder/traitors/media-urls.json and commits them into
+# bim-builder/traitors/media/ so the game no longer depends on expiring links.
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+    paths: ["bim-builder/traitors/media-urls.json"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: traitors-media
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download files
+        run: |
+          set -e
+          mkdir -p bim-builder/traitors/media
+          python3 - <<'PY'
+          import json, urllib.request, os
+          urls = json.load(open("bim-builder/traitors/media-urls.json"))
+          ok = 0
+          for name, url in urls.items():
+              dest = os.path.join("bim-builder/traitors/media", name)
+              if os.path.exists(dest) and os.path.getsize(dest) > 1000:
+                  print("have", name); ok += 1; continue
+              try:
+                  req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+                  data = urllib.request.urlopen(req, timeout=120).read()
+                  open(dest, "wb").write(data)
+                  print("saved", name, len(data)); ok += 1
+              except Exception as e:
+                  print("FAILED", name, e)
+          print(ok, "of", len(urls))
+          PY
+          ls -la bim-builder/traitors/media
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add bim-builder/traitors/media
+          git diff --cached --quiet && echo "nothing new" || git commit -m "Traitors: add media files"
+          git push
