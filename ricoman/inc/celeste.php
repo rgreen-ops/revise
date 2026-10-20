@@ -2,13 +2,13 @@
 /**
  * Celeste — stretched fabric light box.
  *
- * Provides EDITABLE block patterns (not hardcoded output) so the team can build
- * and rearrange the Celeste page themselves: add them from the Product Page
- * Editor's "Add section or pattern", then edit the text, images and buttons like
- * any other block. Built from core blocks + the theme's section/card styles, so
- * each section sits in the normal constrained content column.
+ * Visual, EDITABLE block patterns so the team builds and rearranges the Celeste
+ * page themselves (Product Page Editor → "Add section or pattern"), then edits
+ * text, images and buttons like any block. Rich sections — cover hero, shapes
+ * showcase, colour/lighting strip, full-bleed image+text panels, a bold "build"
+ * band, icon benefit cards and a cover CTA — all in the Ricoman look.
  *
- * Also creates the new "Stretch Ceiling Lighting" product category.
+ * Also creates the "Stretch Ceiling Lighting" product category.
  *
  * @package Ricoman
  */
@@ -22,9 +22,7 @@ function ricoman_celeste_builder_url() {
 	return apply_filters( 'ricoman_celeste_builder_url', '#' );
 }
 
-/* ---------------------------------------------------------------------------
- * New product category: Stretch Ceiling Lighting (create-once).
- * ------------------------------------------------------------------------- */
+/* ---- New product category: Stretch Ceiling Lighting (create-once) --------- */
 add_action( 'admin_init', function () {
 	if ( get_option( 'ricoman_stretch_ceiling_cat_v1' ) ) {
 		return;
@@ -42,23 +40,54 @@ add_action( 'admin_init', function () {
 	update_option( 'ricoman_stretch_ceiling_cat_v1', '1' );
 } );
 
-/* ---------------------------------------------------------------------------
- * A little CSS for the step-number badge + spec list (loads front + editor).
- * Everything else reuses existing theme classes (rm-section, rm-aud-card, …).
- * ------------------------------------------------------------------------- */
+/* ---- Celeste visual CSS (loads front + editor) ---------------------------- */
 add_action( 'enqueue_block_assets', function () {
+	$blue = 'var(--blue,#004899)';
+	$ink  = 'var(--ink,#16161a)';
+	$mut  = 'var(--muted,#5b6068)';
+	$line = 'var(--line,#e6e4de)';
 	$css =
-		'.rm-cel-step .rm-cel-num{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:var(--blue,#004899);color:#fff;font-family:Poppins,sans-serif;font-weight:700;font-size:.95rem;margin-bottom:6px}'
-		. '.rm-cel-spec{max-width:900px}'
-		. '.rm-cel-spec li{padding:10px 0;border-bottom:1px solid var(--line,#e6e4de);line-height:1.5}';
+		// Shapes showcase
+		".rm-cel-showcase{max-width:1120px;margin:0 auto}"
+		. ".rm-cel-shapes{display:grid;grid-template-columns:repeat(6,1fr);gap:20px;margin-top:8px}"
+		. ".rm-cel-shape{text-align:center}"
+		. ".rm-cel-shape svg{width:66px;height:66px;color:$blue;display:block;margin:0 auto 12px;stroke:$blue;fill:none;stroke-width:1.5}"
+		. ".rm-cel-shape .n{font-family:Poppins,sans-serif;font-weight:600;font-size:.95rem;color:$ink;display:block}"
+		. ".rm-cel-shape .d{font-size:.78rem;color:$mut;display:block;margin-top:3px;line-height:1.35}"
+		. "@media(max-width:860px){.rm-cel-shapes{grid-template-columns:repeat(3,1fr)}}"
+		. "@media(max-width:460px){.rm-cel-shapes{grid-template-columns:repeat(2,1fr)}}"
+		// Colour / lighting chips
+		. ".rm-cel-chips{display:flex;flex-wrap:wrap;gap:14px;margin-top:8px}"
+		. ".rm-cel-chip{flex:1 1 150px;border-radius:14px;min-height:118px;padding:16px;display:flex;flex-direction:column;justify-content:flex-end;font-family:Poppins,sans-serif;font-weight:600;font-size:.92rem;border:1px solid rgba(0,0,0,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}"
+		. ".rm-cel-chip small{display:block;font-weight:400;font-size:.76rem;opacity:.85;margin-top:2px}"
+		// Build band (dark)
+		. ".rm-cel-band{background:$ink;color:#fff;border-radius:18px;padding:clamp(34px,5vw,64px)!important}"
+		. ".rm-cel-band .rm-cel-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(20px,2.6vw,36px);margin:26px 0 30px}"
+		. ".rm-cel-stepcard .num{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:$blue;color:#fff;font-family:Poppins,sans-serif;font-weight:700;margin-bottom:12px}"
+		. ".rm-cel-stepcard h3{font-family:Poppins,sans-serif;font-weight:600;font-size:1.1rem;color:#fff;margin:0 0 .35em}"
+		. ".rm-cel-stepcard p{color:rgba(255,255,255,.72);font-size:.92rem;line-height:1.5;margin:0}"
+		. "@media(max-width:760px){.rm-cel-band .rm-cel-steps{grid-template-columns:1fr}}"
+		// Benefit icon cards
+		. ".rm-cel-benefits{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}"
+		. ".rm-cel-bcard{border:1px solid $line;border-radius:16px;padding:28px 26px;background:#fff;position:relative;overflow:hidden}"
+		. ".rm-cel-bcard::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:$blue}"
+		. ".rm-cel-bcard svg{width:34px;height:34px;color:$blue;stroke:$blue;fill:none;stroke-width:1.6;margin-bottom:14px}"
+		. ".rm-cel-bcard h3{font-family:Poppins,sans-serif;font-weight:600;font-size:1.12rem;color:$ink;margin:0 0 .4em}"
+		. ".rm-cel-bcard p{color:$mut;font-size:.94rem;line-height:1.55;margin:0}"
+		. "@media(max-width:860px){.rm-cel-benefits{grid-template-columns:1fr}}"
+		// Spec card band
+		. ".rm-cel-specwrap{background:var(--surface,#f6f5f2);border-radius:16px;padding:clamp(26px,3vw,44px)}"
+		. ".rm-cel-spec{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:0 48px}"
+		. ".rm-cel-spec li{display:grid;grid-template-columns:118px 1fr;gap:14px;padding:13px 0;border-bottom:1px solid $line;font-size:.95rem;line-height:1.5}"
+		. ".rm-cel-spec .k{font-family:Poppins,sans-serif;font-weight:600;color:$ink}"
+		. ".rm-cel-spec .v{color:$mut}"
+		. "@media(max-width:700px){.rm-cel-spec{grid-template-columns:1fr}}";
 	wp_register_style( 'ricoman-celeste-inline', false );
 	wp_enqueue_style( 'ricoman-celeste-inline' );
 	wp_add_inline_style( 'ricoman-celeste-inline', $css );
 } );
 
-/* ---------------------------------------------------------------------------
- * Editable Celeste patterns.
- * ------------------------------------------------------------------------- */
+/* ---- Editable Celeste patterns ------------------------------------------- */
 add_action( 'init', function () {
 	if ( ! function_exists( 'register_block_pattern' ) ) {
 		return;
@@ -67,141 +96,228 @@ add_action( 'init', function () {
 		register_block_pattern_category( 'ricoman-celeste', array( 'label' => __( 'Ricoman — Celeste', 'ricoman' ) ) );
 	}
 	$cats = array( 'ricoman-celeste', 'ricoman-page' );
+	$u    = function ( $f ) { return esc_url( get_theme_file_uri( 'assets/images/' . $f ) ); };
 
-	// --- building blocks (valid core-block markup) ---------------------------
+	/* building blocks (valid core-block markup) */
 	$sec     = function ( $inner, $cls = '' ) { return '<!-- wp:group {"align":"full","className":"rm-section ' . $cls . '","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-section ' . trim( $cls ) . '">' . $inner . '</div><!-- /wp:group -->'; };
-	$h2      = function ( $t ) { return '<!-- wp:heading {"level":2,"className":"rm-shead"} --><h2 class="wp-block-heading rm-shead">' . $t . '</h2><!-- /wp:heading -->'; };
-	$h3      = function ( $t ) { return '<!-- wp:heading {"level":3} --><h3 class="wp-block-heading">' . $t . '</h3><!-- /wp:heading -->'; };
+	$eyebrow = function ( $t, $base = false ) { $c = $base ? ' {"className":"rm-eyebrow","textColor":"base"}' : ' {"className":"rm-eyebrow"}'; $cl = $base ? 'rm-eyebrow has-base-color has-text-color' : 'rm-eyebrow'; return '<!-- wp:paragraph' . $c . ' --><p class="' . $cl . '">' . $t . '</p><!-- /wp:paragraph -->'; };
+	$h2      = function ( $t, $base = false ) { return '<!-- wp:heading {"level":2' . ( $base ? ',"textColor":"base"' : '' ) . ',"className":"rm-shead"} --><h2 class="wp-block-heading rm-shead' . ( $base ? ' has-base-color has-text-color' : '' ) . '">' . $t . '</h2><!-- /wp:heading -->'; };
 	$p       = function ( $t, $muted = false ) { return '<!-- wp:paragraph' . ( $muted ? ' {"textColor":"muted"}' : '' ) . ' --><p' . ( $muted ? ' class="has-muted-color has-text-color"' : '' ) . '>' . $t . '</p><!-- /wp:paragraph -->'; };
 	$li      = function ( $t ) { return '<!-- wp:list-item --><li>' . $t . '</li><!-- /wp:list-item -->'; };
-	$list    = function ( $items, $cls = '' ) { return '<!-- wp:list' . ( $cls ? ' {"className":"' . $cls . '"}' : '' ) . ' --><ul class="wp-block-list' . ( $cls ? ' ' . $cls : '' ) . '">' . $items . '</ul><!-- /wp:list -->'; };
+	$list    = function ( $items ) { return '<!-- wp:list --><ul class="wp-block-list">' . $items . '</ul><!-- /wp:list -->'; };
+	$html    = function ( $h ) { return '<!-- wp:html -->' . $h . '<!-- /wp:html -->'; };
 	$btnsolid = function ( $label, $href ) { return '<!-- wp:button --><div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="' . $href . '">' . $label . '</a></div><!-- /wp:button -->'; };
 	$btnline  = function ( $label, $href, $light = false ) { $s = 'is-style-outline' . ( $light ? '-light' : '' ); return '<!-- wp:button {"className":"' . $s . '"} --><div class="wp-block-button ' . $s . '"><a class="wp-block-button__link wp-element-button" href="' . $href . '">' . $label . '</a></div><!-- /wp:button -->'; };
 	$buttons  = function ( $inner ) { return '<!-- wp:buttons --><div class="wp-block-buttons">' . $inner . '</div><!-- /wp:buttons -->'; };
-	$card     = function ( $inner ) { return '<!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"rm-aud-card","layout":{"type":"constrained"}} --><div class="wp-block-group rm-aud-card">' . $inner . '</div><!-- /wp:group --></div><!-- /wp:column -->'; };
-	$cols     = function ( $inner ) { return '<!-- wp:columns --><div class="wp-block-columns">' . $inner . '</div><!-- /wp:columns -->'; };
-	$eyebrow  = function ( $t ) { return '<!-- wp:paragraph {"className":"rm-eyebrow"} --><p class="rm-eyebrow">' . $t . '</p><!-- /wp:paragraph -->'; };
+	$cover    = function ( $img, $inner, $min = 62, $dim = 50 ) { return '<!-- wp:cover {"url":"' . $img . '","dimRatio":' . $dim . ',"overlayColor":"ink","minHeight":' . $min . ',"minHeightUnit":"vh","contentPosition":"center center","align":"full","textColor":"base"} --><div class="wp-block-cover alignfull has-base-color has-text-color" style="min-height:' . $min . 'vh"><span aria-hidden="true" class="wp-block-cover__background has-ink-background-color has-background-dim-' . $dim . ' has-background-dim"></span><img class="wp-block-cover__image-background" alt="" src="' . $img . '" data-object-fit="cover"/><div class="wp-block-cover__inner-container">' . $inner . '</div></div><!-- /wp:cover -->'; };
 
 	$builder = esc_url( ricoman_celeste_builder_url() );
 	$design  = esc_url( home_url( '/lighting-design/' ) );
 	$trade   = esc_url( home_url( '/trade/' ) );
 
-	// 1) Hero intro ----------------------------------------------------------
-	$hero = $sec(
-		$h2( 'Stretched fabric light boxes, designed in minutes.' )
-		. $p( 'Give your client a feature that lights up the whole space: a seamless printed graphic, an even glow from edge to edge, and no visible frame from the front. Design your Celeste light box online, download a complete spec straight away, and we&rsquo;ll come back with a firm quote.', true )
-		. $list(
-			$li( '<strong>Design it yourself, in minutes.</strong> Choose the size, shape, lighting and mounting in our builder and see it in 3D.' )
-			. $li( '<strong>Quote with confidence.</strong> Every design comes with a full spec summary and a reference code, so nothing gets lost between you, your client and us.' )
-			. $li( '<strong>Easy to live with.</strong> Graphics swap in minutes with no tools, so your client can refresh their space season after season.' )
-		)
-		. $buttons( $btnsolid( 'Build your own light box →', $builder ) . $btnline( 'Request a Lighting Design', $design ) . $btnline( 'Apply for a Trade Account', $trade ) )
+	/* 1) Hero (cover) ------------------------------------------------------- */
+	$hero = $cover(
+		$u( 'ceiling.webp' ),
+		$eyebrow( 'Stretch Ceiling Lighting', true )
+		. $h2( 'Stretched fabric light boxes, designed in minutes.', true )
+		. $p( 'A seamless printed graphic, an even glow from edge to edge, and no visible frame from the front. Design yours online and get a complete spec to quote from.' )
+		. $buttons( $btnsolid( 'Build your own light box →', $builder ) . $btnline( 'Request a Lighting Design', $design, true ) ),
+		64, 50
 	);
 	register_block_pattern( 'ricoman/celeste-hero', array(
-		'title'       => 'Celeste · Hero intro + bullets',
-		'description' => 'Celeste intro: subheading, lead paragraph, the three value bullets and the main CTAs.',
-		'categories'  => $cats,
-		'content'     => $hero,
+		'title' => 'Celeste · Hero banner (image overlay)', 'categories' => $cats,
+		'description' => 'Full-bleed cover image with the tagline + CTA. Swap the background image.',
+		'content' => $hero,
 	) );
 
-	// 2) Build your own ------------------------------------------------------
-	$step = function ( $n, $h, $t ) use ( $card, $h3, $p ) {
-		return $card( '<!-- wp:paragraph {"className":"rm-cel-num"} --><p class="rm-cel-num">' . $n . '</p><!-- /wp:paragraph -->' . $h3( $h ) . $p( $t, true ) );
+	/* 2) Intro + value bullets --------------------------------------------- */
+	$intro = $sec(
+		$p( 'Give your client a feature that lights up the whole space. Design your Celeste light box online, download a complete spec straight away, and we&rsquo;ll come back with a firm quote.', true )
+		. $list(
+			$li( '<strong>Design it yourself, in minutes.</strong> Choose the size, shape, lighting and mounting in our builder and see it in 3D.' )
+			. $li( '<strong>Quote with confidence.</strong> Every design comes with a full spec summary and a reference code.' )
+			. $li( '<strong>Easy to live with.</strong> Graphics swap in minutes with no tools, season after season.' )
+		)
+	);
+	register_block_pattern( 'ricoman/celeste-intro', array(
+		'title' => 'Celeste · Intro + value bullets', 'categories' => $cats,
+		'content' => $intro,
+	) );
+
+	/* 3) Made to measure — shapes showcase (SVG) --------------------------- */
+	$shape = function ( $svg, $name, $desc ) { return '<div class="rm-cel-shape">' . $svg . '<span class="n">' . $name . '</span><span class="d">' . $desc . '</span></div>'; };
+	$svg_rect = '<svg viewBox="0 0 48 48"><rect x="6" y="13" width="36" height="22" rx="1"/></svg>';
+	$svg_rnd  = '<svg viewBox="0 0 48 48"><rect x="6" y="13" width="36" height="22" rx="7"/></svg>';
+	$svg_cir  = '<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="15"/></svg>';
+	$svg_ring = '<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="15"/><circle cx="24" cy="24" r="7"/></svg>';
+	$svg_cut  = '<svg viewBox="0 0 48 48"><rect x="5" y="12" width="38" height="24" rx="2"/><rect x="17" y="20" width="14" height="8" rx="4"/></svg>';
+	$svg_cus  = '<svg viewBox="0 0 48 48"><path d="M10 28c-2-8 6-16 14-14s14 6 12 14-8 12-16 10-8-4-10-10z"/></svg>';
+	$shapes = $sec(
+		$eyebrow( 'Made to measure' )
+		. $h2( 'Any size, any shape' )
+		. $p( 'Up to 4.9 m wide and any length. Large runs arrive in sections and join on site with no visible gaps.', true )
+		. $html( '<div class="rm-cel-showcase"><div class="rm-cel-shapes">'
+			. $shape( $svg_rect, 'Rectangle', 'Up to 4.9 m &times; any length' )
+			. $shape( $svg_rnd, 'Rounded', 'Corner radius to suit' )
+			. $shape( $svg_cir, 'Circle', '&Oslash;500 &ndash; &Oslash;4,900 mm' )
+			. $shape( $svg_ring, 'Ring', 'Up to &Oslash;20,000 mm' )
+			. $shape( $svg_cut, 'With cut-out', 'From 800 &times; 800 mm' )
+			. $shape( $svg_cus, 'Custom', 'From your sketch or DWG' )
+			. '</div></div>' )
+	);
+	register_block_pattern( 'ricoman/celeste-shapes', array(
+		'title' => 'Celeste · Shapes showcase (icons)', 'categories' => $cats,
+		'description' => 'The six shapes with icons — rectangle, rounded, circle, ring, cut-out, custom.',
+		'content' => $shapes,
+	) );
+
+	/* 4) Colour & lighting strip ------------------------------------------- */
+	$chip = function ( $bg, $name, $sub, $dark = true ) { return '<div class="rm-cel-chip" style="background:' . $bg . ';color:' . ( $dark ? '#16161a' : '#fff' ) . '">' . $name . '<small style="color:' . ( $dark ? '#16161a' : '#fff' ) . '">' . $sub . '</small></div>'; };
+	$colour = $sec(
+		$eyebrow( 'Light your way' )
+		. $h2( 'The right white — or full colour' )
+		. $p( 'Warm for hospitality, neutral for workplaces, cool for retail, tunable through the day, or full RGB and pixel-addressable for moving skies and brand colour.', true )
+		. $html( '<div class="rm-cel-showcase"><div class="rm-cel-chips">'
+			. $chip( '#ffd9ad', '3000K', 'Warm white' )
+			. $chip( '#ffe9cf', '4000K', 'Neutral' )
+			. $chip( '#eef3ff', '5000K', 'Cool' )
+			. $chip( '#dbe8ff', '6500K', 'Daylight' )
+			. $chip( 'linear-gradient(120deg,#f6c445,#ffffff 50%,#9ec1ff)', 'Tunable', 'Warm &rarr; cool' )
+			. $chip( 'linear-gradient(120deg,#ff5f6d,#7a5cff 50%,#2bd4c4)', 'RGB / RGBW', 'Any colour', false )
+			. $chip( 'linear-gradient(120deg,#ff3cac,#784ba0 45%,#2b86c5)', 'Pixel', 'Moving content', false )
+			. '</div></div>' )
+	);
+	register_block_pattern( 'ricoman/celeste-colour', array(
+		'title' => 'Celeste · Colour & lighting strip', 'categories' => $cats,
+		'description' => 'Colour-temperature swatches plus tunable, RGB and pixel options.',
+		'content' => $colour,
+	) );
+
+	/* 5) Media panels (full-bleed image + text, alternating) --------------- */
+	$panel = function ( $img, $side, $h, $body ) {
+		$imgcol = '<!-- wp:column {"width":"58%","verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center" style="flex-basis:58%"><!-- wp:image {"sizeSlug":"full","className":"size-full"} --><figure class="wp-block-image size-full"><img src="' . $img . '" alt=""/></figure><!-- /wp:image --></div><!-- /wp:column -->';
+		$txtpad = ( 'left' === $side ) ? 'left' : 'right';
+		$txtcol = '<!-- wp:column {"width":"42%","verticalAlignment":"center","style":{"spacing":{"padding":{"' . $txtpad . '":"var:preset|spacing|50"}}}} --><div class="wp-block-column is-vertically-aligned-center" style="flex-basis:42%;padding-' . $txtpad . ':var(--wp--preset--spacing--50)"><!-- wp:heading {"level":2,"style":{"typography":{"fontWeight":"600","lineHeight":"1.1"}}} --><h2 class="wp-block-heading" style="font-weight:600;line-height:1.1">' . $h . '</h2><!-- /wp:heading --><!-- wp:paragraph {"textColor":"muted"} --><p class="has-muted-color has-text-color">' . $body . '</p><!-- /wp:paragraph --></div><!-- /wp:column -->';
+		$cls = ( 'left' === $side ) ? 'rm-mediapanel--left' : 'rm-mediapanel--right';
+		$inner = ( 'left' === $side ) ? $imgcol . $txtcol : $txtcol . $imgcol;
+		return '<!-- wp:group {"align":"full","className":"rm-section rm-mediapanel ' . $cls . '","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-section rm-mediapanel ' . $cls . '"><!-- wp:columns {"verticalAlignment":"center"} --><div class="wp-block-columns are-vertically-aligned-center">' . $inner . '</div><!-- /wp:columns --></div><!-- /wp:group -->';
 	};
+	$panel1 = $panel( $u( 'retail.webp' ), 'left', 'Change the graphic in minutes', 'The silicone-edged fabric pushes into the frame, so a new season&rsquo;s artwork goes up without tools or a callout. Your client refreshes the space whenever they like.' );
+	$panel2 = $panel( $u( 'ceiling.webp' ), 'right', 'From plain ceiling to open sky', 'Mount it face down or suspend it — circles, rings and cut-outs included. Printed sky graphics and pixel-addressable lighting turn a flat ceiling into a feature.' );
+	register_block_pattern( 'ricoman/celeste-panel-left', array(
+		'title' => 'Celeste · Feature panel (image left)', 'categories' => $cats,
+		'description' => 'Full-bleed image beside a headline + copy. Swap the image and text.',
+		'content' => $panel1,
+	) );
+	register_block_pattern( 'ricoman/celeste-panel-right', array(
+		'title' => 'Celeste · Feature panel (image right)', 'categories' => $cats,
+		'content' => $panel2,
+	) );
+
+	/* 6) Build your own — bold dark band ----------------------------------- */
+	$stepcard = function ( $n, $h, $t ) { return '<div class="rm-cel-stepcard"><span class="num">' . $n . '</span><h3>' . $h . '</h3><p>' . $t . '</p></div>'; };
 	$build = $sec(
-		$h2( 'Build your own light box' )
-		. $p( 'No more waiting days just to understand a job. Pick your options in the Celeste builder, turn your design in 3D, and send the spec to us in one click. You get a clear summary with a reference code to share with your client, and we get everything we need to quote.', true )
-		. $cols( $step( '1', 'Design', 'Choose the size, shape, depth, lighting, fabric and mounting.' ) . $step( '2', 'Check', 'See it in 3D and as a measured drawing, then download the spec.' ) . $step( '3', 'Send', 'Submit it for a firm quote and we&rsquo;ll come back to you.' ) )
-		. $buttons( $btnsolid( 'Build your own light box →', $builder ) ),
-		'rm-oncards'
+		$html( '<div class="rm-cel-band">'
+			. '<p class="rm-eyebrow has-base-color has-text-color" style="color:#9ec1ff">Build your own</p>'
+			. '<h2 class="wp-block-heading rm-shead" style="color:#fff;margin:.1em 0 .3em">Design it, check it in 3D, send for a quote</h2>'
+			. '<p style="color:rgba(255,255,255,.78);max-width:60ch">Pick your options in the Celeste builder, turn your design in 3D, and send the spec to us in one click — with a reference code to share with your client.</p>'
+			. '<div class="rm-cel-steps">'
+			. $stepcard( '1', 'Design', 'Choose the size, shape, depth, lighting, fabric and mounting.' )
+			. $stepcard( '2', 'Check', 'See it in 3D and as a measured drawing, then download the spec.' )
+			. $stepcard( '3', 'Send', 'Submit it for a firm quote and we&rsquo;ll come back to you.' )
+			. '</div>'
+			. '<a class="btn btn-solid" href="' . $builder . '" style="background:#fff;color:#16161a">Build your own light box →</a>'
+			. '</div>' )
 	);
 	register_block_pattern( 'ricoman/celeste-build', array(
-		'title'       => 'Celeste · Build your own (3 steps)',
-		'description' => 'The "Build your own light box" section: Design / Check / Send, with the builder button.',
-		'categories'  => $cats,
-		'content'     => $build,
+		'title' => 'Celeste · Build your own (bold band)', 'categories' => $cats,
+		'description' => 'A dark highlight band: Design / Check / Send + the builder button.',
+		'content' => $build,
 	) );
 
-	// 3) Benefits ------------------------------------------------------------
-	$benefit = function ( $h, $t ) use ( $card, $h3, $p ) { return $card( $h3( $h ) . $p( $t, true ) ); };
+	/* 7) Why contractors choose Celeste — icon cards ----------------------- */
+	$ic_shape = '<svg viewBox="0 0 48 48"><rect x="7" y="13" width="34" height="22" rx="4"/><circle cx="24" cy="24" r="5"/></svg>';
+	$ic_white = '<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="12"/><path d="M24 6v4M24 38v4M6 24h4M38 24h4M11 11l3 3M34 34l3 3M37 11l-3 3M14 34l-3 3"/></svg>';
+	$ic_rgb   = '<svg viewBox="0 0 48 48"><circle cx="19" cy="20" r="9"/><circle cx="29" cy="20" r="9"/><circle cx="24" cy="29" r="9"/></svg>';
+	$ic_swap  = '<svg viewBox="0 0 48 48"><path d="M12 18h20l-5-5M36 30H16l5 5"/></svg>';
+	$ic_mount = '<svg viewBox="0 0 48 48"><rect x="9" y="10" width="30" height="20" rx="2"/><path d="M24 30v6M16 40h16"/></svg>';
+	$ic_shield= '<svg viewBox="0 0 48 48"><path d="M24 7l14 5v9c0 9-6 15-14 19-8-4-14-10-14-19v-9z"/><path d="M18 24l5 5 8-9"/></svg>';
+	$bcard = function ( $svg, $h, $t ) { return '<div class="rm-cel-bcard">' . $svg . '<h3>' . $h . '</h3><p>' . $t . '</p></div>'; };
 	$benefits = $sec(
-		$h2( 'Why contractors choose Celeste' )
-		. $cols( $benefit( 'Any space, any shape', 'Up to 4.9 m wide and any length, in rectangles, circles, rings or cut-outs. Large runs arrive in sections and join on site with no visible gaps.' ) . $benefit( 'The right white for the room', 'Warm 3000K for restaurants and hotels, neutral for workplaces, cool for retail, or tunable from warm to cool through the day. Celeste is not limited to cold signage white.' ) . $benefit( 'Colour and movement when you want it', 'RGB, RGBW and pixel-addressable options turn a ceiling into a moving sky or a wall into changing brand colour.' ) )
-		. $cols( $benefit( 'Graphic changes in minutes', 'The silicone-edged fabric pushes into the frame, so a new season&rsquo;s artwork goes up without tools or a callout.' ) . $benefit( 'Fits the way you build', 'Wall, ceiling, suspended or freestanding, from 16 mm ultra-slim to double-sided. A built-in or remote driver suits the access on site.' ) . $benefit( 'Fewer surprises at handover', 'Flame-retardant fabric, a clear spec for every unit and a 3-year warranty.' ) )
+		$eyebrow( 'Why Celeste' )
+		. $h2( 'Why contractors choose Celeste' )
+		. $html( '<div class="rm-cel-benefits">'
+			. $bcard( $ic_shape, 'Any space, any shape', 'Up to 4.9 m wide and any length, in rectangles, circles, rings or cut-outs. Large runs join on site with no visible gaps.' )
+			. $bcard( $ic_white, 'The right white for the room', 'Warm, neutral, cool or tunable white through the day — not limited to cold signage white.' )
+			. $bcard( $ic_rgb, 'Colour and movement', 'RGB, RGBW and pixel-addressable options turn a ceiling into a moving sky or a wall into changing brand colour.' )
+			. $bcard( $ic_swap, 'Graphic changes in minutes', 'The silicone-edged fabric pushes into the frame — new artwork goes up without tools or a callout.' )
+			. $bcard( $ic_mount, 'Fits the way you build', 'Wall, ceiling, suspended or freestanding, from 16 mm ultra-slim to double-sided, with built-in or remote driver.' )
+			. $bcard( $ic_shield, 'Fewer surprises at handover', 'Flame-retardant fabric, a clear spec for every unit and a 3-year warranty.' )
+			. '</div>' )
 	);
 	register_block_pattern( 'ricoman/celeste-benefits', array(
-		'title'       => 'Celeste · Why contractors choose Celeste (cards)',
-		'description' => 'Six benefit cards. Edit the text, add or remove cards.',
-		'categories'  => $cats,
-		'content'     => $benefits,
+		'title' => 'Celeste · Why choose Celeste (icon cards)', 'categories' => $cats,
+		'description' => 'Six benefit cards with icons and an accent bar.',
+		'content' => $benefits,
 	) );
 
-	// 4) Specification at a glance ------------------------------------------
+	/* 8) Specification at a glance ----------------------------------------- */
+	$row = function ( $k, $v ) { return '<li><span class="k">' . $k . '</span><span class="v">' . $v . '</span></li>'; };
 	$spec = $sec(
-		$h2( 'Specification at a glance' )
+		$eyebrow( 'The detail' )
+		. $h2( 'Specification at a glance' )
 		. $p( 'The full detail is in the downloadable specification document.', true )
-		. $list(
-			$li( '<strong>Types:</strong> SEG backlit, ultra-slim LGP (16&ndash;45 mm deep), double-sided' )
-			. $li( '<strong>Size:</strong> up to 4.9 m wide &times; any length; ultra-slim up to 1220 &times; 2440 mm' )
-			. $li( '<strong>Shapes:</strong> rectangle, rounded, circle, ring, cut-out, custom' )
-			. $li( '<strong>Lighting:</strong> 3000K to 6500K, tunable white, RGB, RGBW, pixel-addressable' )
-			. $li( '<strong>Control:</strong> switched, dimmable (mains, 0&ndash;10V, DALI), Casambi, DMX' )
-			. $li( '<strong>Fabric:</strong> 100% flame-retardant polyester, dye-sublimation printed' )
-			. $li( '<strong>Frame:</strong> aluminium, silver anodised as standard, plus black, white or custom RAL' )
-			. $li( '<strong>Rating:</strong> indoor as standard, IP65 version available' )
-			. $li( '<strong>Warranty:</strong> 3 years &middot; CE and RoHS' ),
-			'rm-cel-spec'
-		),
-		'rm-oncards'
+		. $html( '<div class="rm-cel-specwrap"><ul class="rm-cel-spec">'
+			. $row( 'Types', 'SEG backlit, ultra-slim LGP (16&ndash;45 mm), double-sided' )
+			. $row( 'Size', 'Up to 4.9 m wide &times; any length' )
+			. $row( 'Shapes', 'Rectangle, rounded, circle, ring, cut-out, custom' )
+			. $row( 'Lighting', '3000K&ndash;6500K, tunable, RGB, RGBW, pixel' )
+			. $row( 'Control', 'Switched, dimmable, 0&ndash;10V, DALI, Casambi, DMX' )
+			. $row( 'Fabric', '100% flame-retardant polyester, dye-sub printed' )
+			. $row( 'Frame', 'Aluminium — silver, black, white or custom RAL' )
+			. $row( 'Rating', 'Indoor as standard, IP65 version available' )
+			. $row( 'Warranty', '3 years &middot; CE and RoHS' )
+			. $row( 'Mounting', 'Wall, ceiling, suspended, freestanding' )
+			. '</ul></div>' )
 	);
 	register_block_pattern( 'ricoman/celeste-spec', array(
-		'title'       => 'Celeste · Specification at a glance',
-		'description' => 'A short at-a-glance spec list. The full detail stays in the downloadable spec document.',
-		'categories'  => $cats,
-		'content'     => $spec,
+		'title' => 'Celeste · Specification at a glance', 'categories' => $cats,
+		'content' => $spec,
 	) );
 
-	// 5) FAQ (FAQPage schema via [ricoman_faq]) ------------------------------
+	/* 9) FAQ (FAQPage schema) ---------------------------------------------- */
 	$faq_sc = "[ricoman_faq]\n"
-		. "Q: How do I get a price for Celeste?\n"
-		. "A: Design your light box in our online builder and send us the spec in one click. You'll get a complete summary with a reference code straight away, and we'll come back with a firm quote.\n"
-		. "Q: Can Celeste work in a restaurant, hotel or office, not just retail?\n"
-		. "A: Yes. Celeste comes in warm 3000K as well as neutral and cool whites, and in tunable white that shifts through the day, so it suits hospitality and workplace interiors as well as shop fronts.\n"
-		. "Q: How big can a Celeste light box be?\n"
-		. "A: Up to 4.9 m wide and any length. Large faces are made in sections and joined on site with no visible gaps in the fabric.\n"
-		. "Q: How does my client change the graphic?\n"
-		. "A: The printed fabric has a silicone edge that pushes into the frame. Your client pulls the old graphic out and presses the new one in, in minutes and without tools.\n"
-		. "Q: Can Celeste be used on a ceiling?\n"
-		. "A: Yes. Celeste can be mounted face down on a ceiling or suspended, including circles, rings and cut-outs. Printed sky graphics and pixel-addressable lighting create a moving sky.\n"
-		. "Q: What warranty does Celeste carry?\n"
-		. "A: 3 years, and every unit is CE and RoHS compliant.\n"
+		. "Q: How do I get a price for Celeste?\nA: Design your light box in our online builder and send us the spec in one click. You'll get a complete summary with a reference code straight away, and we'll come back with a firm quote.\n"
+		. "Q: Can Celeste work in a restaurant, hotel or office, not just retail?\nA: Yes. Celeste comes in warm 3000K as well as neutral and cool whites, and in tunable white that shifts through the day, so it suits hospitality and workplace interiors as well as shop fronts.\n"
+		. "Q: How big can a Celeste light box be?\nA: Up to 4.9 m wide and any length. Large faces are made in sections and joined on site with no visible gaps in the fabric.\n"
+		. "Q: How does my client change the graphic?\nA: The printed fabric has a silicone edge that pushes into the frame. Your client pulls the old graphic out and presses the new one in, in minutes and without tools.\n"
+		. "Q: Can Celeste be used on a ceiling?\nA: Yes. Celeste can be mounted face down on a ceiling or suspended, including circles, rings and cut-outs. Printed sky graphics and pixel-addressable lighting create a moving sky.\n"
+		. "Q: What warranty does Celeste carry?\nA: 3 years, and every unit is CE and RoHS compliant.\n"
 		. "[/ricoman_faq]";
-	$faq = $sec( $h2( 'Frequently asked questions' ) . '<!-- wp:shortcode -->' . $faq_sc . '<!-- /wp:shortcode -->' );
+	$faq = $sec( $eyebrow( 'Good to know' ) . $h2( 'Frequently asked questions' ) . '<!-- wp:shortcode -->' . $faq_sc . '<!-- /wp:shortcode -->' );
 	register_block_pattern( 'ricoman/celeste-faq', array(
-		'title'       => 'Celeste · FAQ',
-		'description' => 'Celeste FAQ (emits FAQPage schema). Edit the Q: / A: lines in the shortcode block.',
-		'categories'  => $cats,
-		'content'     => $faq,
+		'title' => 'Celeste · FAQ', 'categories' => $cats,
+		'description' => 'Celeste FAQ (emits FAQPage schema). Edit the Q: / A: lines.',
+		'content' => $faq,
 	) );
 
-	// 6) Specify CTA (dark band) --------------------------------------------
-	$cta = '<!-- wp:group {"align":"full","className":"rm-section","backgroundColor":"ink","textColor":"base","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-section has-base-color has-ink-background-color has-text-color has-background">'
-		. $h2( 'Ready to light up your next fit-out?' )
+	/* 10) Specify CTA — cover ---------------------------------------------- */
+	$cta = $cover(
+		$u( 'rico-astrowave-banner.webp' ),
+		$h2( 'Ready to light up your next fit-out?', true )
 		. $p( 'Design your Celeste light box online, or send us a drawing and we&rsquo;ll do it for you.' )
-		. $buttons( $btnsolid( 'Build your own light box →', $builder ) . $btnline( 'Request a Lighting Design', $design, true ) )
-		. '</div><!-- /wp:group -->';
+		. $buttons( $btnsolid( 'Build your own light box →', $builder ) . $btnline( 'Request a Lighting Design', $design, true ) ),
+		48, 60
+	);
 	register_block_pattern( 'ricoman/celeste-cta', array(
-		'title'       => 'Celeste · Specify CTA (dark band)',
-		'description' => 'Closing call-to-action band.',
-		'categories'  => $cats,
-		'content'     => $cta,
+		'title' => 'Celeste · Specify CTA (image overlay)', 'categories' => $cats,
+		'content' => $cta,
 	) );
 
-	// Convenience: the whole page in one pattern (all sections, still editable).
+	/* Whole page (all sections, still editable) — order suited to a product. */
 	register_block_pattern( 'ricoman/celeste-all', array(
-		'title'       => 'Celeste · Whole page (all sections)',
-		'description' => 'Every Celeste section in order — drop in once, then edit/rearrange. Add your gallery, before/after image, dimensions drawing and downloads around it.',
-		'categories'  => $cats,
-		'content'     => $hero . $build . $benefits . $spec . $faq . $cta,
+		'title' => 'Celeste · Whole page (all sections)', 'categories' => $cats,
+		'description' => 'Every Celeste section in order — drop in once, then edit/rearrange and swap the placeholder images.',
+		'content' => $intro . $shapes . $panel1 . $colour . $panel2 . $build . $benefits . $spec . $faq . $cta,
 	) );
 }, 14 );
