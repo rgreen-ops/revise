@@ -81,7 +81,17 @@ add_action( 'enqueue_block_assets', function () {
 		. ".rm-cel-spec li{display:grid;grid-template-columns:118px 1fr;gap:14px;padding:13px 0;border-bottom:1px solid $line;font-size:.95rem;line-height:1.5}"
 		. ".rm-cel-spec .k{font-family:Poppins,sans-serif;font-weight:600;color:$ink}"
 		. ".rm-cel-spec .v{color:$mut}"
-		. "@media(max-width:700px){.rm-cel-spec{grid-template-columns:1fr}}";
+		. "@media(max-width:700px){.rm-cel-spec{grid-template-columns:1fr}}"
+		// FAQ accordion — mirror [ricoman_faq]'s styles so it's always applied here
+		// (its own inline <style> only prints once per request and can be consumed
+		// before our FAQ renders on the product page).
+		. ".ricoman-faq__item{border-top:1px solid $line;padding:0}"
+		. ".ricoman-faq__item:last-child{border-bottom:1px solid $line}"
+		. ".ricoman-faq summary{cursor:pointer;list-style:none;padding:1rem 0;font-weight:600;font-family:Poppins,sans-serif}"
+		. ".ricoman-faq summary::-webkit-details-marker{display:none}"
+		. ".ricoman-faq summary::after{content:'+';float:right;font-weight:400}"
+		. ".ricoman-faq__item[open] summary::after{content:'\\2013'}"
+		. ".ricoman-faq__a{padding:0 0 1rem;color:$mut}";
 	wp_register_style( 'ricoman-celeste-inline', false );
 	wp_enqueue_style( 'ricoman-celeste-inline' );
 	wp_add_inline_style( 'ricoman-celeste-inline', $css );
