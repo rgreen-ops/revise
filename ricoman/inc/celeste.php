@@ -93,8 +93,17 @@ function ricoman_celeste_css() {
 	return '<style id="rm-celeste-css">' . $css . '</style>';
 }
 
-/** [ricoman_celeste] — the full Celeste marketing body. */
-function ricoman_celeste_sc() {
+/**
+ * [ricoman_celeste context="full|product"]
+ *
+ * context="full"    — standalone page: shows the H1, subheading and anchor tabs.
+ * context="product" — injected into the Celeste product (the product header
+ *                     already provides the title + gallery + CTAs), so the
+ *                     duplicate H1/subheading and anchor tabs are omitted.
+ */
+function ricoman_celeste_sc( $atts = array() ) {
+	$a       = shortcode_atts( array( 'context' => 'full' ), (array) $atts, 'ricoman_celeste' );
+	$inprod  = ( 'product' === $a['context'] );
 	$builder = esc_url( ricoman_celeste_builder_url() );
 	$design  = esc_url( home_url( '/lighting-design/' ) );
 	$trade   = esc_url( home_url( '/trade/' ) );
@@ -111,8 +120,10 @@ function ricoman_celeste_sc() {
 	?>
 	<section class="rm-cel-sec" id="top">
 		<div class="rm-cel-wrap">
-			<p class="rm-cel-eyebrow">Stretch Ceiling Lighting</p>
-			<h1 class="rm-cel-h1">Celeste</h1>
+			<?php if ( ! $inprod ) : ?>
+				<p class="rm-cel-eyebrow">Stretch Ceiling Lighting</p>
+				<h1 class="rm-cel-h1">Celeste</h1>
+			<?php endif; ?>
 			<p class="rm-cel-sub">Stretched fabric light boxes, designed in minutes.</p>
 			<p class="rm-cel-lead">Give your client a feature that lights up the whole space: a seamless printed graphic, an even glow from edge to edge, and no visible frame from the front. Design your Celeste light box online, download a complete spec straight away, and we&rsquo;ll come back with a firm quote.</p>
 			<ul class="rm-cel-bullets">
@@ -123,13 +134,16 @@ function ricoman_celeste_sc() {
 			<div class="rm-cel-ctas">
 				<?php
 				echo $btn( $builder, 'Build your own light box →', 'btn-solid' ); // phpcs:ignore WordPress.Security.EscapeOutput
-				echo $btn( $design, 'Request a Lighting Design', 'btn-line' );     // phpcs:ignore WordPress.Security.EscapeOutput
-				echo $btn( $trade, 'Apply for a Trade Account', 'btn-line' );      // phpcs:ignore WordPress.Security.EscapeOutput
+				if ( ! $inprod ) {
+					echo $btn( $design, 'Request a Lighting Design', 'btn-line' ); // phpcs:ignore WordPress.Security.EscapeOutput
+					echo $btn( $trade, 'Apply for a Trade Account', 'btn-line' );  // phpcs:ignore WordPress.Security.EscapeOutput
+				}
 				?>
 			</div>
 		</div>
 	</section>
 
+	<?php if ( ! $inprod ) : ?>
 	<!-- 3. Anchor tabs -->
 	<div class="rm-cel-wrap">
 		<nav class="rm-cel-tabs" aria-label="On this page">
@@ -139,6 +153,7 @@ function ricoman_celeste_sc() {
 			<a href="#downloads">Downloads</a>
 		</nav>
 	</div>
+	<?php endif; ?>
 
 	<!-- 4. Build your own -->
 	<section class="rm-cel-sec rm-cel-sec--alt" id="build">
@@ -256,6 +271,40 @@ function ricoman_celeste_sc() {
 	return (string) ob_get_clean();
 }
 add_shortcode( 'ricoman_celeste', 'ricoman_celeste_sc' );
+
+/**
+ * Is this the Celeste product? (slug starts with "celeste"). Filterable so other
+ * products can opt in/out.
+ */
+function ricoman_is_celeste_product( $pid ) {
+	$post = get_post( $pid );
+	$is   = ( $post instanceof WP_Post && 0 === strpos( (string) $post->post_name, 'celeste' ) );
+	return (bool) apply_filters( 'ricoman_is_celeste_product', $is, $pid );
+}
+
+/**
+ * Auto-render the Celeste body on the Celeste product page. The product's managed
+ * layout ignores the standard content area, so we inject the body (hero-less, as
+ * the product header already carries the title + CTAs) just above the Downloads
+ * section. Runs at priority 12 — after acf-product's product render at 11.
+ */
+add_filter( 'the_content', function ( $content ) {
+	if ( is_admin() || ! is_singular( 'product' ) || ! in_the_loop() || ! is_main_query() ) {
+		return $content;
+	}
+	if ( false !== strpos( $content, 'rm-cel-sec' ) ) {
+		return $content; // already present (e.g. added as a pattern).
+	}
+	if ( ! ricoman_is_celeste_product( get_the_ID() ) ) {
+		return $content;
+	}
+	$body   = ricoman_celeste_sc( array( 'context' => 'product' ) );
+	$marker = '<div class="rm-section" id="downloads">';
+	if ( false !== strpos( $content, $marker ) ) {
+		return str_replace( $marker, $body . $marker, $content );
+	}
+	return $content . $body;
+}, 12 );
 
 /* ---------------------------------------------------------------------------
  * New product category: Stretch Ceiling Lighting (create-once).
