@@ -180,3 +180,9 @@
 @media print{.lbx-gal{display:none!important}}
 
 .lbx-send{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+
+/* --- Ricoman tweaks: remove installed-examples gallery + dark features band,
+   de-box the spec form and align it to the page margins --- */
+.lbx-gal,.lbx-feat{display:none!important}
+.lbx-form{max-width:none!important;margin:clamp(24px,4vw,48px) 0 0!important;padding:0!important;border:0!important;border-radius:0!important;background:none!important}
+.rm-lbx-sub{color:var(--muted,#67665f);font-size:.95rem;line-height:1.5;letter-spacing:normal;text-transform:none;font-weight:400;margin:0 0 20px;max-width:60ch}

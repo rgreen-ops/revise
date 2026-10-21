@@ -16,8 +16,7 @@
 	// theme CSS). Mirrors the contact page: labelled fields, two-column rows, a
 	// single black button.
 	var css = ''
-		+ '.lbx-form .rm-tradeform-h{margin:0 0 .3em;font-size:clamp(1.5rem,3vw,2rem);font-weight:700;line-height:1.1}'
-		+ '.lbx-sub{color:var(--muted,#67665f);font-size:.95rem;line-height:1.5;margin:0 0 20px;max-width:60ch}'
+		+ '.lbx-form .rm-tradeform-h{margin:0 0 .3em;font-size:clamp(1.5rem,3vw,2rem);font-weight:700;line-height:1.1;text-transform:none;letter-spacing:-.02em}'
 		+ '.lbx-form .rm-tradeform-row{display:grid;grid-template-columns:1fr 1fr;gap:clamp(16px,3vw,32px)}'
 		+ '.lbx-form .rm-tradeform-label{display:block;margin:0 0 18px;font-weight:600;font-size:.9rem;color:var(--ink,#0b0b0c)}'
 		+ '.lbx-form .rm-tradeform-label input{display:block;width:100%;margin-top:8px;padding:14px 16px;border:1px solid #b9b7b2;border-radius:8px;font:inherit;font-weight:400;color:var(--ink,#0b0b0c);background:transparent}'
@@ -61,7 +60,7 @@
 		var specBar = form.querySelector('.lbx-form-spec');
 
 		form.innerHTML = '<h2 class="rm-tradeform-h">Send your spec to our team</h2>'
-			+ '<p class="lbx-sub">Send us your design and we&rsquo;ll come back with a firm quote. Your build code, full spec and a link back to this design are included automatically.</p>';
+			+ '<p class="rm-lbx-sub">Send us your design and we&rsquo;ll come back with a firm quote. Your build code, full spec and a link back to this design are included automatically.</p>';
 		if (specBar) { form.appendChild(specBar); }
 		form.insertAdjacentHTML('beforeend', fieldRows());
 	}
