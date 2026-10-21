@@ -22,6 +22,108 @@ function ricoman_celeste_builder_url() {
 	return apply_filters( 'ricoman_celeste_builder_url', home_url( '/light-box-builder/' ) );
 }
 
+/** Where Light Box Builder specs are sent. Filterable. */
+function ricoman_lightbox_inbox() {
+	return apply_filters( 'ricoman_lightbox_inbox', 'support@ricoman.com' );
+}
+
+/**
+ * AJAX: capture a Light Box Builder spec submission as a lead + email sales.
+ * The builder is a static tool (no WP nonce context), so this relies on the
+ * shared spam screen + a honeypot rather than a nonce.
+ */
+function ricoman_lightbox_spec_capture() {
+	$email    = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
+	$customer = isset( $_POST['customer'] ) ? sanitize_text_field( wp_unslash( $_POST['customer'] ) ) : '';
+	$notes    = isset( $_POST['notes'] ) ? sanitize_textarea_field( wp_unslash( $_POST['notes'] ) ) : '';
+	$code     = isset( $_POST['code'] ) ? sanitize_text_field( wp_unslash( $_POST['code'] ) ) : '';
+	$summary  = isset( $_POST['summary'] ) ? sanitize_text_field( wp_unslash( $_POST['summary'] ) ) : '';
+	$spec     = isset( $_POST['spec'] ) ? sanitize_textarea_field( wp_unslash( $_POST['spec'] ) ) : '';
+	$design   = isset( $_POST['design'] ) ? esc_url_raw( wp_unslash( $_POST['design'] ) ) : '';
+	$ts       = isset( $_POST['ts'] ) ? (int) $_POST['ts'] : 0;
+	$hp       = isset( $_POST['rm_hp'] ) ? (string) wp_unslash( $_POST['rm_hp'] ) : '';
+
+	if ( ! is_email( $email ) ) {
+		wp_send_json_error( array( 'msg' => __( 'Please enter a valid email.', 'ricoman' ) ) );
+	}
+	// Honeypot + shared spam screen — silently acknowledge spam.
+	if ( '' !== $hp || ( function_exists( 'ricoman_lead_is_spam' ) && ricoman_lead_is_spam( array( 'ts' => $ts, 'fields' => array( $customer, $notes, $spec ) ) ) ) ) {
+		wp_send_json_success( array( 'msg' => __( 'Thanks — your spec has been received.', 'ricoman' ) ) );
+	}
+
+	$name   = '' !== $customer ? $customer : $email;
+	$lines  = array();
+	if ( '' !== $code ) {
+		$lines[] = 'Build code: ' . $code;
+	}
+	if ( '' !== $summary ) {
+		$lines[] = $summary;
+	}
+	if ( '' !== $spec ) {
+		$lines[] = "\n" . $spec;
+	}
+	if ( '' !== $notes ) {
+		$lines[] = "\nNotes: " . $notes;
+	}
+	if ( '' !== $design ) {
+		$lines[] = "\nOpen this design: " . $design;
+	}
+	$message = trim( implode( "\n", $lines ) );
+
+	$source  = 'Light Box Builder';
+	$data    = array(
+		'name'      => $name,
+		'email'     => $email,
+		'company'   => $customer,
+		'phone'     => '',
+		'role'      => '',
+		'message'   => $message,
+		'source'    => $source,
+		'items'     => '',
+		'submitted' => current_time( 'mysql' ),
+	);
+	$attr    = function_exists( 'ricoman_lead_attribution' ) ? ricoman_lead_attribution() : array();
+	$lead_id = wp_insert_post( array(
+		'post_type'   => 'lead',
+		'post_status' => 'private',
+		'post_title'  => sprintf( '%s — Celeste light box%s', $name, ( '' !== $code ? ' (' . $code . ')' : '' ) ),
+		'meta_input'  => array_merge( array(
+			'_lead_name'    => $name,
+			'_lead_email'   => $email,
+			'_lead_company' => $customer,
+			'_lead_type'    => __( 'Light box spec', 'ricoman' ),
+			'_lead_message' => $message,
+			'_lead_source'  => $source,
+			'_lead_ref'     => $code,
+		), $attr ),
+	) );
+
+	// Notify sales with the full spec.
+	$subject = sprintf( 'Light Box Builder spec%s', ( '' !== $code ? ' — ' . $code : '' ) );
+	$body    = sprintf(
+		"New Light Box Builder spec\n\nFrom: %s\nEmail: %s\n\n%s\n",
+		$name,
+		$email,
+		$message
+	);
+	wp_mail( ricoman_lightbox_inbox(), $subject, $body, array( 'Reply-To: ' . $name . ' <' . $email . '>' ) );
+
+	// Confirmation copy to the person who designed it.
+	if ( function_exists( 'ricoman_send_lead_confirmation' ) ) {
+		ricoman_send_lead_confirmation( $email, $name, array(
+			'subject'  => sprintf( __( 'Your Celeste light box spec — %s', 'ricoman' ), get_bloginfo( 'name' ) ),
+			'intro'    => __( 'Thanks for designing a Celeste light box. Here is the spec you sent us — our team will be in touch with a firm quote.', 'ricoman' ),
+			'reply_to' => ricoman_lightbox_inbox(),
+		) );
+	}
+
+	do_action( 'ricoman_lead_captured', $data, is_wp_error( $lead_id ) ? 0 : (int) $lead_id );
+
+	wp_send_json_success( array( 'msg' => __( 'Thanks — your spec has been sent.', 'ricoman' ) ) );
+}
+add_action( 'wp_ajax_nopriv_rm_lightbox_spec', 'ricoman_lightbox_spec_capture' );
+add_action( 'wp_ajax_rm_lightbox_spec', 'ricoman_lightbox_spec_capture' );
+
 /**
  * Create the full-screen "Light Box Builder" tool page (create-once). It uses the
  * page-lightbox-builder template, which iframes the builder app in
