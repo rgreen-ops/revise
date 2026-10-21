@@ -205,6 +205,11 @@
 			"postTypes": ["page"]
 		},
 		{
+			"name": "page-lightbox-builder",
+			"title": "Light Box Builder (full screen tool)",
+			"postTypes": ["page"]
+		},
+		{
 			"name": "single-product-featured",
 			"title": "Product — Featured",
 			"postTypes": ["product"]

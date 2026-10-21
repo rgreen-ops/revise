@@ -19,8 +19,34 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /** Public URL of the Celeste "Build your own light box" builder. Filterable. */
 function ricoman_celeste_builder_url() {
-	return apply_filters( 'ricoman_celeste_builder_url', '#' );
+	return apply_filters( 'ricoman_celeste_builder_url', home_url( '/light-box-builder/' ) );
 }
+
+/**
+ * Create the full-screen "Light Box Builder" tool page (create-once). It uses the
+ * page-lightbox-builder template, which iframes the builder app in
+ * assets/tools/lightbox-builder/. Kept out of search (noindex).
+ */
+add_action( 'admin_init', function () {
+	if ( get_option( 'ricoman_lightbox_builder_page_v1' ) ) {
+		return;
+	}
+	$existing = get_page_by_path( 'light-box-builder', OBJECT, 'page' );
+	if ( ! $existing ) {
+		$pid = wp_insert_post( array(
+			'post_type'    => 'page',
+			'post_status'  => 'publish',
+			'post_title'   => 'Light Box Builder',
+			'post_name'    => 'light-box-builder',
+			'post_content' => '',
+		) );
+		if ( $pid && ! is_wp_error( $pid ) ) {
+			update_post_meta( $pid, '_wp_page_template', 'page-lightbox-builder' );
+			update_post_meta( $pid, '_ricoman_seo_noindex', '1' );
+		}
+	}
+	update_option( 'ricoman_lightbox_builder_page_v1', '1' );
+} );
 
 /* ---- New product category: Stretch Ceiling Lighting (create-once) --------- */
 add_action( 'admin_init', function () {
