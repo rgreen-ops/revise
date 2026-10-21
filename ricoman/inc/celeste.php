@@ -33,8 +33,12 @@ function ricoman_lightbox_inbox() {
  * shared spam screen + a honeypot rather than a nonce.
  */
 function ricoman_lightbox_spec_capture() {
+	$name     = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
 	$email    = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
-	$customer = isset( $_POST['customer'] ) ? sanitize_text_field( wp_unslash( $_POST['customer'] ) ) : '';
+	$customer = isset( $_POST['company'] ) ? sanitize_text_field( wp_unslash( $_POST['company'] ) )
+		: ( isset( $_POST['customer'] ) ? sanitize_text_field( wp_unslash( $_POST['customer'] ) ) : '' );
+	$phone    = isset( $_POST['phone'] ) ? sanitize_text_field( wp_unslash( $_POST['phone'] ) ) : '';
+	$role     = isset( $_POST['role'] ) ? sanitize_text_field( wp_unslash( $_POST['role'] ) ) : '';
 	$notes    = isset( $_POST['notes'] ) ? sanitize_textarea_field( wp_unslash( $_POST['notes'] ) ) : '';
 	$code     = isset( $_POST['code'] ) ? sanitize_text_field( wp_unslash( $_POST['code'] ) ) : '';
 	$summary  = isset( $_POST['summary'] ) ? sanitize_text_field( wp_unslash( $_POST['summary'] ) ) : '';
@@ -51,7 +55,9 @@ function ricoman_lightbox_spec_capture() {
 		wp_send_json_success( array( 'msg' => __( 'Thanks — your spec has been received.', 'ricoman' ) ) );
 	}
 
-	$name   = '' !== $customer ? $customer : $email;
+	if ( '' === $name ) {
+		$name = '' !== $customer ? $customer : $email;
+	}
 	$lines  = array();
 	if ( '' !== $code ) {
 		$lines[] = 'Build code: ' . $code;
@@ -61,6 +67,9 @@ function ricoman_lightbox_spec_capture() {
 	}
 	if ( '' !== $spec ) {
 		$lines[] = "\n" . $spec;
+	}
+	if ( '' !== $role ) {
+		$lines[] = "\nRole: " . $role;
 	}
 	if ( '' !== $notes ) {
 		$lines[] = "\nNotes: " . $notes;
@@ -75,8 +84,8 @@ function ricoman_lightbox_spec_capture() {
 		'name'      => $name,
 		'email'     => $email,
 		'company'   => $customer,
-		'phone'     => '',
-		'role'      => '',
+		'phone'     => $phone,
+		'role'      => $role,
 		'message'   => $message,
 		'source'    => $source,
 		'items'     => '',
@@ -91,6 +100,8 @@ function ricoman_lightbox_spec_capture() {
 			'_lead_name'    => $name,
 			'_lead_email'   => $email,
 			'_lead_company' => $customer,
+			'_lead_phone'   => $phone,
+			'_lead_role'    => $role,
 			'_lead_type'    => __( 'Light box spec', 'ricoman' ),
 			'_lead_message' => $message,
 			'_lead_source'  => $source,
@@ -98,12 +109,14 @@ function ricoman_lightbox_spec_capture() {
 		), $attr ),
 	) );
 
-	// Notify sales with the full spec.
+	// Notify our team with the full spec.
 	$subject = sprintf( 'Light Box Builder spec%s', ( '' !== $code ? ' — ' . $code : '' ) );
 	$body    = sprintf(
-		"New Light Box Builder spec\n\nFrom: %s\nEmail: %s\n\n%s\n",
+		"New Light Box Builder spec\n\nFrom: %s\nEmail: %s\nPhone: %s\nCompany: %s\n\n%s\n",
 		$name,
 		$email,
+		( '' !== $phone ? $phone : '—' ),
+		( '' !== $customer ? $customer : '—' ),
 		$message
 	);
 	wp_mail( ricoman_lightbox_inbox(), $subject, $body, array( 'Reply-To: ' . $name . ' <' . $email . '>' ) );
