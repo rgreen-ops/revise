@@ -271,7 +271,7 @@ canvas.drawc{display:block;width:100%;aspect-ratio:1;border:2px solid var(--gold
 <div id="sheet" hidden><div class="in"></div></div>
 <div id="fx" hidden></div>
 <div id="net" hidden>Reconnecting…</div>
-<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js"></script>
 <script>
 /* ---------- content ---------- */
 const RIDDLES={
@@ -955,45 +955,82 @@ function buzz(p){try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}}
 async function keepAwake(){try{await navigator.wakeLock.request("screen")}catch(e){}}
 
 /* ---------- networking ---------- */
-const ICE={iceServers:[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun1.l.google.com:19302"},{urls:"turn:openrelay.metered.ca:80",username:"openrelayproject",credential:"openrelayproject"},{urls:"turn:openrelay.metered.ca:443",username:"openrelayproject",credential:"openrelayproject"},{urls:"turn:openrelay.metered.ca:443?transport=tcp",username:"openrelayproject",credential:"openrelayproject"}]};
 let pend=[],aid=0,endArm=0,forceArm=0;
 function act(a){a._p=V?V.pub.phase:null;a._r=V?V.pub.round:null;if(isHost){SV.act("p0",a);return}a._id=++aid;a._s=0;pend.push(a);flush()}
 function flush(){if(!(hostConn&&hostConn.open))return;const t=Date.now();pend=pend.filter(a=>(a._n||0)<10);for(const a of pend){if(a._s&&t-a._s<2500)continue;a._s=t;a._n=(a._n||0)+1;try{hostConn.send({t:"act",a})}catch(e){}}}
 function gm(a){if(!isHost)return;if(a.t==="kick"){const c=conns[a.id];if(c){try{c.send({t:"err",m:"The game master removed you from the game."})}catch(e){}setTimeout(()=>{try{c.close()}catch(e){}},300);delete conns[a.id]}}SV.gm(a)}
 let offT=null;function setOnline(o){online=o;clearTimeout(offT);if(o||!ME){$("#net").hidden=true}else{offT=setTimeout(()=>{if(!online&&ME)$("#net").hidden=false},1500)}}
+/* Every message goes through public MQTT relays over secure websockets, so phones on different
+   networks never need a direct connection to each other (that is what kept people stuck "knocking").
+   Two relays are used at once and messages are de-duplicated, so one relay going down does not stop the game.
+   Payloads are encrypted with a key derived from the room code. */
+const RELAYS=["wss://broker.emqx.io:8084/mqtt","wss://broker.hivemq.com:8884/mqtt"];
+const NET={clients:[],key:null,code:"",cid:"",seen:new Map(),seq:0,gen:0};
+function b64(u){let s="";for(const b of u)s+=String.fromCharCode(b);return btoa(s)}
+function unb64(s){const r=atob(s),u=new Uint8Array(r.length);for(let i=0;i<r.length;i++)u[i]=r.charCodeAt(i);return u}
+async function netKey(code){const km=await crypto.subtle.importKey("raw",new TextEncoder().encode("traitors:"+code.toLowerCase()),"PBKDF2",false,["deriveKey"]);return crypto.subtle.deriveKey({name:"PBKDF2",salt:new TextEncoder().encode("traitors-castle-v1"),iterations:60000,hash:"SHA-256"},km,{name:"AES-GCM",length:256},false,["encrypt","decrypt"])}
+async function wrap(o){const s=JSON.stringify(o);if(!NET.key)return"j:"+s;const iv=crypto.getRandomValues(new Uint8Array(12));const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv},NET.key,new TextEncoder().encode(s));const u=new Uint8Array(12+ct.byteLength);u.set(iv);u.set(new Uint8Array(ct),12);return"e:"+b64(u)}
+async function unwrap(s){if(s.startsWith("j:"))return JSON.parse(s.slice(2));if(!s.startsWith("e:")||!NET.key)return null;const u=unb64(s.slice(2));const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:u.slice(0,12)},NET.key,u.slice(12));return JSON.parse(new TextDecoder().decode(pt))}
+function topic(part){return"traitors/v1/"+NET.code.toLowerCase()+"/"+part}
+function netClose(){NET.gen++;for(const c of NET.clients){try{c.end(true)}catch(e){}}NET.clients=[];NET.seen=new Map()}
+function netUp(){return NET.clients.some(c=>c.connected)}
+async function netOpen(code,onMsg,onUp){
+ netClose();const gen=NET.gen;NET.code=code;
+ try{NET.key=(crypto&&crypto.subtle)?await netKey(code):null}catch(e){NET.key=null}
+ if(gen!==NET.gen||typeof mqtt==="undefined")return;
+ const subs=isHost?[topic("h/+")]:[topic("c/"+NET.cid),topic("p")];
+ for(const url of RELAYS){try{
+  const c=mqtt.connect(url,{clean:true,keepalive:20,reconnectPeriod:2500,connectTimeout:8000,clientId:"tr_"+NET.cid.slice(0,8)+"_"+Math.random().toString(36).slice(2,8)});
+  c.on("connect",()=>{if(gen!==NET.gen)return;c.subscribe(subs,{qos:1},e=>{if(gen!==NET.gen||e)return;onUp(c)})});
+  c.on("message",async(t,m)=>{if(gen!==NET.gen)return;const s=m.toString();if(!s){onMsg(t,null);return}let d;try{d=await unwrap(s)}catch(e){return}if(!d||gen!==NET.gen)return;
+   if(d._m){if(NET.seen.has(d._m))return;NET.seen.set(d._m,1);if(NET.seen.size>600)NET.seen.delete(NET.seen.keys().next().value)}onMsg(t,d)});
+  c.on("error",()=>{});
+  NET.clients.push(c)}catch(e){}}
+}
+function netPub(part,o,opts){const gen=NET.gen;const retain=!!(opts&&opts.retain);
+ const go=s=>{if(gen!==NET.gen)return;for(const c of NET.clients){try{c.publish(topic(part),s,{qos:1,retain})}catch(e){}}};
+ if(o===null){go("");return}
+ o._m=NET.cid.slice(0,6)+":"+(++NET.seq);wrap(o).then(go).catch(()=>{})}
+function netKick(){for(const c of NET.clients){try{if(!c.connected)c.reconnect()}catch(e){}}}
+const links={};
+function hostRx(cid,d){
+ if(d.t==="bye"){const c=links[cid];if(c)c.close();return}
+ let c=links[cid];
+ if(!c){if(d.t!=="join")return;c=links[cid]={cid,open:true,send(x){netPub("c/"+cid,x)},close(){this.open=false;if(links[cid]===this)delete links[cid];if(this.pid&&conns[this.pid]===this){delete conns[this.pid];SV.setConn(this.pid,false)}}}}
+ c._last=Date.now();
+ try{
+  if(d.t==="pong"){c._pong=true;return}
+  if(d.t==="join"){const r=SV.join(d.token,d.name);if(r.err){c.send({t:"err",m:r.err});return}const old=conns[r.id];c.pid=r.id;conns[r.id]=c;if(old&&old!==c){old.open=false;if(links[old.cid]===old)delete links[old.cid]}SV.setConn(r.id,true);c.send({t:"view",v:SV.view(r.id)})}
+  else if(d.t==="act"&&c.pid){SV.act(c.pid,d.a);c.send({t:"ack",id:d.a._id})}
+ }catch(e){console.error(e)}
+}
 function hostUp(){homeMode=false;
  if(!V)wait("Opening the castle…");
- const oldPeer=peer;peer=null;try{oldPeer&&oldPeer.destroy()}catch(e){}
- const p=new Peer("traitors-"+ME.code.toLowerCase(),{debug:0,config:ICE});peer=p;
- p.on("open",()=>{if(peer!==p)return;setOnline(true);SV.commit()});
- p.on("connection",c=>{if(peer!==p){try{c.close()}catch(e){}return}c._last=Date.now();
-  c.on("data",d=>{c._last=Date.now();try{
-   if(d.t==="pong"){c._pong=true;return}
-   if(d.t==="join"){const r=SV.join(d.token,d.name);if(r.err){c.send({t:"err",m:r.err});return}const old=conns[r.id];c.pid=r.id;conns[r.id]=c;if(old&&old!==c){try{old.close()}catch(e){}}SV.setConn(r.id,true);c.send({t:"view",v:SV.view(r.id)})}
-   else if(d.t==="act"&&c.pid){SV.act(c.pid,d.a);try{c.send({t:"ack",id:d.a._id})}catch(e){}}}catch(e){console.error(e)}});
-  const gone=()=>{if(c.pid&&conns[c.pid]===c){delete conns[c.pid];SV.setConn(c.pid,false)}};c.on("close",gone);c.on("error",gone)});
- p.on("disconnected",()=>{if(peer!==p)return;setTimeout(()=>{if(!leaving&&peer===p&&!p.destroyed&&p.disconnected)try{p.reconnect()}catch(x){}},800)});
- p.on("error",e=>{if(peer!==p)return;if(e.type==="peer-unavailable")return;if(p.destroyed){setOnline(false);setTimeout(()=>{if(!leaving&&peer===p)hostUp()},e.type==="unavailable-id"?4000:2000)}});
+ NET.cid=ME.token;let first=true;
+ const p={destroyed:false,disconnected:false,destroy(){this.destroyed=true;netClose()},reconnect(){netKick()}};try{peer&&peer.destroy()}catch(e){}peer=p;
+ netOpen(ME.code,(t,d)=>{if(peer!==p||!d)return;hostRx(t.split("/").pop(),d)},()=>{if(peer!==p)return;setOnline(true);netPub("p",{t:"open",hid:ME.token},{retain:true});if(first){first=false;SV.commit()}});
 }
-function hostBeat(){const t=Date.now();for(const id in conns){const c=conns[id];if(!c.open)continue;if(c._pong&&t-(c._last||t)>15000){delete conns[id];SV.setConn(id,false);try{c.close()}catch(e){}continue}try{c.send({t:"ping"})}catch(e){}}}
-let lastRx=0;
+function hostBeat(){if(!netUp()){setOnline(false);netKick();return}setOnline(true);const t=Date.now();for(const id in conns){const c=conns[id];if(!c.open)continue;if(c._pong&&t-(c._last||t)>15000){c.close();continue}try{c.send({t:"ping"})}catch(e){}}}
+let lastRx=0,joinTries=0;
 function connect(){
  if(leaving)return;clearTimeout(rt);
- const oldPeer=peer;peer=null;try{oldPeer&&oldPeer.destroy()}catch(e){}
- const p=new Peer({debug:0,config:ICE});peer=p;let opened=false;
- p.on("open",()=>{if(peer!==p)return;
-  const hc=p.connect("traitors-"+ME.code.toLowerCase(),{reliable:true,serialization:"json"});hostConn=hc;
-  hc.on("open",()=>{if(hostConn!==hc)return;opened=true;lastRx=Date.now();setOnline(true);hc.send({t:"join",token:ME.token,name:ME.name})});
-  hc.on("data",d=>{if(hostConn!==hc)return;lastRx=Date.now();if(d.t==="ping"){try{hc.send({t:"pong"})}catch(e){}return}if(d.t==="view"){setView(d.v);flush()}else if(d.t==="ack")pend=pend.filter(x=>x._id!==d.id);else if(d.t==="err"){err=d.m;bail()}});
-  hc.on("close",()=>{if(hostConn!==hc)return;setOnline(false);retry()});hc.on("error",()=>{if(hostConn!==hc)return;setOnline(false);retry()});
-  setTimeout(()=>{if(!opened&&!leaving&&hostConn===hc){setOnline(false);retry()}},9000)});
- p.on("error",e=>{if(peer!==p)return;if(e.type==="peer-unavailable"){if(!V)waitMsg("No game is open with code "+ME.code+" at the moment. If the game master is reloading, this will connect by itself in a few seconds. Otherwise check the code.");setOnline(false);retry();return}if(p.destroyed){setOnline(false);retry()}});
- p.on("disconnected",()=>{if(peer!==p)return;if(hostConn&&hostConn.open){setTimeout(()=>{if(!leaving&&peer===p&&!p.destroyed&&p.disconnected)try{p.reconnect()}catch(x){}},800)}else{setOnline(false);retry()}});
+ NET.cid=ME.token;joinTries=0;
+ const hc={open:false,send(d){netPub("h/"+ME.token,d)},join(){if(hostConn!==hc||leaving)return;netPub("h/"+ME.token,{t:"join",token:ME.token,name:ME.name})}};hostConn=hc;
+ const p={destroyed:false,disconnected:false,destroy(){this.destroyed=true;netClose()},reconnect(){netKick()}};try{peer&&peer.destroy()}catch(e){}peer=p;
+ netOpen(ME.code,(t,d)=>{if(hostConn!==hc)return;
+  if(t.endsWith("/p")){if(d===null){hc.open=false;setOnline(false);if(!V)waitMsg("The game master has closed the castle. If they are reloading, this will connect by itself in a few seconds.")}else hc.join();return}
+  if(!d)return;lastRx=Date.now();
+  if(d.t==="ping"){hc.send({t:"pong"});if(!hc.open){hc.join()}return}
+  if(d.t==="view"){if(!hc.open){hc.open=true;setOnline(true)}setView(d.v);flush()}
+  else if(d.t==="ack")pend=pend.filter(x=>x._id!==d.id);
+  else if(d.t==="err"){err=d.m;bail()}
+ },()=>{if(hostConn===hc)hc.join()});
+ setTimeout(()=>{if(hostConn!==hc||hc.open||leaving)return;setOnline(false);if(!V&&!$("#wm").textContent)waitMsg(netUp()?"No game is open with code "+ME.code+" at the moment. If the game master is reloading, this will connect by itself in a few seconds. Otherwise check the code.":"Can't reach the castle relay. Try switching between Wi-Fi and mobile data. This keeps retrying on its own.");retry()},9000);
 }
-function watchdog(){if(isHost||!ME||leaving||document.visibilityState!=="visible")return;if(hostConn&&hostConn.open&&lastRx&&Date.now()-lastRx>15000){lastRx=Date.now();setOnline(false);connect()}}
-function retry(){if(leaving)return;clearTimeout(rt);rt=setTimeout(connect,3000)}
-function bail(){leaving=true;clearTimeout(rt);sv(MK,null);try{peer&&peer.destroy()}catch(e){}hostConn=null;V=null;ME=null;homeMode=false;$("#bar").hidden=true;$("#gm").hidden=true;$("#net").hidden=true;home();leaving=false}
-function leave(){leaving=true;sv(MK,null);if(isHost)sv(HK,null);try{peer&&peer.destroy()}catch(e){}location.hash="";location.reload()}
+function watchdog(){if(isHost||!ME||leaving||document.visibilityState!=="visible")return;if(hostConn&&hostConn.open&&lastRx&&Date.now()-lastRx>15000){lastRx=Date.now();hostConn.open=false;setOnline(false);retry()}}
+function retry(){if(leaving)return;clearTimeout(rt);rt=setTimeout(()=>{if(leaving||!hostConn||hostConn.open)return;joinTries++;if(joinTries%10===0)connect();else{netKick();hostConn.join()}retry()},3000)}
+function bail(){leaving=true;clearTimeout(rt);sv(MK,null);try{hostConn&&hostConn.send({t:"bye"})}catch(e){}const op=peer;peer=null;setTimeout(()=>{try{op&&op.destroy()}catch(e){}},400);hostConn=null;V=null;ME=null;homeMode=false;$("#bar").hidden=true;$("#gm").hidden=true;$("#net").hidden=true;home();leaving=false}
+function leave(){leaving=true;sv(MK,null);if(isHost){sv(HK,null);try{netPub("p",null,{retain:true})}catch(e){}}else{try{hostConn&&hostConn.send({t:"bye"})}catch(e){}}location.hash="";setTimeout(()=>{try{peer&&peer.destroy()}catch(e){}location.reload()},500)}
 
 /* ---------- screens ---------- */
 function wait(t,back){app.innerHTML=`<div class="hd" style="padding-top:80px"><p class="eyebrow">The Traitors</p><div class="rule"><i></i></div><p class="lede">${esc(t)}</p><p class="small center" id="wm"></p>${back?`<button class="link" id="wb">Use a different code or name</button>`:""}</div>`;const b=$("#wb");if(b)b.onclick=()=>{err="";bail()}}
@@ -1021,7 +1058,7 @@ function home(){musicStop();setScene("castle");homeMode=true;$("#bar").hidden=tr
  const ct=$("#cont");if(ct)ct.onclick=()=>{keepAwake();homeMode=false;if(live){render();return}if(cont.host)hostResume();else joinGame(cont.code,me.name)};
  if(hash.length===4&&!cont)showForm("join");
 }
-function leaveQuiet(){leaving=true;clearTimeout(rt);try{peer&&peer.destroy()}catch(e){}peer=null;hostConn=null;conns={};V=null;ME=null;isHost=false;homeMode=false;leaving=false}
+function leaveQuiet(){leaving=true;clearTimeout(rt);try{peer&&peer.destroy()}catch(e){}peer=null;hostConn=null;conns={};for(const k in links)delete links[k];V=null;ME=null;isHost=false;homeMode=false;leaving=false}
 function howTo(){const s=$("#sheet");s.hidden=false;s.querySelector(".in").innerHTML=`<div class="row" style="justify-content:space-between;align-items:center"><h2 class="sect" style="margin:0">How to play</h2><button class="btn sm ghost" id="hx">Close</button></div>
  <div class="rules">
  <h3>The idea</h3><p>Everyone is Faithful except one or two secret Traitors. The Faithful win gold together and try to spot the Traitors. The Traitors sabotage quietly, murder at night, and try to reach the final unmasked.</p>
@@ -1383,9 +1420,9 @@ function init(){embers();
  if(me&&!me.host&&me.code&&(hash===""||hash===me.code)&&fresh(me)){joinGame(me.code,me.name);return}
  home();
 }
-document.addEventListener("visibilitychange",()=>{if(document.visibilityState!=="visible"||leaving||!ME)return;lastRx=Date.now();
- if(isHost){if(peer&&peer.destroyed)hostUp();else if(peer&&peer.disconnected)try{peer.reconnect()}catch(e){}}
- else{if(!(hostConn&&hostConn.open)){clearTimeout(rt);connect()}else if(peer&&peer.disconnected)try{peer.reconnect()}catch(e){}}});
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState!=="visible"||leaving||!ME)return;lastRx=Date.now();netKick();
+ if(isHost){if(!peer||peer.destroyed)hostUp()}
+ else{if(!peer||peer.destroyed){clearTimeout(rt);connect()}else if(hostConn&&!hostConn.open){clearTimeout(rt);hostConn.join();retry()}}});
 init();
 if(location.hash==="#debug")window.__tl={SV,setView,home,get:()=>({V,ME,isHost}),setHost:h=>{isHost=h},setME:m=>{ME=m},play:()=>{homeMode=false}};
 </script></body></html>
