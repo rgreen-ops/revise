@@ -964,6 +964,7 @@ let offT=null;function setOnline(o){online=o;clearTimeout(offT);if(o||!ME){$("#n
    networks never need a direct connection to each other (that is what kept people stuck "knocking").
    Two relays are used at once and messages are de-duplicated, so one relay going down does not stop the game.
    Payloads are encrypted with a key derived from the room code. */
+const BUILD="2";
 const RELAYS=["wss://broker.emqx.io:8084/mqtt","wss://broker.hivemq.com:8884/mqtt"];
 const NET={clients:[],key:null,code:"",cid:"",seen:new Map(),seq:0,gen:0};
 function b64(u){let s="";for(const b of u)s+=String.fromCharCode(b);return btoa(s)}
@@ -1047,7 +1048,7 @@ function home(){musicStop();setScene("castle");homeMode=true;$("#bar").hidden=tr
   <button class="btn ghost big" id="bhow">How to play<span class="sub">Two minutes, then you are ready</span></button>
  </div>
  <div id="homeform"></div>
- <p class="small center">Have a voice or video call running alongside. Everything else happens here.</p>`;
+ <p class="small center">Have a voice or video call running alongside. Everything else happens here.</p><p class="small center" style="opacity:.5">Version ${BUILD}</p>`;
  err="";
  const showForm=which=>{const f=$("#homeform");if(which==="join"){f.innerHTML=`<form id="jf" class="stack t"><input class="txt code" id="jc" maxlength="4" placeholder="CODE" value="${esc(hash.length===4?hash:(me&&!me.host?me.code:""))}" autocomplete="off" autocapitalize="characters" aria-label="Room code"><input class="txt" id="jn" maxlength="16" placeholder="Your name" value="${esc(me?me.name:"")}" autocomplete="off" aria-label="Your name"><button class="btn big">Join the game</button></form>`;
    $("#jf").onsubmit=e=>{e.preventDefault();const cd=$("#jc").value.trim().toUpperCase(),n=$("#jn").value.trim();if(cd.length!==4||!n){err="Enter the 4 letter room code and your name.";home();showForm("join");return}keepAwake();leaveQuiet();joinGame(cd,n)};$("#jn").focus()}
@@ -1165,7 +1166,7 @@ function render(){
  const keep=snapInputs();after=[];let h="";const n=pub.players.length,done=pub.players.filter(p=>p.done).length;
  const sending=!isHost&&pend.some(a=>a._p===pub.phase&&a._r===pub.round);const SENDING=`<div class="panel center"><p class="lede">Sending to the game master…</p><p class="small">Your answer is safe on this phone and will be delivered as soon as the connection is back.</p></div>`;
  switch(pub.phase){
-  case "lobby":{const link=location.origin+location.pathname+"#"+pub.code;const msg=`Join my game of The Traitors tonight. Open ${link} and enter room code ${pub.code} with your name. Keep the call open too.`;
+  case "lobby":{const link=location.origin+location.pathname+"?v="+BUILD+"#"+pub.code;const msg=`Join my game of The Traitors tonight. Open ${link} and enter room code ${pub.code} with your name. Keep the call open too.`;
    h=`<div class="hd"><p class="eyebrow">The castle gates are open</p><div class="rule"><i></i></div><h1 class="mega">${esc(pub.code)}</h1><p class="small">Room code</p></div>
    <div class="chips" style="justify-content:center">${pub.players.map(p=>`<span class="chip ${p.conn?"ok":"off"}">${crest(p.id,20)}${esc(p.name)}${p.host?" (GM)":""}${p.bot?" <em class=\"ai\">AI</em>":""}</span>`).join("")}</div>
    <div class="stack t"><a class="btn wa" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">Share on WhatsApp</a><button class="btn ghost" id="cp">Copy invite</button></div>`;
