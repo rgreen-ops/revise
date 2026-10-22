@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0d0b09">
 <title>The Traitors Castle</title>
 <meta name="description" content="Play The Traitors with family and friends on your own phones, wherever you are. Secret roles, missions, a Round Table and murders in the night.">
@@ -26,6 +26,8 @@
  --display:"Cinzel","Trajan Pro",Georgia,serif;--body:"Cormorant Garamond",Garamond,Georgia,serif;color-scheme:dark}
 *{box-sizing:border-box}
 html,body{min-height:100%;margin:0}
+html{touch-action:manipulation}
+.tapbtn,.arena,.holes,.lockbar,.fuse,.nums,.arrows,.shade,.pgrid{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 body{background:var(--bg);color:var(--cream);font-family:var(--body);font-size:17px;line-height:1.38;-webkit-tap-highlight-color:transparent;
  padding:env(safe-area-inset-top,0px) max(16px,env(safe-area-inset-right,0px)) calc(130px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
 body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
@@ -484,6 +486,82 @@ ADV.push(
  {m:{type:"team",game:"squash"},a:"whack",s:"Catch exactly 7 bats."},
  {m:{type:"riddles",set:"E"},a:"nerve",s:"Submit a wrong answer to riddle 4."}]}
 );
+/* The riddle pool. Each mission draws four at random, never repeating one within a game. Answers are matched loosely (lower case, letters and digits only, any accepted answer contained in what was typed). */
+const RIDDLE_POOL=[
+ ["What has keys but opens no locks?",["piano","keyboard"]],
+ ["The more you take, the more you leave behind. What are they?",["footstep","step","footprint"]],
+ ["What gets wetter the more it dries?",["towel"]],
+ ["What travels the world while staying in one corner?",["stamp"]],
+ ["What has hands but cannot clap?",["clock","watch"]],
+ ["What has an eye but cannot see?",["needle","storm","hurricane","potato"]],
+ ["What can you catch but never throw?",["cold"]],
+ ["What goes up but never comes down?",["age"]],
+ ["What has a neck but no head?",["bottle","shirt","jumper","guitar"]],
+ ["What is full of holes but still holds water?",["sponge"]],
+ ["What has one head, one foot and four legs?",["bed"]],
+ ["Which building has the most stories?",["library"]],
+ ["What can run but never walks?",["river","water","tap","nose","stream"]],
+ ["What has many teeth but cannot bite?",["comb","zip","saw","gear"]],
+ ["What gets bigger the more you take away from it?",["hole"]],
+ ["Which word is spelled wrong in every dictionary?",["wrong"]],
+ ["What has a bottom at the top?",["leg"]],
+ ["What can fill a room but takes up no space?",["light"]],
+ ["What has a thumb and four fingers but is not alive?",["glove"]],
+ ["What breaks every morning but never falls?",["day","dawn"]],
+ ["I have cities but no houses, forests but no trees, and water but no fish. What am I?",["map"]],
+ ["What has to be broken before you can use it?",["egg"]],
+ ["What is always in front of you but cannot be seen?",["future"]],
+ ["What has legs but never walks?",["table","chair","desk"]],
+ ["What has a ring but no finger?",["phone","telephone","bell","doorbell","saturn"]],
+ ["What kind of band never plays music?",["rubber","elastic","hair","wedding"]],
+ ["What has words but never speaks?",["book","letter","sign"]],
+ ["What runs around the whole garden without moving?",["fence","wall","hedge"]],
+ ["If you drop me I am sure to crack, but smile at me and I will smile right back. What am I?",["mirror"]],
+ ["What has thirteen hearts but no other organs?",["cards","deck","pack"]],
+ ["What goes through towns and over hills but never moves?",["road","path","railway","motorway","river"]],
+ ["What can you keep after giving it to someone?",["word","promise"]],
+ ["What is so fragile that saying its name breaks it?",["silence"]],
+ ["What begins with T, ends with T, and has T in it?",["teapot"]],
+ ["What has a head and a tail but no body?",["coin","penny","pound"]],
+ ["What gets sharper the more you use it?",["brain","mind"]],
+ ["What has four wheels and flies?",["bin","rubbish","garbage","dustcart","dust cart","refuse"]],
+ ["What tastes better than it smells?",["tongue"]],
+ ["How many months of the year have 28 days?",["all","every","twelve","12"]],
+ ["What can be cracked, made, told and played?",["joke"]],
+ ["What is at the end of a rainbow?",["w"]],
+ ["What starts with an E, ends with an E, but only has one letter in it?",["envelope"]],
+ ["Where does today come before yesterday?",["dictionary"]],
+ ["What is black when you buy it, red when you use it and grey when you throw it away?",["charcoal","coal"]],
+ ["What kind of coat is best put on wet?",["paint"]],
+ ["What goes up and down but never moves?",["stairs","staircase","temperature","lift","escalator"]],
+ ["What has a tongue but cannot talk?",["shoe","boot","trainer","bell"]],
+ ["What flies without wings?",["time","flag","kite","cloud"]],
+ ["I am tall when I am young and short when I am old. What am I?",["candle"]],
+ ["What can you hold in your right hand but never in your left?",["left hand","left elbow","lefthand","leftelbow","left"]],
+ ["What has a bark but never bites?",["tree"]],
+ ["What word becomes shorter when you add two letters to it?",["short"]],
+ ["What kind of room has no doors or windows?",["mushroom"]],
+ ["What do you throw out when you want to use it, but take in when you are done with it?",["anchor"]],
+ ["What can go up a chimney down, but cannot go down a chimney up?",["umbrella","brolly"]],
+ ["What belongs to you but is used far more by other people?",["name"]],
+ ["What occurs once in a minute, twice in a moment, but never in a thousand years?",["m"]],
+ ["What has one horn and gives milk?",["milk float","milk truck","milk lorry","milk van","milkfloat","milktruck"]],
+ ["What kind of tree can you carry in your hand?",["palm"]],
+ ["What loses its head in the morning and gets it back at night?",["pillow"]],
+ ["What is made of water, but dies if you put it in water?",["ice"]],
+ ["What has a neck and two arms but no head?",["shirt","jumper","jacket","coat","top","hoodie","tshirt"]],
+ ["What is always coming but never arrives?",["tomorrow"]],
+ ["What do you call a bear with no ears?",["b"]],
+ ["I shave every day, but my beard stays exactly the same. What am I?",["barber"]],
+ ["Forwards I am heavy, backwards I am not. What am I?",["ton"]],
+ ["What has a thousand needles but cannot sew?",["hedgehog","porcupine","cactus","pine","christmas tree"]],
+ ["What is harder to catch the faster you run?",["breath"]],
+ ["What has a face but no eyes, and hands but no fingers?",["clock","watch"]],
+ ["What has a spine, but no bones?",["book"]],
+ ["What can travel all around the world but never leaves its corner?",["stamp"]],
+ ["What has a mouth but never eats, and a bed but never sleeps?",["river"]],
+ ["What building do you leave without ever entering it?",["ambulance","hospital","womb"]]
+];
 /* ---------- recorded media (files live in media/ next to the page) ---------- */
 const MEDIA="media/";
 const VOICE_CLIPS={
@@ -556,15 +634,20 @@ const SV={G:null,send:null,save:null,
  },
  join(token,name){
   const G=this.G;let p=G.players.find(x=>x.token===token);
-  if(!p&&G.phase!=="lobby"){const nm=String(name||"").trim().toLowerCase();const c=G.players.filter(x=>!x.host&&!x.bot&&x.name.toLowerCase()===nm);p=c.find(x=>!x.conn)||c[0];if(p)p.token=token}
-  if(p){p.conn=true;this.commit();return {id:p.id}}
+  const nm=String(name||"").trim().toLowerCase();
+  if(!p&&G.phase!=="lobby"){const c=G.players.filter(x=>!x.host&&!x.bot&&x.name.toLowerCase()===nm);p=c.find(x=>!x.conn)||c[0];if(p)p.token=token}
+  /* In the lobby a second join under the same name is nearly always the same person on another tab or browser: give them their seat back rather than a duplicate, unless that seat is plainly live right now. */
+  if(!p&&G.phase==="lobby"){const c=G.players.find(x=>!x.host&&!x.bot&&x.name.toLowerCase()===nm);if(c){if(c.conn&&c.seen&&now()-c.seen<6000)return {err:`Someone is already in the castle as ${c.name}. If that is you on another screen, close it and try again in a few seconds, or join with a different name.`};c.token=token;p=c}}
+  if(p){p.conn=true;p.seen=now();this.commit();return {id:p.id}}
   if(G.phase!=="lobby")return {err:"This game has already started. To get back in, join again with exactly the same name you used before."};
   if(G.players.length>=12)return {err:"The castle is full (12 players)."};
   name=String(name||"").trim().slice(0,16)||"Guest";
   let base=name,k=2;while(G.players.some(x=>x.name.toLowerCase()===name.toLowerCase()))name=base+" "+(k++);
-  p={id:"p"+(G.nid++),name,token,gold:8,inv:{S:0,D:0},conn:true};G.players.push(p);this.commit();return {id:p.id};
+  p={id:"p"+(G.nid++),name,token,gold:8,inv:{S:0,D:0},conn:true,seen:now()};G.players.push(p);this.commit();return {id:p.id};
  },
  setConn(id,c){const p=this.P(id);if(p&&p.conn!==c){p.conn=c;this.commit()}},
+ touch(id){const p=this.P(id);if(p)p.seen=now()},
+ touch(id){const p=this.P(id);if(p)p.seen=now()},
 
  to(phase,ph){this.G.phase=phase;this.G.ph=ph||{};this.commit()},
  commit(){this.G.seq++;if(this.save)this.save(this.G);this.broadcast()},
@@ -629,7 +712,7 @@ const SV={G:null,send:null,save:null,
   if(m.type==="meld"){ph.k=0;ph.prompts=MELD[m.set];ph.subs=[{},{},{}];ph.res=[]}
   if(m.type==="estimate"){ph.sub="show";ph.count=90+rnd(130);ph.seed=rnd(1e9);ph.until=now()+7000}
   if(m.type==="memory"){ph.sub="show";ph.words=shuffle([...WORDS[m.pool]]).slice(0,12);ph.until=now()+20000}
-  if(m.type==="riddles"){ph.q=RIDDLES[m.set];ph.solved=[null,null,null,null];ph.wrong=[];ph.until=now()+180000}
+  if(m.type==="riddles"){ph.q=this.pickRiddles();ph.solved=[null,null,null,null];ph.wrong=[];ph.until=now()+180000}
   if(m.type==="sync"){ph.tapped=[];ph.last=0;ph.resets=0;ph.flash=0;ph.until=now()+120000;ph.start=now()}
   if(m.type==="heist"){const per=n<=5?3:2;const deck=shuffle(Array.from({length:60},(_,i)=>i+1)).slice(0,per*n);
    ph.hands={};G.players.forEach((p,i)=>ph.hands[p.id]=deck.slice(i*per,i*per+per).sort((a,b)=>a-b));ph.pile=[];ph.lost=[];ph.mistakes=0;ph.start=now()}
@@ -652,7 +735,8 @@ const SV={G:null,send:null,save:null,
   else if(t==="meld"&&a.t==="sub"){if(a.k!=null&&a.k!==ph.k)return;const w=norm(a.v);if(w&&ph.subs[ph.k][id]===undefined){ph.subs[ph.k][id]=w;
     if(this.allIn(ph.subs[ph.k])){this.meldStep();return}}}
   else if(t==="riddles"&&a.t==="riddle"){const i=a.i,ans=norm(a.v);if(ph.solved[i]||!ans)return;
-    if(ph.q[i][1].some(k=>ans.includes(k)))ph.solved[i]=id;else{if(ph.wrong.some(w=>w.id===id&&w.i===i&&norm(w.v)===ans))return;ph.wrong.push({id,i,v:String(a.v).slice(0,30)});ph.wrong=ph.wrong.slice(-8)}
+    const hit=ph.q[i][1].some(k=>{k=norm(k);return k.length<=2?(ans===k||ans==="theletter"+k||ans==="letter"+k||ans==="the"+k):ans.includes(k)});
+    if(hit)ph.solved[i]=id;else{if(ph.wrong.some(w=>w.id===id&&w.i===i&&norm(w.v)===ans))return;ph.wrong.push({id,i,v:String(a.v).slice(0,30)});ph.wrong=ph.wrong.slice(-8)}
     if(ph.solved.every(Boolean))return this.endMission()}
   else if(t==="sync"&&a.t==="tap"){if(ph.tapped.includes(id))return;const tm=now();
     if(ph.tapped.length&&tm-ph.last<1000){ph.resets++;ph.flash=tm;ph.tapped=[];ph.last=tm}else{ph.tapped.push(id);ph.last=tm}
@@ -727,6 +811,8 @@ const SV={G:null,send:null,save:null,
  gold(id,n){const p=this.P(id);if(p)p.gold=Math.max(0,p.gold+n)},
 
  /* ----- armoury ----- */
+ /* Four riddles drawn at random from the whole pool, never repeating one within a game */
+ pickRiddles(){const G=this.G;G.usedR=G.usedR||[];let free=RIDDLE_POOL.map((r,i)=>i).filter(i=>!G.usedR.includes(i));if(free.length<4){G.usedR=[];free=RIDDLE_POOL.map((r,i)=>i)}const pick=shuffle(free).slice(0,4);G.usedR.push(...pick);return pick.map(i=>RIDDLE_POOL[i])},
  startArmoury(){const a=this.R().a;this.to("armoury",{type:a,seed:rnd(1e9),scores:{},rolls:{}})},
  aScore(ph,id,a){const p=this.P(id);
   if(ph.type==="dice"&&a.t==="roll"){const r=[1+rnd(6),1+rnd(6)];ph.rolls[id]=r;return r[0]+r[1]}
@@ -783,7 +869,7 @@ const SV={G:null,send:null,save:null,
 
  /* ----- routing ----- */
  act(id,a){
-  const G=this.G;if(!this.P(id)||!a)return;
+  const G=this.G;if(!this.P(id)||!a)return;this.touch(id);
   const late=(a._p==="armoury"&&G.phase==="areward")||(a._p==="mission"&&G.phase==="mresult");
   if(a._p&&a._p!==G.phase&&!late)return;if(a._r!=null&&a._r!==G.round)return;
   if(late){if(G.phase==="areward")this.aLate(id,a);else this.mLate(id,a);return}
@@ -1014,7 +1100,7 @@ let offT=null;function setOnline(o){online=o;clearTimeout(offT);if(o||!ME){$("#n
    networks never need a direct connection to each other (that is what kept people stuck "knocking").
    Two relays are used at once and messages are de-duplicated, so one relay going down does not stop the game.
    Payloads are encrypted with a key derived from the room code. */
-const BUILD="4";
+const BUILD="5";
 const RELAYS=["wss://broker.emqx.io:8084/mqtt","wss://broker.hivemq.com:8884/mqtt"];
 const NET={clients:[],key:null,code:"",cid:"",seen:new Map(),seq:0,gen:0};
 function b64(u){let s="";for(const b of u)s+=String.fromCharCode(b);return btoa(s)}
@@ -1050,7 +1136,7 @@ function hostRx(cid,d){
  if(!c){if(d.t!=="join")return;c=links[cid]={cid,open:true,send(x){netPub("c/"+cid,x)},close(){this.open=false;if(links[cid]===this)delete links[cid];if(this.pid&&conns[this.pid]===this){delete conns[this.pid];SV.setConn(this.pid,false)}}}}
  c._last=Date.now();
  try{
-  if(d.t==="pong"){c._pong=true;return}
+  if(d.t==="pong"){c._pong=true;if(c.pid)SV.touch(c.pid);return}
   if(d.t==="join"){const r=SV.join(d.token,d.name);if(r.err){c.send({t:"err",m:r.err});return}const old=conns[r.id];c.pid=r.id;conns[r.id]=c;if(old&&old!==c){old.open=false;if(links[old.cid]===old)delete links[old.cid]}SV.setConn(r.id,true);c.send({t:"view",v:SV.view(r.id)})}
   else if(d.t==="act"&&c.pid){SV.act(c.pid,d.a);c.send({t:"ack",id:d.a._id})}
  }catch(e){console.error(e)}
@@ -1388,8 +1474,9 @@ function startGame(type,seed){const el=$("#ag");if(!el)return;A.active=true;cons
    if(e_>=20000||!$("#ws")){clearInterval(iv);timers.forEach(clearTimeout);if($("#ws")){el.innerHTML=`<p class="lede center">${score} ghosts</p>`;send(score)}}},50)}}
  else if(type==="nerve"){const T=2800+R()*5200;let t0=0,held=false,done=false;el.innerHTML=`<div class="fuse"><div class="burn" id="fb"></div></div><button class="tapbtn" id="nb">HOLD</button><p class="small center" id="nm">Press and hold. Let go before it blows.</p>`;
   const b=$("#nb");const fin=(s,msg)=>{if(done)return;done=true;$("#nm").textContent=msg;b.disabled=true;send(s)};
-  b.onpointerdown=e=>{e.preventDefault();if(held||done)return;held=true;t0=performance.now();const fb=$("#fb");fb.style.transition=`width ${T}ms linear`;fb.style.width="100%";A.nerveT=setTimeout(()=>{if(held){FX.murder();buzz([300]);fin(0,"BOOM. You held on too long.")}},T)};
-  const rel=e=>{if(!held||done)return;held=false;clearTimeout(A.nerveT);const s=Math.round((performance.now()-t0)/100)/10;$("#fb").style.transition="none";FX.chime();fin(s,`You let go at ${s.toFixed(1)} seconds`)};b.onpointerup=rel;b.onpointerleave=rel;b.onpointercancel=rel}
+  b.oncontextmenu=e=>e.preventDefault();
+  b.onpointerdown=e=>{e.preventDefault();if(held||done)return;try{b.setPointerCapture(e.pointerId)}catch(x){}held=true;t0=performance.now();const fb=$("#fb");fb.style.transition=`width ${T}ms linear`;fb.style.width="100%";A.nerveT=setTimeout(()=>{if(held){FX.murder();buzz([300]);fin(0,"BOOM. You held on too long.")}},T)};
+  const rel=e=>{if(!held||done)return;held=false;clearTimeout(A.nerveT);const s=Math.round((performance.now()-t0)/100)/10;$("#fb").style.transition="none";FX.chime();fin(s,`You let go at ${s.toFixed(1)} seconds`)};b.onpointerup=rel;b.onpointercancel=rel;b.ontouchend=e=>{e.preventDefault();rel(e)}}
  else if(type==="flap"){const cv=document.createElement("canvas");cv.width=320;cv.height=420;cv.className="arcade";el.innerHTML="";el.appendChild(cv);const x=cv.getContext("2d");const GAP=120;
   const walls=Array.from({length:60},(_,i)=>({x:380+i*200,gap:100+R()*210,passed:false}));let by=200,vy=0,run=false,over=false,score=0,dist=0,last=0;
   const draw=()=>{x.fillStyle="#0b0910";x.fillRect(0,0,320,420);walls.forEach(w=>{const wx=w.x-dist;if(wx<-30||wx>340)return;x.fillStyle="#3a2c14";x.fillRect(wx,0,30,w.gap-GAP/2);x.fillRect(wx,w.gap+GAP/2,30,420);x.fillStyle="#c9a45c";x.fillRect(wx,w.gap-GAP/2-4,30,4);x.fillRect(wx,w.gap+GAP/2,30,4)});
