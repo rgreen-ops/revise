@@ -1088,6 +1088,14 @@ function narrate(key,text,then){if(!voiceOn()){if(then)then();return}const a=CLI
  try{a.onended=()=>{a.onended=null;if(then)then()};a.currentTime=0;const p=a.play();if(p&&p.catch)p.catch(()=>{a.onended=null;hostSay(text,then)})}catch(e){hostSay(text,then)}}
 function hostSay(t,then){if(!voiceOn()){if(then)then();return}try{const u=new SpeechSynthesisUtterance(t);if(VOICE)u.voice=VOICE;u.lang=(VOICE&&VOICE.lang)||"en-GB";u.rate=0.9;u.pitch=0.95;u.volume=1;if(then){let done=false;const f=()=>{if(!done){done=true;then()}};u.onend=f;u.onerror=f;setTimeout(f,6000)}speechSynthesis.cancel();setTimeout(()=>speechSynthesis.speak(u),60)}catch(e){if(then)then()}}
 function buzz(p){try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}}
+/* Phones must never zoom the game: iPhones ignore the viewport flags for pinch, so two thumbs on the bat arena would zoom the page. Block pinch gestures and double-tap zoom here. */
+document.addEventListener("touchmove",e=>{if(e.touches.length>1||(e.scale!=null&&e.scale!==1))e.preventDefault()},{passive:false});
+document.addEventListener("gesturestart",e=>e.preventDefault(),{passive:false});
+document.addEventListener("gesturechange",e=>e.preventDefault(),{passive:false});
+let lastTapT=0,lastTapX=0,lastTapY=0;
+document.addEventListener("touchend",e=>{const t=Date.now();const p=e.changedTouches&&e.changedTouches[0];const x=p?p.clientX:0,y=p?p.clientY:0;const el=e.target;const typing=el&&(el.tagName==="INPUT"||el.tagName==="TEXTAREA");
+ if(!typing&&t-lastTapT<350&&Math.abs(x-lastTapX)<40&&Math.abs(y-lastTapY)<40){const b=el&&el.closest&&el.closest("button,a,[data-i],[data-k],[data-d],[data-h],.bat,.owl,.lantern,.hole,.pcard,.arena,canvas");if(b){e.preventDefault();if(b.tagName==="BUTTON"||b.tagName==="A")b.click()}else e.preventDefault()}
+ lastTapT=t;lastTapX=x;lastTapY=y},{passive:false});
 async function keepAwake(){try{await navigator.wakeLock.request("screen")}catch(e){}}
 
 /* ---------- networking ---------- */
@@ -1100,7 +1108,7 @@ let offT=null;function setOnline(o){online=o;clearTimeout(offT);if(o||!ME){$("#n
    networks never need a direct connection to each other (that is what kept people stuck "knocking").
    Two relays are used at once and messages are de-duplicated, so one relay going down does not stop the game.
    Payloads are encrypted with a key derived from the room code. */
-const BUILD="5";
+const BUILD="6";
 const RELAYS=["wss://broker.emqx.io:8084/mqtt","wss://broker.hivemq.com:8884/mqtt"];
 const NET={clients:[],key:null,code:"",cid:"",seen:new Map(),seq:0,gen:0};
 function b64(u){let s="";for(const b of u)s+=String.fromCharCode(b);return btoa(s)}
