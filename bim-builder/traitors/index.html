@@ -282,6 +282,96 @@ canvas.drawc{display:block;width:100%;aspect-ratio:1;border:2px solid var(--gold
 .maid::before{content:"";position:absolute;left:30%;right:30%;top:10%;height:10%;background:#b02a2a;border-radius:4px}
 .hole.upm .maid{bottom:4%}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}}
+
+/* ---- arcade batch two ---- */
+.fly{position:absolute;width:17%;aspect-ratio:64/40;margin:-4% 0 0 -8%;filter:drop-shadow(0 4px 6px rgba(0,0,0,.6))}
+.fly.hit,.spider.hit,.rat.hit,.cat.hit,.wraith.hit,.frog.hit,.toad.hit,.ball.hit{animation:bathit .25s forwards}
+.fly.gone,.rat.gone,.cat.gone,.frog.gone,.toad.gone{animation:batgone .3s forwards}
+.spider{position:absolute;width:13%;aspect-ratio:1;margin-left:-6.5%;filter:drop-shadow(0 4px 6px rgba(0,0,0,.6))}
+.spider::before{content:"";position:absolute;left:50%;bottom:85%;width:1px;height:600px;background:rgba(220,220,230,.45)}
+.spider.gone{opacity:.2}
+.rat{position:absolute;width:24%;aspect-ratio:64/36;margin:-6% 0 0 -12%}
+.cat{position:absolute;width:30%;aspect-ratio:64/44;margin:-9% 0 0 -15%}
+.wraith{position:absolute;width:13%;aspect-ratio:48/56;margin:-8% 0 0 -6.5%;opacity:0;filter:drop-shadow(0 0 10px rgba(200,190,255,.6))}
+@keyframes wraith{0%{opacity:0}30%{opacity:1}70%{opacity:1}100%{opacity:0}}
+.wraith[data-solid="1"]{filter:drop-shadow(0 0 16px rgba(255,240,200,.9))}
+.cnd{position:absolute;width:12%;height:22%;margin-left:-6%}
+.cnd .wax{position:absolute;left:30%;right:30%;bottom:0;top:38%;background:linear-gradient(#efe6d2,#bfae8c);border-radius:2px}
+.cnd .flame{position:absolute;left:50%;top:14%;width:16%;height:26%;margin-left:-8%;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;background:radial-gradient(circle at 50% 70%,#fff4c0,#ffb43b 55%,transparent 75%);opacity:0;transform:scale(.4)}
+.cnd.lit .flame{opacity:1;transform:scale(1);animation:flick .35s infinite alternate;filter:drop-shadow(0 0 10px rgba(255,180,60,.9))}
+@keyframes flick{to{transform:scale(1.15) translateX(1px)}}
+.cnd.bad .wax{background:#5a2a2a}
+.hearth{position:absolute;left:25%;right:25%;top:12%;bottom:16%;background:#1a140c;border:2px solid var(--gold-d);border-radius:4px;overflow:hidden}
+.hearth .band{position:absolute;left:0;right:0;bottom:42%;height:28%;background:rgba(201,164,92,.22);border-top:1px solid var(--gold);border-bottom:1px solid var(--gold)}
+.hearth .fire{position:absolute;left:6%;right:6%;bottom:0;height:50%;background:linear-gradient(#fff2a0,#ff8a30 40%,#8e1c1c);border-radius:40% 40% 0 0;transition:height .08s linear}
+.hearth .fire.ok{box-shadow:0 0 30px rgba(255,180,60,.6)}
+.pad{position:absolute;width:20%;aspect-ratio:1;margin:-10% 0 0 -10%;border-radius:50%;background:radial-gradient(circle at 40% 40%,#4e8a3a,#2b5a22 70%);border:1px solid #1d3d17;clip-path:polygon(0 0,100% 0,100% 100%,55% 100%,50% 55%,45% 100%,0 100%)}
+.frog,.toad{position:absolute;width:16%;aspect-ratio:56/44;margin:-8% 0 0 -8%;animation:batin .2s both}
+.ball{position:absolute;width:11%;aspect-ratio:1;margin:-5.5% 0 0 -5.5%}
+.wall{position:absolute;left:0;top:0;bottom:0;width:6%;background:repeating-linear-gradient(0deg,#4a3a22 0 14px,#3a2c14 14px 16px);border-right:2px solid var(--gold-d)}
+.wall.hit{background:#8e1c1c}
+.meter{position:absolute;left:38%;width:24%;top:12%;bottom:14%;background:#1a140c;border:2px solid var(--gold-d);border-radius:4px;overflow:hidden}
+.meter .zone{position:absolute;left:0;right:0;bottom:78%;height:14%;background:rgba(201,164,92,.35);border-top:1px solid var(--gold);border-bottom:1px solid var(--gold)}
+.meter .fill{position:absolute;left:0;right:0;bottom:0;height:0;background:linear-gradient(#f2c230,#c3241c);transition:none}
+.bellico{position:absolute;left:0;right:0;top:2%;text-align:center;font-size:34px}
+.bellico.ring{animation:ring .6s}
+@keyframes ring{25%{transform:rotate(-25deg)}75%{transform:rotate(25deg)}}
+.moat{position:relative;height:70px;background:linear-gradient(#1b2a3a,#0d1620);border:1px solid var(--steel);border-radius:6px;margin:8px 0;overflow:hidden}
+.moat .boat{position:absolute;top:14px;font-size:34px;transition:left .2s ease-out}
+.oars{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0}
+.oars button{height:120px;background:var(--panel);border:1px solid var(--gold-d);font-family:var(--display);font-size:22px;letter-spacing:.1em;border-radius:6px;color:var(--gold-l);touch-action:none;user-select:none;-webkit-user-select:none}
+.garg{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:300px;margin:12px auto}
+.garg button{aspect-ratio:1;font-size:46px;background:var(--panel);border:3px solid var(--c);border-radius:10px;opacity:.55;touch-action:none}
+.garg button.on{opacity:1;background:var(--c);box-shadow:0 0 24px var(--c)}
+.shells{position:relative;height:150px;margin:14px 0}
+.goblet{position:absolute;width:29%;top:0;text-align:center;transition:left .35s ease-in-out}
+.goblet .cup{display:block;font-size:64px;line-height:1;transform:translateY(0);transition:transform .3s}
+.goblet .coinp{display:block;font-size:30px;line-height:1;margin-top:-6px}
+.goblet:not(.down) .cup{transform:translateY(-22px)}
+.doors{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:min(340px,calc(100vh - 470px));margin:8px auto}
+.doors button{aspect-ratio:1;position:relative;background:#120d08;border:2px solid var(--gold-d);border-radius:4px;overflow:hidden;touch-action:none}
+.doors .leaf{position:absolute;inset:4px;background:repeating-linear-gradient(90deg,#6e5430 0 10px,#5a4326 10px 14px);border:1px solid #3a2c14;transform-origin:left;transition:transform .12s}
+.doors button.open .leaf{transform:perspective(200px) rotateY(-80deg)}
+.doors button.hit{background:#3a2a10}
+.flock{position:relative;height:min(300px,40vh);background:radial-gradient(circle at 50% 30%,#2a2440,#0b0910 75%);border:1px solid var(--gold-d);border-radius:6px;overflow:hidden}
+.flock i{position:absolute;width:34px;height:22px}
+.flock svg{width:100%;height:100%}
+.pgrid16{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-width:300px;margin:10px auto}
+.pgrid16 button{aspect-ratio:1;background:#1a140c;border:1px solid var(--gold-d);border-radius:4px;touch-action:none}
+.pgrid16 button.lit{background:var(--gold);box-shadow:0 0 14px var(--gold)}
+.pgrid16 button.pick{background:#3a6ad0}
+.inks{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:320px;margin:8px auto}
+.inks button{height:64px;background:var(--panel);border:2px solid;border-radius:8px;font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:.08em;touch-action:none}
+.shape{width:110px;height:110px;margin:6px auto}
+.shape svg,.shadows svg{width:100%;height:100%}
+.shadows{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:340px;margin:8px auto}
+.shadows button{aspect-ratio:1;background:var(--cream);border:1px solid var(--gold-d);border-radius:6px;padding:8px;touch-action:none}
+
+/* ---- game feel ---- */
+.count{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:900;font-size:96px;color:var(--gold-l);text-shadow:0 0 30px rgba(201,164,92,.8);z-index:5;pointer-events:none}
+.count.pop{animation:countpop .6s ease-out}
+.count.go{color:#fff2c0;font-size:72px;animation:countpop .45s ease-out}
+@keyframes countpop{from{transform:scale(1.8);opacity:0}30%{opacity:1}to{transform:scale(1);opacity:.9}}
+.popt{position:absolute;margin:-12px 0 0 -20px;font-family:var(--display);font-weight:900;font-size:22px;color:var(--gold-l);text-shadow:0 2px 6px #000;pointer-events:none;animation:popup .75s ease-out forwards;z-index:4}
+.popt.badt{color:#e04a40}
+@keyframes popup{from{transform:translateY(0) scale(.7);opacity:1}to{transform:translateY(-46px) scale(1.15);opacity:0}}
+.spark{position:absolute;width:70px;height:70px;margin:-35px 0 0 -35px;border-radius:50%;background:radial-gradient(circle,rgba(255,244,200,.95),rgba(242,194,48,.5) 40%,transparent 70%);pointer-events:none;animation:sparkle .5s ease-out forwards;z-index:3}
+@keyframes sparkle{from{transform:scale(.2);opacity:1}to{transform:scale(1.6);opacity:0}}
+.arena.shake{animation:ashake .25s}
+@keyframes ashake{20%{transform:translate(4px,-2px)}40%{transform:translate(-4px,2px)}60%{transform:translate(3px,1px)}80%{transform:translate(-2px,-1px)}}
+.endcard{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:rgba(13,11,9,.72);animation:fadein .4s}
+.endcard .bigg{font-size:72px;margin:0;color:var(--gold-l);text-shadow:0 0 30px rgba(201,164,92,.6)}
+@keyframes fadein{from{opacity:0}}
+.arena.bg-sky{background:radial-gradient(circle at 80% 14%,rgba(243,233,201,.9) 0 7%,rgba(243,233,201,0) 8%),linear-gradient(#0a0a1a,#1a1426 70%,#0d0b14)}
+.arena.bg-rafters{background:repeating-linear-gradient(90deg,transparent 0 46px,rgba(60,45,25,.5) 46px 52px),linear-gradient(#1c1610,#07060a)}
+.arena.bg-hall{background:repeating-linear-gradient(0deg,rgba(0,0,0,.25) 0 2px,transparent 2px 30px),repeating-linear-gradient(90deg,rgba(0,0,0,.2) 0 2px,transparent 2px 44px),linear-gradient(#221b12,#0f0c08)}
+.arena.bg-crypt{background:radial-gradient(circle at 50% 110%,rgba(90,60,120,.35),transparent 60%),linear-gradient(#0e0b14,#07060a)}
+.arena.bg-chapel{background:radial-gradient(ellipse at 50% 0%,rgba(201,164,92,.25),transparent 55%),linear-gradient(#1a1409,#0a0806)}
+.arena.bg-hearthroom{background:radial-gradient(ellipse at 50% 100%,rgba(255,120,30,.25),transparent 60%),linear-gradient(#1a120a,#0a0806)}
+.arena.bg-pond{background:radial-gradient(circle at 30% 30%,rgba(60,120,140,.25),transparent 50%),radial-gradient(circle at 70% 70%,rgba(40,90,110,.25),transparent 50%),linear-gradient(#0d1a1e,#06100f)}
+.arena.bg-ramparts{background:linear-gradient(90deg,rgba(0,0,0,.4),transparent 30%),linear-gradient(#0a0a1a,#14121c)}
+.arena.bg-range{background:linear-gradient(#1b2414,#0b100a)}
+.arena.bg-belfry{background:radial-gradient(ellipse at 50% 0%,rgba(201,164,92,.18),transparent 60%),linear-gradient(#14110c,#07060a)}
 </style></head><body>
 <div id="scene" aria-hidden="true"></div>
 <div id="wrap"><div id="bar" hidden></div><main id="app"></main></div>
@@ -461,30 +551,30 @@ ADV.push(
  {m:{type:"team",game:"portcullis"},a:"nerve",s:"Score 0 on at least two drops."},
  {m:{type:"code"},a:"flap",s:"Submit a guess that repeats a digit."}]},
 {name:"The Lantern Walk",fun:true,rounds:[
- {m:{type:"team",game:"lanterns"},a:"flap",s:"Light fewer than 6 lanterns."},
- {m:{type:"map"},a:"catch",s:"Dig in the same row twice."},
- {m:{type:"draw"},a:"nerve",s:"Type two deliberately wrong guesses on someone else's drawing."},
- {m:{type:"team",game:"squash"},a:"whack",s:"Stop tapping for the last 10 seconds."}]},
+ {m:{type:"team",game:"lanterns"},a:"juggle",s:"Light fewer than 6 lanterns."},
+ {m:{type:"map"},a:"rocks",s:"Dig in the same row twice."},
+ {m:{type:"team",game:"frogs"},a:"wire",s:"Stop tapping for the last 10 seconds."},
+ {m:{type:"chain"},a:"maze",s:"Give an animal with more than 8 letters."}]},
 {name:"The Portrait Gallery",fun:true,rounds:[
- {m:{type:"draw"},a:"whack",s:"As the artist, say nothing on the call while you draw. Not a word."},
- {m:{type:"team",game:"portcullis"},a:"catch",s:"Tap before the gate reaches the floor on every drop."},
- {m:{type:"chain"},a:"flap",s:"Give an animal with more than 8 letters."},
- {m:{type:"team",game:"lanterns"},a:"nerve",s:"Let the first three lanterns float away."}]},
+ {m:{type:"team",game:"bells"},a:"rhythm",s:"Let the rope slip on your very first pull."},
+ {m:{type:"heist"},a:"potions",s:"Play a card within 2 seconds of someone else playing one."},
+ {m:{type:"team",game:"cannons"},a:"tunnel",s:"Tap no cannonballs at all for the first 8 seconds."},
+ {m:{type:"riddles"},a:"row",s:"Submit a wrong answer to riddle 4."}]},
 {name:"The Ghost Wing",fun:true,rounds:[
- {m:{type:"team",game:"squash"},a:"nerve",s:"Catch at least 20 bats."},
- {m:{type:"quiz",set:"E"},a:"whack",s:"Answer every question with option C."},
- {m:{type:"draw"},a:"flap",s:"Guess correctly within 5 seconds on one drawing, then act surprised."},
- {m:{type:"team",game:"portcullis"},a:"catch",s:"Score a Perfect 10 on at least one drop."}]},
+ {m:{type:"team",game:"squash"},a:"catch",s:"Catch at least 20 bats."},
+ {m:{type:"draw"},a:"whack",s:"As the artist, say nothing on the call while you draw. Not a word."},
+ {m:{type:"team",game:"ravens"},a:"knives",s:"Tap exactly one dove."},
+ {m:{type:"memory",pool:"castle"},a:"pattern",s:"Type at least two words that were on the list, spelled wrong."}]},
 {name:"The Coin Vault",fun:true,rounds:[
- {m:{type:"team",game:"lanterns"},a:"catch",s:"Light at least 18 lanterns."},
- {m:{type:"heist"},a:"nerve",s:"Play a card within 2 seconds of someone else playing one."},
- {m:{type:"draw"},a:"whack",s:"When you are the artist, draw the word upside down."},
- {m:{type:"code"},a:"flap",s:"Submit the second guess."}]},
+ {m:{type:"team",game:"lanterns"},a:"nerve",s:"Light at least 18 lanterns."},
+ {m:{type:"scatter",set:"a"},a:"flap",s:"Give an answer with more than 10 letters to one prompt."},
+ {m:{type:"team",game:"spiders"},a:"stack",s:"Score fewer than 4 points."},
+ {m:{type:"team",game:"portcullis"},a:"shadow",s:"Score a Perfect 10 on at least one drop."}]},
 {name:"The Gauntlet",fun:true,rounds:[
- {m:{type:"team",game:"portcullis"},a:"flap",s:"Score exactly 0 on the final drop."},
- {m:{type:"draw"},a:"catch",s:"Type a guess that is the previous artist's word."},
- {m:{type:"team",game:"squash"},a:"whack",s:"Catch exactly 7 bats."},
- {m:{type:"riddles",set:"E"},a:"nerve",s:"Submit a wrong answer to riddle 4."}]}
+ {m:{type:"team",game:"bellows"},a:"juggle",s:"Keep the fire in the band for fewer than 4 seconds."},
+ {m:{type:"meld",set:"e"},a:"rocks",s:"Match the group on the first prompt and nothing after."},
+ {m:{type:"team",game:"frogs"},a:"mirror",s:"Tap exactly 7 frogs."},
+ {m:{type:"estimate"},a:"slide",s:"Submit a guess that ends in 1."}]}
 );
 /* The riddle pool. Each mission draws four at random, never repeating one within a game. Answers are matched loosely (lower case, letters and digits only, any accepted answer contained in what was typed). */
 const RIDDLE_POOL=[
@@ -996,6 +1086,442 @@ Object.assign(SV,{
  },
  botNoteVotes(list){const c={};list.forEach(x=>{c[x.on]=(c[x.on]||0)+(x.d?2:1);const tgt=this.P(x.on);if(tgt&&tgt.bot){const m=this.bm(x.on);m.va[x.by]=(m.va[x.by]||0)+1}});this.G.lastTally=c}
 });
+/* ---------- arcade games, batch two ----------
+   TEAM2: group missions played in the arena (everyone's points are added up against a target).
+   GAMES2: solo armoury games (one score per player, best wins).
+   Both are looked up by startTeam / startGame when a game is not one of the originals. */
+/* ---------- juice: particles, floating scores, shake, countdowns, backdrops ---------- */
+const JUICE={parts:[],texts:[],shake:0,amp:6};
+function burst(x,y,col,n=10,speed=180){for(let i=0;i<n;i++){const a=Math.random()*6.283,v=speed*(0.4+Math.random()*0.8);JUICE.parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-60,life:0.45+Math.random()*0.35,t:0,col,r:2+Math.random()*3})}}
+function popText(x,y,txt,col="#f2c230"){JUICE.texts.push({x,y,txt,col,t:0})}
+function shake(ms=220,amp=6){JUICE.shake=performance.now()+ms;JUICE.amp=amp}
+function juiceBegin(x){if(performance.now()<JUICE.shake){x.save();x.translate((Math.random()-0.5)*JUICE.amp*2,(Math.random()-0.5)*JUICE.amp*2);return true}return false}
+function juiceDraw(x,dt){JUICE.parts=JUICE.parts.filter(p=>(p.t+=dt)<p.life);for(const p of JUICE.parts){p.vy+=420*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;x.globalAlpha=Math.max(0,1-p.t/p.life);x.fillStyle=p.col;x.beginPath();x.arc(p.x,p.y,p.r,0,7);x.fill()}
+ JUICE.texts=JUICE.texts.filter(t=>(t.t+=dt)<0.8);for(const t of JUICE.texts){x.globalAlpha=Math.max(0,1-t.t/0.8);x.fillStyle=t.col;x.font="bold 22px Cinzel,serif";x.textAlign="center";x.fillText(t.txt,t.x,t.y-t.t*55);x.textAlign="left"}x.globalAlpha=1}
+function juiceReset(){JUICE.parts=[];JUICE.texts=[];JUICE.shake=0}
+const BG={};
+function backdrop(kind){if(BG[kind])return BG[kind];const c=document.createElement("canvas");c.width=320;c.height=420;const g=c.getContext("2d");const R=rng(kind.length*977);
+ if(kind==="sky"){const gr=g.createLinearGradient(0,0,0,420);gr.addColorStop(0,"#0a0a1a");gr.addColorStop(1,"#1a1426");g.fillStyle=gr;g.fillRect(0,0,320,420);for(let i=0;i<70;i++){g.fillStyle=`rgba(255,240,200,${0.3+R()*0.7})`;g.fillRect(R()*320,R()*300,1+R()*1.5,1+R()*1.5)}g.fillStyle="#f3e9c9";g.beginPath();g.arc(258,62,26,0,7);g.fill();g.fillStyle="#0d0b14";g.beginPath();g.arc(248,54,24,0,7);g.fill();g.fillStyle="#141018";for(let i=0;i<6;i++){const w=30+R()*40,h=60+R()*140;g.fillRect(i*56-10,420-h,w,h);for(let k=0;k<3;k++)g.fillRect(i*56-10+k*10,420-h-8,6,8)}}
+ else if(kind==="stone"){g.fillStyle="#1a1611";g.fillRect(0,0,320,420);for(let y=0;y<420;y+=28){const off=(y/28)%2?20:0;for(let x=-20;x<320;x+=40){g.fillStyle=`hsl(36,${8+R()*8}%,${10+R()*6}%)`;g.fillRect(x+off+1,y+1,38,26)}}const v=g.createRadialGradient(160,210,80,160,210,300);v.addColorStop(0,"rgba(0,0,0,0)");v.addColorStop(1,"rgba(0,0,0,.65)");g.fillStyle=v;g.fillRect(0,0,320,420)}
+ else if(kind==="wood"){g.fillStyle="#2a1d0e";g.fillRect(0,0,320,420);for(let x=0;x<320;x+=40){g.fillStyle=`hsl(28,${35+R()*10}%,${14+R()*6}%)`;g.fillRect(x+1,0,38,420);g.strokeStyle="rgba(0,0,0,.35)";g.lineWidth=1;for(let k=0;k<4;k++){g.beginPath();g.moveTo(x+5+R()*30,0);g.bezierCurveTo(x+R()*40,140,x+R()*40,280,x+5+R()*30,420);g.stroke()}}}
+ else if(kind==="cave"){g.fillStyle="#120e0a";g.fillRect(0,0,320,420);for(let i=0;i<40;i++){g.fillStyle=`rgba(90,70,40,${0.08+R()*0.12})`;g.beginPath();g.arc(R()*320,R()*420,10+R()*40,0,7);g.fill()}}
+ else{g.fillStyle="#0b0910";g.fillRect(0,0,320,420)}
+ BG[kind]=c;return c}
+const bg=(x,kind)=>x.drawImage(backdrop(kind),0,0);
+/* Three, two, one, go. Shown over any game surface before play begins. */
+function countdown(host,cb){const o=document.createElement("div");o.className="count";host.style.position=host.style.position||"relative";host.appendChild(o);let n=3;const step=()=>{if(!o.isConnected)return;if(n>0){o.textContent=n;o.classList.remove("go");void o.offsetWidth;o.classList.add("pop");FX.tick();n--;later(620,step)}else{o.textContent="GO!";o.classList.add("go");FX.ready();later(450,()=>{o.remove();cb()})}};step()}
+/* Floating score and spark inside a DOM arena */
+function arenaPop(ar,el,txt,good){const r=ar.getBoundingClientRect(),b=el.getBoundingClientRect();const x=(b.left+b.width/2-r.left)/r.width*100,y=(b.top+b.height/2-r.top)/r.height*100;const p=document.createElement("i");p.className="popt "+(good?"good":"badt");p.textContent=txt;p.style.left=x+"%";p.style.top=y+"%";ar.appendChild(p);setTimeout(()=>p.remove(),750);if(good){const sp=document.createElement("i");sp.className="spark";sp.style.left=x+"%";sp.style.top=y+"%";ar.appendChild(sp);setTimeout(()=>sp.remove(),500)}}
+const TEAM2={},GAMES2={};
+const SP=(cls,html,left,top)=>{const d=document.createElement("div");d.className=cls;if(html)d.innerHTML=html;if(left!=null)d.style.left=left+"%";if(top!=null)d.style.top=top+"%";return d};
+const ICON={
+ raven:'<svg viewBox="0 0 64 40"><path d="M6 24 C14 12 26 10 34 16 L40 8 L42 18 C50 18 56 22 60 30 C50 28 44 30 38 34 L30 32 C22 36 14 34 6 24Z" fill="#1b1a22" stroke="#6b6880" stroke-width="1.2"/><circle cx="39" cy="15" r="1.6" fill="#ffd36a"/></svg>',
+ gold:'<svg viewBox="0 0 64 40"><path d="M6 24 C14 12 26 10 34 16 L40 8 L42 18 C50 18 56 22 60 30 C50 28 44 30 38 34 L30 32 C22 36 14 34 6 24Z" fill="#d9ab45" stroke="#fff0c0" stroke-width="1.2"/><circle cx="39" cy="15" r="1.6" fill="#2a1a00"/></svg>',
+ dove:'<svg viewBox="0 0 64 40"><path d="M6 24 C14 12 26 10 34 16 L40 8 L42 18 C50 18 56 22 60 30 C50 28 44 30 38 34 L30 32 C22 36 14 34 6 24Z" fill="#f1ece0" stroke="#b9b2a0" stroke-width="1.2"/><circle cx="39" cy="15" r="1.6" fill="#333"/></svg>',
+ spider:'<svg viewBox="0 0 48 48"><g stroke="#222" stroke-width="3" stroke-linecap="round"><path d="M18 20 L6 10 M18 26 L4 26 M18 32 L8 42 M30 20 L42 10 M30 26 L44 26 M30 32 L40 42"/></g><ellipse cx="24" cy="28" rx="11" ry="12" fill="#1a1a1a" stroke="#555" stroke-width="1.5"/><circle cx="24" cy="15" r="6" fill="#1a1a1a"/><circle cx="22" cy="14" r="1.5" fill="#ff5a4a"/><circle cx="26" cy="14" r="1.5" fill="#ff5a4a"/></svg>',
+ bee:'<svg viewBox="0 0 48 40"><ellipse cx="18" cy="12" rx="9" ry="6" fill="#cfe8ff" opacity=".8"/><ellipse cx="30" cy="12" rx="9" ry="6" fill="#cfe8ff" opacity=".8"/><ellipse cx="24" cy="24" rx="15" ry="10" fill="#f2c230"/><path d="M14 18 L14 30 M22 15 L22 33 M30 15 L30 33" stroke="#1a1a1a" stroke-width="4"/><circle cx="37" cy="22" r="5" fill="#1a1a1a"/></svg>',
+ rat:'<svg viewBox="0 0 64 36"><path d="M4 22 Q10 14 20 16" stroke="#8a7a6a" stroke-width="2" fill="none"/><ellipse cx="34" cy="22" rx="18" ry="10" fill="#5a4f47" stroke="#2b2420" stroke-width="1.5"/><circle cx="50" cy="18" r="7" fill="#5a4f47" stroke="#2b2420" stroke-width="1.5"/><circle cx="52" cy="11" r="3" fill="#8a7a6a"/><circle cx="54" cy="17" r="1.4" fill="#111"/><path d="M57 20 L62 19" stroke="#ddd" stroke-width="1"/></svg>',
+ cat:'<svg viewBox="0 0 64 44"><ellipse cx="30" cy="30" rx="22" ry="12" fill="#2a2a2e" stroke="#555" stroke-width="1.5"/><circle cx="48" cy="20" r="10" fill="#2a2a2e" stroke="#555" stroke-width="1.5"/><path d="M40 12 L42 2 L48 10 M56 12 L54 2 L48 10" fill="#2a2a2e" stroke="#555" stroke-width="1.5"/><circle cx="45" cy="19" r="2" fill="#ffd36a"/><circle cx="52" cy="19" r="2" fill="#ffd36a"/><path d="M8 28 Q0 20 6 12" stroke="#2a2a2e" stroke-width="4" fill="none" stroke-linecap="round"/></svg>',
+ ghost:'<svg viewBox="0 0 48 56"><path d="M8 54 V24 A16 16 0 0 1 40 24 V54 L34 48 L28 54 L24 48 L20 54 L14 48Z" fill="#e8e4f4" stroke="#b7b0cc" stroke-width="1.5"/><circle cx="18" cy="24" r="3" fill="#222"/><circle cx="30" cy="24" r="3" fill="#222"/><ellipse cx="24" cy="34" rx="3" ry="4" fill="#222"/></svg>',
+ frog:'<svg viewBox="0 0 56 44"><ellipse cx="28" cy="28" rx="22" ry="14" fill="#4f9a3a" stroke="#2c5e20" stroke-width="1.5"/><circle cx="18" cy="14" r="7" fill="#4f9a3a" stroke="#2c5e20" stroke-width="1.5"/><circle cx="38" cy="14" r="7" fill="#4f9a3a" stroke="#2c5e20" stroke-width="1.5"/><circle cx="18" cy="13" r="3" fill="#111"/><circle cx="38" cy="13" r="3" fill="#111"/><path d="M18 32 Q28 38 38 32" stroke="#2c5e20" stroke-width="2" fill="none"/></svg>',
+ toad:'<svg viewBox="0 0 56 44"><ellipse cx="28" cy="28" rx="24" ry="15" fill="#7a5a2a" stroke="#3e2d12" stroke-width="1.5"/><circle cx="17" cy="13" r="8" fill="#7a5a2a" stroke="#3e2d12" stroke-width="1.5"/><circle cx="39" cy="13" r="8" fill="#7a5a2a" stroke="#3e2d12" stroke-width="1.5"/><circle cx="17" cy="12" r="3" fill="#111"/><circle cx="39" cy="12" r="3" fill="#111"/><circle cx="22" cy="30" r="2" fill="#3e2d12"/><circle cx="34" cy="26" r="2" fill="#3e2d12"/><circle cx="28" cy="34" r="2" fill="#3e2d12"/></svg>',
+ ball:'<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#1a1a1a" stroke="#666" stroke-width="2"/><circle cx="14" cy="14" r="5" fill="#444"/></svg>'
+};
+/* Shared runner for team arena games: Start button, score and clock in the HUD, sends the score when time is up. */
+function teamArena(el,R,send,timers,secs,label,start,tick){
+ let score=0,running=false,t0=0;
+ const ar=arena(el,`<div class="hud"><span id="ts">0</span><span class="want" id="tw">${label||""}</span><span id="tt">${secs}.0</span></div><button class="btn big" id="go" style="position:absolute;left:8%;right:8%;top:45%;width:84%">Start</button>`);
+ const api={ar,R,timers,get prog(){return Math.min(1,(performance.now()-t0)/(secs*1000))},get running(){return running},get score(){return score},
+  bump(d,sp){score=Math.max(0,score+d);const s=$("#ts");if(s)s.textContent=score;if(d>0){FX.chime();buzz(8)}else{FX.fail();if(sp)sp.classList.add("bad");ar.classList.add("shake");setTimeout(()=>ar.classList.remove("shake"),250)}if(sp&&sp.isConnected)arenaPop(ar,sp,(d>0?"+":"")+d,d>0)},
+  after(ms,f){const t=setTimeout(f,ms);timers.push(t);return t},want(h){const w=$("#tw");if(w)w.innerHTML=h},
+  add(sp,life){ar.appendChild(sp);if(life)api.after(life,()=>{if(sp.isConnected&&!sp.classList.contains("hit")){sp.classList.add("gone");api.after(400,()=>sp.remove())}})}};
+ let iv=null;const end=()=>{if(!running)return;clearInterval(iv);running=false;timers.forEach(clearTimeout);if($("#ar")){ar.innerHTML=`<div class="endcard"><p class="eyebrow">Time</p><p class="bigg">${score}</p><p class="small">points for the group</p></div>`;FX.coins();send(score)}};
+ api.finish=end;
+ $("#go").onclick=()=>{$("#go").remove();countdown(ar,()=>{if(!$("#ar"))return;running=true;t0=performance.now();start(api);
+  iv=setInterval(()=>{const l=Math.max(0,secs-(performance.now()-t0)/1000);const tt=$("#tt");if(tt)tt.textContent=l.toFixed(1);if(tick)tick(api,l);if(l<=0||!$("#ar"))end()},100);timers.push(iv)})};
+ return api}
+const hitOnce=(sp,fn)=>{let hit=false;sp.onpointerdown=e=>{e.preventDefault();if(hit||sp.classList.contains("gone"))return;hit=true;fn(sp);sp.classList.add("hit")}};
+
+/* Raven Roost: birds fly across in arcs. Ravens 1, golden ravens 3, doves cost 2. */
+TEAM2.ravens=(el,R,send,timers)=>teamArena(el,R,send,timers,TEAM.ravens.secs,"",api=>{api.ar.classList.add("bg-sky");
+ const spawn=()=>{if(!api.running)return;const r=R();const kind=r<0.14?"dove":r<0.24?"gold":"raven";const ltr=R()<0.5;const dur=Math.round(2300-api.prog*900+R()*500);
+  const sp=SP("fly "+kind,ICON[kind],ltr?-18:112,8+R()*70);if(!ltr)sp.style.transform="scaleX(-1)";api.add(sp,dur+100);
+  requestAnimationFrame(()=>{sp.style.transition=`left ${dur}ms linear, top ${dur}ms ease-in-out`;sp.style.left=(ltr?112:-18)+"%";sp.style.top=(8+R()*70)+"%"});
+  hitOnce(sp,()=>{sp.style.transition="none";api.bump(kind==="dove"?-2:kind==="gold"?3:1,sp);api.after(260,()=>sp.remove())});
+  api.after(Math.round(560-api.prog*220+R()*380),spawn)};
+ spawn();api.after(400,spawn)});
+/* Spider Drop: spiders abseil down on threads, tap them before they reach the floor. Bees cost 2. */
+TEAM2.spiders=(el,R,send,timers)=>teamArena(el,R,send,timers,TEAM.spiders.secs,"",api=>{api.ar.classList.add("bg-rafters");
+ const spawn=()=>{if(!api.running)return;if(R()<0.18){const ltr=R()<0.5,dur=Math.round(1700+R()*600);const b=SP("fly bee",ICON.bee,ltr?-16:110,10+R()*70);if(!ltr)b.style.transform="scaleX(-1)";api.add(b,dur+100);
+   requestAnimationFrame(()=>{b.style.transition=`left ${dur}ms linear`;b.style.left=(ltr?110:-16)+"%"});hitOnce(b,()=>{b.style.transition="none";api.bump(-2,b);api.after(260,()=>b.remove())})}
+  else{const dur=Math.round(2600-api.prog*1100+R()*500);const s=SP("spider",ICON.spider,8+R()*80,-14);api.add(s,dur+150);
+   requestAnimationFrame(()=>{s.style.transition=`top ${dur}ms linear`;s.style.top="96%"});hitOnce(s,()=>{s.style.transition="none";api.bump(1,s);api.after(260,()=>s.remove())})}
+  api.after(Math.round(520-api.prog*200+R()*360),spawn)};
+ spawn()});
+/* Rat Run: rats dash across the hall. Tap them: 1 each. The cat costs 3. */
+TEAM2.rats=(el,R,send,timers)=>teamArena(el,R,send,timers,TEAM.rats.secs,"",api=>{api.ar.classList.add("bg-hall");
+ const spawn=()=>{if(!api.running)return;const cat=R()<0.13;const ltr=R()<0.5;const dur=cat?2800:Math.round(1900-api.prog*800+R()*600);
+  const sp=SP(cat?"cat":"rat",ICON[cat?"cat":"rat"],ltr?-20:112,12+R()*74);if(!ltr)sp.style.transform="scaleX(-1)";api.add(sp,dur+100);
+  requestAnimationFrame(()=>{sp.style.transition=`left ${dur}ms linear`;sp.style.left=(ltr?112:-20)+"%"});
+  hitOnce(sp,()=>{sp.style.transition="none";api.bump(cat?-3:1,sp);api.after(260,()=>sp.remove())});
+  api.after(Math.round(620-api.prog*260+R()*380),spawn)};
+ spawn();api.after(500,spawn)});
+/* Ghost Hunt: ghosts fade in and out. Tap one while it is solid for 1 point; tap a faint one and lose 1. */
+TEAM2.ghosts=(el,R,send,timers)=>teamArena(el,R,send,timers,TEAM.ghosts.secs,"",api=>{api.ar.classList.add("bg-crypt");
+ const spawn=()=>{if(!api.running)return;const hold=Math.round(900-api.prog*450);const sp=SP("wraith",ICON.ghost,8+R()*76,8+R()*72);sp.dataset.solid="0";api.add(sp,800+hold+800);
+  api.after(650,()=>sp.dataset.solid="1");api.after(800+hold+150,()=>sp.dataset.solid="0");
+  sp.style.animation=`wraith ${800+hold+800}ms linear forwards`;sp.style.setProperty("--hold",hold+"ms");
+  hitOnce(sp,()=>{sp.style.animation="none";api.bump(sp.dataset.solid==="1"?1:-1,sp);api.after(260,()=>sp.remove())});
+  api.after(Math.round(700-api.prog*250+R()*500),spawn)};
+ spawn();api.after(350,spawn);api.after(700,spawn)});
+/* Candle Snuff: twelve candles, lit at random. Snuff a lit candle for 1 point, tap a dark one and lose 1. */
+TEAM2.candles=(el,R,send,timers)=>teamArena(el,R,send,timers,TEAM.candles.secs,"",api=>{api.ar.classList.add("bg-chapel");
+ const C=[];for(let i=0;i<12;i++){const c=SP("cnd",'<i class="flame"></i><i class="wax"></i>',10+(i%4)*24,12+Math.floor(i/4)*28);c.lit=false;api.ar.appendChild(c);C.push(c);
+  c.onpointerdown=e=>{e.preventDefault();if(!api.running)return;if(c.lit){c.lit=false;c.classList.remove("lit");clearTimeout(c.t);api.bump(1)}else api.bump(-1,c)}}
+ const light=()=>{if(!api.running)return;const dark=C.filter(c=>!c.lit);if(dark.length){const c=dark[Math.floor(R()*dark.length)];c.lit=true;c.classList.add("lit");c.classList.remove("bad");const life=Math.round(1500-api.prog*800+R()*500);c.t=api.after(life,()=>{c.lit=false;c.classList.remove("lit")})}
+  api.after(Math.round(520-api.prog*230+R()*300),light)};
+ light();api.after(250,light)});
+/* The Bellows: keep the hearth burning in the gold band. Tap to pump; the fire dies down faster and faster. */
+TEAM2.bellows=(el,R,send,timers)=>teamArena(el,R,send,timers,TEAM.bellows.secs,"",api=>{api.ar.classList.add("bg-hearthroom");
+ api.ar.insertAdjacentHTML("beforeend",'<div class="hearth"><div class="band"></div><div class="fire" id="fire"></div></div><p class="small center" style="position:absolute;bottom:3%;left:0;right:0;margin:0">Tap to pump the bellows. Keep the fire in the gold band.</p>');
+ let h=50,inZone=0,last=performance.now();const fire=$("#fire");
+ api.ar.onpointerdown=e=>{e.preventDefault();if(!api.running)return;h=Math.min(100,h+8+api.prog*3);buzz(10)};
+ const loop=ts=>{if(!api.running||!$("#ar"))return;const dt=Math.min(0.05,(ts-last)/1000);last=ts;h=Math.max(0,h-(9+api.prog*14)*dt);fire.style.height=h+"%";const ok=h>=42&&h<=70;fire.classList.toggle("ok",ok);if(ok){inZone+=dt;const s=Math.floor(inZone);if(s>api.score)api.bump(s-api.score)}A.raf=requestAnimationFrame(loop)};A.raf=requestAnimationFrame(loop)});
+/* Frog Pond: frogs pop up on the lily pads for a moment. Tap frogs: 1 point. Toads cost 2. */
+TEAM2.frogs=(el,R,send,timers)=>teamArena(el,R,send,timers,TEAM.frogs.secs,"",api=>{api.ar.classList.add("bg-pond");
+ const pads=[[16,18],[50,14],[82,22],[22,50],[60,48],[84,58],[16,80],[48,82],[80,86]];pads.forEach(([l,t])=>api.ar.appendChild(SP("pad",null,l,t)));const busy={};
+ const spawn=()=>{if(!api.running)return;const free=pads.map((p,i)=>i).filter(i=>!busy[i]);if(free.length){const i=free[Math.floor(R()*free.length)];busy[i]=true;const toad=R()<0.2;const sp=SP(toad?"toad":"frog",ICON[toad?"toad":"frog"],pads[i][0],pads[i][1]);const life=Math.round(1250-api.prog*600+R()*300);
+   api.ar.appendChild(sp);hitOnce(sp,()=>{api.bump(toad?-2:1,sp);api.after(220,()=>sp.remove())});api.after(life,()=>{busy[i]=false;if(!sp.classList.contains("hit")){sp.classList.add("gone");api.after(250,()=>sp.remove())}})}
+  api.after(Math.round(560-api.prog*230+R()*320),spawn)};
+ spawn();api.after(300,spawn)});
+/* Cannon Volley: cannonballs fly at your wall from the right. Tap each one before it lands: 1 point. Every ball that hits the wall costs 1. */
+TEAM2.cannons=(el,R,send,timers)=>teamArena(el,R,send,timers,TEAM.cannons.secs,"",api=>{api.ar.classList.add("bg-ramparts");
+ api.ar.insertAdjacentHTML("beforeend",'<div class="wall" id="wall"></div>');
+ const spawn=()=>{if(!api.running)return;const dur=Math.round(1900-api.prog*900+R()*700);const sp=SP("ball",ICON.ball,108,10+R()*76);api.ar.appendChild(sp);
+  requestAnimationFrame(()=>{sp.style.transition=`left ${dur}ms linear`;sp.style.left="6%"});
+  const landed=api.after(dur,()=>{if(!sp.classList.contains("hit")){api.bump(-1);const w=$("#wall");if(w){w.classList.add("hit");api.after(300,()=>w.classList.remove("hit"))}sp.remove()}});
+  hitOnce(sp,()=>{clearTimeout(landed);sp.style.transition="none";api.bump(1);api.after(220,()=>sp.remove())});
+  api.after(Math.round(650-api.prog*280+R()*420),spawn)};
+ spawn()});
+/* The Archery: the target slides back and forth and your arrow takes a moment to fly, so aim ahead. Five arrows. */
+TEAM2.archery=(el,R,send,timers)=>teamArena(el,R,send,timers,TEAM.archery.secs,"Arrow 1 of 5",api=>{api.ar.classList.add("bg-range");
+ const cv=document.createElement("canvas");cv.width=300;cv.height=380;cv.style.cssText="position:absolute;inset:0;width:100%;height:100%";api.ar.appendChild(cv);const x=cv.getContext("2d");
+ let tx=150,dir=1,shot=0,arrow=null,msg="",t0=performance.now(),last=t0;const speeds=[110,150,190,235,290];
+ const draw=()=>{x.clearRect(0,0,300,380);x.fillStyle="#2a2416";x.fillRect(0,60,300,8);
+  [["#f2efe6",34],["#1f1b17",26],["#3a6ad0",18],["#c3241c",10],["#f2c230",4]].forEach(([c,r])=>{x.fillStyle=c;x.beginPath();x.arc(tx,70,r,0,7);x.fill()});
+  x.strokeStyle="#c9a45c";x.lineWidth=3;x.beginPath();x.moveTo(150,330);x.lineTo(150,370);x.stroke();
+  if(arrow){x.strokeStyle="#e7c983";x.lineWidth=3;x.beginPath();x.moveTo(150,arrow.y);x.lineTo(150,arrow.y+26);x.stroke();x.fillStyle="#9fb3c4";x.beginPath();x.moveTo(150,arrow.y-6);x.lineTo(146,arrow.y+4);x.lineTo(154,arrow.y+4);x.fill()}
+  if(msg){x.fillStyle="#efe6d2";x.font="bold 22px Cinzel,serif";x.textAlign="center";x.fillText(msg,150,220)}};
+ const loop=ts=>{if(!api.running||!$("#ar"))return;const dt=Math.min(0.05,(ts-last)/1000);last=ts;const v=speeds[Math.min(shot,4)];tx+=dir*v*dt;if(tx>262){tx=262;dir=-1}if(tx<38){tx=38;dir=1}
+  if(arrow){arrow.y-=760*dt;if(arrow.y<=70){const d=Math.abs(tx-150);const pts=d<8?10:d<18?7:d<30?4:d<45?2:0;api.bump(pts);if(pts){burst(tx,70,pts===10?"#f2c230":"#c3241c",pts+4,200)}msg=pts===10?"Bullseye! +10":pts?"+"+pts:"Missed";arrow=null;shot++;api.want(shot<5?`Arrow ${shot+1} of 5`:"");api.after(900,()=>{msg=""});if(shot>=5)api.after(1100,()=>api.finish())}}
+  const sh=juiceBegin(x);draw();juiceDraw(x,dt);if(sh)x.restore();A.raf=requestAnimationFrame(loop)};
+ api.ar.onpointerdown=e=>{e.preventDefault();if(!api.running||arrow||shot>=5)return;arrow={y:330};FX.whoosh()};
+ A.raf=requestAnimationFrame(loop)});
+/* Bell Ringer: hold to haul the rope, let go in the gold zone near the top. Overshoot and the rope slips. Five pulls, each faster. */
+TEAM2.bells=(el,R,send,timers)=>teamArena(el,R,send,timers,TEAM.bells.secs,"Pull 1 of 5",api=>{api.ar.classList.add("bg-belfry");
+ api.ar.insertAdjacentHTML("beforeend",'<div class="meter"><div class="zone"></div><div class="fill" id="mf"></div></div><div class="bellico" id="bell">🔔</div><p class="small center" id="bm" style="position:absolute;bottom:3%;left:0;right:0;margin:0">Press and hold to pull. Let go in the gold.</p>');
+ let pull=0,held=false,t0=0,v=0;const rates=[1.0,0.85,0.72,0.62,0.54];const fill=$("#mf");
+ const loop=ts=>{if(!api.running||!$("#ar"))return;if(held){v=Math.min(100,(performance.now()-t0)/(rates[Math.min(pull,4)]*1000)*100);fill.style.height=v+"%";if(v>=100){held=false;v=0;fill.style.height="0%";$("#bm").textContent="The rope slipped!";FX.fail();pull++;next()}}A.raf=requestAnimationFrame(loop)};
+ const next=()=>{api.want(pull<5?`Pull ${pull+1} of 5`:"");if(pull>=5)api.after(900,()=>api.finish())};
+ api.ar.onpointerdown=e=>{e.preventDefault();if(!api.running||held||pull>=5)return;held=true;t0=performance.now();try{api.ar.setPointerCapture(e.pointerId)}catch(x){}};
+ const rel=e=>{if(!held)return;held=false;const d=Math.abs(v-85);const pts=d<3?10:d<6?7:d<9?4:d<12?2:0;api.bump(pts);$("#bm").textContent=pts===10?"Perfect ring! +10":pts?"+"+pts:"Too low";if(pts>=7){const b=$("#bell");b.classList.add("ring");api.after(600,()=>b.classList.remove("ring"))}fill.style.height="0%";v=0;pull++;next()};
+ api.ar.onpointerup=rel;api.ar.onpointercancel=rel;A.raf=requestAnimationFrame(loop)});
+
+/* ---------- solo armoury games ---------- */
+/* helpers: a canvas game surface and a pointer-to-canvas mapper */
+function cvGame(el,w=320,h=420){const cv=document.createElement("canvas");cv.width=w;cv.height=h;cv.className="arcade";el.innerHTML="";el.appendChild(cv);const x=cv.getContext("2d");const P=e=>{const r=cv.getBoundingClientRect();return {x:(e.clientX-r.left)*w/r.width,y:(e.clientY-r.top)*h/r.height}};return {cv,x,P}}
+const soloTimers=()=>{A.timers=A.timers||[];return A.timers};
+const later=(ms,f)=>{const t=setTimeout(f,ms);soloTimers().push(t);return t};
+function banner(x,txt,sub){x.fillStyle="rgba(0,0,0,.62)";x.fillRect(0,0,320,420);x.fillStyle="#efe6d2";x.font="bold 24px Cinzel,serif";x.textAlign="center";x.fillText(txt,160,200);if(sub){x.font="17px Cormorant Garamond,serif";x.fillText(sub,160,232)}x.textAlign="left"}
+const night=(x)=>{x.fillStyle="#0b0910";x.fillRect(0,0,320,420)};
+const btnStart=(el,label,fn)=>{el.innerHTML=`<button class="btn big" id="gs">${label}</button>`;$("#gs").onclick=fn};
+
+/* Horse Hurdles: tap to jump the fences. Faster and faster. */
+GAMES2.hurdles=(el,R,send,set)=>{const {cv,x,P}=cvGame(el);let run=false,over=false,hy=330,vy=0,dist=0,score=0,last=0,speed=150;const fences=[];let nx=380;for(let i=0;i<80;i++){fences.push({x:nx,passed:false});nx+=200+R()*180}
+ const draw=()=>{bg(x,"sky");x.fillStyle="#1f1a12";x.fillRect(0,350,320,70);x.strokeStyle="#3a2c14";x.lineWidth=2;x.beginPath();x.moveTo(0,350);x.lineTo(320,350);x.stroke();
+  fences.forEach(f=>{const fx=f.x-dist;if(fx<-30||fx>340)return;x.fillStyle="#8a6a3a";x.fillRect(fx,312,6,38);x.fillRect(fx+22,312,6,38);x.fillRect(fx-4,318,36,5);x.fillRect(fx-4,334,36,5)});
+  x.save();x.translate(70,hy);const ph_=dist/16,leg=Math.sin(ph_)*14;x.fillStyle="#d9ab45";x.strokeStyle="#5a3e10";x.lineWidth=1.2;
+  x.beginPath();x.moveTo(-30,-10);x.bezierCurveTo(-34,-30,-10,-34,12,-30);x.lineTo(22,-50);x.bezierCurveTo(30,-56,40,-50,38,-42);x.lineTo(44,-36);x.lineTo(36,-30);x.bezierCurveTo(32,-22,26,-18,22,-12);x.bezierCurveTo(10,-4,-20,-2,-30,-10);x.closePath();x.fill();x.stroke();
+  x.beginPath();x.moveTo(-30,-14);x.bezierCurveTo(-44,-20,-46,-6,-40,2);x.lineWidth=3;x.strokeStyle="#5a3e10";x.stroke();x.lineWidth=1.2;
+  x.strokeStyle="#5a3e10";x.lineWidth=4;x.lineCap="round";[[-20,leg],[-10,-leg],[10,leg*0.8],[18,-leg*0.8]].forEach(([lx,k])=>{x.beginPath();x.moveTo(lx,-8);x.lineTo(lx+k*0.5,8);x.lineTo(lx+k,16);x.stroke()});
+  x.fillStyle="#8e1c1c";x.beginPath();x.moveTo(-2,-30);x.lineTo(10,-30);x.lineTo(8,-52);x.lineTo(0,-52);x.closePath();x.fill();x.fillStyle="#9fb3c4";x.beginPath();x.arc(4,-58,6,0,7);x.fill();x.restore();
+  x.fillStyle="#efe6d2";x.font="bold 22px Cinzel,serif";x.fillText(score,14,30)};
+ const loop=ts=>{if(!last)last=ts;const dt=Math.min(0.04,(ts-last)/1000);last=ts;speed=150+score*9;dist+=speed*dt;vy+=1500*dt;hy=Math.min(330,hy+vy*dt);if(hy>=330){vy=0}
+  for(const f of fences){const fx=f.x-dist;if(!f.passed&&fx+28<70){f.passed=true;score++;FX.chime();burst(fx+14,330,"#f2c230",8);popText(70,hy-50,"+1")}if(fx<92&&fx+28>48&&hy>298)over=true}
+  const sh=juiceBegin(x);draw();juiceDraw(x,dt);if(sh)x.restore();if(over){shake(300,8);banner(x,score+" fences","Clipped a fence");FX.fail();send(score);return}A.raf=requestAnimationFrame(loop)};
+ draw();x.fillStyle="#efe6d2";x.font="18px Cormorant Garamond,serif";x.fillText("Tap to jump. Tap to start.",86,220);
+ let live=false;cv.onpointerdown=e=>{e.preventDefault();if(over)return;if(!run){run=true;countdown(el,()=>{live=true;last=0;A.raf=requestAnimationFrame(loop)});return}if(live&&hy>=329){vy=-560;buzz(10)}}};
+/* Broomstick Dash: three lanes, towers rushing up the screen. Tap left or right to switch lane. */
+GAMES2.broom=(el,R,send,set)=>{const {cv,x,P}=cvGame(el);const L=[60,160,260];let lane=1,run=false,over=false,dist=0,last=0,px=160;const towers=[];let ny=-200;for(let i=0;i<120;i++){const k=Math.floor(R()*3);towers.push({y:ny,lane:k});if(R()<0.35)towers.push({y:ny,lane:(k+1+Math.floor(R()*2))%3});ny-=170+R()*120}
+ const draw=()=>{bg(x,"sky");x.strokeStyle="rgba(201,164,92,.25)";x.lineWidth=2;[110,210].forEach(lx=>{x.beginPath();x.moveTo(lx,0);x.lineTo(lx,420);x.stroke()});
+  towers.forEach(t=>{const ty=t.y+dist;if(ty<-80||ty>440)return;x.fillStyle="#3a2c14";x.fillRect(L[t.lane]-26,ty,52,60);x.fillStyle="#c9a45c";for(let i=0;i<4;i++)x.fillRect(L[t.lane]-26+i*14,ty-6,8,8)});
+  px+=(L[lane]-px)*0.35;x.save();x.translate(px,340);x.strokeStyle="#8a6a3a";x.lineWidth=5;x.lineCap="round";x.beginPath();x.moveTo(0,22);x.lineTo(0,-20);x.stroke();x.strokeStyle="#c9a45c";x.lineWidth=2;for(let i=-3;i<=3;i++){x.beginPath();x.moveTo(0,20);x.lineTo(i*4,40);x.stroke()}
+  x.fillStyle="#2a2234";x.beginPath();x.moveTo(-14,4);x.lineTo(14,4);x.lineTo(6,-18);x.lineTo(-6,-18);x.closePath();x.fill();x.fillStyle="#efe6d2";x.beginPath();x.arc(0,-24,7,0,7);x.fill();x.fillStyle="#1a1424";x.beginPath();x.moveTo(-12,-28);x.lineTo(12,-28);x.lineTo(3,-46);x.closePath();x.fill();x.fillRect(-13,-30,26,3);x.restore();
+  x.fillStyle="#efe6d2";x.font="bold 22px Cinzel,serif";x.fillText(Math.floor(dist/10)+" m",14,30)};
+ const loop=ts=>{if(!last)last=ts;const dt=Math.min(0.04,(ts-last)/1000);last=ts;dist+=(210+dist*0.05)*dt;
+  for(const t of towers){const ty=t.y+dist;if(t.lane===lane&&ty<370&&ty+60>310&&Math.abs(px-L[lane])<20)over=true}
+  const sh=juiceBegin(x);draw();juiceDraw(x,dt);if(sh)x.restore();if(over){shake(300,8);const m=Math.floor(dist/10);banner(x,m+" m","Flew into a tower");FX.fail();send(m);return}A.raf=requestAnimationFrame(loop)};
+ draw();x.fillStyle="#efe6d2";x.font="18px Cormorant Garamond,serif";x.fillText("Tap left or right to change lane.",60,200);x.fillText("Tap to start.",118,226);
+ let live=false;cv.onpointerdown=e=>{e.preventDefault();if(over)return;const p=P(e);if(!run){run=true;countdown(el,()=>{live=true;last=0;A.raf=requestAnimationFrame(loop)});return}if(!live)return;if(p.x<160)lane=Math.max(0,lane-1);else lane=Math.min(2,lane+1);buzz(8)}};
+/* Row the Moat: alternate left and right strokes for 12 seconds. Two on the same side splashes you backwards. */
+GAMES2.row=(el,R,send,set)=>{let d=0,lastSide=null,t0=0,run=false,done=false;const T=12;
+ const draw=msg=>{el.innerHTML=`<div class="hud" style="position:static;padding:0 4px 6px"><span id="rs">${d} m</span><span id="rt">${T}.0</span></div><div class="moat"><div class="boat" id="boat" style="left:${Math.min(92,d/3)}%">🛶</div></div><div class="oars"><button data-s="L">LEFT</button><button data-s="R">RIGHT</button></div><p class="small center" id="rm" style="min-height:1.4em">${msg||"Alternate left and right. Your first stroke starts the clock."}</p>`;
+  el.querySelectorAll("[data-s]").forEach(b=>b.onpointerdown=e=>{e.preventDefault();if(done)return;if(!run){run=true;t0=performance.now();tick()}const s=b.dataset.s;if(s===lastSide){d=Math.max(0,d-2);$("#rm").textContent="Splash! Alternate the oars.";FX.fail()}else{d+=5;FX.tick()}lastSide=s;$("#rs").textContent=d+" m";$("#boat").style.left=Math.min(92,d/3)+"%"})};
+ const tick=()=>{const iv=setInterval(()=>{const l=Math.max(0,T-(performance.now()-t0)/1000);const t=$("#rt");if(!t){clearInterval(iv);return}t.textContent=l.toFixed(1);if(l<=0){clearInterval(iv);done=true;el.innerHTML=`<p class="lede center">${d} metres</p>`;send(d)}},100);soloTimers().push(iv)};
+ draw()};
+/* Torch Tunnel: hold to rise, let go to sink. Survive the cave. */
+GAMES2.tunnel=(el,R,send,set)=>{const {cv,x,P}=cvGame(el);let run=false,over=false,hold=false,py=210,vy=0,dist=0,last=0,t0=0;const cols=[];let c=130,f=300;for(let i=0;i<400;i++){c+=(R()-0.5)*40;f+=(R()-0.5)*40;const gap=190-Math.min(90,i*0.5);if(f-c<gap)f=c+gap;if(c<20){c=20;f=Math.max(f,c+gap)}if(f>400){f=400;c=Math.min(c,f-gap)}cols.push({c,f})}
+ const draw=()=>{bg(x,"cave");const off=dist%20;for(let i=0;i<18;i++){const k=Math.floor(dist/20)+i;const col=cols[Math.min(cols.length-1,k)];const sx=i*20-off;x.fillStyle="#3b2f1c";x.fillRect(sx,0,21,col.c);x.fillRect(sx,col.f,21,420-col.f);x.fillStyle="#6e5a36";x.fillRect(sx,col.c-3,21,3);x.fillRect(sx,col.f,21,3)}
+  x.fillStyle="#f2c230";x.beginPath();x.arc(70,py,7,0,7);x.fill();x.fillStyle="#ff8a30";x.beginPath();x.arc(70,py-9,5,0,7);x.fill();x.fillStyle="#efe6d2";x.font="bold 22px Cinzel,serif";x.fillText(((performance.now()-t0)/1000).toFixed(1)+" s",14,30)};
+ const loop=ts=>{if(!last)last=ts;const dt=Math.min(0.04,(ts-last)/1000);last=ts;dist+=170*dt;vy+=(hold?-1500:1100)*dt;vy=Math.max(-380,Math.min(380,vy));py+=vy*dt;const k=Math.floor((dist+70)/20);const col=cols[Math.min(cols.length-1,k)];if(py-6<col.c||py+6>col.f||py<0||py>420)over=true;
+  const sh=juiceBegin(x);draw();juiceDraw(x,dt);if(sh)x.restore();if(over){shake(300,8);const s=Math.round((performance.now()-t0)/100)/10;banner(x,s.toFixed(1)+" s","The torch went out");FX.fail();send(s);return}A.raf=requestAnimationFrame(loop)};
+ draw();x.fillStyle="#efe6d2";x.font="18px Cormorant Garamond,serif";x.fillText("Hold to rise, release to sink.",70,200);x.fillText("Press to start.",108,226);
+ cv.onpointerdown=e=>{e.preventDefault();if(over)return;try{cv.setPointerCapture(e.pointerId)}catch(z){}if(!run){run=true;countdown(el,()=>{last=0;t0=performance.now();A.raf=requestAnimationFrame(loop)});return}hold=true};const up=e=>{hold=false};cv.onpointerup=up;cv.onpointercancel=up};
+/* Gargoyle Says: watch the gargoyles light up, then repeat the sequence. It grows by one each time. */
+GAMES2.simon=(el,R,send,set)=>{const seq=[];let i=0,busy=true,level=0;const COL=["#c3241c","#3a6ad0","#3a9a4a","#d9ab45"];
+ const draw=()=>{el.innerHTML=`<p class="eyebrow center" id="sm">${level?level+" in a row":"Watch"}</p><div class="garg">${COL.map((c,k)=>`<button data-g="${k}" style="--c:${c}">👹</button>`).join("")}</div>`;
+  el.querySelectorAll("[data-g]").forEach(b=>b.onpointerdown=e=>{e.preventDefault();if(busy)return;const k=+b.dataset.g;flash(k,180);if(seq[i]!==k){busy=true;FX.fail();el.innerHTML=`<p class="lede center">${level} in a row</p>`;send(level);return}i++;FX.chime();if(i>=seq.length){level++;if(level>=15){el.innerHTML=`<p class="lede center">15 in a row. Flawless.</p>`;send(15);return}busy=true;later(700,show)}})};
+ const flash=(k,ms)=>{const b=el.querySelector(`[data-g="${k}"]`);if(!b)return;b.classList.add("on");later(ms,()=>b.classList.remove("on"))};
+ const show=()=>{seq.push(Math.floor(R()*4));i=0;draw();const gap=Math.max(260,620-level*30);seq.forEach((k,n)=>later(400+n*gap,()=>{flash(k,gap*0.6);FX.tick()}));later(400+seq.length*gap+100,()=>{busy=false;const m=$("#sm");if(m)m.textContent="Your turn"})};
+ btnStart(el,"Start",show)};
+/* The Shell Game: the coin goes under a goblet, the goblets shuffle, find the coin. Six rounds, faster each time. */
+GAMES2.shell=(el,R,send,set)=>{let round=0,found=0;
+ const play=()=>{if(round>=6){el.innerHTML=`<p class="lede center">Found it ${found} of 6 times</p>`;send(found);return}
+  let pos=[0,1,2];let coin=Math.floor(R()*3);el.innerHTML=`<p class="eyebrow center" id="shm">Round ${round+1} of 6 · watch the coin</p><div class="shells" id="sh">${[0,1,2].map(k=>`<div class="goblet" data-k="${k}" style="left:${k*33+4}%"><span class="cup">🏆</span><span class="coinp" ${k===coin?"":'style="opacity:0"'}>🪙</span></div>`).join("")}</div>`;
+  const cups=[...el.querySelectorAll(".goblet")];const place=()=>cups.forEach((c,k)=>{c.style.left=(pos.indexOf(k)*33+4)+"%"});
+  const swaps=4+round*2,ms=Math.max(170,420-round*45);later(900,()=>{cups.forEach(c=>c.querySelector(".coinp").style.opacity=0);cups.forEach(c=>c.classList.add("down"));
+   for(let s=0;s<swaps;s++)later(500+s*ms,()=>{const a=Math.floor(R()*3);let b=Math.floor(R()*3);if(b===a)b=(a+1)%3;const ia=pos.indexOf(a),ib=pos.indexOf(b);pos[ia]=b;pos[ib]=a;cups.forEach(c=>c.style.transition=`left ${ms-30}ms ease-in-out`);place();FX.tick()});
+   later(500+swaps*ms+150,()=>{$("#shm").textContent="Where is the coin?";cups.forEach(c=>c.onpointerdown=e=>{e.preventDefault();cups.forEach(q=>q.onpointerdown=null);const k=+c.dataset.k;cups.forEach(q=>q.querySelector(".coinp").style.opacity=(+q.dataset.k===coin)?1:0);if(k===coin){found++;FX.chime();$("#shm").textContent="Found it!"}else{FX.fail();$("#shm").textContent="Not there"}round++;later(900,play)})})})};
+ btnStart(el,"Start",play)};
+/* Colour Clash: the word says one colour, the ink is another. Tap the INK colour. Fifteen rounds, wrong taps cost 2 seconds. */
+GAMES2.stroop=(el,R,send,set)=>{const N=["RED","BLUE","GREEN","GOLD"],C=["#e04a40","#4a86ff","#3ec45a","#f2c230"];let i=0,pen=0,t0=0;
+ const draw=()=>{if(i>=15){const s=Math.round(((performance.now()-t0)/1000+pen)*10)/10;el.innerHTML=`<p class="lede center">${s} seconds</p>`;send(s);return}const w=Math.floor(R()*4);let ink=Math.floor(R()*4);if(i>2&&ink===w)ink=(ink+1)%4;
+  el.innerHTML=`<p class="eyebrow center">${i+1} of 15${pen?" · +"+pen+"s":""}</p><p class="bigg center" style="font-size:54px;color:${C[ink]}">${N[w]}</p><div class="inks">${N.map((n,k)=>`<button data-c="${k}" style="color:${C[k]};border-color:${C[k]}">${n}</button>`).join("")}</div><p class="small center">Tap the colour of the ink, not the word.</p>`;
+  el.querySelectorAll("[data-c]").forEach(b=>b.onpointerdown=e=>{e.preventDefault();if(+b.dataset.c===ink){i++;draw()}else{pen+=2;FX.fail();draw()}})};
+ btnStart(el,"Start",()=>{t0=performance.now();draw()})};
+/* Trap Doors: nine doors, one swings open for a moment. Tap it while it is open: 1 point. Tap a shut door and lose 1. Twelve doors. */
+GAMES2.trapdoor=(el,R,send,set)=>{let score=0,n=0,open=-1;el.innerHTML=`<div class="hud" style="position:static;padding:0 4px 6px"><span id="tds">0</span><span id="tdn">0 of 12</span></div><div class="doors">${Array.from({length:9},(_,k)=>`<button data-d="${k}" aria-label="Door ${k+1}"><span class="leaf"></span></button>`).join("")}</div><button class="btn big" id="tdg">Start</button>`;
+ const doors=[...el.querySelectorAll("[data-d]")];doors.forEach(b=>b.onpointerdown=e=>{e.preventDefault();if(n===0&&open<0)return;const k=+b.dataset.d;if(k===open){open=-1;b.classList.remove("open");b.classList.add("hit");score++;FX.chime();later(200,()=>b.classList.remove("hit"))}else{score=Math.max(0,score-1);FX.fail()}$("#tds").textContent=score});
+ const next=()=>{if(n>=12){later(500,()=>{el.innerHTML=`<p class="lede center">${score} doors</p>`;send(score)});return}n++;$("#tdn").textContent=n+" of 12";open=Math.floor(R()*9);const b=doors[open];b.classList.add("open");const win=Math.max(380,720-n*30);
+  later(win,()=>{if(open>=0){doors[open].classList.remove("open");open=-1}later(Math.max(350,800-n*35),next)})};
+ $("#tdg").onclick=()=>{$("#tdg").remove();later(500,next)}};
+/* Count the Crows: a flock flashes up for a moment. How many? Five rounds, closest total wins. */
+GAMES2.crows=(el,R,send,set)=>{let r=0,err=0;
+ const round=()=>{if(r>=5){el.innerHTML=`<p class="lede center">${err} off in total</p>`;send(err);return}const N=7+Math.floor(R()*18);
+  el.innerHTML=`<p class="eyebrow center">Flock ${r+1} of 5</p><div class="flock" id="fl">${Array.from({length:N},()=>`<i style="left:${4+R()*88}%;top:${4+R()*86}%;transform:rotate(${(R()-0.5)*40}deg) scale(${0.8+R()*0.5})">${ICON.raven}</i>`).join("")}</div>`;
+  later(1300,()=>{el.innerHTML=`<p class="eyebrow center">Flock ${r+1} of 5</p><p class="small center">How many crows were there?</p><form id="cf" class="row"><input class="txt" id="ci" type="number" inputmode="numeric" autocomplete="off" aria-label="Your count"><button class="btn sm">Go</button></form>`;$("#ci").focus();$("#cf").onsubmit=e=>{e.preventDefault();const g=Math.round(+$("#ci").value||0);const d=Math.abs(g-N);err+=d;r++;el.innerHTML=`<p class="lede center">There were ${N}. ${d?"You were "+d+" off.":"Spot on!"}</p>`;if(d)FX.fail();else FX.chime();later(1100,round)}})};
+ btnStart(el,"Start",round)};
+/* Mirror Arrows: tap the OPPOSITE direction to the arrow shown. Twenty arrows, wrong taps cost a second. */
+GAMES2.mirror=(el,R,send,set)=>{const DIRS=["↑","→","↓","←"];const seq=Array.from({length:20},()=>Math.floor(R()*4));let i=0,pen=0,t0=0;
+ const draw=()=>{if(i>=20){const s=Math.round(((performance.now()-t0)/1000+pen)*10)/10;el.innerHTML=`<p class="lede center">${s} seconds</p>`;send(s);return}el.innerHTML=`<p class="eyebrow center">${i+1} of 20${pen?" · +"+pen+"s":""}</p><p class="bigg center" style="font-size:96px">${DIRS[seq[i]]}</p><div class="arrows">${DIRS.map((d,k)=>`<button data-d="${k}" aria-label="${["Up","Right","Down","Left"][k]}">${d}</button>`).join("")}</div><p class="small center">Tap the opposite direction.</p>`;
+  el.querySelectorAll("[data-d]").forEach(b=>b.onpointerdown=e=>{e.preventDefault();if(+b.dataset.d===(seq[i]+2)%4){i++;draw()}else{pen+=1;FX.fail();draw()}})};
+ btnStart(el,"Start",()=>{t0=performance.now();draw()})};
+/* The Catapult: tap once to lock the swinging angle, tap again to lock the power. Hit the tower. Five shots. */
+GAMES2.catapult=(el,R,send,set)=>{const {cv,x,P}=cvGame(el);let shot=0,stage=0,ang=30,adir=1,pow=0,pdir=1,proj=null,target=200+R()*90,score=0,last=0,msg="",done=false;
+ const draw=()=>{bg(x,"sky");x.fillStyle="#1f1a12";x.fillRect(0,360,320,60);x.fillStyle="#3a2c14";x.fillRect(target-14,300,28,60);x.fillStyle="#c9a45c";for(let i=0;i<3;i++)x.fillRect(target-14+i*10,294,6,6);
+  x.save();x.translate(40,360);x.rotate(-ang*Math.PI/180);x.fillStyle="#8a6a3a";x.fillRect(0,-4,46,8);x.restore();x.fillStyle="#5a4630";x.fillRect(26,348,28,12);
+  if(stage>=1){x.fillStyle="#2a2416";x.fillRect(20,20,12,120);x.fillStyle=pow>80?"#e04a40":"#f2c230";x.fillRect(20,140-pow*1.2,12,pow*1.2)}
+  if(proj){x.fillStyle="#9fb3c4";x.beginPath();x.arc(proj.x,proj.y,6,0,7);x.fill()}
+  x.fillStyle="#efe6d2";x.font="bold 20px Cinzel,serif";x.fillText("Shot "+Math.min(shot+1,5)+" of 5",150,30);x.fillText(score,290,30);if(msg){x.font="bold 22px Cinzel,serif";x.textAlign="center";x.fillText(msg,160,200);x.textAlign="left"}};
+ const loop=ts=>{if(done)return;if(!last)last=ts;const dt=Math.min(0.05,(ts-last)/1000);last=ts;if(stage===0){ang+=adir*70*dt;if(ang>75){ang=75;adir=-1}if(ang<15){ang=15;adir=1}}else if(stage===1){pow+=pdir*150*dt;if(pow>100){pow=100;pdir=-1}if(pow<0){pow=0;pdir=1}}
+  else if(stage===2&&proj){proj.vy+=900*dt;proj.x+=proj.vx*dt;proj.y+=proj.vy*dt;if(proj.y>=358){const d=Math.abs(proj.x-target);const pts=d<10?10:d<22?7:d<40?4:d<60?2:0;score+=pts;msg=pts===10?"Direct hit! +10":pts?"+"+pts:"Missed";if(pts){FX.coin();burst(proj.x,350,pts===10?"#f2c230":"#c9a45c",pts+6,220);if(pts===10)shake(220,5)}else FX.fail();proj=null;shot++;later(900,()=>{msg="";if(shot>=5){done=true;banner(x,score+" points");send(score)}else{stage=0;target=150+R()*130}})}}
+  const sh=juiceBegin(x);draw();juiceDraw(x,dt);if(sh)x.restore();A.raf=requestAnimationFrame(loop)};
+ draw();x.fillStyle="#efe6d2";x.font="18px Cormorant Garamond,serif";x.fillText("Tap to lock the angle, tap to lock the power.",28,200);x.fillText("Tap to start.",116,226);let run=false;
+ let live=false;cv.onpointerdown=e=>{e.preventDefault();if(done)return;if(!run){run=true;countdown(el,()=>{live=true;last=0;A.raf=requestAnimationFrame(loop)});return}if(!live)return;if(stage===0){stage=1;pow=0;pdir=1;FX.tick()}else if(stage===1){stage=2;const v=120+pow*4.2;const a=ang*Math.PI/180;proj={x:60,y:340,vx:v*Math.cos(a),vy:-v*Math.sin(a)};FX.whoosh()}}};
+/* Crate Stack: the crate swings, tap to drop it on the pile. Overhang is sliced off. Stack as high as you can. */
+GAMES2.stack=(el,R,send,set)=>{const {cv,x,P}=cvGame(el);let run=false,over=false,last=0,cx=160,dir=1,speed=160,w=120,stack=[{x:100,w:120}],falling=null,score=0,cam=0;
+ const draw=()=>{bg(x,"stone");x.save();x.translate(0,cam);x.fillStyle="#1f1a12";x.fillRect(0,400,320,40);stack.forEach((s,i)=>{x.fillStyle=i%2?"#8a6a3a":"#6e5430";x.fillRect(s.x,400-(i+1)*24,s.w,24);x.strokeStyle="#c9a45c";x.lineWidth=1;x.strokeRect(s.x+0.5,400-(i+1)*24+0.5,s.w-1,23)});
+  const y=400-(stack.length+1)*24-60;if(falling){x.fillStyle="#9c7a46";x.fillRect(falling.x,falling.y,w,24)}else if(run&&!over){x.fillStyle="#9c7a46";x.fillRect(cx-w/2,y,w,24)}x.restore();x.fillStyle="#efe6d2";x.font="bold 22px Cinzel,serif";x.fillText(score,14,30)};
+ const loop=ts=>{if(!last)last=ts;const dt=Math.min(0.04,(ts-last)/1000);last=ts;if(!falling){cx+=dir*speed*dt;if(cx+w/2>320){cx=320-w/2;dir=-1}if(cx-w/2<0){cx=w/2;dir=1}}
+  else{falling.y+=620*dt;const top=stack[stack.length-1];const ty=400-(stack.length+1)*24;if(falling.y>=ty){const l=Math.max(falling.x,top.x),r=Math.min(falling.x+w,top.x+top.w);const nw=r-l;if(nw<14){over=true}else{stack.push({x:l,w:nw});w=nw;score++;FX.thud();buzz(12);burst(l+cam*0+nw/2,ty+cam,"#c9a45c",8,140);popText(160,ty+cam-30,nw>=top.w-2?"Perfect!":"+1",nw>=top.w-2?"#fff2c0":"#f2c230");speed=160+score*14;falling=null;cx=w/2+R()*(320-w);const want=Math.max(0,(stack.length-9)*24);cam=want}}}
+  const sh=juiceBegin(x);draw();juiceDraw(x,dt);if(sh)x.restore();if(over){shake(320,9);banner(x,score+" crates","The crate toppled");FX.fail();send(score);return}A.raf=requestAnimationFrame(loop)};
+ draw();x.fillStyle="#efe6d2";x.font="18px Cormorant Garamond,serif";x.fillText("Tap to drop the crate. Tap to start.",56,200);
+ let live=false;cv.onpointerdown=e=>{e.preventDefault();if(over)return;if(!run){run=true;countdown(el,()=>{live=true;last=0;A.raf=requestAnimationFrame(loop)});return}if(live&&!falling)falling={x:cx-w/2,y:400-(stack.length+1)*24-60}}};
+/* Coin Slide: flick the coin up the table. Closest to the far edge without falling off. Five slides. */
+GAMES2.slide=(el,R,send,set)=>{const {cv,x,P}=cvGame(el);let n=0,score=0,coin={x:160,y:380,vy:0},moving=false,down=null,last=0,msg="",done=false;
+ const draw=()=>{bg(x,"wood");x.fillStyle="rgba(20,14,8,.55)";x.fillRect(30,0,260,420);[[0.06,"#f2c230","10"],[0.14,"#c9a45c","7"],[0.24,"#8a6a3a","4"],[0.36,"#5a4630","2"]].reverse().forEach(([f,c,t])=>{x.fillStyle=c;x.fillRect(30,20,260,f*400);x.fillStyle="#0b0910";x.font="bold 16px Cinzel,serif";x.fillText(t,40,20+f*400-6)});x.fillStyle="#8e1c1c";x.fillRect(30,0,260,20);
+  const g=x.createRadialGradient(coin.x-3,coin.y-3,2,coin.x,coin.y,12);g.addColorStop(0,"#fff2c0");g.addColorStop(.6,"#d4a849");g.addColorStop(1,"#8a6420");x.fillStyle=g;x.beginPath();x.arc(coin.x,coin.y,12,0,7);x.fill();
+  x.fillStyle="#efe6d2";x.font="bold 20px Cinzel,serif";x.fillText("Slide "+Math.min(n+1,5)+" of 5",100,44);x.fillText(score,290,44);if(msg){x.font="bold 22px Cinzel,serif";x.textAlign="center";x.fillText(msg,160,230);x.textAlign="left"}};
+ const loop=ts=>{if(done)return;if(!last)last=ts;const dt=Math.min(0.05,(ts-last)/1000);last=ts;if(moving){coin.y+=coin.vy*dt;coin.vy=Math.min(0,coin.vy+520*dt);if(coin.vy>=-2||coin.y<20){moving=false;const edge=coin.y-20;const pts=coin.y<20?0:edge<24?10:edge<56?7:edge<96?4:edge<144?2:0;score+=pts;msg=coin.y<20?"Off the edge":pts?"+"+pts:"Too short";if(pts){FX.coin();burst(coin.x,coin.y,"#f2c230",pts,160);popText(coin.x,coin.y-20,"+"+pts)}else FX.fail();n++;later(1000,()=>{msg="";coin={x:160,y:380,vy:0};if(n>=5){done=true;banner(x,score+" points");send(score)}})}}const sh=juiceBegin(x);draw();juiceDraw(x,dt);if(sh)x.restore();A.raf=requestAnimationFrame(loop)};
+ draw();x.fillStyle="#efe6d2";x.font="18px Cormorant Garamond,serif";x.fillText("Flick the coin upwards.",90,230);A.raf=requestAnimationFrame(loop);
+ cv.onpointerdown=e=>{e.preventDefault();if(moving||done)return;down={y:P(e).y,t:performance.now()}};
+ const up=e=>{if(!down||moving||done)return;const dy=down.y-P(e).y,dt=Math.max(40,performance.now()-down.t);down=null;if(dy<12)return;const v=Math.min(1100,dy/dt*1000*0.55);coin.vy=-v;moving=true;FX.whoosh()};cv.onpointerup=up;cv.onpointercancel=()=>{down=null}};
+/* Knife Throw: the log spins, tap to throw. Hit another knife and you are out. Twelve knives to land. */
+GAMES2.knives=(el,R,send,set)=>{const {cv,x,P}=cvGame(el);let rot=0,w=2.2,stuck=[],flying=null,score=0,over=false,run=false,last=0,t=0;
+ const draw=()=>{bg(x,"stone");x.save();x.translate(160,130);x.rotate(rot);x.fillStyle="#6e5430";x.beginPath();x.arc(0,0,58,0,7);x.fill();x.strokeStyle="#3a2c14";x.lineWidth=4;x.beginPath();x.arc(0,0,40,0,7);x.stroke();x.beginPath();x.arc(0,0,20,0,7);x.stroke();
+  stuck.forEach(a=>{x.save();x.rotate(a);x.fillStyle="#d9d9d9";x.fillRect(-3,58,6,40);x.fillStyle="#3b2a12";x.fillRect(-4,96,8,16);x.restore()});x.restore();
+  if(flying){x.fillStyle="#d9d9d9";x.fillRect(157,flying.y,6,40);x.fillStyle="#3b2a12";x.fillRect(156,flying.y+38,8,16)}else if(!over){x.fillStyle="#d9d9d9";x.fillRect(157,330,6,40);x.fillStyle="#3b2a12";x.fillRect(156,368,8,16)}
+  x.fillStyle="#efe6d2";x.font="bold 22px Cinzel,serif";x.fillText(score+" / 12",14,30)};
+ const loop=ts=>{if(!last)last=ts;const dt=Math.min(0.04,(ts-last)/1000);last=ts;t+=dt;w=2.2+score*0.25+Math.sin(t*1.3)*1.2;rot+=w*dt;if(flying){flying.y-=900*dt;if(flying.y<=188){const a=((Math.PI/2-rot)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);const clash=stuck.some(s=>{let d=Math.abs(((s-a)%(Math.PI*2)+Math.PI*2)%(Math.PI*2));d=Math.min(d,Math.PI*2-d);return d<0.26});flying=null;if(clash){over=true;shake(320,9)}else{stuck.push(a);score++;FX.thud();buzz(10);burst(160,190,"#c9a45c",8,160);popText(160,230,"+1");if(score>=12){over=true}}}}
+  const sh=juiceBegin(x);draw();juiceDraw(x,dt);if(sh)x.restore();if(over){banner(x,score+" knives",score>=12?"Every knife landed":"Clashed with a knife");if(score>=12)FX.coins();else FX.fail();send(score);return}A.raf=requestAnimationFrame(loop)};
+ draw();x.fillStyle="#efe6d2";x.font="18px Cormorant Garamond,serif";x.fillText("Tap to throw. Tap to start.",86,250);
+ let live=false;cv.onpointerdown=e=>{e.preventDefault();if(over)return;if(!run){run=true;countdown(el,()=>{live=true;last=0;A.raf=requestAnimationFrame(loop)});return}if(live&&!flying){flying={y:330};FX.whoosh()}}};
+/* Key Maze: drag the key through the passage to the lock. Touch a wall and you go back to the start with a 3 second penalty. */
+const MAZES=[[[30,390],[30,300],[150,300],[150,370],[280,370],[280,230],[60,230],[60,150],[200,150],[200,60],[290,60],[290,20]],[[290,390],[290,310],[120,310],[120,380],[30,380],[30,250],[220,250],[220,170],[40,170],[40,90],[160,90],[160,30],[290,30]],[[160,400],[160,330],[40,330],[40,230],[280,230],[280,140],[120,140],[120,70],[290,70],[290,20]]];
+function pathTool(cv,x,path,width){const segs=[];for(let i=0;i<path.length-1;i++)segs.push([path[i],path[i+1]]);let total=0;const cum=segs.map(([a,b])=>{const l=Math.hypot(b[0]-a[0],b[1]-a[1]);const c=total;total+=l;return c});
+ const near=p=>{let best=1e9,bt=0;segs.forEach(([a,b],i)=>{const dx=b[0]-a[0],dy=b[1]-a[1],l2=dx*dx+dy*dy;let u=((p.x-a[0])*dx+(p.y-a[1])*dy)/l2;u=Math.max(0,Math.min(1,u));const qx=a[0]+u*dx,qy=a[1]+u*dy;const d=Math.hypot(p.x-qx,p.y-qy);if(d<best){best=d;bt=(cum[i]+u*Math.hypot(dx,dy))/total}});return {d:best,t:bt}};
+ const draw=(col)=>{x.strokeStyle=col;x.lineWidth=width;x.lineCap="round";x.lineJoin="round";x.beginPath();x.moveTo(path[0][0],path[0][1]);for(let i=1;i<path.length;i++)x.lineTo(path[i][0],path[i][1]);x.stroke()};
+ return {near,draw,end:path[path.length-1],start:path[0]}}
+GAMES2.maze=(el,R,send,set)=>{const {cv,x,P}=cvGame(el);const path=MAZES[Math.floor(R()*MAZES.length)];const tool=pathTool(cv,x,path,34);A.path=path;let pos={x:path[0][0],y:path[0][1]},drag=false,t0=0,pen=0,run=false,done=false,msg="";
+ const draw=()=>{bg(x,"stone");tool.draw("#0b0910");tool.draw("#0b0910");x.fillStyle="#3a2c14";x.beginPath();x.arc(tool.end[0],tool.end[1],18,0,7);x.fill();x.fillStyle="#f2c230";x.font="20px serif";x.textAlign="center";x.fillText("🔒",tool.end[0],tool.end[1]+7);x.fillText("🔑",pos.x,pos.y+8);x.textAlign="left";x.fillStyle="#efe6d2";x.font="bold 18px Cinzel,serif";if(run)x.fillText(((performance.now()-t0)/1000+pen).toFixed(1)+" s",12,24);if(msg){x.font="bold 22px Cinzel,serif";x.textAlign="center";x.fillText(msg,160,215);x.textAlign="left"}};
+ draw();x.fillStyle="#efe6d2";x.font="17px Cormorant Garamond,serif";x.fillText("Drag the key along the passage to the lock.",30,215);
+ const move=e=>{if(!drag||done)return;const p=P(e);const {d,t}=tool.near(p);if(d>15){pen+=3;pos={x:path[0][0],y:path[0][1]};drag=false;msg="Wall! +3 s";FX.fail();buzz([60,40,60]);later(700,()=>{msg="";draw()});draw();return}pos=p;draw();if(Math.hypot(p.x-tool.end[0],p.y-tool.end[1])<16){done=true;const s=Math.round(((performance.now()-t0)/1000+pen)*10)/10;banner(x,s.toFixed(1)+" s","Unlocked");FX.coins();send(s)}};
+ cv.onpointerdown=e=>{e.preventDefault();if(done)return;const p=P(e);if(Math.hypot(p.x-pos.x,p.y-pos.y)<30){drag=true;try{cv.setPointerCapture(e.pointerId)}catch(z){}if(!run){run=true;t0=performance.now()}}};cv.onpointermove=move;const up=()=>{drag=false};cv.onpointerup=up;cv.onpointercancel=up};
+/* Steady Hand: trace the wire from one end to the other. Every time you stray off it costs 2 seconds. */
+GAMES2.wire=(el,R,send,set)=>{const {cv,x,P}=cvGame(el);const pts=[];let px=30,py=390;for(let i=0;i<9;i++){pts.push([px,py]);px+=(R()<0.5?1:-1)*(70+R()*120);px=Math.max(30,Math.min(290,px));py-=42}pts.push([290,20]);const tool=pathTool(cv,x,pts,22);A.path=pts;let pos={x:pts[0][0],y:pts[0][1]},drag=false,off=false,t0=0,pen=0,run=false,done=false,best=0;
+ const draw=()=>{bg(x,"stone");tool.draw("#3a3a44");x.fillStyle="#e04a40";x.beginPath();x.arc(tool.end[0],tool.end[1],8,0,7);x.fill();x.fillStyle=off?"#e04a40":"#f2c230";x.beginPath();x.arc(pos.x,pos.y,9,0,7);x.fill();x.fillStyle="#efe6d2";x.font="bold 18px Cinzel,serif";if(run)x.fillText(((performance.now()-t0)/1000+pen).toFixed(1)+" s",12,24)};
+ draw();x.fillStyle="#efe6d2";x.font="17px Cormorant Garamond,serif";x.fillText("Drag the ring along the wire to the red end.",28,215);
+ cv.onpointerdown=e=>{e.preventDefault();if(done)return;const p=P(e);if(Math.hypot(p.x-pos.x,p.y-pos.y)<30){drag=true;try{cv.setPointerCapture(e.pointerId)}catch(z){}if(!run){run=true;t0=performance.now()}}};
+ cv.onpointermove=e=>{if(!drag||done)return;const p=P(e);const {d,t}=tool.near(p);const nowOff=d>13;if(nowOff&&!off){pen+=2;FX.fail()}off=nowOff;pos=p;best=Math.max(best,t);draw();if(best>0.97&&Math.hypot(p.x-tool.end[0],p.y-tool.end[1])<18){done=true;const s=Math.round(((performance.now()-t0)/1000+pen)*10)/10;banner(x,s.toFixed(1)+" s","Steady");FX.coins();send(s)}};
+ const up=()=>{drag=false};cv.onpointerup=up;cv.onpointercancel=up};
+/* Pattern Grid: a pattern of lit stones flashes up. Tap the same stones. One more stone each level. */
+GAMES2.pattern=(el,R,send,set)=>{let level=0;const play=()=>{const k=3+level;const cells=new Set();while(cells.size<k)cells.add(Math.floor(R()*16));let picked=new Set(),busy=true;
+  const draw=()=>{el.innerHTML=`<p class="eyebrow center" id="pm">Level ${level+1} · ${k} stones</p><div class="pgrid16">${Array.from({length:16},(_,i)=>`<button data-i="${i}" class="${busy&&cells.has(i)?"lit":picked.has(i)?"pick":""}" aria-label="Stone ${i+1}"></button>`).join("")}</div>`;
+   el.querySelectorAll("[data-i]").forEach(b=>b.onpointerdown=e=>{e.preventDefault();if(busy)return;const i=+b.dataset.i;if(picked.has(i))return;picked.add(i);if(!cells.has(i)){busy=true;FX.fail();el.innerHTML=`<p class="lede center">${level} level${level===1?"":"s"}</p>`;send(level);return}b.classList.add("pick");FX.tick();if(picked.size===k){level++;FX.chime();if(level>=10){el.innerHTML=`<p class="lede center">10 levels. Perfect memory.</p>`;send(10);return}busy=true;later(600,play)}})};
+  draw();later(1300,()=>{busy=false;draw();$("#pm").textContent="Your turn"})};
+ btnStart(el,"Start",play)};
+/* Shadow Match: which silhouette matches the shape? Ten rounds. */
+const SHAPES=["M20 4 L36 36 L4 36Z","M8 8 H32 V32 H8Z","M20 4 L24 16 L36 16 L26 24 L30 36 L20 28 L10 36 L14 24 L4 16 L16 16Z","M20 4 A16 16 0 1 1 19.9 4Z","M4 20 L20 4 L36 20 L20 36Z","M6 10 H34 L30 30 H10Z","M20 4 L36 20 L20 36 L4 20Z M20 14 L26 20 L20 26 L14 20Z","M8 4 H32 V20 H24 V36 H16 V20 H8Z"];
+GAMES2.shadow=(el,R,send,set)=>{let i=0,pen=0,t0=0;const sh=(d,rot,col)=>`<svg viewBox="0 0 40 40" style="transform:rotate(${rot}deg)"><path d="${d}" fill="${col}" fill-rule="evenodd"/></svg>`;
+ const draw=()=>{if(i>=10){const s=Math.round(((performance.now()-t0)/1000+pen)*10)/10;el.innerHTML=`<p class="lede center">${s} seconds</p>`;send(s);return}const idx=Math.floor(R()*SHAPES.length);const opts=[idx];while(opts.length<4){const k=Math.floor(R()*SHAPES.length);if(!opts.includes(k))opts.push(k)}for(let j=opts.length-1;j>0;j--){const k=Math.floor(R()*(j+1));[opts[j],opts[k]]=[opts[k],opts[j]]}
+  el.innerHTML=`<p class="eyebrow center">${i+1} of 10${pen?" · +"+pen+"s":""}</p><div class="shape">${sh(SHAPES[idx],Math.floor(R()*360),"#e7c983")}</div><div class="shadows">${opts.map(k=>`<button data-k="${k}">${sh(SHAPES[k],Math.floor(R()*360),"#1a1a1a")}</button>`).join("")}</div><p class="small center">Tap the matching shadow.</p>`;
+  el.querySelectorAll("[data-k]").forEach(b=>b.onpointerdown=e=>{e.preventDefault();if(+b.dataset.k===idx){i++;FX.tick();draw()}else{pen+=2;FX.fail();draw()}})};
+ btnStart(el,"Start",()=>{t0=performance.now();draw()})};
+/* Potion Drops: drops fall in three colours. Catch only the colour the witch calls for, which keeps changing. */
+GAMES2.potions=(el,R,send,set)=>{const {cv,x,P}=cvGame(el);const C=["#e04a40","#4a86ff","#3ec45a"],N=["RED","BLUE","GREEN"];let bx=160,drops=[],score=0,t0=0,run=false,want=0,last=0;const total=20;const sched=[];let tq=0;while(tq<total*1000){tq+=Math.max(150,340-tq/100)+R()*260;sched.push({t:tq,x:24+R()*272,v:150+R()*110+tq/100,c:Math.floor(R()*3)})}let si=0;
+ const draw=(dt,el_)=>{bg(x,"cave");while(si<sched.length&&sched[si].t<=el_){drops.push(Object.assign({y:-10},sched[si]));si++}
+  drops.forEach(d=>{d.y+=d.v*dt;x.fillStyle=C[d.c];x.beginPath();x.moveTo(d.x,d.y-12);x.quadraticCurveTo(d.x+10,d.y+2,d.x,d.y+10);x.quadraticCurveTo(d.x-10,d.y+2,d.x,d.y-12);x.fill()});
+  drops=drops.filter(d=>{if(d.y>378&&d.y<404&&Math.abs(d.x-bx)<30){if(d.c===want){score++;FX.coin();burst(d.x,392,C[d.c],8,150);popText(d.x,370,"+1",C[d.c])}else{score=Math.max(0,score-1);FX.fail();shake(160,4)}return false}return d.y<432});
+  x.fillStyle="#1d1a1f";x.beginPath();x.ellipse(bx,402,30,14,0,0,7);x.fill();x.fillStyle="#2b2730";x.beginPath();x.ellipse(bx,390,32,8,0,0,7);x.fill();x.fillStyle=C[want];x.beginPath();x.ellipse(bx,390,26,5,0,0,7);x.fill();x.fillStyle="#1d1a1f";x.fillRect(bx-22,410,6,8);x.fillRect(bx+16,410,6,8);x.fillStyle="#efe6d2";x.font="bold 20px Cinzel,serif";x.fillText(score,12,28);x.fillText(Math.max(0,total-el_/1000).toFixed(1),250,28);x.fillStyle=C[want];x.textAlign="center";x.fillText(N[want],160,28);x.textAlign="left"};
+ const loop=ts=>{if(!last)last=ts;const dt=Math.min(0.05,(ts-last)/1000);last=ts;const el_=performance.now()-t0;if(Math.floor(el_/4500)!==Math.floor((el_-dt*1000)/4500)){want=(want+1+Math.floor(R()*2))%3;FX.tick()}const sh=juiceBegin(x);draw(dt,el_);juiceDraw(x,dt);if(sh)x.restore();if(el_>=total*1000){banner(x,score+" drops");send(score);return}A.raf=requestAnimationFrame(loop)};
+ const move=e=>{bx=Math.max(28,Math.min(292,P(e).x))};draw(0,0);x.fillStyle="#efe6d2";x.font="18px Cormorant Garamond,serif";x.fillText("Catch only the colour named. Tap to start.",40,220);
+ cv.onpointerdown=e=>{e.preventDefault();move(e);if(!run){run=true;countdown(el,()=>{t0=performance.now();A.raf=requestAnimationFrame(loop)})}};cv.onpointermove=e=>{if(e.buttons||e.pointerType==="touch")move(e)}};
+/* Rockfall: rocks tumble from the battlements. Slide the knight out of the way. Survive as long as you can. */
+GAMES2.rocks=(el,R,send,set)=>{const {cv,x,P}=cvGame(el);let kx=160,rocks=[],t0=0,run=false,over=false,last=0,next=0;
+ const draw=()=>{bg(x,"stone");rocks.forEach(r=>{x.fillStyle="#6b6b6b";x.beginPath();x.arc(r.x,r.y,r.r,0,7);x.fill();x.fillStyle="#4a4a4a";x.beginPath();x.arc(r.x-r.r*0.3,r.y-r.r*0.3,r.r*0.4,0,7);x.fill()});
+  x.fillStyle="#9fb3c4";x.beginPath();x.moveTo(kx-12,404);x.lineTo(kx-10,372);x.lineTo(kx+10,372);x.lineTo(kx+12,404);x.closePath();x.fill();x.beginPath();x.arc(kx,362,11,0,7);x.fill();x.fillStyle="#1a1a1a";x.fillRect(kx-8,360,16,3);x.fillStyle="#c3241c";x.beginPath();x.moveTo(kx-3,352);x.lineTo(kx+3,352);x.lineTo(kx,340);x.closePath();x.fill();x.fillStyle="#8e1c1c";x.beginPath();x.moveTo(kx-24,376);x.lineTo(kx-10,376);x.lineTo(kx-10,398);x.lineTo(kx-17,404);x.lineTo(kx-24,398);x.closePath();x.fill();x.strokeStyle="#c9a45c";x.lineWidth=1.5;x.stroke();x.fillStyle="#efe6d2";x.font="bold 22px Cinzel,serif";x.fillText(((performance.now()-t0)/1000).toFixed(1)+" s",14,30)};
+ const loop=ts=>{if(!last)last=ts;const dt=Math.min(0.04,(ts-last)/1000);last=ts;const el_=(performance.now()-t0)/1000;if(el_>next){rocks.push({x:20+R()*280,y:-20,r:10+R()*14,v:130+R()*90+el_*9});next=el_+Math.max(0.16,0.6-el_*0.03)+R()*0.25}
+  rocks.forEach(r=>{r.y+=r.v*dt;if(Math.hypot(r.x-kx,r.y-376)<r.r+12)over=true});rocks=rocks.filter(r=>{if(r.y>=420&&r.y<450)burst(r.x,416,"#6b6b6b",5,90);return r.y<450});const sh=juiceBegin(x);draw();juiceDraw(x,dt);if(sh)x.restore();if(over){shake(320,9);const s=Math.round(el_*10)/10;banner(x,s.toFixed(1)+" s","Hit by a rock");FX.fail();send(s);return}A.raf=requestAnimationFrame(loop)};
+ const move=e=>{kx=Math.max(12,Math.min(308,P(e).x))};draw();x.fillStyle="#efe6d2";x.font="18px Cormorant Garamond,serif";x.fillText("Slide to dodge the rocks. Tap to start.",46,220);
+ cv.onpointerdown=e=>{e.preventDefault();move(e);if(!run){run=true;countdown(el,()=>{t0=performance.now();last=0;A.raf=requestAnimationFrame(loop)})}};cv.onpointermove=e=>{if(e.buttons||e.pointerType==="touch")move(e)}};
+/* Juggle: keep the ball in the air. Tap it to knock it back up. */
+GAMES2.juggle=(el,R,send,set)=>{const {cv,x,P}=cvGame(el);let b={x:160,y:200,vx:0,vy:0},run=false,over=false,taps=0,last=0;A.ball=()=>b;
+ const draw=()=>{bg(x,"stone");x.fillStyle="#1f1a12";x.fillRect(0,410,320,10);const g=x.createRadialGradient(b.x-5,b.y-5,3,b.x,b.y,22);g.addColorStop(0,"#ffe9a8");g.addColorStop(.6,"#d4a849");g.addColorStop(1,"#6e4e16");x.fillStyle=g;x.beginPath();x.arc(b.x,b.y,22,0,7);x.fill();x.fillStyle="#efe6d2";x.font="bold 22px Cinzel,serif";x.fillText(taps,14,30)};
+ const loop=ts=>{if(!last)last=ts;const dt=Math.min(0.04,(ts-last)/1000);last=ts;b.vy+=700*dt;b.x+=b.vx*dt;b.y+=b.vy*dt;if(b.x<22){b.x=22;b.vx=Math.abs(b.vx)}if(b.x>298){b.x=298;b.vx=-Math.abs(b.vx)}if(b.y>400)over=true;const sh=juiceBegin(x);draw();juiceDraw(x,dt);if(sh)x.restore();if(over){shake(300,8);banner(x,taps+" taps","Dropped it");FX.fail();send(taps);return}A.raf=requestAnimationFrame(loop)};
+ draw();x.fillStyle="#efe6d2";x.font="18px Cormorant Garamond,serif";x.fillText("Tap the ball to keep it up. Tap to start.",40,300);
+ let live=false;cv.onpointerdown=e=>{e.preventDefault();if(over)return;const p=P(e);if(!run){run=true;countdown(el,()=>{live=true;last=0;b={x:160,y:200,vx:0,vy:-200};A.raf=requestAnimationFrame(loop)});return}if(live&&Math.hypot(p.x-b.x,p.y-b.y)<46){taps++;b.vy=-(420+Math.min(200,taps*8));b.vx=(b.x-p.x)*9+(R()-0.5)*80;FX.tick();buzz(8);burst(b.x,b.y+14,"#f2c230",7,140);if(taps%10===0)popText(b.x,b.y-30,taps+"!")}}};
+/* Sword Clash: parry on the beat. Tap as each blade reaches the line. Sixteen strikes, the tempo climbs. */
+GAMES2.rhythm=(el,R,send,set)=>{const {cv,x,P}=cvGame(el);let run=false,t0=0,score=0,i=0,msg="",done=false,last=0;const times=[];let tt=1500;for(let k=0;k<16;k++){times.push(tt);tt+=Math.max(380,820-k*30)}const LINE=340;
+ const draw=()=>{bg(x,"stone");x.strokeStyle="#c9a45c";x.lineWidth=3;x.beginPath();x.moveTo(20,LINE);x.lineTo(300,LINE);x.stroke();const el_=performance.now()-t0;
+  times.forEach((t,k)=>{if(k<i)return;const y=LINE-(t-el_)*0.32;if(y<-40||y>420)return;x.save();x.translate(160,y);x.rotate(-0.5);x.fillStyle="#d9d9d9";x.fillRect(-4,-30,8,60);x.fillStyle="#3b2a12";x.fillRect(-10,30,20,8);x.restore()});
+  x.fillStyle="#efe6d2";x.font="bold 22px Cinzel,serif";x.fillText(score,14,30);x.fillText(Math.min(i+1,16)+" / 16",230,30);if(msg){x.textAlign="center";x.fillText(msg,160,200);x.textAlign="left"}};
+ const loop=ts=>{if(done)return;const el_=performance.now()-t0;if(i<16&&el_>times[i]+220){i++;msg="Missed";FX.fail();later(300,()=>{msg=""})}if(i>=16){done=true;later(400,()=>{banner(x,score+" points");send(score)});draw();return}const sh=juiceBegin(x);draw();juiceDraw(x,0.016);if(sh)x.restore();A.raf=requestAnimationFrame(loop)};
+ draw();x.fillStyle="#efe6d2";x.font="18px Cormorant Garamond,serif";x.fillText("Tap when a blade reaches the line. Tap to start.",22,200);
+ cv.onpointerdown=e=>{e.preventDefault();if(done)return;if(!run){run=true;countdown(el,()=>{t0=performance.now();A.raf=requestAnimationFrame(loop)});return}if(i>=16||!t0)return;const d=Math.abs(performance.now()-t0-times[i]);if(d>220)return;const pts=d<60?3:d<120?2:1;score+=pts;msg=pts===3?"Perfect!":pts===2?"Good":"Late";i++;FX.thud();buzz(pts===3?20:8);burst(160,LINE,pts===3?"#f2c230":"#9fb3c4",pts*4,180);if(pts===3)shake(120,3);later(250,()=>{msg=""})}};
+/* ---------- arcade batch two: descriptions, targets, bot scores and adventures 19 to 30 ---------- */
+Object.assign(TEAM,{
+ ravens:{t:"Raven Roost",per:12,secs:25,how:"Birds swoop across the roost. Tap ravens as they fly: 1 point each, 3 for a golden raven. Doves are not ravens: tap one and lose 2. Everyone's points are added together. Group target: {T}."},
+ spiders:{t:"Spider Drop",per:10,secs:25,how:"Spiders abseil down from the rafters. Tap each one before it reaches the floor: 1 point. Bees buzz across too: tap one and lose 2. They get quicker. Everyone's points are added together. Group target: {T}."},
+ rats:{t:"Rat Run",per:10,secs:25,how:"Rats dash across the great hall. Tap them: 1 point each. The cat prowls through now and then: tap her and lose 3. Everyone's points are added together. Group target: {T}."},
+ ghosts:{t:"Ghost Hunt",per:9,secs:25,how:"Ghosts fade in, hang there for a moment, and fade away. Tap one while it is solid: 1 point. Tap one while it is faint and lose 1. Everyone's points are added together. Group target: {T}."},
+ candles:{t:"Candle Snuff",per:14,secs:25,how:"Twelve candles, lit at random and burning for less and less time. Snuff a lit candle: 1 point. Tap a dark one and lose 1. Everyone's points are added together. Group target: {T}."},
+ bellows:{t:"The Bellows",per:10,secs:25,how:"The hearth is dying. Tap to pump the bellows and keep the fire inside the gold band: 1 point for every second it stays there. Too little and it gutters, too much and it roars over the top. Everyone's points are added together. Group target: {T}."},
+ frogs:{t:"Frog Pond",per:10,secs:25,how:"Frogs pop up on the lily pads for a moment. Tap frogs: 1 point each. Toads are not frogs: tap one and lose 2. Everyone's points are added together. Group target: {T}."},
+ cannons:{t:"Cannon Volley",per:12,secs:25,how:"Cannonballs fly at your wall from the right. Tap each ball out of the air: 1 point. Every ball that hits the wall costs 1. Everyone's points are added together. Group target: {T}."},
+ archery:{t:"The Archery",per:25,secs:30,how:"The target slides back and forth and your arrow takes a moment to fly, so aim ahead of it. Tap to shoot. Bullseye 10, close 7, 4 or 2. Five arrows each. Everyone's points are added together. Group target: {T}."},
+ bells:{t:"Bell Ringer",per:30,secs:30,how:"Press and hold to haul the bell rope and let go while the meter is in the gold near the top. Hold too long and the rope slips. Perfect 10, close 7, 4 or 2. Five pulls each, faster every time. Everyone's points are added together. Group target: {T}."}
+});
+Object.assign(AINFO,{
+ hurdles:{t:"Horse Hurdles",how:"Ride the course. Tap to jump each fence. The horse gets faster with every fence you clear. Clip one and you are out.",best:"high",unit:"fences"},
+ broom:{t:"Broomstick Dash",how:"Fly the broomstick up the screen between the towers. Tap the left or right side to switch lane. It speeds up. Hit a tower and you are out.",best:"high",unit:"m"},
+ row:{t:"Row the Moat",how:"Tap LEFT and RIGHT alternately to row for 12 seconds. Two strokes on the same side splash you backwards. Your first stroke starts the clock.",best:"high",unit:"m"},
+ tunnel:{t:"Torch Tunnel",how:"Carry the torch through the cave. Hold to rise, let go to sink. The cave narrows. Touch the rock and the torch goes out.",best:"high",unit:"s"},
+ simon:{t:"Gargoyle Says",how:"Four gargoyles light up in a sequence. Repeat it by tapping them in the same order. It grows by one each time and gets quicker. Longest run wins.",best:"high",unit:"in a row"},
+ shell:{t:"The Shell Game",how:"The coin goes under a goblet, then the goblets shuffle. Tap the goblet hiding the coin. Six rounds, more shuffles and faster each time.",best:"high",unit:"found"},
+ stroop:{t:"Colour Clash",how:"A colour word appears written in a different colour of ink. Tap the colour of the INK, not what the word says. Fifteen rounds, every wrong tap adds 2 seconds.",best:"low",unit:"s"},
+ trapdoor:{t:"Trap Doors",how:"Nine doors. One swings open for a moment: tap it while it is open for a point. Tap a shut door and lose one. Twelve doors, quicker as you go.",best:"high",unit:"doors"},
+ crows:{t:"Count the Crows",how:"A flock of crows flashes up for a moment. Type how many you saw. Five flocks. The smallest total error wins.",best:"low",unit:"off"},
+ mirror:{t:"Mirror Arrows",how:"An arrow appears. Tap the OPPOSITE direction. Twenty arrows, every wrong tap adds a second.",best:"low",unit:"s"},
+ catapult:{t:"The Catapult",how:"The arm swings: tap to lock the angle. The power rises and falls: tap to lock it. Hit the tower. Direct hit 10, close 7, 4 or 2. Five shots.",best:"high",unit:"points"},
+ stack:{t:"Crate Stack",how:"A crate swings across the top. Tap to drop it on the pile. Any overhang is sliced off, so the crates get narrower. Stack as many as you can.",best:"high",unit:"crates"},
+ slide:{t:"Coin Slide",how:"Flick the coin up the table. Closest to the far edge scores most: 10, 7, 4 or 2. Over the edge scores nothing. Five slides.",best:"high",unit:"points"},
+ knives:{t:"Knife Throw",how:"The log spins, speeding up and slowing down. Tap to throw a knife into it. Hit a knife already in the log and you are out. Twelve knives to land.",best:"high",unit:"knives"},
+ maze:{t:"Key Maze",how:"Drag the key along the passage to the lock. Touch a wall and the key goes back to the start with a 3 second penalty. Fastest wins.",best:"low",unit:"s"},
+ wire:{t:"Steady Hand",how:"Drag the ring along the wire to the red end without straying off it. Every time you leave the wire costs 2 seconds. Fastest wins.",best:"low",unit:"s"},
+ pattern:{t:"Pattern Grid",how:"A pattern of lit stones flashes up. Tap the same stones. One more stone each level, up to ten levels.",best:"high",unit:"levels"},
+ shadow:{t:"Shadow Match",how:"A shape appears, then four shadows. Tap the shadow with the same shape, whatever way round it is. Ten rounds, every wrong tap adds 2 seconds.",best:"low",unit:"s"},
+ potions:{t:"Potion Drops",how:"Potion drops fall in three colours. The witch calls a colour at the top, and keeps changing her mind. Slide the cauldron to catch only that colour: 1 point each, a wrong colour costs 1. 20 seconds.",best:"high",unit:"drops"},
+ rocks:{t:"Rockfall",how:"Rocks tumble from the battlements. Slide your finger to move the knight out of the way. The longer you survive, the better.",best:"high",unit:"s"},
+ juggle:{t:"Juggle",how:"Keep the golden ball in the air. Tap it to knock it back up: tap one side to send it the other way. Drop it and you are done.",best:"high",unit:"taps"},
+ rhythm:{t:"Sword Clash",how:"Blades slide down to the line. Tap the moment each one reaches it: perfect 3, good 2, late 1. Sixteen strikes and the tempo climbs.",best:"high",unit:"points"}
+});
+Object.assign(ARMBOT,{
+ hurdles:()=>2+rnd(11),broom:()=>20+rnd(60),row:()=>35+rnd(40),tunnel:()=>Math.round((15+rnd(90))/10*10)/10,simon:()=>3+rnd(8),shell:()=>2+rnd(4),stroop:()=>14+rnd(14),trapdoor:()=>4+rnd(7),
+ crows:()=>3+rnd(14),mirror:()=>12+rnd(14),catapult:()=>8+rnd(30),stack:()=>3+rnd(9),slide:()=>8+rnd(28),knives:()=>3+rnd(9),maze:()=>Math.round((60+rnd(180))/10*10)/10,wire:()=>Math.round((50+rnd(160))/10*10)/10,
+ pattern:()=>2+rnd(6),shadow:()=>12+rnd(16),potions:()=>5+rnd(10),rocks:()=>Math.round((40+rnd(200))/10*10)/10,juggle:()=>3+rnd(14),rhythm:()=>14+rnd(30)
+});
+ADV.push(
+{name:"The Rookery",fun:true,rounds:[
+ {m:{type:"team",game:"ravens"},a:"hurdles",s:"Tap at least two doves on purpose."},
+ {m:{type:"target"},a:"simon",s:"Lock in the number 2."},
+ {m:{type:"team",game:"archery"},a:"stroop",s:"Score 0 with at least two of your five arrows."},
+ {m:{type:"bridge"},a:"shell",s:"Say the word \"build\" at least four times on the call before locking in."}]},
+{name:"The Spider Loft",fun:true,rounds:[
+ {m:{type:"team",game:"spiders"},a:"trapdoor",s:"Let at least five spiders reach the floor untouched."},
+ {m:{type:"quiz",set:"A"},a:"broom",s:"Answer the first question wrong on purpose."},
+ {m:{type:"team",game:"candles"},a:"crows",s:"Tap three dark candles on purpose."},
+ {m:{type:"memory",pool:"ocean"},a:"catapult",s:"Type the word SPIDER in your list. It will not be one of the words."}]},
+{name:"The Kitchens",fun:true,rounds:[
+ {m:{type:"team",game:"rats"},a:"mirror",s:"Tap the cat at least once."},
+ {m:{type:"estimate"},a:"knives",s:"Submit a guess that ends in 5."},
+ {m:{type:"team",game:"bellows"},a:"pattern",s:"Let the fire gutter to nothing at least twice."},
+ {m:{type:"draw"},a:"slide",s:"Guess the word RAT at least once, whatever is being drawn."}]},
+{name:"The Haunted Wing",fun:true,rounds:[
+ {m:{type:"team",game:"ghosts"},a:"stack",s:"Tap at least three faint ghosts."},
+ {m:{type:"code"},a:"maze",s:"Submit a guess that ends in 7."},
+ {m:{type:"team",game:"bells"},a:"rocks",s:"Let the rope slip on at least two pulls."},
+ {m:{type:"scatter",set:"b"},a:"wire",s:"Give a one-letter answer to one prompt."}]},
+{name:"The Lily Pond",fun:true,rounds:[
+ {m:{type:"team",game:"frogs"},a:"juggle",s:"Tap at least two toads."},
+ {m:{type:"heist"},a:"shadow",s:"Play your lowest card within 3 seconds of the heist starting."},
+ {m:{type:"team",game:"cannons"},a:"rhythm",s:"Let at least four cannonballs hit the wall."},
+ {m:{type:"meld",set:"c"},a:"potions",s:"On one prompt, type a word that starts with the letter Z."}]},
+{name:"The Bell Tower",fun:true,rounds:[
+ {m:{type:"team",game:"ravens"},a:"tunnel",s:"Never tap a golden raven."},
+ {m:{type:"riddles"},a:"row",s:"Submit the answer CASTLE to any riddle."},
+ {m:{type:"team",game:"spiders"},a:"hurdles",s:"Tap a bee on purpose."},
+ {m:{type:"chain"},a:"simon",s:"Take at least 8 seconds over your first animal."}]},
+{name:"The Armoury Yard",fun:true,rounds:[
+ {m:{type:"team",game:"archery"},a:"stroop",s:"Shoot your first arrow without waiting for the target."},
+ {m:{type:"map"},a:"shell",s:"Pick a square in a corner for your first dig."},
+ {m:{type:"team",game:"candles"},a:"trapdoor",s:"Score fewer than 5 points."},
+ {m:{type:"draw"},a:"broom",s:"When it is your turn to draw, draw the wrong thing for the first 15 seconds."}]},
+{name:"The Great Kitchen Fire",fun:true,rounds:[
+ {m:{type:"team",game:"bellows"},a:"crows",s:"Let the fire roar over the top at least once."},
+ {m:{type:"quiz",set:"B"},a:"catapult",s:"Change your mind out loud on the call during a question."},
+ {m:{type:"team",game:"rats"},a:"mirror",s:"Let at least six rats cross untouched."},
+ {m:{type:"sync"},a:"knives",s:"Tap within one second of someone else, causing a reset."}]},
+{name:"The Chandlery",fun:true,rounds:[
+ {m:{type:"team",game:"ghosts"},a:"pattern",s:"Score more than 12 points on your own."},
+ {m:{type:"memory",pool:"forest"},a:"slide",s:"Type exactly five words, no more, no fewer."},
+ {m:{type:"team",game:"frogs"},a:"stack",s:"Score exactly 3 points."},
+ {m:{type:"meld",set:"d"},a:"maze",s:"On one prompt, type the word GHOST."}]},
+{name:"The Siege",fun:true,rounds:[
+ {m:{type:"team",game:"cannons"},a:"rocks",s:"Tap the wall at least twice when there is no ball on it."},
+ {m:{type:"target"},a:"wire",s:"Lock in the number 9."},
+ {m:{type:"team",game:"bells"},a:"juggle",s:"Score exactly 0 on your first pull."},
+ {m:{type:"draw"},a:"shadow",s:"When it is your turn to draw, add a crown to it."}]},
+{name:"The Night Watch",fun:true,rounds:[
+ {m:{type:"team",game:"spiders"},a:"rhythm",s:"Score more than 10 points on your own."},
+ {m:{type:"bridge"},a:"potions",s:"Be the second player to lock in."},
+ {m:{type:"team",game:"archery"},a:"tunnel",s:"Score a bullseye and then say nothing about it on the call."},
+ {m:{type:"scatter",set:"c"},a:"row",s:"Give the same answer as another player for one prompt."}]},
+{name:"The Carnival",fun:true,rounds:[
+ {m:{type:"team",game:"candles"},a:"hurdles",s:"Snuff at least ten candles on your own."},
+ {m:{type:"estimate"},a:"simon",s:"Submit a guess that ends in 0."},
+ {m:{type:"team",game:"ravens"},a:"stroop",s:"Tap only golden ravens for the first 10 seconds."},
+ {m:{type:"quiz",set:"C"},a:"shell",s:"Answer the last question wrong on purpose."}]}
+);
 /* ---------- client ---------- */
 const $=s=>document.querySelector(s),app=$("#app");
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -1108,7 +1634,7 @@ let offT=null;function setOnline(o){online=o;clearTimeout(offT);if(o||!ME){$("#n
    networks never need a direct connection to each other (that is what kept people stuck "knocking").
    Two relays are used at once and messages are de-duplicated, so one relay going down does not stop the game.
    Payloads are encrypted with a key derived from the room code. */
-const BUILD="6";
+const BUILD="7";
 const RELAYS=["wss://broker.emqx.io:8084/mqtt","wss://broker.hivemq.com:8884/mqtt"];
 const NET={clients:[],key:null,code:"",cid:"",seen:new Map(),seq:0,gen:0};
 function b64(u){let s="";for(const b of u)s+=String.fromCharCode(b);return btoa(s)}
@@ -1251,7 +1777,7 @@ const lock=(msg,done,n)=>`<div class="panel center">${msg?`<p class="lede">${msg
 function wireHold(){app.querySelectorAll(".hold").forEach(el=>{const k=el.dataset.hk;if(UI.holding&&UI.holding===k)el.classList.add("show");el.addEventListener("pointerdown",e=>{e.preventDefault();UI.holding=k;el.classList.add("show")});el.addEventListener("contextmenu",e=>e.preventDefault())})}
 function releaseHold(){UI.holding=null;document.querySelectorAll(".hold.show").forEach(el=>el.classList.remove("show"))}
 document.addEventListener("pointerup",releaseHold);document.addEventListener("pointercancel",releaseHold);
-function fmtScore(t,v,roll){if(v==null)return "no score";if(["lock","arrows","shade","spell"].includes(t))return v+" s";if(t==="pairs")return v+" flips";if(t==="catch")return v+" coins";if(t==="whack")return v+" ghosts";if(t==="flap")return v+" walls";if(t==="nerve")return v>0?Number(v).toFixed(1)+" s":"Boom";switch(t){case "reaction":return v>=99999?"Too early":v+" ms";case "taps":return v+" taps";case "maths":return v+" s";case "tenseconds":return Number(v).toFixed(2)+" s off";case "digits":return v+" digits";case "bid":return v+" gold";case "dice":return roll?roll[0]+" + "+roll[1]+" = "+v:v;case "higherlower":return v+" in a row"}return v}
+function fmtScore(t,v,roll){if(v==null)return "no score";if(["lock","arrows","shade","spell"].includes(t))return v+" s";if(t==="pairs")return v+" flips";if(t==="catch")return v+" coins";if(t==="whack")return v+" ghosts";if(t==="flap")return v+" walls";if(t==="nerve")return v>0?Number(v).toFixed(1)+" s":"Boom";switch(t){case "reaction":return v>=99999?"Too early":v+" ms";case "taps":return v+" taps";case "maths":return v+" s";case "tenseconds":return Number(v).toFixed(2)+" s off";case "digits":return v+" digits";case "bid":return v+" gold";case "dice":return roll?roll[0]+" + "+roll[1]+" = "+v:v;case "higherlower":return v+" in a row"}const u=AINFO[t]&&AINFO[t].unit;if(u){const num=u==="s"?Number(v).toFixed(1):v;return u==="off"?num+" off":u==="in a row"?num+" in a row":num+" "+u}return v}
 
 const SCENE_FOR={lobby:"castle",role:"castle",debate:"table",vote:"table",vreveal:"table",banish:"gates",night:"corridor",reveal:"corridor",morning:"dawn",scores:"treasure",final:"treasure",finale:"treasure"};
 let sceneNow="";
@@ -1468,9 +1994,9 @@ function startGame(type,seed){const el=$("#ag");if(!el)return;A.active=true;cons
   const move=e=>{const r=cv.getBoundingClientRect();bx=Math.max(26,Math.min(294,(e.clientX-r.left)*cv.width/r.width))};
   const draw=(dt,el_)=>{x.fillStyle="#0b0910";x.fillRect(0,0,320,420);while(si<spawnAt.length&&spawnAt[si].t<=el_){coins.push({x:spawnAt[si].x,y:-10,v:spawnAt[si].v,vx:spawnAt[si].vx||0,skull:spawnAt[si].skull});si++}
    coins.forEach(cn=>{cn.y+=cn.v*dt;cn.x+=cn.vx*dt;if(cn.x<12){cn.x=12;cn.vx=Math.abs(cn.vx)}if(cn.x>308){cn.x=308;cn.vx=-Math.abs(cn.vx)}if(cn.skull){x.fillStyle="#d8d2c4";x.beginPath();x.arc(cn.x,cn.y-2,10,0,7);x.fill();x.fillRect(cn.x-6,cn.y+4,12,7);x.fillStyle="#111";x.beginPath();x.arc(cn.x-4,cn.y-3,2.6,0,7);x.arc(cn.x+4,cn.y-3,2.6,0,7);x.fill()}else{const g=x.createRadialGradient(cn.x-3,cn.y-3,2,cn.x,cn.y,10);g.addColorStop(0,"#fff2c0");g.addColorStop(.6,"#d4a849");g.addColorStop(1,"#8a6420");x.fillStyle=g;x.beginPath();x.arc(cn.x,cn.y,10,0,7);x.fill()}});
-   coins=coins.filter(cn=>{if(cn.y>384&&cn.y<406&&Math.abs(cn.x-bx)<28){if(cn.skull){score=Math.max(0,score-3);FX.fail()}else{score++;FX.coin()}return false}return cn.y<432});
+   coins=coins.filter(cn=>{if(cn.y>384&&cn.y<406&&Math.abs(cn.x-bx)<28){if(cn.skull){score=Math.max(0,score-3);FX.fail();shake(200,6);popText(cn.x,370,"-3","#e04a40")}else{score++;FX.coin();burst(cn.x,392,"#f2c230",7,150)}return false}return cn.y<432});
    x.fillStyle="#7d6534";x.fillRect(bx-26,392,52,22);x.fillStyle="#c9a45c";x.fillRect(bx-30,388,60,6);x.fillStyle="#efe6d2";x.font="bold 20px Cinzel,serif";x.fillText(score,12,28);x.fillText(Math.max(0,total-el_/1000).toFixed(1),250,28)};
-  let last=0;const loop=ts=>{if(!last)last=ts;const dt=Math.min(0.05,(ts-last)/1000);last=ts;const el_=performance.now()-t0;draw(dt,el_);if(el_>=total*1000){run=false;send(score);return}A.raf=requestAnimationFrame(loop)};
+  let last=0;const loop=ts=>{if(!last)last=ts;const dt=Math.min(0.05,(ts-last)/1000);last=ts;const el_=performance.now()-t0;const sh=juiceBegin(x);draw(dt,el_);juiceDraw(x,dt);if(sh)x.restore();if(el_>=total*1000){run=false;banner(x,score+" coins");send(score);return}A.raf=requestAnimationFrame(loop)};
   draw(0,0);x.fillStyle="#efe6d2";x.font="18px Cormorant Garamond,serif";x.fillText("Catch coins, dodge skulls. Tap to start.",44,220);
   cv.onpointerdown=e=>{e.preventDefault();move(e);if(!run){run=true;t0=performance.now();A.raf=requestAnimationFrame(loop)}};cv.onpointermove=e=>{if(e.buttons||e.pointerType==="touch")move(e)}}
  else if(type==="whack"){let score=0,t0=0;const seq=[];let tq=0;while(tq<20000){tq+=480+R()*340;seq.push({t:tq,h:Math.floor(R()*9),d:Math.round(Math.max(280,650-tq/45)+R()*200),maid:R()<0.22})}
@@ -1491,9 +2017,10 @@ function startGame(type,seed){const el=$("#ag");if(!el)return;A.active=true;cons
    x.save();x.translate(70,by);x.rotate(Math.max(-0.5,Math.min(0.6,vy/400)));x.fillStyle="#2a2234";x.strokeStyle="#c9a45c";x.lineWidth=1.5;x.beginPath();x.moveTo(0,10);x.bezierCurveTo(-8,-6,-22,-10,-30,-2);x.bezierCurveTo(-22,-12,-10,-10,-4,-6);x.lineTo(0,-10);x.lineTo(4,-6);x.bezierCurveTo(10,-10,22,-12,30,-2);x.bezierCurveTo(22,-10,8,-6,0,10);x.fill();x.stroke();x.restore();
    x.fillStyle="#efe6d2";x.font="bold 22px Cinzel,serif";x.fillText(score,14,30)};
   const loop=ts=>{if(!last)last=ts;const dt=Math.min(0.04,(ts-last)/1000);last=ts;vy+=820*dt;by+=vy*dt;dist+=(125+Math.min(60,score*4))*dt;
-   for(const w of walls){const wx=w.x-dist;if(!w.passed&&wx+30<70){w.passed=true;score++;FX.chime()}if(wx<86&&wx+30>54&&(by-9<w.gap-GAP/2||by+9>w.gap+GAP/2))over=true}
-   if(by>420||by<-20)over=true;draw();if(over){x.fillStyle="rgba(0,0,0,.6)";x.fillRect(0,0,320,420);x.fillStyle="#efe6d2";x.font="bold 26px Cinzel,serif";x.fillText(score+" walls",96,210);FX.fail();send(score);return}A.raf=requestAnimationFrame(loop)};
+   for(const w of walls){const wx=w.x-dist;if(!w.passed&&wx+30<70){w.passed=true;score++;FX.chime();burst(wx+15,w.gap,"#c9a45c",6,120);popText(70,by-40,"+1")}if(wx<86&&wx+30>54&&(by-9<w.gap-GAP/2||by+9>w.gap+GAP/2))over=true}
+   if(by>420||by<-20)over=true;const sh=juiceBegin(x);draw();juiceDraw(x,dt);if(sh)x.restore();if(over){shake(300,8);banner(x,score+" walls","Hit the castle");FX.fail();send(score);return}A.raf=requestAnimationFrame(loop)};
   draw();x.fillStyle="#efe6d2";x.font="18px Cormorant Garamond,serif";x.fillText("Tap to flap. Tap to start.",82,220);cv.onpointerdown=e=>{e.preventDefault();if(over)return;if(!run){run=true;last=0;A.raf=requestAnimationFrame(loop)}vy=-300}}
+ else if(typeof GAMES2!=="undefined"&&GAMES2[type]){try{GAMES2[type](el,R,send,set)}catch(e){console.error(e);A.active=false}}
  else{A.active=false}
 }
 function flyCoins(n){try{const pot=$("#potpill");if(!pot)return;const r=pot.getBoundingClientRect();const cx=innerWidth/2,cy=innerHeight*0.45;for(let i=0;i<n;i++){const e=document.createElement("i");e.className="flycoin";e.style.left=(cx-12+(Math.random()-0.5)*120)+"px";e.style.top=(cy-12+(Math.random()-0.5)*80)+"px";document.body.appendChild(e);
@@ -1508,7 +2035,7 @@ function startTeam(game,seed){const el=$("#tg");if(!el)return;A.active=true;cons
  if(game==="squash"||game==="lanterns"){const secs=TEAM[game].secs;let score=0,t0=0,running=false,want=0;const COLS=["Red","Blue","Green","Gold"],CSS=["#b03030","#3a6ad0","#3a9a4a","#c9a45c"];
   const ar=arena(el,`<div class="hud"><span id="ts">0</span><span class="want" id="tw"></span><span id="tt">${secs}.0</span></div><button class="btn big" id="go" style="position:absolute;left:8%;right:8%;top:45%;width:84%">Start</button>`);
   const setWant=()=>{want=(want+1+Math.floor(R()*3))%4;const w=$("#tw");if(w)w.innerHTML=`Light <b style="background:${CSS[want]}">${COLS[want]}</b>`};
-  const bump=(d,el_)=>{score=Math.max(0,score+d);$("#ts").textContent=score;if(d>0)FX.chime();else{FX.fail();if(el_)el_.classList.add("bad")}};
+  const bump=(d,el_)=>{score=Math.max(0,score+d);$("#ts").textContent=score;if(d>0){FX.chime();buzz(8)}else{FX.fail();if(el_)el_.classList.add("bad");ar.classList.add("shake");setTimeout(()=>ar.classList.remove("shake"),250)}if(el_&&el_.isConnected)arenaPop(ar,el_,(d>0?"+":"")+d,d>0)};
   const spawn=()=>{if(!running)return;const el_=performance.now()-t0,prog=Math.min(1,el_/(secs*1000));const s=document.createElement("div");
    if(game==="squash"){const r=R();const kind=r<0.16?"owl":r<0.26?"gold":"bat";s.className=kind==="owl"?"owl":"bat"+(kind==="gold"?" gold":"");s.innerHTML=kind==="owl"?'<svg viewBox="0 0 64 64"><ellipse cx="32" cy="38" rx="22" ry="24" fill="#5a4630" stroke="#c9a45c" stroke-width="1.5"/><circle cx="23" cy="30" r="7" fill="#f3e6c8"/><circle cx="41" cy="30" r="7" fill="#f3e6c8"/><circle cx="23" cy="30" r="3" fill="#111"/><circle cx="41" cy="30" r="3" fill="#111"/><path d="M28 38 L36 38 L32 45Z" fill="#e0a040"/><path d="M14 16 L24 24 M50 16 L40 24" stroke="#5a4630" stroke-width="5" stroke-linecap="round"/></svg>':BATSVG;
     const life=kind==="owl"?1600:kind==="gold"?650:Math.round(1150-prog*500+R()*300);s.style.left=(6+R()*76)+"%";s.style.top=(8+R()*70)+"%";ar.appendChild(s);let hit=false;
@@ -1518,8 +2045,8 @@ function startTeam(game,seed){const el=$("#tg");if(!el)return;A.active=true;cons
     requestAnimationFrame(()=>{s.style.transition=`top ${life}ms linear, left ${life}ms ease-in-out`;s.style.top="-16%";s.style.left=(parseFloat(s.style.left)+(R()-0.5)*24)+"%"});let hit=false;
     s.onpointerdown=e=>{e.preventDefault();if(hit)return;hit=true;if(col===want){bump(1);s.classList.add("hit")}else{bump(-1,s)}timers.push(setTimeout(()=>s.remove(),420))};
     timers.push(setTimeout(()=>{if(!hit){s.classList.add("gone");timers.push(setTimeout(()=>s.remove(),220))}},life));timers.push(setTimeout(spawn,Math.round(520-prog*160+R()*420)))}};
-  $("#go").onclick=()=>{$("#go").remove();running=true;t0=performance.now();if(game==="squash")sfx("bats",0.7);if(game==="lanterns"){setWant();const wiv=setInterval(()=>{if(!running){clearInterval(wiv);return}setWant()},5500)}spawn();if(game==="squash")timers.push(setTimeout(spawn,300));
-   const iv=setInterval(()=>{const l=Math.max(0,secs-(performance.now()-t0)/1000);const tt=$("#tt");if(tt)tt.textContent=l.toFixed(1);if(l<=0||!$("#ar")){clearInterval(iv);running=false;timers.forEach(clearTimeout);if($("#ar")){ar.innerHTML=`<p class="lede center" style="padding-top:40%">${score} points</p>`;send(score)}}},100)}}
+  $("#go").onclick=()=>{$("#go").remove();countdown(ar,()=>{if(!$("#ar"))return;running=true;t0=performance.now();if(game==="squash")sfx("bats",0.7);if(game==="lanterns"){setWant();const wiv=setInterval(()=>{if(!running){clearInterval(wiv);return}setWant()},5500)}spawn();if(game==="squash")timers.push(setTimeout(spawn,300));
+   const iv=setInterval(()=>{const l=Math.max(0,secs-(performance.now()-t0)/1000);const tt=$("#tt");if(tt)tt.textContent=l.toFixed(1);if(l<=0||!$("#ar")){clearInterval(iv);running=false;timers.forEach(clearTimeout);if($("#ar")){ar.innerHTML=`<p class="lede center" style="padding-top:40%">${score} points</p>`;send(score)}}},100)})}}
  else if(game==="portcullis"){let drop=0,score=0,falling=false,t0=0,waiting=false;const dur=1500,delays=Array.from({length:5},()=>700+R()*1900),stutters=Array.from({length:5},()=>R()<0.4);
   const ar=arena(el,`<div class="hud"><span id="ts">0</span><span>Drop <b id="td">1</b> of 5</span></div><div class="gate" id="gt"></div><div class="floor"></div><button class="btn big" id="go" style="position:absolute;left:8%;right:8%;top:45%;width:84%">Start</button><p class="small center" id="tm" style="position:absolute;bottom:3%;left:0;right:0;margin:0"></p>`);
   const gate=$("#gt");const fin=()=>{ar.innerHTML=`<p class="lede center" style="padding-top:40%">${score} points</p>`;send(score)};
@@ -1527,7 +2054,8 @@ function startTeam(game,seed){const el=$("#tg");if(!el)return;A.active=true;cons
    timers.push(setTimeout(()=>{waiting=false;falling=true;t0=performance.now();const stutter=stutters[drop];if(stutter){gate.style.transition=`top ${Math.round(dur*0.45)}ms cubic-bezier(.45,0,.9,1)`;gate.style.top="-20%";timers.push(setTimeout(()=>{gate.style.transition=`top ${Math.round(dur*0.55)}ms cubic-bezier(.3,0,1,1)`;gate.style.top="42%"},Math.round(dur*0.45)+320));t0=performance.now()+320}else{gate.style.transition=`top ${dur}ms cubic-bezier(.45,0,1,1)`;gate.style.top="42%"}timers.push(setTimeout(()=>FX.thud(),stutter?dur+320:dur));timers.push(setTimeout(()=>{if(falling){falling=false;$("#tm").textContent="Too late";FX.fail();drop++;timers.push(setTimeout(next,800))}},dur+1200))},delays[drop]))};
   ar.onpointerdown=e=>{if(e.target.id==="go")return;e.preventDefault();if(waiting){$("#tm").textContent="Wait for it…";return}if(!falling)return;falling=false;
    const err=Math.abs((performance.now()-t0)-dur),pts=err<70?10:err<150?7:err<280?4:err<450?2:0;score+=pts;$("#ts").textContent=score;$("#tm").textContent=pts===10?"Perfect! +10":pts?"+"+pts:"Missed";if(pts>=7)FX.chime();else FX.fail();drop++;timers.push(setTimeout(next,900))};
-  $("#go").onclick=()=>{$("#go").remove();next()}}
+  $("#go").onclick=()=>{$("#go").remove();countdown(ar,()=>{if($("#ar"))next()})}}
+ else if(typeof TEAM2!=="undefined"&&TEAM2[game]){try{TEAM2[game](el,R,send,timers)}catch(e){console.error(e);A.active=false}}
  else A.active=false;
 }
 function drawCoins(seed,count){const c=$("#cv");if(!c)return;const R=rng(seed),x=c.getContext("2d");x.fillStyle="#1a1409";x.fillRect(0,0,c.width,c.height);for(let i=0;i<count;i++){const px=18+R()*(c.width-36),py=18+R()*(c.height-36),r=8+R()*4;const g=x.createRadialGradient(px-3,py-3,2,px,py,r);g.addColorStop(0,"#fff2c0");g.addColorStop(.5,"#d4a849");g.addColorStop(1,"#8a6420");x.fillStyle=g;x.beginPath();x.arc(px,py,r,0,7);x.fill();x.strokeStyle="#f4dc98";x.lineWidth=1;x.stroke()}}
