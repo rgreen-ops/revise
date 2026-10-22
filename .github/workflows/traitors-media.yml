@@ -39,7 +39,12 @@ jobs:
                   open(dest, "wb").write(data)
                   print("saved", name, len(data)); ok += 1
               except Exception as e:
-                  print("FAILED", name, e)
+                  print("FAILED", name, repr(e))
+                  try:
+                      body = e.read()[:300] if hasattr(e, "read") else b""
+                      print("BODY", body)
+                  except Exception:
+                      pass
           print(ok, "of", len(urls))
           PY
           ls -la bim-builder/traitors/media
