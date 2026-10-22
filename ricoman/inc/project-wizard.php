@@ -251,7 +251,7 @@ function ricoman_wizard_capture() {
 	}
 
 	// Notify the team (design enquiries can be routed via the filter).
-	$to   = apply_filters( 'ricoman_design_inbox', get_option( 'admin_email' ) );
+	$to   = apply_filters( 'ricoman_design_inbox', 'lightingdesign@ricoman.com' );
 	$body = sprintf( "New lighting design enquiry\n\nName: %s\nEmail: %s\n\n%s\n", $name, $email, $message );
 	wp_mail(
 		$to,
