@@ -372,6 +372,31 @@ canvas.drawc{display:block;width:100%;aspect-ratio:1;border:2px solid var(--gold
 .arena.bg-ramparts{background:linear-gradient(90deg,rgba(0,0,0,.4),transparent 30%),linear-gradient(#0a0a1a,#14121c)}
 .arena.bg-range{background:linear-gradient(#1b2414,#0b100a)}
 .arena.bg-belfry{background:radial-gradient(ellipse at 50% 0%,rgba(201,164,92,.18),transparent 60%),linear-gradient(#14110c,#07060a)}
+
+/* ---- sprite look ---- */
+.spr{width:100%;height:100%;display:block;overflow:visible;filter:drop-shadow(0 3px 3px rgba(0,0,0,.55))}
+.spr .wl,.spr .wr{transform-box:fill-box;animation:flap .32s infinite alternate ease-in-out}
+.spr .wl{transform-origin:100% 50%}.spr .wr{transform-origin:0 50%;animation-name:flapr}
+@keyframes flap{from{transform:rotate(-22deg)}to{transform:rotate(18deg)}}
+@keyframes flapr{from{transform:rotate(22deg)}to{transform:rotate(-18deg)}}
+.bat,.owl{width:17%;aspect-ratio:1;margin:-8.5% 0 0 -8.5%}
+.fly{width:17%;aspect-ratio:1;margin:-8.5% 0 0 -8.5%;filter:none}
+.spider{width:15%;aspect-ratio:1;margin-left:-7.5%}
+.rat{width:20%;aspect-ratio:1;margin:-10% 0 0 -10%}
+.cat{width:25%;aspect-ratio:1;margin:-12.5% 0 0 -12.5%}
+.wraith{width:16%;aspect-ratio:1;margin:-8% 0 0 -8%}
+.frog,.toad{width:17%;aspect-ratio:1;margin:-8.5% 0 0 -8.5%}
+.ball{width:11%;aspect-ratio:1;margin:-5.5% 0 0 -5.5%}
+.tbar{position:absolute;left:0;right:0;top:0;height:5px;background:rgba(0,0,0,.4);z-index:2}
+.tbar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#c9a45c,#e7c983);transition:width .1s linear}
+.tbar i.hot{background:linear-gradient(90deg,#c3241c,#e04a40)}
+.scorepill,.timepill{background:rgba(13,11,9,.7);border:1px solid var(--gold-d);border-radius:14px;padding:2px 10px;font-size:16px;line-height:1.3}
+.goblet .cup{display:block;width:70px;height:70px;margin:0 auto;transform:translateY(0);transition:transform .3s}
+.goblet .coinp{display:block;width:30px;height:30px;margin:-10px auto 0}
+.goblet:not(.down) .cup{transform:translateY(-26px)}
+.garg button{aspect-ratio:1;padding:10px;background:var(--panel);border:3px solid var(--c);border-radius:10px;opacity:.55;touch-action:none}
+.bellico{position:absolute;left:50%;width:60px;height:60px;margin-left:-30px;top:2%}
+.flock i{position:absolute;width:40px;height:40px}
 </style></head><body>
 <div id="scene" aria-hidden="true"></div>
 <div id="wrap"><div id="bar" hidden></div><main id="app"></main></div>
@@ -1086,6 +1111,54 @@ Object.assign(SV,{
  },
  botNoteVotes(list){const c={};list.forEach(x=>{c[x.on]=(c[x.on]||0)+(x.d?2:1);const tgt=this.P(x.on);if(tgt&&tgt.bot){const m=this.bm(x.on);m.va[x.by]=(m.va[x.by]||0)+1}});this.G.lastTally=c}
 });
+/* ---------- cartoon sprite library ----------
+   Every sprite is a list of parts drawn in a 100 x 100 box: circles (c), ellipses (e), rounded rects (r) and SVG paths (p),
+   each with a fill and an outline. The same data renders as inline SVG for the arena games and through Path2D on canvas,
+   so everything shares one chunky, outlined look. */
+const INK="#15100a",LINE=3.2;
+const SPR={
+ bat:[{e:[50,60,16,13],f:"#5b3b8a"},{p:"M36 56 C26 40 10 34 2 44 C8 46 10 52 6 58 C14 56 20 60 22 68 C28 60 34 62 38 70 Z",f:"#4a2d75",g:"wl"},{p:"M64 56 C74 40 90 34 98 44 C92 46 90 52 94 58 C86 56 80 60 78 68 C72 60 66 62 62 70 Z",f:"#4a2d75",g:"wr"},{c:[50,46,13],f:"#5b3b8a"},{p:"M40 38 L36 22 L48 34 Z",f:"#5b3b8a"},{p:"M60 38 L64 22 L52 34 Z",f:"#5b3b8a"},{e:[50,64,9,7],f:"#8a63c2",s:0},{c:[45,45,3.4],f:"#fff",s:0},{c:[55,45,3.4],f:"#fff",s:0},{c:[45.6,45.6,1.6],f:INK,s:0},{c:[55.6,45.6,1.6],f:INK,s:0},{p:"M45 53 L47 58 L49 53 M51 53 L53 58 L55 53",f:"none",s:"#fff",w:2}],
+ gbat:[{e:[50,60,16,13],f:"#e2b43c"},{p:"M36 56 C26 40 10 34 2 44 C8 46 10 52 6 58 C14 56 20 60 22 68 C28 60 34 62 38 70 Z",f:"#c9962c",g:"wl"},{p:"M64 56 C74 40 90 34 98 44 C92 46 90 52 94 58 C86 56 80 60 78 68 C72 60 66 62 62 70 Z",f:"#c9962c",g:"wr"},{c:[50,46,13],f:"#e2b43c"},{p:"M40 38 L36 22 L48 34 Z",f:"#e2b43c"},{p:"M60 38 L64 22 L52 34 Z",f:"#e2b43c"},{e:[50,64,9,7],f:"#f6d87a",s:0},{c:[45,45,3.4],f:"#fff",s:0},{c:[55,45,3.4],f:"#fff",s:0},{c:[45.6,45.6,1.6],f:INK,s:0},{c:[55.6,45.6,1.6],f:INK,s:0}],
+ owl:[{e:[50,58,26,30],f:"#8a6a3a"},{e:[50,66,16,18],f:"#c9a978",s:0},{p:"M28 34 L22 14 L40 28 Z",f:"#8a6a3a"},{p:"M72 34 L78 14 L60 28 Z",f:"#8a6a3a"},{c:[39,44,11],f:"#f6efd8"},{c:[61,44,11],f:"#f6efd8"},{c:[40,45,5],f:INK,s:0},{c:[62,45,5],f:INK,s:0},{c:[42,43,1.8],f:"#fff",s:0},{c:[64,43,1.8],f:"#fff",s:0},{p:"M46 54 L54 54 L50 62 Z",f:"#e0a040"},{p:"M34 84 L40 94 M44 86 L46 96 M56 86 L54 96 M66 84 L60 94",f:"none",s:"#e0a040",w:3}],
+ raven:[{e:[48,58,26,16],f:"#2a2a3a"},{p:"M28 54 C40 40 62 40 70 52 C58 52 44 58 30 66 Z",f:"#3e3e58",s:0,g:"wl"},{p:"M62 44 C64 32 76 30 80 40 L80 48 Z",f:"#2a2a3a"},{c:[76,40,10],f:"#2a2a3a"},{p:"M84 40 L98 44 L84 48 Z",f:"#e0a040"},{c:[79,37,2.6],f:"#f6d87a",s:0},{c:[79.8,37.4,1.2],f:INK,s:0},{p:"M22 58 L6 48 L10 62 L4 70 L22 66 Z",f:"#2a2a3a"},{p:"M40 72 L36 86 M48 73 L48 87",f:"none",s:INK,w:3}],
+ graven:[{e:[48,58,26,16],f:"#e2b43c"},{p:"M28 54 C40 40 62 40 70 52 C58 52 44 58 30 66 Z",f:"#f6d87a",s:0,g:"wl"},{p:"M62 44 C64 32 76 30 80 40 L80 48 Z",f:"#e2b43c"},{c:[76,40,10],f:"#e2b43c"},{p:"M84 40 L98 44 L84 48 Z",f:"#8a5a1a"},{c:[79,37,2.6],f:INK,s:0},{p:"M22 58 L6 48 L10 62 L4 70 L22 66 Z",f:"#e2b43c"},{p:"M40 72 L36 86 M48 73 L48 87",f:"none",s:INK,w:3}],
+ dove:[{e:[48,58,26,16],f:"#f4f0e6"},{p:"M28 54 C40 40 62 40 70 52 C58 52 44 58 30 66 Z",f:"#d8d2c4",s:0,g:"wl"},{p:"M62 44 C64 32 76 30 80 40 L80 48 Z",f:"#f4f0e6"},{c:[76,40,10],f:"#f4f0e6"},{p:"M84 40 L96 44 L84 48 Z",f:"#e0a040"},{c:[79,37,2.6],f:INK,s:0},{p:"M22 58 L6 48 L10 62 L4 70 L22 66 Z",f:"#f4f0e6"},{p:"M40 72 L36 86 M48 73 L48 87",f:"none",s:"#e0a040",w:3}],
+ spider:[{p:"M38 46 L10 30 M38 54 L6 54 M38 62 L12 84 M62 46 L90 30 M62 54 L94 54 M62 62 L88 84",f:"none",s:INK,w:5},{p:"M38 46 L10 30 M38 54 L6 54 M38 62 L12 84 M62 46 L90 30 M62 54 L94 54 M62 62 L88 84",f:"none",s:"#3a3a3a",w:2.4},{e:[50,60,20,22],f:"#2b2b2b"},{e:[50,60,9,12],f:"#4a2a2a",s:0},{c:[50,36,12],f:"#2b2b2b"},{c:[45,34,3],f:"#ff4a3a",s:0},{c:[55,34,3],f:"#ff4a3a",s:0},{c:[47,40,1.6],f:"#ff4a3a",s:0},{c:[53,40,1.6],f:"#ff4a3a",s:0}],
+ bee:[{e:[36,34,16,10],f:"#dff1ff",g:"wl"},{e:[64,34,16,10],f:"#dff1ff",g:"wr"},{e:[50,58,26,18],f:"#f2c230"},{p:"M30 44 L30 72 M42 40 L42 76 M54 40 L54 76 M66 44 L66 72",f:"none",s:INK,w:7},{c:[78,52,12],f:"#1a1a1a"},{c:[82,49,2.6],f:"#fff",s:0},{p:"M20 60 L6 64",f:"none",s:INK,w:4}],
+ rat:[{p:"M20 62 C6 60 2 48 10 40",f:"none",s:"#d98a8a",w:5},{e:[52,62,26,16],f:"#8c7a6b"},{e:[54,70,16,8],f:"#c9b7a6",s:0},{c:[78,52,13],f:"#8c7a6b"},{c:[74,40,6],f:"#d98a8a"},{c:[84,40,6],f:"#d98a8a"},{c:[82,50,2.4],f:INK,s:0},{c:[90,56,3],f:"#d98a8a"},{p:"M90 54 L98 50 M90 58 L98 60",f:"none",s:"#eee",w:1.6},{p:"M44 76 L42 84 M60 76 L62 84",f:"none",s:"#d98a8a",w:4}],
+ cat:[{p:"M14 60 C2 58 2 40 12 36",f:"none",s:"#3b3b4a",w:6},{e:[44,64,28,16],f:"#3b3b4a"},{c:[72,46,16],f:"#3b3b4a"},{p:"M60 36 L58 16 L70 30 Z",f:"#3b3b4a"},{p:"M84 36 L86 16 L74 30 Z",f:"#3b3b4a"},{p:"M62 34 L61 24 L67 30 Z",f:"#d98a8a",s:0},{p:"M82 34 L83 24 L77 30 Z",f:"#d98a8a",s:0},{e:[66,46,4,5],f:"#f6d87a",s:0},{e:[78,46,4,5],f:"#f6d87a",s:0},{e:[66,46,1.4,4],f:INK,s:0},{e:[78,46,1.4,4],f:INK,s:0},{p:"M70 54 L72 56 L74 54",f:"none",s:INK,w:1.6},{p:"M34 78 L32 88 M54 78 L56 88",f:"none",s:"#3b3b4a",w:5}],
+ ghost:[{p:"M20 90 V46 A30 30 0 0 1 80 46 V90 L70 80 L60 90 L50 80 L40 90 L30 80 Z",f:"#eef0ff"},{c:[40,46,6],f:INK,s:0},{c:[60,46,6],f:INK,s:0},{c:[42,44,2],f:"#fff",s:0},{c:[62,44,2],f:"#fff",s:0},{e:[50,62,6,8],f:INK,s:0},{c:[30,58,5],f:"#f7c0d0",s:0},{c:[70,58,5],f:"#f7c0d0",s:0}],
+ frog:[{e:[50,62,34,22],f:"#5fbf4a"},{e:[50,72,20,10],f:"#a4e06a",s:0},{c:[34,38,13],f:"#5fbf4a"},{c:[66,38,13],f:"#5fbf4a"},{c:[34,38,8],f:"#fff",s:0},{c:[66,38,8],f:"#fff",s:0},{c:[36,39,4],f:INK,s:0},{c:[68,39,4],f:INK,s:0},{p:"M36 58 Q50 68 64 58",f:"none",s:INK,w:3},{p:"M14 70 L8 84 L22 80 M86 70 L92 84 L78 80",f:"none",s:INK,w:3}],
+ toad:[{e:[50,62,36,24],f:"#9a7a3a"},{e:[50,72,22,10],f:"#c9a978",s:0},{c:[32,40,14],f:"#9a7a3a"},{c:[68,40,14],f:"#9a7a3a"},{c:[32,40,7],f:"#f6d87a",s:0},{c:[68,40,7],f:"#f6d87a",s:0},{e:[32,40,2.5,5],f:INK,s:0},{e:[68,40,2.5,5],f:INK,s:0},{c:[40,58,3],f:"#6a4a1a",s:0},{c:[56,54,3],f:"#6a4a1a",s:0},{c:[48,66,2.5],f:"#6a4a1a",s:0},{p:"M34 60 Q50 64 66 60",f:"none",s:INK,w:3}],
+ ball:[{c:[50,50,34],f:"#3a3a40"},{c:[38,38,10],f:"#6a6a72",s:0},{c:[34,34,4],f:"#9a9aa2",s:0}],
+ coin:[{c:[50,50,36],f:"#e2b43c"},{c:[50,50,26],f:"#f6d87a",s:"#c9962c",w:2},{p:"M44 36 H58 M51 36 V64 M44 64 H58",f:"none",s:"#c9962c",w:5}],
+ skull:[{c:[50,44,30],f:"#ece6d8"},{r:[34,66,32,20,6],f:"#ece6d8"},{c:[39,44,8],f:INK,s:0},{c:[61,44,8],f:INK,s:0},{p:"M46 60 L50 54 L54 60 Z",f:INK,s:0},{p:"M40 76 V84 M48 76 V86 M56 76 V86 M64 76 V84",f:"none",s:INK,w:2.4}],
+ crate:[{r:[12,12,76,76,4],f:"#b07a3a"},{p:"M12 12 L88 88 M88 12 L12 88",f:"none",s:"#7a4f1e",w:5},{r:[12,12,76,76,4],f:"none",s:INK,w:LINE},{r:[12,12,76,14,2],f:"#8a5a26",s:0},{r:[12,74,76,14,2],f:"#8a5a26",s:0}],
+ knight:[{p:"M30 96 L34 52 H66 L70 96 Z",f:"#9fb3c4"},{r:[36,52,28,16,2],f:"#7f93a4",s:0},{c:[50,36,18],f:"#b8c8d4"},{r:[34,34,32,6,2],f:INK,s:0},{p:"M50 18 L44 6 L56 6 Z",f:"#c3241c"},{p:"M10 50 H36 V74 L23 86 L10 74 Z",f:"#8e1c1c"},{p:"M14 56 H32 M23 52 V80",f:"none",s:"#e2b43c",w:3},{p:"M64 52 L92 30",f:"none",s:"#d9d9d9",w:5},{p:"M64 52 L92 30",f:"none",s:INK,w:1.5}],
+ witch:[{p:"M50 50 L34 92 H66 Z",f:"#2a2234"},{c:[50,38,12],f:"#9ad66a"},{c:[46,37,2],f:INK,s:0},{c:[54,37,2],f:INK,s:0},{p:"M30 30 H70 L54 4 L46 4 Z",f:"#1a1424"},{r:[26,28,48,6,2],f:"#1a1424"},{r:[50,10,8,10,1],f:"#e2b43c",s:0},{p:"M10 82 L90 60",f:"none",s:"#8a6a3a",w:6},{p:"M10 82 L90 60",f:"none",s:INK,w:1.5},{p:"M90 60 L98 48 M90 60 L100 56 M90 60 L100 64 M90 60 L98 72",f:"none",s:"#e2b43c",w:3}],
+ horse:[{p:"M14 70 C8 50 24 36 50 38 L62 20 C68 12 80 12 84 20 L92 30 L80 36 C76 44 72 52 66 58 C60 70 36 74 14 70 Z",f:"#c98b3a"},{p:"M56 30 C62 18 74 16 80 22",f:"none",s:"#e9b36a",w:6},{p:"M18 68 C4 70 4 84 12 92",f:"none",s:"#7a4f1e",w:6},{p:"M28 72 L22 92 M40 74 L44 94 M58 70 L54 92 M66 66 L74 90",f:"none",s:"#7a4f1e",w:6},{c:[82,26,2.4],f:INK,s:0},{p:"M40 40 L36 14 L52 36 Z",f:"#8e1c1c"},{c:[44,10,7],f:"#b8c8d4"},{p:"M44 2 L40 -4 L48 -4 Z",f:"#c3241c",s:0}],
+ torch:[{r:[44,50,12,44,3],f:"#8a5a2a"},{p:"M34 52 H66 L62 40 H38 Z",f:"#5a3a1a"},{p:"M50 10 C62 18 70 30 58 42 C54 36 48 36 42 42 C30 30 38 18 50 10 Z",f:"#ff8a30"},{p:"M50 20 C56 26 58 34 52 40 C48 36 46 36 46 40 C42 34 46 26 50 20 Z",f:"#ffd36a",s:0}],
+ rock:[{p:"M20 70 L14 44 L34 22 L66 18 L88 40 L84 72 L58 86 L30 84 Z",f:"#777"},{p:"M34 30 L60 26 L74 40 L50 48 Z",f:"#9a9a9a",s:0},{p:"M40 56 L60 60 L52 74 Z",f:"#5a5a5a",s:0}],
+ knife:[{p:"M44 4 L56 4 L54 56 L46 56 Z",f:"#d9d9d9"},{p:"M50 4 L56 4 L54 56 L50 56 Z",f:"#a9a9a9",s:0},{r:[42,56,16,8,2],f:"#e2b43c"},{r:[45,64,10,32,3],f:"#4a2f14"}],
+ goblet:[{p:"M26 10 H74 L70 40 C68 54 56 60 50 60 C44 60 32 54 30 40 Z",f:"#e2b43c"},{p:"M34 16 H66 L62 36 C60 46 54 50 50 50 C46 50 40 46 38 36 Z",f:"#f6d87a",s:0},{r:[46,60,8,20,2],f:"#e2b43c"},{p:"M30 92 H70 L64 80 H36 Z",f:"#e2b43c"}],
+ gargoyle:[{p:"M20 90 V50 C20 30 34 20 50 20 C66 20 80 30 80 50 V90 Z",f:"#6a6a7a"},{p:"M30 30 L22 10 L42 24 Z",f:"#6a6a7a"},{p:"M70 30 L78 10 L58 24 Z",f:"#6a6a7a"},{e:[38,48,8,6],f:"#2a2a30",s:0},{e:[62,48,8,6],f:"#2a2a30",s:0},{c:[38,48,3],f:"#ff4a3a",s:0},{c:[62,48,3],f:"#ff4a3a",s:0},{p:"M32 68 Q50 60 68 68 L64 78 Q50 72 36 78 Z",f:"#2a2a30",s:0},{p:"M40 70 V76 M50 68 V76 M60 70 V76",f:"none",s:"#ece6d8",w:3}],
+ key:[{c:[30,50,18],f:"#e2b43c"},{c:[30,50,7],f:"#1a1408",s:0},{r:[46,45,48,10,2],f:"#e2b43c"},{r:[76,52,8,14,1],f:"#e2b43c",s:0},{r:[88,52,6,10,1],f:"#e2b43c",s:0}],
+ lock:[{p:"M30 46 V34 A20 20 0 0 1 70 34 V46",f:"none",s:"#9a9a9a",w:9},{p:"M30 46 V34 A20 20 0 0 1 70 34 V46",f:"none",s:INK,w:3},{r:[18,44,64,46,6],f:"#e2b43c"},{c:[50,62,6],f:INK,s:0},{r:[47,64,6,14,1],f:INK,s:0}],
+ bell:[{p:"M50 8 C66 8 72 24 72 44 C72 58 78 66 86 72 H14 C22 66 28 58 28 44 C28 24 34 8 50 8 Z",f:"#e2b43c"},{p:"M50 14 C60 14 64 26 64 42 C64 54 68 62 74 68 H26 C32 62 36 54 36 42 C36 26 40 14 50 14 Z",f:"#f6d87a",s:0},{r:[10,72,80,10,4],f:"#c9962c"},{c:[50,88,8],f:"#8a5a1a"}],
+ cannon:[{p:"M10 40 H70 L80 44 V60 L70 64 H10 Z",f:"#3a3a40"},{c:[30,70,16],f:"#5a3a1a"},{c:[30,70,6],f:"#2a1a0a",s:0},{r:[10,36,8,32,2],f:"#2a2a30",s:0}],
+ lantern:[{r:[40,8,20,8,2],f:"#5a4a30"},{p:"M34 16 H66 L70 70 H30 Z",f:"#ffb43b"},{p:"M40 22 H60 L62 64 H38 Z",f:"#fff1b8",s:0},{r:[28,70,44,10,3],f:"#5a4a30"},{p:"M34 16 H66 L70 70 H30 Z",f:"none",s:"#5a4a30",w:3}]
+};
+/* render a sprite as inline SVG; wings and other animated groups get a class so CSS can flap them */
+function spriteSVG(name,cls){const parts=SPR[name];if(!parts)return "";let out="";for(const q of parts){const st=q.s===0?"":` stroke="${q.s||INK}" stroke-width="${q.w||LINE}" stroke-linejoin="round" stroke-linecap="round"`;const fill=` fill="${q.f||"none"}"`;let el="";
+ if(q.c)el=`<circle cx="${q.c[0]}" cy="${q.c[1]}" r="${q.c[2]}"${fill}${st}/>`;else if(q.e)el=`<ellipse cx="${q.e[0]}" cy="${q.e[1]}" rx="${q.e[2]}" ry="${q.e[3]}"${fill}${st}/>`;else if(q.r)el=`<rect x="${q.r[0]}" y="${q.r[1]}" width="${q.r[2]}" height="${q.r[3]}" rx="${q.r[4]||0}"${fill}${st}/>`;else el=`<path d="${q.p}"${fill}${st}/>`;
+ out+=q.g?`<g class="${q.g}">${el}</g>`:el}
+ return `<svg class="spr ${cls||""}" viewBox="-4 -4 108 108" aria-hidden="true">${out}</svg>`}
+/* draw a sprite on a canvas: centred at (cx,cy), `size` pixels wide, rotated by rot radians, mirrored when flip */
+const P2={};
+function drawSprite(x,name,cx,cy,size,rot=0,flip=false){const parts=SPR[name];if(!parts)return;const k=size/100;x.save();x.translate(cx,cy);if(rot)x.rotate(rot);if(flip)x.scale(-1,1);x.scale(k,k);x.translate(-50,-50);x.lineJoin="round";x.lineCap="round";
+ for(const q of parts){let path=q._p;if(!path){let d;if(q.c)d=`M${q.c[0]+q.c[2]} ${q.c[1]} A${q.c[2]} ${q.c[2]} 0 1 0 ${q.c[0]-q.c[2]} ${q.c[1]} A${q.c[2]} ${q.c[2]} 0 1 0 ${q.c[0]+q.c[2]} ${q.c[1]} Z`;else if(q.e)d=`M${q.e[0]+q.e[2]} ${q.e[1]} A${q.e[2]} ${q.e[3]} 0 1 0 ${q.e[0]-q.e[2]} ${q.e[1]} A${q.e[2]} ${q.e[3]} 0 1 0 ${q.e[0]+q.e[2]} ${q.e[1]} Z`;else if(q.r){const [rx,ry,rw,rh,rr]=q.r;const r=rr||0;d=`M${rx+r} ${ry} H${rx+rw-r} A${r} ${r} 0 0 1 ${rx+rw} ${ry+r} V${ry+rh-r} A${r} ${r} 0 0 1 ${rx+rw-r} ${ry+rh} H${rx+r} A${r} ${r} 0 0 1 ${rx} ${ry+rh-r} V${ry+r} A${r} ${r} 0 0 1 ${rx+r} ${ry} Z`}else d=q.p;path=q._p=new Path2D(d)}
+  if(q.f&&q.f!=="none"){x.fillStyle=q.f;x.fill(path)}if(q.s!==0){x.strokeStyle=q.s||INK;x.lineWidth=q.w||LINE;x.stroke(path)}}
+ x.restore()}
 /* ---------- arcade games, batch two ----------
    TEAM2: group missions played in the arena (everyone's points are added up against a target).
    GAMES2: solo armoury games (one score per player, best wins).
@@ -1114,23 +1187,11 @@ function countdown(host,cb){const o=document.createElement("div");o.className="c
 function arenaPop(ar,el,txt,good){const r=ar.getBoundingClientRect(),b=el.getBoundingClientRect();const x=(b.left+b.width/2-r.left)/r.width*100,y=(b.top+b.height/2-r.top)/r.height*100;const p=document.createElement("i");p.className="popt "+(good?"good":"badt");p.textContent=txt;p.style.left=x+"%";p.style.top=y+"%";ar.appendChild(p);setTimeout(()=>p.remove(),750);if(good){const sp=document.createElement("i");sp.className="spark";sp.style.left=x+"%";sp.style.top=y+"%";ar.appendChild(sp);setTimeout(()=>sp.remove(),500)}}
 const TEAM2={},GAMES2={};
 const SP=(cls,html,left,top)=>{const d=document.createElement("div");d.className=cls;if(html)d.innerHTML=html;if(left!=null)d.style.left=left+"%";if(top!=null)d.style.top=top+"%";return d};
-const ICON={
- raven:'<svg viewBox="0 0 64 40"><path d="M6 24 C14 12 26 10 34 16 L40 8 L42 18 C50 18 56 22 60 30 C50 28 44 30 38 34 L30 32 C22 36 14 34 6 24Z" fill="#1b1a22" stroke="#6b6880" stroke-width="1.2"/><circle cx="39" cy="15" r="1.6" fill="#ffd36a"/></svg>',
- gold:'<svg viewBox="0 0 64 40"><path d="M6 24 C14 12 26 10 34 16 L40 8 L42 18 C50 18 56 22 60 30 C50 28 44 30 38 34 L30 32 C22 36 14 34 6 24Z" fill="#d9ab45" stroke="#fff0c0" stroke-width="1.2"/><circle cx="39" cy="15" r="1.6" fill="#2a1a00"/></svg>',
- dove:'<svg viewBox="0 0 64 40"><path d="M6 24 C14 12 26 10 34 16 L40 8 L42 18 C50 18 56 22 60 30 C50 28 44 30 38 34 L30 32 C22 36 14 34 6 24Z" fill="#f1ece0" stroke="#b9b2a0" stroke-width="1.2"/><circle cx="39" cy="15" r="1.6" fill="#333"/></svg>',
- spider:'<svg viewBox="0 0 48 48"><g stroke="#222" stroke-width="3" stroke-linecap="round"><path d="M18 20 L6 10 M18 26 L4 26 M18 32 L8 42 M30 20 L42 10 M30 26 L44 26 M30 32 L40 42"/></g><ellipse cx="24" cy="28" rx="11" ry="12" fill="#1a1a1a" stroke="#555" stroke-width="1.5"/><circle cx="24" cy="15" r="6" fill="#1a1a1a"/><circle cx="22" cy="14" r="1.5" fill="#ff5a4a"/><circle cx="26" cy="14" r="1.5" fill="#ff5a4a"/></svg>',
- bee:'<svg viewBox="0 0 48 40"><ellipse cx="18" cy="12" rx="9" ry="6" fill="#cfe8ff" opacity=".8"/><ellipse cx="30" cy="12" rx="9" ry="6" fill="#cfe8ff" opacity=".8"/><ellipse cx="24" cy="24" rx="15" ry="10" fill="#f2c230"/><path d="M14 18 L14 30 M22 15 L22 33 M30 15 L30 33" stroke="#1a1a1a" stroke-width="4"/><circle cx="37" cy="22" r="5" fill="#1a1a1a"/></svg>',
- rat:'<svg viewBox="0 0 64 36"><path d="M4 22 Q10 14 20 16" stroke="#8a7a6a" stroke-width="2" fill="none"/><ellipse cx="34" cy="22" rx="18" ry="10" fill="#5a4f47" stroke="#2b2420" stroke-width="1.5"/><circle cx="50" cy="18" r="7" fill="#5a4f47" stroke="#2b2420" stroke-width="1.5"/><circle cx="52" cy="11" r="3" fill="#8a7a6a"/><circle cx="54" cy="17" r="1.4" fill="#111"/><path d="M57 20 L62 19" stroke="#ddd" stroke-width="1"/></svg>',
- cat:'<svg viewBox="0 0 64 44"><ellipse cx="30" cy="30" rx="22" ry="12" fill="#2a2a2e" stroke="#555" stroke-width="1.5"/><circle cx="48" cy="20" r="10" fill="#2a2a2e" stroke="#555" stroke-width="1.5"/><path d="M40 12 L42 2 L48 10 M56 12 L54 2 L48 10" fill="#2a2a2e" stroke="#555" stroke-width="1.5"/><circle cx="45" cy="19" r="2" fill="#ffd36a"/><circle cx="52" cy="19" r="2" fill="#ffd36a"/><path d="M8 28 Q0 20 6 12" stroke="#2a2a2e" stroke-width="4" fill="none" stroke-linecap="round"/></svg>',
- ghost:'<svg viewBox="0 0 48 56"><path d="M8 54 V24 A16 16 0 0 1 40 24 V54 L34 48 L28 54 L24 48 L20 54 L14 48Z" fill="#e8e4f4" stroke="#b7b0cc" stroke-width="1.5"/><circle cx="18" cy="24" r="3" fill="#222"/><circle cx="30" cy="24" r="3" fill="#222"/><ellipse cx="24" cy="34" rx="3" ry="4" fill="#222"/></svg>',
- frog:'<svg viewBox="0 0 56 44"><ellipse cx="28" cy="28" rx="22" ry="14" fill="#4f9a3a" stroke="#2c5e20" stroke-width="1.5"/><circle cx="18" cy="14" r="7" fill="#4f9a3a" stroke="#2c5e20" stroke-width="1.5"/><circle cx="38" cy="14" r="7" fill="#4f9a3a" stroke="#2c5e20" stroke-width="1.5"/><circle cx="18" cy="13" r="3" fill="#111"/><circle cx="38" cy="13" r="3" fill="#111"/><path d="M18 32 Q28 38 38 32" stroke="#2c5e20" stroke-width="2" fill="none"/></svg>',
- toad:'<svg viewBox="0 0 56 44"><ellipse cx="28" cy="28" rx="24" ry="15" fill="#7a5a2a" stroke="#3e2d12" stroke-width="1.5"/><circle cx="17" cy="13" r="8" fill="#7a5a2a" stroke="#3e2d12" stroke-width="1.5"/><circle cx="39" cy="13" r="8" fill="#7a5a2a" stroke="#3e2d12" stroke-width="1.5"/><circle cx="17" cy="12" r="3" fill="#111"/><circle cx="39" cy="12" r="3" fill="#111"/><circle cx="22" cy="30" r="2" fill="#3e2d12"/><circle cx="34" cy="26" r="2" fill="#3e2d12"/><circle cx="28" cy="34" r="2" fill="#3e2d12"/></svg>',
- ball:'<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#1a1a1a" stroke="#666" stroke-width="2"/><circle cx="14" cy="14" r="5" fill="#444"/></svg>'
-};
+const ICON={get raven(){return spriteSVG("raven")},get gold(){return spriteSVG("graven")},get dove(){return spriteSVG("dove")},get spider(){return spriteSVG("spider")},get bee(){return spriteSVG("bee")},get rat(){return spriteSVG("rat")},get cat(){return spriteSVG("cat")},get ghost(){return spriteSVG("ghost")},get frog(){return spriteSVG("frog")},get toad(){return spriteSVG("toad")},get ball(){return spriteSVG("ball")}};
 /* Shared runner for team arena games: Start button, score and clock in the HUD, sends the score when time is up. */
 function teamArena(el,R,send,timers,secs,label,start,tick){
  let score=0,running=false,t0=0;
- const ar=arena(el,`<div class="hud"><span id="ts">0</span><span class="want" id="tw">${label||""}</span><span id="tt">${secs}.0</span></div><button class="btn big" id="go" style="position:absolute;left:8%;right:8%;top:45%;width:84%">Start</button>`);
+ const ar=arena(el,`<div class="tbar"><i id="tb"></i></div><div class="hud"><span class="scorepill" id="ts">0</span><span class="want" id="tw">${label||""}</span><span class="timepill" id="tt">${secs}.0</span></div><button class="btn big" id="go" style="position:absolute;left:8%;right:8%;top:45%;width:84%">Start</button>`);
  const api={ar,R,timers,get prog(){return Math.min(1,(performance.now()-t0)/(secs*1000))},get running(){return running},get score(){return score},
   bump(d,sp){score=Math.max(0,score+d);const s=$("#ts");if(s)s.textContent=score;if(d>0){FX.chime();buzz(8)}else{FX.fail();if(sp)sp.classList.add("bad");ar.classList.add("shake");setTimeout(()=>ar.classList.remove("shake"),250)}if(sp&&sp.isConnected)arenaPop(ar,sp,(d>0?"+":"")+d,d>0)},
   after(ms,f){const t=setTimeout(f,ms);timers.push(t);return t},want(h){const w=$("#tw");if(w)w.innerHTML=h},
@@ -1138,7 +1199,7 @@ function teamArena(el,R,send,timers,secs,label,start,tick){
  let iv=null;const end=()=>{if(!running)return;clearInterval(iv);running=false;timers.forEach(clearTimeout);if($("#ar")){ar.innerHTML=`<div class="endcard"><p class="eyebrow">Time</p><p class="bigg">${score}</p><p class="small">points for the group</p></div>`;FX.coins();send(score)}};
  api.finish=end;
  $("#go").onclick=()=>{$("#go").remove();countdown(ar,()=>{if(!$("#ar"))return;running=true;t0=performance.now();start(api);
-  iv=setInterval(()=>{const l=Math.max(0,secs-(performance.now()-t0)/1000);const tt=$("#tt");if(tt)tt.textContent=l.toFixed(1);if(tick)tick(api,l);if(l<=0||!$("#ar"))end()},100);timers.push(iv)})};
+  iv=setInterval(()=>{const l=Math.max(0,secs-(performance.now()-t0)/1000);const tt=$("#tt");if(tt)tt.textContent=l.toFixed(1);const tb=$("#tb");if(tb){tb.style.width=(l/secs*100)+"%";tb.classList.toggle("hot",l<5)}if(tick)tick(api,l);if(l<=0||!$("#ar"))end()},100);timers.push(iv)})};
  return api}
 const hitOnce=(sp,fn)=>{let hit=false;sp.onpointerdown=e=>{e.preventDefault();if(hit||sp.classList.contains("gone"))return;hit=true;fn(sp);sp.classList.add("hit")}};
 
@@ -1219,7 +1280,7 @@ TEAM2.archery=(el,R,send,timers)=>teamArena(el,R,send,timers,TEAM.archery.secs,"
  A.raf=requestAnimationFrame(loop)});
 /* Bell Ringer: hold to haul the rope, let go in the gold zone near the top. Overshoot and the rope slips. Five pulls, each faster. */
 TEAM2.bells=(el,R,send,timers)=>teamArena(el,R,send,timers,TEAM.bells.secs,"Pull 1 of 5",api=>{api.ar.classList.add("bg-belfry");
- api.ar.insertAdjacentHTML("beforeend",'<div class="meter"><div class="zone"></div><div class="fill" id="mf"></div></div><div class="bellico" id="bell">🔔</div><p class="small center" id="bm" style="position:absolute;bottom:3%;left:0;right:0;margin:0">Press and hold to pull. Let go in the gold.</p>');
+ api.ar.insertAdjacentHTML("beforeend",`<div class="meter"><div class="zone"></div><div class="fill" id="mf"></div></div><div class="bellico" id="bell">${spriteSVG("bell")}</div><p class="small center" id="bm" style="position:absolute;bottom:3%;left:0;right:0;margin:0">Press and hold to pull. Let go in the gold.</p>`);
  let pull=0,held=false,t0=0,v=0;const rates=[1.0,0.85,0.72,0.62,0.54];const fill=$("#mf");
  const loop=ts=>{if(!api.running||!$("#ar"))return;if(held){v=Math.min(100,(performance.now()-t0)/(rates[Math.min(pull,4)]*1000)*100);fill.style.height=v+"%";if(v>=100){held=false;v=0;fill.style.height="0%";$("#bm").textContent="The rope slipped!";FX.fail();pull++;next()}}A.raf=requestAnimationFrame(loop)};
  const next=()=>{api.want(pull<5?`Pull ${pull+1} of 5`:"");if(pull>=5)api.after(900,()=>api.finish())};
@@ -1240,11 +1301,7 @@ const btnStart=(el,label,fn)=>{el.innerHTML=`<button class="btn big" id="gs">${l
 GAMES2.hurdles=(el,R,send,set)=>{const {cv,x,P}=cvGame(el);let run=false,over=false,hy=330,vy=0,dist=0,score=0,last=0,speed=150;const fences=[];let nx=380;for(let i=0;i<80;i++){fences.push({x:nx,passed:false});nx+=200+R()*180}
  const draw=()=>{bg(x,"sky");x.fillStyle="#1f1a12";x.fillRect(0,350,320,70);x.strokeStyle="#3a2c14";x.lineWidth=2;x.beginPath();x.moveTo(0,350);x.lineTo(320,350);x.stroke();
   fences.forEach(f=>{const fx=f.x-dist;if(fx<-30||fx>340)return;x.fillStyle="#8a6a3a";x.fillRect(fx,312,6,38);x.fillRect(fx+22,312,6,38);x.fillRect(fx-4,318,36,5);x.fillRect(fx-4,334,36,5)});
-  x.save();x.translate(70,hy);const ph_=dist/16,leg=Math.sin(ph_)*14;x.fillStyle="#d9ab45";x.strokeStyle="#5a3e10";x.lineWidth=1.2;
-  x.beginPath();x.moveTo(-30,-10);x.bezierCurveTo(-34,-30,-10,-34,12,-30);x.lineTo(22,-50);x.bezierCurveTo(30,-56,40,-50,38,-42);x.lineTo(44,-36);x.lineTo(36,-30);x.bezierCurveTo(32,-22,26,-18,22,-12);x.bezierCurveTo(10,-4,-20,-2,-30,-10);x.closePath();x.fill();x.stroke();
-  x.beginPath();x.moveTo(-30,-14);x.bezierCurveTo(-44,-20,-46,-6,-40,2);x.lineWidth=3;x.strokeStyle="#5a3e10";x.stroke();x.lineWidth=1.2;
-  x.strokeStyle="#5a3e10";x.lineWidth=4;x.lineCap="round";[[-20,leg],[-10,-leg],[10,leg*0.8],[18,-leg*0.8]].forEach(([lx,k])=>{x.beginPath();x.moveTo(lx,-8);x.lineTo(lx+k*0.5,8);x.lineTo(lx+k,16);x.stroke()});
-  x.fillStyle="#8e1c1c";x.beginPath();x.moveTo(-2,-30);x.lineTo(10,-30);x.lineTo(8,-52);x.lineTo(0,-52);x.closePath();x.fill();x.fillStyle="#9fb3c4";x.beginPath();x.arc(4,-58,6,0,7);x.fill();x.restore();
+  const gal=Math.sin(dist/18)*4;drawSprite(x,"horse",72,hy-34+gal*0.3,100,hy<329?-0.15:gal*0.01);
   x.fillStyle="#efe6d2";x.font="bold 22px Cinzel,serif";x.fillText(score,14,30)};
  const loop=ts=>{if(!last)last=ts;const dt=Math.min(0.04,(ts-last)/1000);last=ts;speed=150+score*9;dist+=speed*dt;vy+=1500*dt;hy=Math.min(330,hy+vy*dt);if(hy>=330){vy=0}
   for(const f of fences){const fx=f.x-dist;if(!f.passed&&fx+28<70){f.passed=true;score++;FX.chime();burst(fx+14,330,"#f2c230",8);popText(70,hy-50,"+1")}if(fx<92&&fx+28>48&&hy>298)over=true}
@@ -1255,8 +1312,7 @@ GAMES2.hurdles=(el,R,send,set)=>{const {cv,x,P}=cvGame(el);let run=false,over=fa
 GAMES2.broom=(el,R,send,set)=>{const {cv,x,P}=cvGame(el);const L=[60,160,260];let lane=1,run=false,over=false,dist=0,last=0,px=160;const towers=[];let ny=-200;for(let i=0;i<120;i++){const k=Math.floor(R()*3);towers.push({y:ny,lane:k});if(R()<0.35)towers.push({y:ny,lane:(k+1+Math.floor(R()*2))%3});ny-=170+R()*120}
  const draw=()=>{bg(x,"sky");x.strokeStyle="rgba(201,164,92,.25)";x.lineWidth=2;[110,210].forEach(lx=>{x.beginPath();x.moveTo(lx,0);x.lineTo(lx,420);x.stroke()});
   towers.forEach(t=>{const ty=t.y+dist;if(ty<-80||ty>440)return;x.fillStyle="#3a2c14";x.fillRect(L[t.lane]-26,ty,52,60);x.fillStyle="#c9a45c";for(let i=0;i<4;i++)x.fillRect(L[t.lane]-26+i*14,ty-6,8,8)});
-  px+=(L[lane]-px)*0.35;x.save();x.translate(px,340);x.strokeStyle="#8a6a3a";x.lineWidth=5;x.lineCap="round";x.beginPath();x.moveTo(0,22);x.lineTo(0,-20);x.stroke();x.strokeStyle="#c9a45c";x.lineWidth=2;for(let i=-3;i<=3;i++){x.beginPath();x.moveTo(0,20);x.lineTo(i*4,40);x.stroke()}
-  x.fillStyle="#2a2234";x.beginPath();x.moveTo(-14,4);x.lineTo(14,4);x.lineTo(6,-18);x.lineTo(-6,-18);x.closePath();x.fill();x.fillStyle="#efe6d2";x.beginPath();x.arc(0,-24,7,0,7);x.fill();x.fillStyle="#1a1424";x.beginPath();x.moveTo(-12,-28);x.lineTo(12,-28);x.lineTo(3,-46);x.closePath();x.fill();x.fillRect(-13,-30,26,3);x.restore();
+  px+=(L[lane]-px)*0.35;drawSprite(x,"witch",px,326,130,-0.5);
   x.fillStyle="#efe6d2";x.font="bold 22px Cinzel,serif";x.fillText(Math.floor(dist/10)+" m",14,30)};
  const loop=ts=>{if(!last)last=ts;const dt=Math.min(0.04,(ts-last)/1000);last=ts;dist+=(210+dist*0.05)*dt;
   for(const t of towers){const ty=t.y+dist;if(t.lane===lane&&ty<370&&ty+60>310&&Math.abs(px-L[lane])<20)over=true}
@@ -1272,14 +1328,14 @@ GAMES2.row=(el,R,send,set)=>{let d=0,lastSide=null,t0=0,run=false,done=false;con
 /* Torch Tunnel: hold to rise, let go to sink. Survive the cave. */
 GAMES2.tunnel=(el,R,send,set)=>{const {cv,x,P}=cvGame(el);let run=false,over=false,hold=false,py=210,vy=0,dist=0,last=0,t0=0;const cols=[];let c=130,f=300;for(let i=0;i<400;i++){c+=(R()-0.5)*40;f+=(R()-0.5)*40;const gap=190-Math.min(90,i*0.5);if(f-c<gap)f=c+gap;if(c<20){c=20;f=Math.max(f,c+gap)}if(f>400){f=400;c=Math.min(c,f-gap)}cols.push({c,f})}
  const draw=()=>{bg(x,"cave");const off=dist%20;for(let i=0;i<18;i++){const k=Math.floor(dist/20)+i;const col=cols[Math.min(cols.length-1,k)];const sx=i*20-off;x.fillStyle="#3b2f1c";x.fillRect(sx,0,21,col.c);x.fillRect(sx,col.f,21,420-col.f);x.fillStyle="#6e5a36";x.fillRect(sx,col.c-3,21,3);x.fillRect(sx,col.f,21,3)}
-  x.fillStyle="#f2c230";x.beginPath();x.arc(70,py,7,0,7);x.fill();x.fillStyle="#ff8a30";x.beginPath();x.arc(70,py-9,5,0,7);x.fill();x.fillStyle="#efe6d2";x.font="bold 22px Cinzel,serif";x.fillText(((performance.now()-t0)/1000).toFixed(1)+" s",14,30)};
+  drawSprite(x,"torch",70,py+6,34,hold?-0.2:0.15);x.fillStyle="#efe6d2";x.font="bold 22px Cinzel,serif";x.fillText(((performance.now()-t0)/1000).toFixed(1)+" s",14,30)};
  const loop=ts=>{if(!last)last=ts;const dt=Math.min(0.04,(ts-last)/1000);last=ts;dist+=170*dt;vy+=(hold?-1500:1100)*dt;vy=Math.max(-380,Math.min(380,vy));py+=vy*dt;const k=Math.floor((dist+70)/20);const col=cols[Math.min(cols.length-1,k)];if(py-6<col.c||py+6>col.f||py<0||py>420)over=true;
   const sh=juiceBegin(x);draw();juiceDraw(x,dt);if(sh)x.restore();if(over){shake(300,8);const s=Math.round((performance.now()-t0)/100)/10;banner(x,s.toFixed(1)+" s","The torch went out");FX.fail();send(s);return}A.raf=requestAnimationFrame(loop)};
  draw();x.fillStyle="#efe6d2";x.font="18px Cormorant Garamond,serif";x.fillText("Hold to rise, release to sink.",70,200);x.fillText("Press to start.",108,226);
  cv.onpointerdown=e=>{e.preventDefault();if(over)return;try{cv.setPointerCapture(e.pointerId)}catch(z){}if(!run){run=true;countdown(el,()=>{last=0;t0=performance.now();A.raf=requestAnimationFrame(loop)});return}hold=true};const up=e=>{hold=false};cv.onpointerup=up;cv.onpointercancel=up};
 /* Gargoyle Says: watch the gargoyles light up, then repeat the sequence. It grows by one each time. */
 GAMES2.simon=(el,R,send,set)=>{const seq=[];let i=0,busy=true,level=0;const COL=["#c3241c","#3a6ad0","#3a9a4a","#d9ab45"];
- const draw=()=>{el.innerHTML=`<p class="eyebrow center" id="sm">${level?level+" in a row":"Watch"}</p><div class="garg">${COL.map((c,k)=>`<button data-g="${k}" style="--c:${c}">👹</button>`).join("")}</div>`;
+ const draw=()=>{el.innerHTML=`<p class="eyebrow center" id="sm">${level?level+" in a row":"Watch"}</p><div class="garg">${COL.map((c,k)=>`<button data-g="${k}" style="--c:${c}">${spriteSVG("gargoyle")}</button>`).join("")}</div>`;
   el.querySelectorAll("[data-g]").forEach(b=>b.onpointerdown=e=>{e.preventDefault();if(busy)return;const k=+b.dataset.g;flash(k,180);if(seq[i]!==k){busy=true;FX.fail();el.innerHTML=`<p class="lede center">${level} in a row</p>`;send(level);return}i++;FX.chime();if(i>=seq.length){level++;if(level>=15){el.innerHTML=`<p class="lede center">15 in a row. Flawless.</p>`;send(15);return}busy=true;later(700,show)}})};
  const flash=(k,ms)=>{const b=el.querySelector(`[data-g="${k}"]`);if(!b)return;b.classList.add("on");later(ms,()=>b.classList.remove("on"))};
  const show=()=>{seq.push(Math.floor(R()*4));i=0;draw();const gap=Math.max(260,620-level*30);seq.forEach((k,n)=>later(400+n*gap,()=>{flash(k,gap*0.6);FX.tick()}));later(400+seq.length*gap+100,()=>{busy=false;const m=$("#sm");if(m)m.textContent="Your turn"})};
@@ -1287,7 +1343,7 @@ GAMES2.simon=(el,R,send,set)=>{const seq=[];let i=0,busy=true,level=0;const COL=
 /* The Shell Game: the coin goes under a goblet, the goblets shuffle, find the coin. Six rounds, faster each time. */
 GAMES2.shell=(el,R,send,set)=>{let round=0,found=0;
  const play=()=>{if(round>=6){el.innerHTML=`<p class="lede center">Found it ${found} of 6 times</p>`;send(found);return}
-  let pos=[0,1,2];let coin=Math.floor(R()*3);el.innerHTML=`<p class="eyebrow center" id="shm">Round ${round+1} of 6 · watch the coin</p><div class="shells" id="sh">${[0,1,2].map(k=>`<div class="goblet" data-k="${k}" style="left:${k*33+4}%"><span class="cup">🏆</span><span class="coinp" ${k===coin?"":'style="opacity:0"'}>🪙</span></div>`).join("")}</div>`;
+  let pos=[0,1,2];let coin=Math.floor(R()*3);el.innerHTML=`<p class="eyebrow center" id="shm">Round ${round+1} of 6 · watch the coin</p><div class="shells" id="sh">${[0,1,2].map(k=>`<div class="goblet" data-k="${k}" style="left:${k*33+4}%"><span class="cup">${spriteSVG("goblet")}</span><span class="coinp" ${k===coin?"":'style="opacity:0"'}>${spriteSVG("coin")}</span></div>`).join("")}</div>`;
   const cups=[...el.querySelectorAll(".goblet")];const place=()=>cups.forEach((c,k)=>{c.style.left=(pos.indexOf(k)*33+4)+"%"});
   const swaps=4+round*2,ms=Math.max(170,420-round*45);later(900,()=>{cups.forEach(c=>c.querySelector(".coinp").style.opacity=0);cups.forEach(c=>c.classList.add("down"));
    for(let s=0;s<swaps;s++)later(500+s*ms,()=>{const a=Math.floor(R()*3);let b=Math.floor(R()*3);if(b===a)b=(a+1)%3;const ia=pos.indexOf(a),ib=pos.indexOf(b);pos[ia]=b;pos[ib]=a;cups.forEach(c=>c.style.transition=`left ${ms-30}ms ease-in-out`);place();FX.tick()});
@@ -1321,7 +1377,7 @@ GAMES2.catapult=(el,R,send,set)=>{const {cv,x,P}=cvGame(el);let shot=0,stage=0,a
  const draw=()=>{bg(x,"sky");x.fillStyle="#1f1a12";x.fillRect(0,360,320,60);x.fillStyle="#3a2c14";x.fillRect(target-14,300,28,60);x.fillStyle="#c9a45c";for(let i=0;i<3;i++)x.fillRect(target-14+i*10,294,6,6);
   x.save();x.translate(40,360);x.rotate(-ang*Math.PI/180);x.fillStyle="#8a6a3a";x.fillRect(0,-4,46,8);x.restore();x.fillStyle="#5a4630";x.fillRect(26,348,28,12);
   if(stage>=1){x.fillStyle="#2a2416";x.fillRect(20,20,12,120);x.fillStyle=pow>80?"#e04a40":"#f2c230";x.fillRect(20,140-pow*1.2,12,pow*1.2)}
-  if(proj){x.fillStyle="#9fb3c4";x.beginPath();x.arc(proj.x,proj.y,6,0,7);x.fill()}
+  if(proj)drawSprite(x,"ball",proj.x,proj.y,18,proj.x*0.05);
   x.fillStyle="#efe6d2";x.font="bold 20px Cinzel,serif";x.fillText("Shot "+Math.min(shot+1,5)+" of 5",150,30);x.fillText(score,290,30);if(msg){x.font="bold 22px Cinzel,serif";x.textAlign="center";x.fillText(msg,160,200);x.textAlign="left"}};
  const loop=ts=>{if(done)return;if(!last)last=ts;const dt=Math.min(0.05,(ts-last)/1000);last=ts;if(stage===0){ang+=adir*70*dt;if(ang>75){ang=75;adir=-1}if(ang<15){ang=15;adir=1}}else if(stage===1){pow+=pdir*150*dt;if(pow>100){pow=100;pdir=-1}if(pow<0){pow=0;pdir=1}}
   else if(stage===2&&proj){proj.vy+=900*dt;proj.x+=proj.vx*dt;proj.y+=proj.vy*dt;if(proj.y>=358){const d=Math.abs(proj.x-target);const pts=d<10?10:d<22?7:d<40?4:d<60?2:0;score+=pts;msg=pts===10?"Direct hit! +10":pts?"+"+pts:"Missed";if(pts){FX.coin();burst(proj.x,350,pts===10?"#f2c230":"#c9a45c",pts+6,220);if(pts===10)shake(220,5)}else FX.fail();proj=null;shot++;later(900,()=>{msg="";if(shot>=5){done=true;banner(x,score+" points");send(score)}else{stage=0;target=150+R()*130}})}}
@@ -1330,8 +1386,8 @@ GAMES2.catapult=(el,R,send,set)=>{const {cv,x,P}=cvGame(el);let shot=0,stage=0,a
  let live=false;cv.onpointerdown=e=>{e.preventDefault();if(done)return;if(!run){run=true;countdown(el,()=>{live=true;last=0;A.raf=requestAnimationFrame(loop)});return}if(!live)return;if(stage===0){stage=1;pow=0;pdir=1;FX.tick()}else if(stage===1){stage=2;const v=120+pow*4.2;const a=ang*Math.PI/180;proj={x:60,y:340,vx:v*Math.cos(a),vy:-v*Math.sin(a)};FX.whoosh()}}};
 /* Crate Stack: the crate swings, tap to drop it on the pile. Overhang is sliced off. Stack as high as you can. */
 GAMES2.stack=(el,R,send,set)=>{const {cv,x,P}=cvGame(el);let run=false,over=false,last=0,cx=160,dir=1,speed=160,w=120,stack=[{x:100,w:120}],falling=null,score=0,cam=0;
- const draw=()=>{bg(x,"stone");x.save();x.translate(0,cam);x.fillStyle="#1f1a12";x.fillRect(0,400,320,40);stack.forEach((s,i)=>{x.fillStyle=i%2?"#8a6a3a":"#6e5430";x.fillRect(s.x,400-(i+1)*24,s.w,24);x.strokeStyle="#c9a45c";x.lineWidth=1;x.strokeRect(s.x+0.5,400-(i+1)*24+0.5,s.w-1,23)});
-  const y=400-(stack.length+1)*24-60;if(falling){x.fillStyle="#9c7a46";x.fillRect(falling.x,falling.y,w,24)}else if(run&&!over){x.fillStyle="#9c7a46";x.fillRect(cx-w/2,y,w,24)}x.restore();x.fillStyle="#efe6d2";x.font="bold 22px Cinzel,serif";x.fillText(score,14,30)};
+ const draw=()=>{bg(x,"stone");x.save();x.translate(0,cam);x.fillStyle="#1f1a12";x.fillRect(0,400,320,40);stack.forEach((s,i)=>{x.save();x.beginPath();x.rect(s.x,400-(i+1)*24,s.w,24);x.clip();for(let cx=s.x;cx<s.x+s.w;cx+=24)drawSprite(x,"crate",cx+12,400-(i+1)*24+12,26);x.restore()});
+  const y=400-(stack.length+1)*24-60;const crateRow=(fx,fy)=>{x.save();x.beginPath();x.rect(fx,fy,w,24);x.clip();for(let c2=fx;c2<fx+w;c2+=24)drawSprite(x,"crate",c2+12,fy+12,26);x.restore()};if(falling)crateRow(falling.x,falling.y);else if(run&&!over)crateRow(cx-w/2,y);x.restore();x.fillStyle="#efe6d2";x.font="bold 22px Cinzel,serif";x.fillText(score,14,30)};
  const loop=ts=>{if(!last)last=ts;const dt=Math.min(0.04,(ts-last)/1000);last=ts;if(!falling){cx+=dir*speed*dt;if(cx+w/2>320){cx=320-w/2;dir=-1}if(cx-w/2<0){cx=w/2;dir=1}}
   else{falling.y+=620*dt;const top=stack[stack.length-1];const ty=400-(stack.length+1)*24;if(falling.y>=ty){const l=Math.max(falling.x,top.x),r=Math.min(falling.x+w,top.x+top.w);const nw=r-l;if(nw<14){over=true}else{stack.push({x:l,w:nw});w=nw;score++;FX.thud();buzz(12);burst(l+cam*0+nw/2,ty+cam,"#c9a45c",8,140);popText(160,ty+cam-30,nw>=top.w-2?"Perfect!":"+1",nw>=top.w-2?"#fff2c0":"#f2c230");speed=160+score*14;falling=null;cx=w/2+R()*(320-w);const want=Math.max(0,(stack.length-9)*24);cam=want}}}
   const sh=juiceBegin(x);draw();juiceDraw(x,dt);if(sh)x.restore();if(over){shake(320,9);banner(x,score+" crates","The crate toppled");FX.fail();send(score);return}A.raf=requestAnimationFrame(loop)};
@@ -1340,7 +1396,7 @@ GAMES2.stack=(el,R,send,set)=>{const {cv,x,P}=cvGame(el);let run=false,over=fals
 /* Coin Slide: flick the coin up the table. Closest to the far edge without falling off. Five slides. */
 GAMES2.slide=(el,R,send,set)=>{const {cv,x,P}=cvGame(el);let n=0,score=0,coin={x:160,y:380,vy:0},moving=false,down=null,last=0,msg="",done=false;
  const draw=()=>{bg(x,"wood");x.fillStyle="rgba(20,14,8,.55)";x.fillRect(30,0,260,420);[[0.06,"#f2c230","10"],[0.14,"#c9a45c","7"],[0.24,"#8a6a3a","4"],[0.36,"#5a4630","2"]].reverse().forEach(([f,c,t])=>{x.fillStyle=c;x.fillRect(30,20,260,f*400);x.fillStyle="#0b0910";x.font="bold 16px Cinzel,serif";x.fillText(t,40,20+f*400-6)});x.fillStyle="#8e1c1c";x.fillRect(30,0,260,20);
-  const g=x.createRadialGradient(coin.x-3,coin.y-3,2,coin.x,coin.y,12);g.addColorStop(0,"#fff2c0");g.addColorStop(.6,"#d4a849");g.addColorStop(1,"#8a6420");x.fillStyle=g;x.beginPath();x.arc(coin.x,coin.y,12,0,7);x.fill();
+  drawSprite(x,"coin",coin.x,coin.y,30,moving?coin.y*0.05:0);
   x.fillStyle="#efe6d2";x.font="bold 20px Cinzel,serif";x.fillText("Slide "+Math.min(n+1,5)+" of 5",100,44);x.fillText(score,290,44);if(msg){x.font="bold 22px Cinzel,serif";x.textAlign="center";x.fillText(msg,160,230);x.textAlign="left"}};
  const loop=ts=>{if(done)return;if(!last)last=ts;const dt=Math.min(0.05,(ts-last)/1000);last=ts;if(moving){coin.y+=coin.vy*dt;coin.vy=Math.min(0,coin.vy+520*dt);if(coin.vy>=-2||coin.y<20){moving=false;const edge=coin.y-20;const pts=coin.y<20?0:edge<24?10:edge<56?7:edge<96?4:edge<144?2:0;score+=pts;msg=coin.y<20?"Off the edge":pts?"+"+pts:"Too short";if(pts){FX.coin();burst(coin.x,coin.y,"#f2c230",pts,160);popText(coin.x,coin.y-20,"+"+pts)}else FX.fail();n++;later(1000,()=>{msg="";coin={x:160,y:380,vy:0};if(n>=5){done=true;banner(x,score+" points");send(score)}})}}const sh=juiceBegin(x);draw();juiceDraw(x,dt);if(sh)x.restore();A.raf=requestAnimationFrame(loop)};
  draw();x.fillStyle="#efe6d2";x.font="18px Cormorant Garamond,serif";x.fillText("Flick the coin upwards.",90,230);A.raf=requestAnimationFrame(loop);
@@ -1349,8 +1405,8 @@ GAMES2.slide=(el,R,send,set)=>{const {cv,x,P}=cvGame(el);let n=0,score=0,coin={x
 /* Knife Throw: the log spins, tap to throw. Hit another knife and you are out. Twelve knives to land. */
 GAMES2.knives=(el,R,send,set)=>{const {cv,x,P}=cvGame(el);let rot=0,w=2.2,stuck=[],flying=null,score=0,over=false,run=false,last=0,t=0;
  const draw=()=>{bg(x,"stone");x.save();x.translate(160,130);x.rotate(rot);x.fillStyle="#6e5430";x.beginPath();x.arc(0,0,58,0,7);x.fill();x.strokeStyle="#3a2c14";x.lineWidth=4;x.beginPath();x.arc(0,0,40,0,7);x.stroke();x.beginPath();x.arc(0,0,20,0,7);x.stroke();
-  stuck.forEach(a=>{x.save();x.rotate(a);x.fillStyle="#d9d9d9";x.fillRect(-3,58,6,40);x.fillStyle="#3b2a12";x.fillRect(-4,96,8,16);x.restore()});x.restore();
-  if(flying){x.fillStyle="#d9d9d9";x.fillRect(157,flying.y,6,40);x.fillStyle="#3b2a12";x.fillRect(156,flying.y+38,8,16)}else if(!over){x.fillStyle="#d9d9d9";x.fillRect(157,330,6,40);x.fillStyle="#3b2a12";x.fillRect(156,368,8,16)}
+  stuck.forEach(a=>{x.save();x.rotate(a);drawSprite(x,"knife",0,84,56,Math.PI);x.restore()});x.restore();
+  if(flying)drawSprite(x,"knife",160,flying.y+28,56);else if(!over)drawSprite(x,"knife",160,358,56);
   x.fillStyle="#efe6d2";x.font="bold 22px Cinzel,serif";x.fillText(score+" / 12",14,30)};
  const loop=ts=>{if(!last)last=ts;const dt=Math.min(0.04,(ts-last)/1000);last=ts;t+=dt;w=2.2+score*0.25+Math.sin(t*1.3)*1.2;rot+=w*dt;if(flying){flying.y-=900*dt;if(flying.y<=188){const a=((Math.PI/2-rot)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);const clash=stuck.some(s=>{let d=Math.abs(((s-a)%(Math.PI*2)+Math.PI*2)%(Math.PI*2));d=Math.min(d,Math.PI*2-d);return d<0.26});flying=null;if(clash){over=true;shake(320,9)}else{stuck.push(a);score++;FX.thud();buzz(10);burst(160,190,"#c9a45c",8,160);popText(160,230,"+1");if(score>=12){over=true}}}}
   const sh=juiceBegin(x);draw();juiceDraw(x,dt);if(sh)x.restore();if(over){banner(x,score+" knives",score>=12?"Every knife landed":"Clashed with a knife");if(score>=12)FX.coins();else FX.fail();send(score);return}A.raf=requestAnimationFrame(loop)};
@@ -1363,7 +1419,7 @@ function pathTool(cv,x,path,width){const segs=[];for(let i=0;i<path.length-1;i++
  const draw=(col)=>{x.strokeStyle=col;x.lineWidth=width;x.lineCap="round";x.lineJoin="round";x.beginPath();x.moveTo(path[0][0],path[0][1]);for(let i=1;i<path.length;i++)x.lineTo(path[i][0],path[i][1]);x.stroke()};
  return {near,draw,end:path[path.length-1],start:path[0]}}
 GAMES2.maze=(el,R,send,set)=>{const {cv,x,P}=cvGame(el);const path=MAZES[Math.floor(R()*MAZES.length)];const tool=pathTool(cv,x,path,34);A.path=path;let pos={x:path[0][0],y:path[0][1]},drag=false,t0=0,pen=0,run=false,done=false,msg="";
- const draw=()=>{bg(x,"stone");tool.draw("#0b0910");tool.draw("#0b0910");x.fillStyle="#3a2c14";x.beginPath();x.arc(tool.end[0],tool.end[1],18,0,7);x.fill();x.fillStyle="#f2c230";x.font="20px serif";x.textAlign="center";x.fillText("🔒",tool.end[0],tool.end[1]+7);x.fillText("🔑",pos.x,pos.y+8);x.textAlign="left";x.fillStyle="#efe6d2";x.font="bold 18px Cinzel,serif";if(run)x.fillText(((performance.now()-t0)/1000+pen).toFixed(1)+" s",12,24);if(msg){x.font="bold 22px Cinzel,serif";x.textAlign="center";x.fillText(msg,160,215);x.textAlign="left"}};
+ const draw=()=>{bg(x,"stone");tool.draw("#0b0910");tool.draw("#0b0910");x.fillStyle="#3a2c14";x.beginPath();x.arc(tool.end[0],tool.end[1],18,0,7);x.fill();drawSprite(x,"lock",tool.end[0],tool.end[1],30);drawSprite(x,"key",pos.x,pos.y,34,-0.6);x.fillStyle="#efe6d2";x.font="bold 18px Cinzel,serif";if(run)x.fillText(((performance.now()-t0)/1000+pen).toFixed(1)+" s",12,24);if(msg){x.font="bold 22px Cinzel,serif";x.textAlign="center";x.fillText(msg,160,215);x.textAlign="left"}};
  draw();x.fillStyle="#efe6d2";x.font="17px Cormorant Garamond,serif";x.fillText("Drag the key along the passage to the lock.",30,215);
  const move=e=>{if(!drag||done)return;const p=P(e);const {d,t}=tool.near(p);if(d>15){pen+=3;pos={x:path[0][0],y:path[0][1]};drag=false;msg="Wall! +3 s";FX.fail();buzz([60,40,60]);later(700,()=>{msg="";draw()});draw();return}pos=p;draw();if(Math.hypot(p.x-tool.end[0],p.y-tool.end[1])<16){done=true;const s=Math.round(((performance.now()-t0)/1000+pen)*10)/10;banner(x,s.toFixed(1)+" s","Unlocked");FX.coins();send(s)}};
  cv.onpointerdown=e=>{e.preventDefault();if(done)return;const p=P(e);if(Math.hypot(p.x-pos.x,p.y-pos.y)<30){drag=true;try{cv.setPointerCapture(e.pointerId)}catch(z){}if(!run){run=true;t0=performance.now()}}};cv.onpointermove=move;const up=()=>{drag=false};cv.onpointerup=up;cv.onpointercancel=up};
@@ -1398,8 +1454,8 @@ GAMES2.potions=(el,R,send,set)=>{const {cv,x,P}=cvGame(el);const C=["#e04a40","#
  cv.onpointerdown=e=>{e.preventDefault();move(e);if(!run){run=true;countdown(el,()=>{t0=performance.now();A.raf=requestAnimationFrame(loop)})}};cv.onpointermove=e=>{if(e.buttons||e.pointerType==="touch")move(e)}};
 /* Rockfall: rocks tumble from the battlements. Slide the knight out of the way. Survive as long as you can. */
 GAMES2.rocks=(el,R,send,set)=>{const {cv,x,P}=cvGame(el);let kx=160,rocks=[],t0=0,run=false,over=false,last=0,next=0;
- const draw=()=>{bg(x,"stone");rocks.forEach(r=>{x.fillStyle="#6b6b6b";x.beginPath();x.arc(r.x,r.y,r.r,0,7);x.fill();x.fillStyle="#4a4a4a";x.beginPath();x.arc(r.x-r.r*0.3,r.y-r.r*0.3,r.r*0.4,0,7);x.fill()});
-  x.fillStyle="#9fb3c4";x.beginPath();x.moveTo(kx-12,404);x.lineTo(kx-10,372);x.lineTo(kx+10,372);x.lineTo(kx+12,404);x.closePath();x.fill();x.beginPath();x.arc(kx,362,11,0,7);x.fill();x.fillStyle="#1a1a1a";x.fillRect(kx-8,360,16,3);x.fillStyle="#c3241c";x.beginPath();x.moveTo(kx-3,352);x.lineTo(kx+3,352);x.lineTo(kx,340);x.closePath();x.fill();x.fillStyle="#8e1c1c";x.beginPath();x.moveTo(kx-24,376);x.lineTo(kx-10,376);x.lineTo(kx-10,398);x.lineTo(kx-17,404);x.lineTo(kx-24,398);x.closePath();x.fill();x.strokeStyle="#c9a45c";x.lineWidth=1.5;x.stroke();x.fillStyle="#efe6d2";x.font="bold 22px Cinzel,serif";x.fillText(((performance.now()-t0)/1000).toFixed(1)+" s",14,30)};
+ const draw=()=>{bg(x,"stone");rocks.forEach(r=>{r.rot=(r.rot||0)+0.02;drawSprite(x,"rock",r.x,r.y,r.r*2.3,r.rot)});
+  drawSprite(x,"knight",kx,378,64);x.fillStyle="#efe6d2";x.font="bold 22px Cinzel,serif";x.fillText(((performance.now()-t0)/1000).toFixed(1)+" s",14,30)};
  const loop=ts=>{if(!last)last=ts;const dt=Math.min(0.04,(ts-last)/1000);last=ts;const el_=(performance.now()-t0)/1000;if(el_>next){rocks.push({x:20+R()*280,y:-20,r:10+R()*14,v:130+R()*90+el_*9});next=el_+Math.max(0.16,0.6-el_*0.03)+R()*0.25}
   rocks.forEach(r=>{r.y+=r.v*dt;if(Math.hypot(r.x-kx,r.y-376)<r.r+12)over=true});rocks=rocks.filter(r=>{if(r.y>=420&&r.y<450)burst(r.x,416,"#6b6b6b",5,90);return r.y<450});const sh=juiceBegin(x);draw();juiceDraw(x,dt);if(sh)x.restore();if(over){shake(320,9);const s=Math.round(el_*10)/10;banner(x,s.toFixed(1)+" s","Hit by a rock");FX.fail();send(s);return}A.raf=requestAnimationFrame(loop)};
  const move=e=>{kx=Math.max(12,Math.min(308,P(e).x))};draw();x.fillStyle="#efe6d2";x.font="18px Cormorant Garamond,serif";x.fillText("Slide to dodge the rocks. Tap to start.",46,220);
@@ -1634,7 +1690,7 @@ let offT=null;function setOnline(o){online=o;clearTimeout(offT);if(o||!ME){$("#n
    networks never need a direct connection to each other (that is what kept people stuck "knocking").
    Two relays are used at once and messages are de-duplicated, so one relay going down does not stop the game.
    Payloads are encrypted with a key derived from the room code. */
-const BUILD="7";
+const BUILD="8";
 const RELAYS=["wss://broker.emqx.io:8084/mqtt","wss://broker.hivemq.com:8884/mqtt"];
 const NET={clients:[],key:null,code:"",cid:"",seen:new Map(),seq:0,gen:0};
 function b64(u){let s="";for(const b of u)s+=String.fromCharCode(b);return btoa(s)}
@@ -1992,10 +2048,10 @@ function startGame(type,seed){const el=$("#ag");if(!el)return;A.active=true;cons
  else if(type==="catch"){const cv=document.createElement("canvas");cv.width=320;cv.height=420;cv.className="arcade";el.innerHTML="";el.appendChild(cv);const x=cv.getContext("2d");let bx=160,coins=[],score=0,t0=0,run=false;const total=20;
   const spawnAt=[];let tq=0;while(tq<total*1000){tq+=Math.max(120,300-tq/110)+R()*300;spawnAt.push({t:tq,x:24+R()*272,v:160+R()*120+tq/90,vx:(R()-0.5)*80,skull:R()<0.26});if(tq>15000&&R()<0.5)spawnAt.push({t:tq+90,x:24+R()*272,v:180+R()*120+tq/90,vx:(R()-0.5)*80,skull:R()<0.26})}let si=0;
   const move=e=>{const r=cv.getBoundingClientRect();bx=Math.max(26,Math.min(294,(e.clientX-r.left)*cv.width/r.width))};
-  const draw=(dt,el_)=>{x.fillStyle="#0b0910";x.fillRect(0,0,320,420);while(si<spawnAt.length&&spawnAt[si].t<=el_){coins.push({x:spawnAt[si].x,y:-10,v:spawnAt[si].v,vx:spawnAt[si].vx||0,skull:spawnAt[si].skull});si++}
-   coins.forEach(cn=>{cn.y+=cn.v*dt;cn.x+=cn.vx*dt;if(cn.x<12){cn.x=12;cn.vx=Math.abs(cn.vx)}if(cn.x>308){cn.x=308;cn.vx=-Math.abs(cn.vx)}if(cn.skull){x.fillStyle="#d8d2c4";x.beginPath();x.arc(cn.x,cn.y-2,10,0,7);x.fill();x.fillRect(cn.x-6,cn.y+4,12,7);x.fillStyle="#111";x.beginPath();x.arc(cn.x-4,cn.y-3,2.6,0,7);x.arc(cn.x+4,cn.y-3,2.6,0,7);x.fill()}else{const g=x.createRadialGradient(cn.x-3,cn.y-3,2,cn.x,cn.y,10);g.addColorStop(0,"#fff2c0");g.addColorStop(.6,"#d4a849");g.addColorStop(1,"#8a6420");x.fillStyle=g;x.beginPath();x.arc(cn.x,cn.y,10,0,7);x.fill()}});
+  const draw=(dt,el_)=>{bg(x,"stone");while(si<spawnAt.length&&spawnAt[si].t<=el_){coins.push({x:spawnAt[si].x,y:-10,v:spawnAt[si].v,vx:spawnAt[si].vx||0,skull:spawnAt[si].skull});si++}
+   coins.forEach(cn=>{cn.y+=cn.v*dt;cn.x+=cn.vx*dt;if(cn.x<12){cn.x=12;cn.vx=Math.abs(cn.vx)}if(cn.x>308){cn.x=308;cn.vx=-Math.abs(cn.vx)}drawSprite(x,cn.skull?"skull":"coin",cn.x,cn.y,cn.skull?26:24,cn.skull?Math.sin(cn.y/30)*0.3:cn.y*0.03)});
    coins=coins.filter(cn=>{if(cn.y>384&&cn.y<406&&Math.abs(cn.x-bx)<28){if(cn.skull){score=Math.max(0,score-3);FX.fail();shake(200,6);popText(cn.x,370,"-3","#e04a40")}else{score++;FX.coin();burst(cn.x,392,"#f2c230",7,150)}return false}return cn.y<432});
-   x.fillStyle="#7d6534";x.fillRect(bx-26,392,52,22);x.fillStyle="#c9a45c";x.fillRect(bx-30,388,60,6);x.fillStyle="#efe6d2";x.font="bold 20px Cinzel,serif";x.fillText(score,12,28);x.fillText(Math.max(0,total-el_/1000).toFixed(1),250,28)};
+   x.fillStyle="#7d6534";x.beginPath();x.moveTo(bx-28,390);x.lineTo(bx+28,390);x.lineTo(bx+22,414);x.lineTo(bx-22,414);x.closePath();x.fill();x.strokeStyle="#15100a";x.lineWidth=3;x.stroke();x.strokeStyle="#c9a45c";x.lineWidth=2;for(let k=-20;k<=20;k+=10){x.beginPath();x.moveTo(bx+k,392);x.lineTo(bx+k*0.8,412);x.stroke()}x.fillStyle="#c9a45c";x.fillRect(bx-30,386,60,6);x.fillStyle="#efe6d2";x.font="bold 20px Cinzel,serif";x.fillText(score,12,28);x.fillText(Math.max(0,total-el_/1000).toFixed(1),250,28)};
   let last=0;const loop=ts=>{if(!last)last=ts;const dt=Math.min(0.05,(ts-last)/1000);last=ts;const el_=performance.now()-t0;const sh=juiceBegin(x);draw(dt,el_);juiceDraw(x,dt);if(sh)x.restore();if(el_>=total*1000){run=false;banner(x,score+" coins");send(score);return}A.raf=requestAnimationFrame(loop)};
   draw(0,0);x.fillStyle="#efe6d2";x.font="18px Cormorant Garamond,serif";x.fillText("Catch coins, dodge skulls. Tap to start.",44,220);
   cv.onpointerdown=e=>{e.preventDefault();move(e);if(!run){run=true;t0=performance.now();A.raf=requestAnimationFrame(loop)}};cv.onpointermove=e=>{if(e.buttons||e.pointerType==="touch")move(e)}}
@@ -2013,8 +2069,8 @@ function startGame(type,seed){const el=$("#ag");if(!el)return;A.active=true;cons
   const rel=e=>{if(!held||done)return;held=false;clearTimeout(A.nerveT);const s=Math.round((performance.now()-t0)/100)/10;$("#fb").style.transition="none";FX.chime();fin(s,`You let go at ${s.toFixed(1)} seconds`)};b.onpointerup=rel;b.onpointercancel=rel;b.ontouchend=e=>{e.preventDefault();rel(e)}}
  else if(type==="flap"){const cv=document.createElement("canvas");cv.width=320;cv.height=420;cv.className="arcade";el.innerHTML="";el.appendChild(cv);const x=cv.getContext("2d");const GAP=120;
   const walls=Array.from({length:60},(_,i)=>({x:380+i*200,gap:100+R()*210,passed:false}));let by=200,vy=0,run=false,over=false,score=0,dist=0,last=0;
-  const draw=()=>{x.fillStyle="#0b0910";x.fillRect(0,0,320,420);walls.forEach(w=>{const wx=w.x-dist;if(wx<-30||wx>340)return;x.fillStyle="#3a2c14";x.fillRect(wx,0,30,w.gap-GAP/2);x.fillRect(wx,w.gap+GAP/2,30,420);x.fillStyle="#c9a45c";x.fillRect(wx,w.gap-GAP/2-4,30,4);x.fillRect(wx,w.gap+GAP/2,30,4)});
-   x.save();x.translate(70,by);x.rotate(Math.max(-0.5,Math.min(0.6,vy/400)));x.fillStyle="#2a2234";x.strokeStyle="#c9a45c";x.lineWidth=1.5;x.beginPath();x.moveTo(0,10);x.bezierCurveTo(-8,-6,-22,-10,-30,-2);x.bezierCurveTo(-22,-12,-10,-10,-4,-6);x.lineTo(0,-10);x.lineTo(4,-6);x.bezierCurveTo(10,-10,22,-12,30,-2);x.bezierCurveTo(22,-10,8,-6,0,10);x.fill();x.stroke();x.restore();
+  const draw=()=>{bg(x,"sky");walls.forEach(w=>{const wx=w.x-dist;if(wx<-30||wx>340)return;x.fillStyle="#3a2c14";x.fillRect(wx,0,30,w.gap-GAP/2);x.fillRect(wx,w.gap+GAP/2,30,420);x.strokeStyle="#15100a";x.lineWidth=2;x.strokeRect(wx,-2,30,w.gap-GAP/2+2);x.strokeRect(wx,w.gap+GAP/2,30,422);x.fillStyle="#c9a45c";for(let k=0;k<3;k++){x.fillRect(wx+k*11,w.gap-GAP/2-6,7,6);x.fillRect(wx+k*11,w.gap+GAP/2,7,6)}});
+   drawSprite(x,"bat",70,by,56,Math.max(-0.5,Math.min(0.6,vy/400)));
    x.fillStyle="#efe6d2";x.font="bold 22px Cinzel,serif";x.fillText(score,14,30)};
   const loop=ts=>{if(!last)last=ts;const dt=Math.min(0.04,(ts-last)/1000);last=ts;vy+=820*dt;by+=vy*dt;dist+=(125+Math.min(60,score*4))*dt;
    for(const w of walls){const wx=w.x-dist;if(!w.passed&&wx+30<70){w.passed=true;score++;FX.chime();burst(wx+15,w.gap,"#c9a45c",6,120);popText(70,by-40,"+1")}if(wx<86&&wx+30>54&&(by-9<w.gap-GAP/2||by+9>w.gap+GAP/2))over=true}
@@ -2037,7 +2093,7 @@ function startTeam(game,seed){const el=$("#tg");if(!el)return;A.active=true;cons
   const setWant=()=>{want=(want+1+Math.floor(R()*3))%4;const w=$("#tw");if(w)w.innerHTML=`Light <b style="background:${CSS[want]}">${COLS[want]}</b>`};
   const bump=(d,el_)=>{score=Math.max(0,score+d);$("#ts").textContent=score;if(d>0){FX.chime();buzz(8)}else{FX.fail();if(el_)el_.classList.add("bad");ar.classList.add("shake");setTimeout(()=>ar.classList.remove("shake"),250)}if(el_&&el_.isConnected)arenaPop(ar,el_,(d>0?"+":"")+d,d>0)};
   const spawn=()=>{if(!running)return;const el_=performance.now()-t0,prog=Math.min(1,el_/(secs*1000));const s=document.createElement("div");
-   if(game==="squash"){const r=R();const kind=r<0.16?"owl":r<0.26?"gold":"bat";s.className=kind==="owl"?"owl":"bat"+(kind==="gold"?" gold":"");s.innerHTML=kind==="owl"?'<svg viewBox="0 0 64 64"><ellipse cx="32" cy="38" rx="22" ry="24" fill="#5a4630" stroke="#c9a45c" stroke-width="1.5"/><circle cx="23" cy="30" r="7" fill="#f3e6c8"/><circle cx="41" cy="30" r="7" fill="#f3e6c8"/><circle cx="23" cy="30" r="3" fill="#111"/><circle cx="41" cy="30" r="3" fill="#111"/><path d="M28 38 L36 38 L32 45Z" fill="#e0a040"/><path d="M14 16 L24 24 M50 16 L40 24" stroke="#5a4630" stroke-width="5" stroke-linecap="round"/></svg>':BATSVG;
+   if(game==="squash"){const r=R();const kind=r<0.16?"owl":r<0.26?"gold":"bat";s.className=kind==="owl"?"owl":"bat"+(kind==="gold"?" gold":"");s.innerHTML=spriteSVG(kind==="owl"?"owl":kind==="gold"?"gbat":"bat");
     const life=kind==="owl"?1600:kind==="gold"?650:Math.round(1150-prog*500+R()*300);s.style.left=(6+R()*76)+"%";s.style.top=(8+R()*70)+"%";ar.appendChild(s);let hit=false;
     s.onpointerdown=e=>{e.preventDefault();if(hit)return;hit=true;bump(kind==="owl"?-2:kind==="gold"?3:1,s);s.classList.add("hit");timers.push(setTimeout(()=>s.remove(),260))};
     timers.push(setTimeout(()=>{if(!hit){s.classList.add("gone");timers.push(setTimeout(()=>s.remove(),300))}},life));timers.push(setTimeout(spawn,Math.round(420-prog*140+R()*380)))}
