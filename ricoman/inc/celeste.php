@@ -258,7 +258,12 @@ add_action( 'enqueue_block_assets', function () {
 		. ".ricoman-faq summary::-webkit-details-marker{display:none}"
 		. ".ricoman-faq summary::after{content:'+';float:right;font-weight:400}"
 		. ".ricoman-faq__item[open] summary::after{content:'\\2013'}"
-		. ".ricoman-faq__a{padding:0 0 1rem;color:$mut}";
+		. ".ricoman-faq__a{padding:0 0 1rem;color:$mut}"
+		// Build-your-own split CTA: numbered how-to steps + rounded image
+		. ".rm-cel-howlist{list-style:none!important;counter-reset:rm-step;margin:1.2em 0 1.6em!important;padding:0!important;display:grid;gap:14px}"
+		. ".rm-cel-howlist li{position:relative;padding-left:50px;min-height:34px;line-height:1.5;color:$ink}"
+		. ".rm-cel-howlist li::before{counter-increment:rm-step;content:counter(rm-step);position:absolute;left:0;top:-2px;width:34px;height:34px;border-radius:50%;background:$blue;color:#fff;font-family:Poppins,sans-serif;font-weight:700;font-size:.92rem;display:flex;align-items:center;justify-content:center}"
+		. ".rm-cel-howimg img{border-radius:16px;width:100%;height:auto;display:block}";
 	wp_register_style( 'ricoman-celeste-inline', false );
 	wp_enqueue_style( 'ricoman-celeste-inline' );
 	wp_add_inline_style( 'ricoman-celeste-inline', $css );
@@ -413,6 +418,31 @@ add_action( 'init', function () {
 		'title' => 'Celeste · Build your own (bold band)', 'categories' => $cats,
 		'description' => 'A dark highlight band: Design / Check / Send + the builder button.',
 		'content' => $build,
+	) );
+
+	/* 6b) Build your own — split CTA: text + numbered steps left, image/GIF right */
+	$col = function ( $w, $inner ) { return '<!-- wp:column {"width":"' . $w . '","verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center" style="flex-basis:' . $w . '">' . $inner . '</div><!-- /wp:column -->'; };
+	$howlist = '<!-- wp:list {"className":"rm-cel-howlist"} --><ul class="wp-block-list rm-cel-howlist">'
+		. $li( '<strong>Design</strong> &mdash; choose the size, shape, depth, lighting, fabric and mounting.' )
+		. $li( '<strong>Check</strong> &mdash; see it in 3D and as a measured drawing, then download the spec.' )
+		. $li( '<strong>Send</strong> &mdash; submit it to our team for a firm quote.' )
+		. '</ul><!-- /wp:list -->';
+	$build_left = $eyebrow( 'Build your own' )
+		. $h2( 'Design your own light box in minutes' )
+		. $p( 'No more waiting days just to understand a job. Pick your options, turn your design in 3D, and send us the spec in one click &mdash; with a reference code to share with your client.', true )
+		. $howlist
+		. $buttons( $btnsolid( 'Build your own light box &rarr;', $builder ) );
+	$build_right = '<!-- wp:image {"sizeSlug":"large","className":"rm-cel-howimg"} --><figure class="wp-block-image size-large rm-cel-howimg"><img src="' . $u( 'ceiling.webp' ) . '" alt="Designing a Celeste light box in the 3D builder"/></figure><!-- /wp:image -->';
+	$build_split = '<!-- wp:group {"align":"full","className":"rm-section","backgroundColor":"surface","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-section has-surface-background-color has-background">'
+		. '<!-- wp:group {"className":"rm-pp-wrap","layout":{"type":"constrained"}} --><div class="wp-block-group rm-pp-wrap">'
+		. '<!-- wp:columns {"verticalAlignment":"center"} --><div class="wp-block-columns are-vertically-aligned-center">'
+		. $col( '54%', $build_left ) . $col( '46%', $build_right )
+		. '</div><!-- /wp:columns -->'
+		. '</div><!-- /wp:group --></div><!-- /wp:group -->';
+	register_block_pattern( 'ricoman/celeste-build-cta', array(
+		'title' => 'Celeste · Build your own CTA (steps + image)', 'categories' => $cats,
+		'description' => 'Split call-to-action: title, copy and numbered how-to steps on the left, an image or GIF of the builder on the right, with the builder button. Swap the image for a short GIF of the tool.',
+		'content' => $build_split,
 	) );
 
 	/* 7) Why contractors choose Celeste — icon cards ----------------------- */
