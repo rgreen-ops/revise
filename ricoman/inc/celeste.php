@@ -28,6 +28,32 @@ function ricoman_lightbox_inbox() {
 }
 
 /**
+ * Is this the Celeste product? Matches by slug OR title (drafts often have an
+ * empty slug) OR the Stretch Ceiling Lighting category. Filterable.
+ */
+function ricoman_is_celeste_product( $pid ) {
+	$post = get_post( $pid );
+	if ( ! $post instanceof WP_Post ) {
+		return (bool) apply_filters( 'ricoman_is_celeste_product', false, $pid );
+	}
+	$is = ( 0 === strpos( (string) $post->post_name, 'celeste' ) )
+		|| ( false !== stripos( (string) $post->post_title, 'celeste' ) );
+	if ( ! $is ) {
+		$tax   = taxonomy_exists( 'product-cat' ) ? 'product-cat' : 'product_cat';
+		$terms = get_the_terms( $pid, $tax );
+		if ( is_array( $terms ) && ! is_wp_error( $terms ) ) {
+			foreach ( $terms as $t ) {
+				if ( 'stretch-ceiling-lighting' === $t->slug ) {
+					$is = true;
+					break;
+				}
+			}
+		}
+	}
+	return (bool) apply_filters( 'ricoman_is_celeste_product', $is, $pid );
+}
+
+/**
  * AJAX: capture a Light Box Builder spec submission as a lead + email sales.
  * The builder is a static tool (no WP nonce context), so this relies on the
  * shared spam screen + a honeypot rather than a nonce.
