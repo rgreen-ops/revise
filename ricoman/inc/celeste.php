@@ -431,7 +431,7 @@ add_action( 'init', function () {
 		. $h2( 'Design your own light box in minutes' )
 		. $p( 'No more waiting days just to understand a job. Pick your options, turn your design in 3D, and send us the spec in one click &mdash; with a reference code to share with your client.', true )
 		. $howlist
-		. $buttons( $btnsolid( 'Build your own light box &rarr;', $builder ) );
+		. '<!-- wp:html --><p class="rm-cel-ctabtn"><a class="btn btn-solid" href="' . $builder . '">Build your own light box</a></p><!-- /wp:html -->';
 	$build_right = '<!-- wp:image {"sizeSlug":"large","className":"rm-cel-howimg"} --><figure class="wp-block-image size-large rm-cel-howimg"><img src="' . $u( 'ceiling.webp' ) . '" alt="Designing a Celeste light box in the 3D builder"/></figure><!-- /wp:image -->';
 	$build_split = '<!-- wp:group {"align":"full","className":"rm-section","backgroundColor":"surface","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull rm-section has-surface-background-color has-background">'
 		. '<!-- wp:group {"className":"rm-pp-wrap","layout":{"type":"constrained"}} --><div class="wp-block-group rm-pp-wrap">'
