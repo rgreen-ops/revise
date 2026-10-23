@@ -263,7 +263,12 @@ add_action( 'enqueue_block_assets', function () {
 		. ".rm-cel-howlist{list-style:none!important;counter-reset:rm-step;margin:1.2em 0 1.6em!important;padding:0!important;display:grid;gap:14px}"
 		. ".rm-cel-howlist li{position:relative;padding-left:50px;min-height:34px;line-height:1.5;color:$ink}"
 		. ".rm-cel-howlist li::before{counter-increment:rm-step;content:counter(rm-step);position:absolute;left:0;top:-2px;width:34px;height:34px;border-radius:50%;background:$blue;color:#fff;font-family:Poppins,sans-serif;font-weight:700;font-size:.92rem;display:flex;align-items:center;justify-content:center}"
-		. ".rm-cel-howimg img{border-radius:16px;width:100%;height:auto;display:block}";
+		. ".rm-cel-howimg img{border-radius:16px;width:100%;height:auto;display:block}"
+		// Safety net: on the product page, constrain any .rm-section whose content
+		// was added without an inner .rm-pp-wrap (e.g. hand-built/pasted sections)
+		// so it lines up with the site margins like every other section. Theme
+		// sections (which use .rm-pp-wrap) and full-width blocks are excluded.
+		. ".single-product .rm-section > :where(.wp-block-heading,.wp-block-paragraph,p,.wp-block-columns,.wp-block-list,ul,ol,.wp-block-buttons,.wp-block-image,figure):not(.alignfull):not(.alignwide):not(.rm-pp-wrap){max-width:1640px;margin-left:auto;margin-right:auto;padding-left:clamp(20px,4vw,72px);padding-right:clamp(20px,4vw,72px);box-sizing:border-box}";
 	wp_register_style( 'ricoman-celeste-inline', false );
 	wp_enqueue_style( 'ricoman-celeste-inline' );
 	wp_add_inline_style( 'ricoman-celeste-inline', $css );
