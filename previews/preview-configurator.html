@@ -1,0 +1,874 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estrella — Ricoman (configurator preview)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#ffffff; --soft:#f4f3f1; --line:#e7e5e1; --ink:#0b0b0c;
+  --text:#16161a; --muted:#8c8b86; --faint:#b6b4ae; --blue:#1d4ed8; --blue-lt:#6c9bff; --accent:#1d4ed8;
+  --wide:1440px; --pad:clamp(24px,4.5vw,72px);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;font-family:Poppins,system-ui,sans-serif;color:var(--text);background:var(--paper);line-height:1.7;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:Poppins,sans-serif;color:var(--ink);margin:0;font-weight:600;letter-spacing:-.03em;line-height:1.05}
+a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
+.wrap{max-width:var(--wide);margin:0 auto;padding-inline:var(--pad)}
+.kick{font-family:Poppins;text-transform:uppercase;letter-spacing:.28em;font-size:.66rem;font-weight:600;color:var(--accent)}
+.btn{display:inline-flex;align-items:center;gap:.7em;font-family:Poppins;font-weight:600;font-size:.8rem;letter-spacing:.05em;text-transform:uppercase;padding:1.05em 1.8em;border:1px solid transparent;cursor:pointer;transition:.25s}
+.btn-solid{background:var(--ink);color:#fff}.btn-solid:hover{background:var(--accent)}
+.btn-line-d{border-color:#d2cfc9;color:var(--ink)}.btn-line-d:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+.util{background:var(--ink);color:rgba(255,255,255,.6);font-family:Poppins;font-size:.66rem;letter-spacing:.16em;text-transform:uppercase}
+.util .wrap{display:flex;justify-content:space-between;height:38px;align-items:center}
+.util .live{display:inline-flex;align-items:center;gap:.5em;color:#7CFFB2}
+.util .live .dot{width:7px;height:7px;border-radius:50%;background:#34d399;box-shadow:0 0 0 0 rgba(52,211,153,.6);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(52,211,153,.5)}70%{box-shadow:0 0 0 6px rgba(52,211,153,0)}100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}}
+@media(max-width:680px){.util .wrap span.addr{display:none}}
+
+header.site{position:-webkit-sticky;position:sticky;top:0;z-index:50;background:var(--ink)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:78px;color:#fff}
+.brand{font-family:Poppins;font-weight:700;letter-spacing:.3em;font-size:1.1rem}
+.brand sup{font-size:.5em;top:-1em}
+.nav ul{display:flex;gap:40px;list-style:none;margin:0;padding:0;font-family:Poppins;font-size:.72rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase}
+.nav ul a{color:rgba(255,255,255,.82)}
+.tbox{font-family:Poppins;font-weight:600;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;border:1px solid rgba(255,255,255,.35);padding:.8em 1.4em;border-radius:999px;color:#fff}
+.tbox .c{display:inline-flex;min-width:1.4em;height:1.4em;align-items:center;justify-content:center;background:var(--accent);border-radius:999px;margin-left:.5em;font-size:.85em}
+@media(max-width:1024px){.nav ul,.tbox{display:none}}
+
+.crumb{font-family:Poppins;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:26px 0 0}
+.crumb .sep{color:var(--line);margin:0 .6em}
+
+.cfg{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:clamp(34px,5vw,88px);align-items:start;padding-top:30px;padding-bottom:clamp(50px,7vw,90px)}
+@media(max-width:920px){.cfg{grid-template-columns:1fr}}
+
+/* ---- live preview stage : real Estrella photography ---- */
+.stage{position:relative}
+@media(min-width:921px){.stage{position:-webkit-sticky;position:sticky;top:96px}}
+.viz{position:relative;background:#0a0a0b;border-radius:4px;overflow:hidden}
+.viz::before{content:"";display:block;padding-top:75%} /* 4:3 — works on all iOS Safari */
+.viz img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .5s ease}
+/* live colour-temperature wash over the photo */
+.viz .cct{position:absolute;inset:0;mix-blend-mode:soft-light;transition:background .5s ease;pointer-events:none}
+/* indirect up-light bloom */
+.viz .up{position:absolute;left:0;right:0;top:0;height:38%;background:linear-gradient(180deg,rgba(255,255,255,.55),transparent);opacity:0;transition:opacity .5s ease;pointer-events:none}
+.viz .grad{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.35) 0%,transparent 24%,transparent 60%,rgba(0,0,0,.55) 100%);pointer-events:none}
+/* product (white-background) shots: light stage, contained, dark badges */
+.viz.prod{background:#f1f1f3}
+.viz.prod img{object-fit:contain;padding:7%}
+.viz.prod .grad{opacity:0}
+.viz.prod .side span{color:rgba(0,0,0,.4)}
+.viz.prod .chip{background:rgba(11,11,12,.62);border-color:rgba(255,255,255,.18)}
+.viz.prod .code{background:rgba(11,11,12,.7)}
+.viz .side{position:absolute;left:14px;top:0;bottom:0;display:flex;align-items:center;pointer-events:none}
+.viz .side span{writing-mode:vertical-rl;transform:rotate(180deg);font-family:Poppins;font-weight:600;text-transform:uppercase;letter-spacing:.34em;font-size:.58rem;color:rgba(255,255,255,.6)}
+.viz .chips{position:absolute;right:16px;top:16px;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.viz .chip{font-family:Poppins;font-weight:600;text-transform:uppercase;letter-spacing:.14em;font-size:.56rem;color:#fff;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);padding:.4em .7em;border-radius:999px;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.viz .code{position:absolute;left:18px;bottom:16px;font-family:Poppins;font-weight:600;letter-spacing:.04em;font-size:.82rem;color:#fff;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.18);padding:.5em .85em;border-radius:6px;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.thumbs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:8px}
+.thumbs button{padding:0;border:0;cursor:pointer;background:none;min-width:0}
+.thumbs img{aspect-ratio:1;width:100%;min-width:0;object-fit:cover;border-radius:3px;border:1px solid var(--line);opacity:.62;transition:.2s}
+.thumbs button:hover img{opacity:1}
+.thumbs button.on img{opacity:1;outline:2px solid var(--ink);outline-offset:1px}
+.stagecap{display:flex;justify-content:space-between;font-family:Poppins;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:12px}
+
+/* ---- details ---- */
+.head{position:relative}
+.idx{position:absolute;right:0;top:-28px;font-family:Poppins;font-weight:700;font-size:7rem;line-height:1;color:var(--soft);letter-spacing:-.04em;z-index:0;user-select:none}
+.head>*{position:relative;z-index:1}
+.pname{font-size:clamp(2.6rem,5.5vw,4.2rem);letter-spacing:-.045em;font-weight:600;margin:.12em 0 .2em}
+.pdesc{color:var(--muted);font-size:1.08rem;margin:0 0 1.4em;max-width:46ch}
+
+.axis{padding:1.05em 0;border-top:1px solid var(--line)}
+.axis .lab{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.7em;gap:12px}
+.axis .lab b{font-family:Poppins;font-weight:600;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase}
+.axis .lab b i{font-style:normal;color:var(--faint);margin-right:.7em;font-weight:600}
+.axis .lab span{color:var(--ink);font-size:.9rem;font-family:Poppins;font-weight:600}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt-b{font-family:Poppins;font-weight:500;font-size:.86rem;padding:.6em 1em;border:1px solid var(--line);border-radius:6px;cursor:pointer;background:#fff;transition:.15s}
+.opt-b:hover{border-color:#bdbab3}
+.opt-b.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+.result{margin-top:1.6em;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.result .code{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--ink);color:#fff;padding:1.05em 1.2em}
+.result .code .lbl{font-family:Poppins;text-transform:uppercase;letter-spacing:.14em;font-size:.6rem;color:rgba(255,255,255,.5)}
+.result .code .v{font-family:Poppins;font-weight:700;font-size:1.28rem;letter-spacing:.02em}
+.result .code .copy{font-family:Poppins;font-size:.62rem;text-transform:uppercase;letter-spacing:.12em;color:#fff;border:1px solid rgba(255,255,255,.35);padding:.55em .9em;border-radius:999px;cursor:pointer}
+.spec{width:100%;border-collapse:collapse}
+.spec th,.spec td{text-align:left;padding:.7em 1.2em;border-bottom:1px solid var(--line);font-size:.9rem}
+.spec th{color:var(--muted);font-weight:400;width:50%}
+.spec td{font-family:Poppins;font-weight:600;color:var(--ink)}
+.spec tr:last-child th,.spec tr:last-child td{border-bottom:0}
+.acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:1.4em}
+.dl{display:flex;gap:18px;flex-wrap:wrap;margin-top:1.2em}
+.dl a{font-family:Poppins;font-weight:600;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);border-bottom:1px solid var(--line);padding:.3em 0}
+.dl a:hover{border-color:var(--ink)}
+.note{margin-top:1.4em;font-size:.82rem;color:var(--muted)}
+
+footer.site{background:var(--ink);color:rgba(255,255,255,.5);padding:54px 0;font-family:Poppins;font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;margin-top:10px}
+footer .row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:18px;align-items:center}
+footer .brand{color:#fff;letter-spacing:.3em}
+.tag{position:fixed;left:14px;bottom:14px;z-index:99;background:var(--ink);color:#fff;font-family:Poppins;font-weight:600;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;padding:.55em 1em;border-radius:999px;border:1px solid rgba(255,255,255,.25)}
+
+/* =================== EDITORIAL CONTENT (Flow-style) =================== */
+.btn-line{border-color:rgba(255,255,255,.4);color:#fff}.btn-line:hover{background:#fff;color:var(--ink)}
+.kick .n{color:var(--ink);margin-right:1.4em}
+.kick.lt{color:var(--blue-lt)}.kick.lt .n{color:#fff}
+.col{max-width:1120px}
+.sec{padding-block:clamp(72px,10vw,160px)}
+.sec.tight{padding-block:clamp(48px,6vw,90px)}
+
+.facts{border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.facts .wrap{display:grid;grid-template-columns:repeat(5,1fr)}
+.facts .f{padding:clamp(26px,3vw,42px) 0;padding-right:24px;border-right:1px solid var(--line)}
+.facts .f:last-child{border-right:0}
+.facts small{display:block;color:var(--muted);text-transform:uppercase;letter-spacing:.2em;font-size:.6rem;font-family:Poppins;font-weight:600;margin-bottom:12px}
+.facts b{font-family:Poppins;font-weight:500;font-size:clamp(1.05rem,1.4vw,1.45rem);letter-spacing:-.02em;color:var(--ink)}
+@media(max-width:820px){.facts .wrap{grid-template-columns:repeat(2,1fr)}.facts .f{border-right:0;border-bottom:1px solid var(--line);padding:22px var(--pad)}}
+
+.statement p{font-family:Poppins;font-weight:500;font-size:clamp(1.9rem,5vw,4.4rem);line-height:1.05;letter-spacing:-.035em;max-width:20ch;margin:0;color:var(--ink)}
+.statement p span{color:var(--faint)}
+
+.bleed{width:100%;height:clamp(380px,64vh,760px);object-fit:cover}
+.cap{font-family:Poppins;text-transform:uppercase;letter-spacing:.2em;font-size:.62rem;color:var(--muted);padding-top:14px}
+
+.feature{display:grid;grid-template-columns:1fr 1fr;gap:clamp(34px,6vw,120px);align-items:center}
+.feature + .feature{margin-top:clamp(56px,8vw,130px)}
+.feature.rev .media{order:2}
+.feature .media img{width:100%;aspect-ratio:4/5;object-fit:cover}
+.feature .media.prod{background:#f4f3f1;display:flex;align-items:center;justify-content:center}
+.feature .media.prod img{object-fit:contain;padding:8%;aspect-ratio:auto}
+.feature .body{max-width:440px}
+.feature h2{font-size:clamp(2rem,4vw,3.4rem);margin:.7em 0 .6em;font-weight:600}
+.feature .body>p{color:var(--muted);font-size:1.08rem;margin:0 0 1.6em}
+.feature ul{margin:0;padding:0;list-style:none}
+.feature li{padding:1em 0;border-top:1px solid var(--line);display:flex;gap:1.2em;align-items:baseline;font-size:1rem}
+.feature li .ix{font-family:Poppins;font-size:.66rem;letter-spacing:.14em;color:var(--faint)}
+@media(max-width:820px){.feature{grid-template-columns:1fr;gap:30px}.feature.rev .media{order:0}}
+
+.dark{background:var(--ink);color:#fff}
+.britain{display:grid;grid-template-columns:1fr 1fr;align-items:stretch}
+.britain .img{min-height:480px;background:url(img/rico-mfg.jpg) center/cover no-repeat}
+.britain .body{padding:clamp(54px,8vw,130px) clamp(28px,6vw,100px)}
+.britain h2{color:#fff;font-size:clamp(2.2rem,4.4vw,3.6rem);margin:.6em 0 .7em;font-weight:600}
+.britain p{color:rgba(255,255,255,.7);font-size:1.1rem;margin:0 0 1.3em;max-width:44ch}
+@media(max-width:860px){.britain{grid-template-columns:1fr}.britain .img{min-height:320px;order:-1}}
+
+.specband{position:relative;color:#fff;overflow:hidden}
+.specband .bg{position:absolute;inset:0;background:url(img/estrella-canteen.jpg) center/cover no-repeat}
+.specband .scrim{position:absolute;inset:0;background:rgba(8,8,9,.76)}
+.specband .grid{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:24px;text-align:center;padding-block:clamp(64px,8vw,130px)}
+.specband b{font-family:Poppins;font-weight:500;font-size:clamp(1.8rem,3.6vw,3.2rem);color:var(--blue-lt);display:block;letter-spacing:-.03em}
+.specband small{color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.2em;font-size:.62rem;font-family:Poppins;font-weight:600}
+@media(max-width:820px){.specband .grid{grid-template-columns:repeat(2,1fr);gap:40px}}
+
+.tables{display:grid;grid-template-columns:1fr 1.5fr;gap:clamp(32px,6vw,100px);align-items:start}
+@media(max-width:820px){.tables{grid-template-columns:1fr}}
+.dtable{width:100%;border-collapse:collapse}
+.dtable th,.dtable td{text-align:left;padding:1.05em 0;border-bottom:1px solid var(--line);font-size:.95rem}
+.dtable th{color:var(--muted);font-weight:400;width:46%}
+.dtable td{font-family:Poppins;font-weight:600;color:var(--ink)}
+.sectlabel{font-family:Poppins;font-weight:600;font-size:1.35rem;letter-spacing:-.02em;margin-bottom:1.1em}
+.vars{width:100%;border-collapse:collapse}
+.vars thead th{border-bottom:1.5px solid var(--ink);color:var(--ink);padding:1em 0;font-family:Poppins;font-size:.66rem;text-align:left;letter-spacing:.16em;text-transform:uppercase}
+.vars td{padding:1.05em 0;border-bottom:1px solid var(--line);font-size:.9rem}
+.vars td:first-child{font-family:Poppins;font-weight:600}
+
+.mosaic{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:14px}
+.mosaic .c{display:grid;gap:14px}
+.mosaic img{width:100%;object-fit:cover}
+.mosaic .big{aspect-ratio:16/12}
+.mosaic .sm{aspect-ratio:1}
+@media(max-width:680px){.mosaic{grid-template-columns:1fr}}
+
+.quote{text-align:center}
+.quote blockquote{font-family:Poppins;font-weight:500;font-size:clamp(1.8rem,4.2vw,3.2rem);line-height:1.14;letter-spacing:-.03em;max-width:18ch;margin:0 auto .9em;color:var(--ink)}
+.quote cite{font-style:normal;color:var(--muted);font-family:Poppins;font-size:.7rem;letter-spacing:.2em;text-transform:uppercase}
+/* section rhythm helpers */
+.alt-soft{background:var(--soft)}
+.quote.dark{background:var(--ink)}
+.quote.dark blockquote{color:#fff}
+.quote.dark cite{color:var(--blue-lt)}
+
+.shead{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:end;margin-bottom:clamp(40px,6vw,80px)}
+.shead h2{font-size:clamp(2.2rem,4.6vw,4rem);margin:.5em 0 0;font-weight:600}
+@media(max-width:760px){.shead{grid-template-columns:1fr}}
+
+.ctaband{position:relative;color:#fff;text-align:center;overflow:hidden}
+.ctaband .bg{position:absolute;inset:0;background:url(img/estrella-lounge.webp) center/cover no-repeat}
+.ctaband .scrim{position:absolute;inset:0;background:rgba(8,8,9,.72)}
+.ctaband .inner{position:relative;padding-block:clamp(80px,11vw,170px)}
+.ctaband h2{color:#fff;font-size:clamp(2.2rem,4.6vw,4rem);margin-bottom:.5em;font-weight:600}
+.ctaband p{color:rgba(255,255,255,.78);max-width:46ch;margin:0 auto 2.2em;font-size:1.1rem}
+.ctaband .acts{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+
+/* =================== ENHANCEMENTS (Unios / Ricoman-house ideas) =================== */
+/* benefit checklist + quick links in configurator */
+.hl{list-style:none;margin:0 0 1.5em;padding:0;display:grid;gap:.75em}
+.hl li{display:flex;gap:.7em;align-items:flex-start;font-size:.98rem;color:var(--text)}
+.hl li svg{flex:0 0 auto;margin-top:.12em}
+.qlinks{display:flex;gap:20px;flex-wrap:wrap;margin:0 0 1.6em}
+.qlinks a{font-family:Poppins;font-weight:600;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;border-bottom:1px solid var(--ink);padding-bottom:.25em}
+.qlinks a:hover{color:var(--accent);border-color:var(--accent)}
+
+/* gallery studio / in-situ tabs */
+.gtabs{display:inline-flex;gap:4px;background:var(--soft);border-radius:999px;padding:4px;margin-bottom:10px}
+.gtabs button{font-family:Poppins;font-weight:600;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;border:0;background:none;color:var(--muted);padding:.6em 1.15em;border-radius:999px;cursor:pointer}
+.gtabs button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+
+/* feature-benefit cards */
+.fcards{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}
+.fcard{background:#fff;padding:clamp(26px,3vw,42px)}
+.fcard .ic{display:block;color:var(--accent);margin-bottom:16px}
+.fcard h4{font-family:Poppins;font-weight:600;font-size:1.06rem;margin:0 0 .5em}
+.fcard p{color:var(--muted);font-size:.92rem;margin:0}
+@media(max-width:820px){.fcards{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.fcards{grid-template-columns:1fr}}
+
+/* accordion product detail */
+.acc{border-top:1px solid var(--ink);max-width:920px}
+.acc details{border-bottom:1px solid var(--line)}
+.acc summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:20px;padding:1.45em 0;font-family:Poppins;font-weight:600;font-size:1.2rem;letter-spacing:-.01em}
+.acc summary::-webkit-details-marker{display:none}
+.acc summary .pm{font-weight:300;font-size:1.7rem;color:var(--muted);transition:transform .2s;line-height:1}
+.acc details[open] summary .pm{transform:rotate(45deg)}
+.acc .body{padding:0 0 1.8em}
+.acc .body table{width:100%;border-collapse:collapse;max-width:640px}
+.acc .body th,.acc .body td{text-align:left;padding:.7em 0;border-bottom:1px solid var(--line);font-size:.92rem}
+.acc .body th{color:var(--muted);font-weight:400;width:44%}
+.acc .body td{font-family:Poppins;font-weight:600;color:var(--ink)}
+.acc .body ul{margin:0;padding:0;list-style:none;columns:2;column-gap:40px;max-width:640px}
+.acc .body ul li{padding:.5em 0;font-size:.95rem;break-inside:avoid}
+.acc .reslist{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-width:640px}
+.acc .reslist a{display:flex;justify-content:space-between;align-items:center;gap:14px;border:1px solid var(--line);border-radius:6px;padding:.95em 1.1em;font-family:Poppins;font-weight:600;font-size:.82rem;color:var(--ink)}
+.acc .reslist a:hover{border-color:var(--ink)}
+.acc .reslist a span{color:var(--muted);font-weight:500;font-size:.7rem;letter-spacing:.06em}
+@media(max-width:620px){.acc .reslist,.acc .body ul{grid-template-columns:1fr;columns:1}}
+
+/* configure-your-product full part-code table */
+.cyp .selrow{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:28px}
+.cyp .sel{min-width:210px;flex:1}
+.cyp .sel label{display:block;font-family:Poppins;font-weight:600;font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.cyp .sel select{width:100%;font-family:Poppins;font-size:.9rem;padding:.85em 1em;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);cursor:pointer}
+.cyp .tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.cyp table{width:100%;border-collapse:collapse;min-width:540px}
+.cyp thead th{border-bottom:1.5px solid var(--ink);color:var(--ink);padding:1em .6em;font-family:Poppins;font-size:.6rem;text-align:left;letter-spacing:.13em;text-transform:uppercase}
+.cyp tbody td{padding:1em .6em;border-bottom:1px solid var(--line);font-size:.86rem;vertical-align:middle}
+.cyp td.cd{font-family:Poppins;font-weight:600;color:var(--accent);white-space:nowrap}
+.cyp .thumb{width:50px;height:50px;object-fit:contain;background:var(--soft);border-radius:4px;padding:4px}
+.cyp .ico{display:inline-flex;width:34px;height:34px;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:50%;cursor:pointer;color:var(--ink);transition:.15s}
+.cyp .ico:hover{border-color:var(--ink);background:var(--ink);color:#fff}
+.cyp .center{text-align:center}
+@media(max-width:760px){.cyp .hidem{display:none}}
+
+/* applications */
+.apps{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.app{position:relative;aspect-ratio:3/4;overflow:hidden;border-radius:4px}
+.app img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .6s}
+.app:hover img{transform:scale(1.06)}
+.app .lab{position:absolute;left:0;right:0;bottom:0;padding:18px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.78));color:#fff;font-family:Poppins;font-weight:600;font-size:1rem}
+.app .lab small{display:block;font-weight:500;font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:3px}
+@media(max-width:820px){.apps{grid-template-columns:1fr 1fr}}
+
+/* related products */
+.rel{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.rcard{border:1px solid var(--line);border-radius:4px;overflow:hidden;background:#fff;transition:.2s}
+.rcard:hover{box-shadow:0 10px 28px rgba(0,0,0,.09)}
+.rcard .ph{aspect-ratio:1;background:var(--soft);display:flex;align-items:center;justify-content:center;padding:16%}
+.rcard .ph img{max-width:100%;max-height:100%;object-fit:contain}
+.rcard .meta{padding:16px;text-align:center;border-top:1px solid var(--line)}
+.rcard h4{font-family:Poppins;font-weight:600;font-size:.92rem;margin:0 0 4px}
+.rcard small{color:var(--muted);font-family:Poppins;font-size:.64rem;letter-spacing:.1em;text-transform:uppercase}
+@media(max-width:980px){.rel{grid-template-columns:repeat(3,1fr)}.rel .rhide{display:none}}
+@media(max-width:620px){.rel{grid-template-columns:1fr 1fr}}
+
+/* ---- Mobile breathing room + section rhythm ---- */
+@media(max-width:620px){
+  :root{--pad:28px}
+  .cfg{gap:40px;padding-top:26px;padding-bottom:56px}
+  .crumb{padding:22px 0 0}
+  .pdesc{margin-bottom:1.5em}
+  .hl{gap:.9em;margin-bottom:1.6em}
+  .hl li{font-size:1rem;line-height:1.5}
+  .qlinks{gap:12px 20px;margin-bottom:1.7em}
+  /* compact the option rows so the whole build fits on one screen */
+  .axis{padding:.5em 0}
+  .axis .lab{margin-bottom:.4em}
+  .axis .lab b{font-size:.7rem;letter-spacing:.1em}
+  .axis .lab b i{margin-right:.5em}
+  .axis .lab span{font-size:.8rem}
+  .opts{gap:6px}
+  .opt-b{padding:.42em .72em;font-size:.8rem;border-radius:5px}
+  .result{margin-top:1.3em}
+  .acts{margin-top:1.5em;gap:10px}
+  .acts .btn{width:100%;justify-content:center}
+  .dl{gap:12px 20px;margin-top:1.4em}
+  .note{margin-top:1.5em}
+  .stagecap{flex-wrap:wrap;gap:4px 14px}
+  /* keep content clear of the fixed live-result bar; hide preview watermark */
+  body{padding-bottom:80px}
+  .tag{display:none}
+  /* generous, varied vertical rhythm so sections don't merge */
+  .sec{padding-block:clamp(72px,17vw,130px)}
+  .statement{padding-block:clamp(80px,20vw,150px)}
+  .statement p{font-size:clamp(2.1rem,8.5vw,3rem)}
+  .facts .f{padding:26px var(--pad)}
+  .shead{gap:18px;margin-bottom:40px}
+  .feature+.feature{margin-top:64px}
+  .fcard{padding:34px 28px}
+  .acc summary{padding:1.4em 0;font-size:1.1rem}
+  .cap{padding:16px var(--pad) 0}
+  /* alternating tinted/dark sections read as distinct on mobile */
+  .alt-soft{background:var(--soft)}
+}
+
+/* Sticky live-result bar — mobile only: keeps the order code + key specs on
+   screen while configuring, so build & result are always visible together */
+.mbar{display:none}
+@media(max-width:620px){
+  .mbar{display:block;position:fixed;left:0;right:0;bottom:0;z-index:90;background:var(--ink);color:#fff;border-top:1px solid rgba(255,255,255,.14);box-shadow:0 -8px 24px rgba(0,0,0,.28);transform:translateY(118%);transition:transform .28s ease;will-change:transform}
+  .mbar.show{transform:translateY(0)}
+  .mbar-in{display:flex;align-items:center;gap:12px;padding:9px 16px;padding-bottom:max(9px,env(safe-area-inset-bottom))}
+  .mbar-info{display:flex;flex-direction:column;min-width:0;flex:1}
+  .mbar-lbl{font-family:Poppins;font-weight:600;font-size:.52rem;letter-spacing:.16em;text-transform:uppercase;color:var(--blue-lt)}
+  .mbar-code{font-family:Poppins;font-weight:700;font-size:.98rem;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:1px 0}
+  .mbar-meta{font-family:Poppins;font-size:.62rem;letter-spacing:.03em;color:rgba(255,255,255,.62);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mbar-btn{flex:0 0 auto;font-family:Poppins;font-weight:600;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;background:var(--accent);color:#fff;border:0;border-radius:8px;padding:.95em 1.25em;cursor:pointer}
+  .mbar-btn:active{opacity:.85}
+}
+
+/* Fallback for iOS Safari versions without aspect-ratio support (<15) so
+   thumbnails, application and related cards don't collapse to zero height */
+@supports not (aspect-ratio: 1 / 1){
+  .thumbs img{height:74px}
+  .feature .media img{height:auto}
+  .mosaic .big{height:360px}
+  .mosaic .sm{height:174px}
+  .app{height:340px}
+  .rcard .ph{height:150px}
+  .cyp .thumb{height:50px}
+}
+</style>
+</head>
+<body>
+<div class="tag">Preview · Configurator (RICOBOT-fed)</div>
+
+<div class="util"><div class="wrap"><span class="addr">Designed &amp; manufactured in Manchester, UK</span><span class="live"><span class="dot"></span> Live product data · RICOBOT</span></div></div>
+
+<header class="site"><div class="wrap nav">
+  <div class="brand">RICOMAN<sup>®</sup></div>
+  <ul><li><a>Products</a></li><li><a>Projects</a></li><li><a>Lighting Design</a></li><li><a>Manufacturing</a></li></ul>
+  <a class="tbox">My Project <span class="c" id="mpCount">0</span></a>
+</div></header>
+
+<div class="wrap crumb">Home <span class="sep">/</span> Products <span class="sep">/</span> Linear Lighting <span class="sep">/</span> <span id="crumbName">Estrella</span></div>
+
+<section class="wrap cfg">
+  <!-- LIVE PREVIEW — real Estrella photography -->
+  <div class="stage">
+    <div class="viz">
+      <img id="vizImg" src="img/rico-office-render.webp" alt="Estrella architectural linear luminaire">
+      <div class="cct" id="vizCct"></div>
+      <div class="up" id="vizUp"></div>
+      <div class="grad"></div>
+      <div class="side"><span>Architectural Linear · Continuous Run</span></div>
+      <div class="chips"><span class="chip" id="chipFinish">Black</span><span class="chip" id="chipOptic">Opal</span></div>
+      <div class="code" id="vizCode">R341601/WT/4K</div>
+    </div>
+    <div class="gtabs" id="gtabs">
+      <button class="on" data-set="all">All</button>
+      <button data-set="studio">Studio</button>
+      <button data-set="insitu">In-situ</button>
+    </div>
+    <div class="thumbs" id="thumbs"></div>
+    <div class="stagecap"><span>Estrella · architectural linear</span><span id="capView">Studio macro</span></div>
+  </div>
+
+  <!-- CONFIGURATOR -->
+  <div class="details">
+    <div class="head">
+      <div class="idx">01</div>
+      <span class="kick">Linear Lighting · Suspended / Surface</span>
+      <h1 class="pname" id="pName">Estrella</h1>
+      <p class="pdesc">A precision architectural linear luminaire, built to run in continuous lines and bespoke curves. Configure length, optic, finish and controls — the order code, specification and downloads resolve live from RICOBOT.</p>
+    </div>
+
+    <ul class="hl">
+      <li><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" stroke="#e7e5e1"/><path d="M8 12.4l2.6 2.6 5.2-5.6"/></svg> Surface or suspended — straight runs, L-shapes &amp; rectangular frames</li>
+      <li><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" stroke="#e7e5e1"/><path d="M8 12.4l2.6 2.6 5.2-5.6"/></svg> Four optics — opal, UGR&lt;19, wallwash &amp; louvre</li>
+      <li><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" stroke="#e7e5e1"/><path d="M8 12.4l2.6 2.6 5.2-5.6"/></svg> Up to 127 lm/W · CRI 90 · 3hr emergency &amp; up-light options</li>
+    </ul>
+    <div class="qlinks">
+      <a href="#detail">Specification</a>
+      <a href="#order">Configure &amp; order codes</a>
+      <a href="#downloads">Downloads</a>
+      <a href="#related">Related</a>
+    </div>
+
+    <div id="axes"></div>
+
+    <div class="result">
+      <div class="code">
+        <div><div class="lbl">Order code</div><div class="v" id="code">R341601/WT/4K</div></div>
+        <div class="copy" id="copy">Copy</div>
+      </div>
+      <table class="spec"><tbody id="specBody"></tbody></table>
+    </div>
+
+    <div class="acts">
+      <button class="btn btn-solid" id="addBtn">＋ Add to My Project</button>
+      <a class="btn btn-line-d">Request a lighting design →</a>
+      <a class="btn btn-line-d">Apply for a trade account →</a>
+    </div>
+    <div class="dl" id="downloads">
+      <a id="dlData">Datasheet (PDF) · 480 KB ↓</a>
+      <a id="dlBim">BIM / Revit (RFA) · 1.2 MB ↓</a>
+      <a id="dlIes">Photometric (IES) · 60 KB ↓</a>
+    </div>
+    <p class="note">Specification, order code and downloads are resolved from RICOBOT for the exact configuration. Invalid combinations are disabled automatically. Save builds to My Project and our team will follow up directly.</p>
+  </div>
+</section>
+
+<!-- ============================ STORY / CONTENT ============================ -->
+<section class="facts alt-soft"><div class="wrap">
+  <div class="f"><small>Output</small><b>Up to 6,200 lm</b></div>
+  <div class="f"><small>Colour</small><b>3000K / 4000K · CRI 90</b></div>
+  <div class="f"><small>Optics</small><b>Opal · UGR&lt;19 · Wallwash</b></div>
+  <div class="f"><small>Mounting</small><b>Surface / Suspended</b></div>
+  <div class="f"><small>Warranty</small><b>5 years</b></div>
+</div></section>
+
+<section class="sec statement"><div class="wrap col">
+  <p>One profile, drawn as a single clean line. <span>Surface or suspended, in straight runs, L-shapes and frames — configured to your scheme.</span></p>
+</div></section>
+
+<figure style="margin:0"><img class="bleed" src="img/estrella-canteen.jpg" alt="Estrella suspended linear run in a workplace fit-out"></figure>
+<div class="wrap"><div class="cap">Workplace fit-out · Estrella suspended in matt black</div></div>
+
+<section class="sec"><div class="wrap">
+  <div class="feature">
+    <div class="media prod"><img src="img/estrella-finishes.png" alt="Estrella in black and white finishes"></div>
+    <div class="body">
+      <span class="kick"><span class="n">01</span>Finish</span>
+      <h2>Two finishes, one clean line</h2>
+      <p>A crisp extruded aluminium housing with a flush opal diffuser. Specified in matt black or white as standard, or any RAL to match the interior — with no visible fixings down the run.</p>
+      <ul>
+        <li><span class="ix">01</span> Matt black &amp; white as standard</li>
+        <li><span class="ix">02</span> Any RAL finish to order</li>
+        <li><span class="ix">03</span> Flush opal, UGR&lt;19, wallwash or louvre optics</li>
+      </ul>
+    </div>
+  </div>
+  <div class="feature rev">
+    <div class="media"><img src="img/estrella-lounge.webp" alt="Estrella continuous run in a breakout space"></div>
+    <div class="body">
+      <span class="kick"><span class="n">02</span>Continuous runs</span>
+      <h2>Built to run line after line</h2>
+      <p>Estrella links end-to-end into long, dot-free runs and turns through L-shapes and rectangular frames — so a single specified detail can carry across a whole floorplate.</p>
+      <ul>
+        <li><span class="ix">01</span> Continuous, joint-free diffusion</li>
+        <li><span class="ix">02</span> L-shapes &amp; rectangular frames</li>
+        <li><span class="ix">03</span> Integral 3hr emergency &amp; indirect up-light options</li>
+      </ul>
+    </div>
+  </div>
+</div></section>
+
+<section class="sec alt-soft"><div class="wrap">
+  <span class="kick">Why specify Estrella</span>
+  <div class="fcards" style="margin-top:clamp(28px,4vw,56px)">
+    <div class="fcard">
+      <svg class="ic" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/><circle cx="12" cy="12" r="4"/></svg>
+      <h4>Low-glare optics</h4><p>UGR&lt;19 microprismatic and louvre options for screen-based and workplace environments.</p>
+    </div>
+    <div class="fcard">
+      <svg class="ic" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      <h4>CRI 90 light quality</h4><p>High colour rendering across 3000K and 4000K, calibrated so every metre of a run matches.</p>
+    </div>
+    <div class="fcard">
+      <svg class="ic" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 10l9-7 9 7v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 21v-7h6v7"/></svg>
+      <h4>Made in Britain</h4><p>Engineered, assembled and tested in Manchester — built to order, not to a catalogue.</p>
+    </div>
+    <div class="fcard">
+      <svg class="ic" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>
+      <h4>5-year warranty</h4><p>Long-life LED modules and drivers backed by a five-year warranty as standard.</p>
+    </div>
+    <div class="fcard">
+      <svg class="ic" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12h4l2-7 4 14 2-7h6"/></svg>
+      <h4>True continuous runs</h4><p>Joint-free diffusion through straight lines, L-shapes and rectangular frames.</p>
+    </div>
+    <div class="fcard">
+      <svg class="ic" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>
+      <h4>Emergency &amp; up-light</h4><p>Integral 3hr self-test emergency and indirect up-light options built into the profile.</p>
+    </div>
+  </div>
+</div></section>
+
+<section class="dark">
+  <div class="britain">
+    <div class="body">
+      <span class="kick lt"><span class="n">03</span>In-house Manufacturing</span>
+      <h2>Made to order in Manchester</h2>
+      <p>Estrella isn’t imported and rebadged. It’s engineered, assembled and tested under one roof in the UK — so runs are cut to your dimensions, finishes matched to your palette, and lead times stay short.</p>
+      <p>Designing and making in-house means tighter tolerances, full traceability, and the freedom to build to your geometry — to order, not to a catalogue.</p>
+      <a class="btn btn-line" style="margin-top:.6em">Inside our manufacturing →</a>
+    </div>
+    <div class="img"></div>
+  </div>
+</section>
+
+<section class="specband"><div class="bg"></div><div class="scrim"></div><div class="wrap"><div class="grid">
+  <div><b>6,200<span style="font-size:.34em;font-family:Poppins;letter-spacing:.05em"> LM</span></b><small>Max output</small></div>
+  <div><b>90</b><small>CRI</small></div>
+  <div><b>127<span style="font-size:.34em;font-family:Poppins;letter-spacing:.05em"> LM/W</span></b><small>Efficacy</small></div>
+  <div><b>IP20</b><small>Rating</small></div>
+  <div><b>5 yr</b><small>Warranty</small></div>
+</div></div></section>
+
+<section class="sec" id="detail"><div class="wrap">
+  <span class="kick"><span class="n">04</span>Product detail</span>
+  <div class="acc" style="margin-top:clamp(28px,4vw,52px)">
+    <details open><summary>Specification <span class="pm">+</span></summary>
+      <div class="body"><table><tbody>
+        <tr><th>Wattage</th><td>14 – 56 W</td></tr>
+        <tr><th>Output</th><td>1,550 – 6,200 lm</td></tr>
+        <tr><th>Efficacy</th><td>Up to 127 lm/W</td></tr>
+        <tr><th>Colour temperature</th><td>3000K / 4000K</td></tr>
+        <tr><th>CRI</th><td>90</td></tr>
+        <tr><th>Optics</th><td>Opal · UGR&lt;19 · Wallwash · Louvre</td></tr>
+        <tr><th>IP rating</th><td>IP20</td></tr>
+        <tr><th>Controls</th><td>Non-dim · DALI · 1–10V</td></tr>
+        <tr><th>Options</th><td>3hr self-test emergency · indirect up-light</td></tr>
+        <tr><th>Warranty</th><td>5 years</td></tr>
+        <tr><th>Origin</th><td>Made in Manchester, UK</td></tr>
+      </tbody></table></div>
+    </details>
+    <details><summary>Dimensions <span class="pm">+</span></summary>
+      <div class="body"><table><tbody>
+        <tr><th>Profile section</th><td>60 × 75 mm</td></tr>
+        <tr><th>532 mm module</th><td>532 × 60 × 75 mm</td></tr>
+        <tr><th>1064 mm module</th><td>1064 × 60 × 75 mm</td></tr>
+        <tr><th>1596 mm module</th><td>1596 × 60 × 75 mm</td></tr>
+        <tr><th>2128 mm module</th><td>2128 × 60 × 75 mm</td></tr>
+        <tr><th>L-shape frame</th><td>600 × 600 × 75 mm</td></tr>
+        <tr><th>Suspension drop</th><td>0 – 1500 mm adjustable</td></tr>
+      </tbody></table></div>
+    </details>
+    <details><summary>Features <span class="pm">+</span></summary>
+      <div class="body"><ul>
+        <li>— Extruded aluminium housing, flush diffuser</li>
+        <li>— Matt black &amp; white as standard, any RAL to order</li>
+        <li>— Continuous, joint-free runs &amp; corner forms</li>
+        <li>— Low-glare UGR&lt;19 &amp; louvre optics</li>
+        <li>— Surface or suspended mounting</li>
+        <li>— DALI, 1–10V or non-dim drivers</li>
+        <li>— Integral 3hr self-test emergency</li>
+        <li>— Optional indirect up-light</li>
+      </ul></div>
+    </details>
+    <details><summary>Downloads &amp; resources <span class="pm">+</span></summary>
+      <div class="body"><div class="reslist">
+        <a>Datasheet <span>PDF · 480 KB ↓</span></a>
+        <a>BIM / Revit object <span>RFA · 1.2 MB ↓</span></a>
+        <a>Photometric data <span>IES · 60 KB ↓</span></a>
+        <a>2D CAD drawing <span>DWG · 220 KB ↓</span></a>
+        <a>Installation guide <span>PDF · 1.1 MB ↓</span></a>
+        <a>DIALux plugin <span>External ↗</span></a>
+      </div></div>
+    </details>
+  </div>
+</div></section>
+
+<section class="sec cyp alt-soft" id="order"><div class="wrap">
+  <span class="kick"><span class="n">05</span>Configure your product</span>
+  <h2 class="sectlabel" style="font-size:clamp(1.8rem,3.6vw,2.8rem);margin:.5em 0 1.4em">Order codes &amp; variants</h2>
+  <div class="selrow">
+    <div class="sel"><label>Length</label><select><option>All lengths</option><option>532 mm</option><option>1064 mm</option><option>1596 mm</option><option>2128 mm</option><option>L-shape</option></select></div>
+    <div class="sel"><label>Body colour</label><select><option>All finishes</option><option>White</option><option>Black</option></select></div>
+    <div class="sel"><label>Colour temperature</label><select><option>All</option><option>3000K</option><option>4000K</option></select></div>
+  </div>
+  <div class="tscroll">
+  <table>
+    <thead><tr><th></th><th>Part code</th><th>Description</th><th class="center hidem">Lumens</th><th class="hidem">Dimensions</th><th class="center">View</th><th class="center">Add</th><th class="center hidem">LDT</th><th class="center">Datasheet</th></tr></thead>
+    <tbody id="cypBody"></tbody>
+  </table>
+  </div>
+  <div style="margin-top:26px"><a class="btn btn-line-d">View all variants ▾</a></div>
+</div></section>
+
+<section class="tight" style="padding-top:0"><div class="wrap"><div class="mosaic">
+  <img class="big" src="img/estrella-lounge.webp" alt="Estrella continuous run — breakout space">
+  <div class="c">
+    <img class="sm" src="img/estrella-black.png" alt="Estrella black product detail" style="background:#f4f3f1">
+    <img class="sm" src="img/estrella-canteen.jpg" alt="Estrella suspended in workplace canteen">
+  </div>
+</div></div></section>
+
+<section class="sec"><div class="wrap">
+  <div class="shead">
+    <div><span class="kick"><span class="n">06</span>Applications</span><h2>Where Estrella works</h2></div>
+    <p style="color:var(--muted);font-size:1.1rem;margin:0;align-self:end">From open-plan workplaces to hospitality and retail — a single linear language across the whole scheme.</p>
+  </div>
+  <div class="apps">
+    <a class="app"><img src="img/estrella-canteen.jpg" alt="Workplace"><div class="lab"><small>Sector</small>Workplace</div></a>
+    <a class="app"><img src="img/estrella-lounge.webp" alt="Breakout &amp; hospitality"><div class="lab"><small>Sector</small>Breakout &amp; hospitality</div></a>
+    <a class="app"><img src="img/retail.jpg" alt="Retail"><div class="lab"><small>Sector</small>Retail</div></a>
+    <a class="app"><img src="img/ceiling.jpg" alt="Education &amp; civic"><div class="lab"><small>Sector</small>Education &amp; civic</div></a>
+  </div>
+</div></section>
+
+<section class="sec quote dark"><div class="wrap col">
+  <blockquote>“Specified as one continuous detail — the run carried straight through the whole floor.”</blockquote>
+  <cite>Lighting Designer · Commercial Office Fit-out</cite>
+</div></section>
+
+<section class="sec alt-soft" id="related"><div class="wrap">
+  <div class="shead"><div><span class="kick"><span class="n">07</span>Related</span><h2>You may also like</h2></div>
+    <p style="color:var(--muted);font-size:1.05rem;margin:0;align-self:end">More UK-made architectural lighting from the Ricoman range.</p>
+  </div>
+  <div class="rel">
+    <a class="rcard"><div class="ph"><img src="img/rico-wave.png" alt="Flow+"></div><div class="meta"><h4>Flow+</h4><small>Curved linear system</small></div></a>
+    <a class="rcard"><div class="ph"><img src="img/rico-product.png" alt="E-Pro Surface"></div><div class="meta"><h4>E-Pro Surface</h4><small>Cellular downlight</small></div></a>
+    <a class="rcard"><div class="ph"><img src="img/rico-office-render.webp" alt="Estrella Ring"></div><div class="meta"><h4>Estrella Ring</h4><small>Circular linear</small></div></a>
+    <a class="rcard rhide"><div class="ph"><img src="img/rico-twist.png" alt="Helix"></div><div class="meta"><h4>Helix</h4><small>Feature pendant</small></div></a>
+    <a class="rcard rhide"><div class="ph"><img src="img/rico-abstract.png" alt="Aura"></div><div class="meta"><h4>Aura</h4><small>Decorative linear</small></div></a>
+  </div>
+</div></section>
+
+<section class="ctaband"><div class="bg"></div><div class="scrim"></div><div class="inner"><div class="wrap col">
+  <h2>Specify Estrella on your next project</h2>
+  <p>Build your configuration above, save it to My Project, and our in-house lighting team will return a fully specified, made-to-order scheme — with BIM, photometric and datasheet files.</p>
+  <div class="acts"><a class="btn btn-line">＋ Add to My Project</a><a class="btn btn-solid" style="background:#fff;color:var(--ink)">Talk to a lighting designer →</a></div>
+</div></div></section>
+
+<!-- mobile-only sticky live-result bar -->
+<div class="mbar" id="mbar">
+  <div class="mbar-in">
+    <div class="mbar-info">
+      <span class="mbar-lbl">Your build</span>
+      <span class="mbar-code" id="mbarCode">R341601/WT/3K</span>
+      <span class="mbar-meta" id="mbarMeta">42 W · 4,650 lm · 3000K</span>
+    </div>
+    <button class="mbar-btn" id="mbarAdd">＋ Add</button>
+  </div>
+</div>
+
+<footer class="site"><div class="wrap row">
+  <div class="brand">RICOMAN<sup>®</sup></div>
+  <div>Metroplex Business Park · 520 Broadway · M50 2UE · Manchester · 0161 451 5913</div>
+  <div>© 2026 Ricoman Ltd</div>
+</div></footer>
+
+<script>
+/* ============================================================================
+ * Configurator — front end.
+ *
+ * In production this data is FED BY RICOBOT (internal). RICOBOT pushes the
+ * product model + valid-combination rules into the website, and resolves a
+ * configuration to { orderCode, specs, downloads }. No pricing or stock is
+ * surfaced on the website — those are handled offline by the team.
+ *
+ * Swap MOCK_FEED + resolveConfig() for the real adapter:
+ *   async function resolveConfig(baseId, selection) {
+ *     return fetch('/wp-json/ricoman/v1/resolve', {            // WP REST proxy
+ *       method:'POST', body: JSON.stringify({ baseId, selection })
+ *     }).then(r => r.json());   // -> { orderCode, specs, downloads }
+ *   }
+ * ==========================================================================*/
+
+const MOCK_FEED = {
+  baseId: "R34", family: "Estrella",
+  axes: [
+    { key:"size",  label:"Length",            unit:"",  options:[
+      {v:"01",label:"L-Shape"},{v:"05",label:"532 mm"},{v:"11",label:"1064 mm"},{v:"16",label:"1596 mm"},{v:"21",label:"2128 mm"}]},
+    { key:"optic", label:"Optic / diffuser",  options:[
+      {v:"01",label:"Opal"},{v:"09",label:"UGR <19"},{v:"04",label:"Wallwash"},{v:"07",label:"White louvre"}]},
+    { key:"colour",label:"Body colour",       options:[{v:"WT",label:"White"},{v:"BK",label:"Black"}]},
+    { key:"cct",   label:"Colour temperature",options:[{v:"3K",label:"3000K"},{v:"4K",label:"4000K"}]},
+    { key:"dim",   label:"Dimming",           options:[{v:"",label:"Non-dim"},{v:"DD",label:"DALI"},{v:"DH",label:"1–10V"}]},
+    { key:"em",    label:"Emergency",          options:[{v:"",label:"No"},{v:"E",label:"3hr EM"}]},
+    { key:"up",    label:"Indirect up-light",  options:[{v:"",label:"No"},{v:"UP",label:"Yes"}]}
+  ],
+  // illustrative spec map by size (the kind of data RICOBOT returns)
+  sizeSpec: {
+    "01":{mm:"600 × 600", w:24, lm:2600, w_em:18},
+    "05":{mm:"532",  w:14, lm:1550, w_em:10},
+    "11":{mm:"1064", w:28, lm:3100, w_em:20},
+    "16":{mm:"1596", w:42, lm:4650, w_em:30},
+    "21":{mm:"2128", w:56, lm:6200, w_em:40}
+  }
+};
+
+/* real Estrella / project photography fed alongside the model */
+const GALLERY = [
+  { id:"black",    prod:true, set:"studio", src:"img/estrella-black.png",    cap:"Studio · black finish" },
+  { id:"finishes", prod:true, set:"studio", src:"img/estrella-finishes.png", cap:"Black &amp; white finishes" },
+  { id:"frame",    prod:true, set:"studio", src:"img/estrella-frame.png",    cap:"L-shape / frame form" },
+  { id:"canteen",             set:"insitu", src:"img/estrella-canteen.jpg",  cap:"Workplace · suspended run" },
+  { id:"lounge",              set:"insitu", src:"img/estrella-lounge.webp",  cap:"Breakout · continuous run" }
+];
+let galFilter = "all";
+
+/* sample part-code rows for the 'Configure your product' table */
+const VARIANTS = [
+  { code:"R340501/WT/3K",        desc:"532 mm · Opal · White · 3000K",            lm:"1,550", dim:"532 × 60 × 75 mm",  img:"img/estrella-finishes.png" },
+  { code:"R341101/BK/4K",        desc:"1064 mm · Opal · Black · 4000K",           lm:"3,100", dim:"1064 × 60 × 75 mm", img:"img/estrella-black.png" },
+  { code:"R341609/WT/4K/DD",     desc:"1596 mm · UGR<19 · White · DALI",          lm:"4,185", dim:"1596 × 60 × 75 mm", img:"img/estrella-finishes.png" },
+  { code:"R342101/BK/4K/DD/E/UP",desc:"2128 mm · Opal · Black · EM · up-light",   lm:"5,084", dim:"2128 × 60 × 75 mm", img:"img/estrella-black.png" },
+  { code:"R340101/BK/4K",        desc:"L-shape frame · Opal · Black · 4000K",     lm:"2,600", dim:"600 × 600 × 75 mm", img:"img/estrella-frame.png" }
+];
+function heroIndexFor(){
+  if(state.size==="01")   return GALLERY.findIndex(g=>g.id==="frame");
+  if(state.colour==="WT") return GALLERY.findIndex(g=>g.id==="finishes");
+  return GALLERY.findIndex(g=>g.id==="black");
+}
+
+const state = { size:"16", optic:"01", colour:"WT", cct:"3K", dim:"", em:"", up:"" };
+let activeImg = heroIndexFor();
+
+function resolveConfig(sel){
+  // ---- this is the bit RICOBOT does for real ----
+  const s = MOCK_FEED.sizeSpec[sel.size];
+  let order = MOCK_FEED.baseId + sel.size + sel.optic + "/" + sel.colour + "/" + sel.cct;
+  if (sel.dim) order += "/" + sel.dim;
+  if (sel.em)  order += "/E";
+  if (sel.up)  order += "/UP";
+  const w = sel.em ? s.w_em : s.w;
+  const lm = Math.round(s.lm * (sel.em?0.82:1) * (sel.optic==="09"?0.9:1));
+  const opticName = {"01":"Opal","09":"UGR <19 microprismatic","04":"Wallwash","07":"White louvre"}[sel.optic];
+  return {
+    orderCode: order,
+    specs: {
+      "Wattage": w + " W",
+      "Output": lm.toLocaleString() + " lm",
+      "Efficacy": Math.round(lm/w) + " lm/W",
+      "Colour temp": sel.cct==="3K"?"3000K":"4000K",
+      "CRI": "90",
+      "Optic": opticName,
+      "Length": s.mm + (sel.size==="01"?"":" mm"),
+      "IP rating": "IP20",
+      "Dimming": sel.dim==="DD"?"DALI":sel.dim==="DH"?"1–10V":"Non-dimmable",
+      "Emergency": sel.em?"3hr self-test":"—"
+    },
+    downloads: { data:"#datasheet", bim:"#bim", ies:"#ies" }
+  };
+}
+
+const $ = s => document.querySelector(s);
+
+function buildThumbs(){
+  const host=$("#thumbs"); host.innerHTML="";
+  const shown = GALLERY.map((g,i)=>({g,i})).filter(x=> galFilter==="all" || x.g.set===galFilter);
+  if(!shown.some(x=>x.i===activeImg)){ activeImg = shown[0].i; }
+  host.style.gridTemplateColumns = `repeat(${Math.max(shown.length,1)},minmax(0,1fr))`;
+  shown.forEach(({g,i})=>{
+    const b=document.createElement("button");
+    b.className = i===activeImg?"on":"";
+    b.innerHTML = `<img src="${g.src}" alt="">`;
+    b.onclick=()=>{ activeImg=i; render(); };
+    host.appendChild(b);
+  });
+}
+
+function buildVariants(){
+  const tb=$("#cypBody"); if(!tb) return; tb.innerHTML="";
+  const eye='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const plus='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>';
+  const dl='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"/></svg>';
+  VARIANTS.forEach(v=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML =
+      `<td><img class="thumb" src="${v.img}" alt=""></td>`+
+      `<td class="cd">${v.code}</td>`+
+      `<td>${v.desc.replace(/</g,'&lt;')}</td>`+
+      `<td class="center hidem">${v.lm}</td>`+
+      `<td class="hidem">${v.dim}</td>`+
+      `<td class="center"><span class="ico" title="View product">${eye}</span></td>`+
+      `<td class="center"><span class="ico addv" title="Add to My Project">${plus}</span></td>`+
+      `<td class="center hidem"><span class="ico" title="LDT / photometric">${dl}</span></td>`+
+      `<td class="center"><span class="ico" title="Datasheet">${dl}</span></td>`;
+    tb.appendChild(tr);
+  });
+  tb.querySelectorAll(".addv").forEach(b=> b.onclick=()=>{ mp++; $("#mpCount").textContent=mp; });
+}
+
+function build(){
+  const host = $("#axes"); host.innerHTML="";
+  MOCK_FEED.axes.forEach((ax,i)=>{
+    const wrap=document.createElement("div"); wrap.className="axis";
+    const cur = state[ax.key];
+    const curLabel = (ax.options.find(o=>o.v===cur)||{}).label||"";
+    const n = String(i+1).padStart(2,"0");
+    wrap.innerHTML = `<div class="lab"><b><i>${n}</i>${ax.label}</b><span>${curLabel}</span></div>`;
+    const opts=document.createElement("div"); opts.className="opts";
+    ax.options.forEach(o=>{
+      const b=document.createElement("button");
+      b.className="opt-b"+(o.v===cur?" on":""); b.textContent=o.label;
+      b.onclick=()=>{ state[ax.key]=o.v; if(ax.key==="colour"||ax.key==="size"){ activeImg=heroIndexFor(); } render(); };
+      opts.appendChild(b);
+    });
+    wrap.appendChild(opts); host.appendChild(wrap);
+  });
+}
+
+function render(){
+  build(); buildThumbs();
+  const r = resolveConfig(state);
+  $("#code").textContent = r.orderCode;
+  $("#vizCode").textContent = r.orderCode;
+  // sticky mobile live-result bar
+  $("#mbarCode").textContent = r.orderCode;
+  $("#mbarMeta").textContent = r.specs["Wattage"]+" · "+r.specs["Output"]+" · "+r.specs["Colour temp"];
+  const tb=$("#specBody"); tb.innerHTML="";
+  Object.entries(r.specs).forEach(([k,v])=>{ tb.insertAdjacentHTML("beforeend",`<tr><th>${k}</th><td>${v}</td></tr>`); });
+
+  // ---- live photography stage ----
+  const g = GALLERY[activeImg];
+  if ($("#vizImg").getAttribute("src") !== g.src){ $("#vizImg").src = g.src; }
+  $("#capView").innerHTML = g.cap;
+  document.querySelector(".viz").classList.toggle("prod", !!g.prod);
+  // colour-temperature wash responds to CCT toggle (subtler on product shots)
+  const warm = g.prod ? "rgba(255,176,84,.30)" : "rgba(255,176,84,.55)";
+  const cool = g.prod ? "rgba(150,200,255,.26)" : "rgba(150,200,255,.45)";
+  $("#vizCct").style.background = state.cct==="3K" ? warm : cool;
+  // indirect up-light bloom
+  $("#vizUp").style.opacity = state.up ? "1" : "0";
+  // finish + optic chips
+  $("#chipFinish").textContent = state.colour==="BK" ? "Black" : "White";
+  $("#chipOptic").textContent  = ({"01":"Opal","09":"UGR <19","04":"Wallwash","07":"Louvre"})[state.optic];
+}
+
+let mp=0;
+$("#addBtn").onclick=()=>{ mp++; $("#mpCount").textContent=mp; const b=$("#addBtn"); const t=b.textContent; b.textContent="✓ Added "+resolveConfig(state).orderCode; setTimeout(()=>b.textContent=t,1600); };
+$("#copy").onclick=()=>{ navigator.clipboard&&navigator.clipboard.writeText($("#code").textContent); $("#copy").textContent="Copied"; setTimeout(()=>$("#copy").textContent="Copy",1200); };
+
+$("#mbarAdd").onclick=()=>{ mp++; $("#mpCount").textContent=mp; const b=$("#mbarAdd"); b.textContent="✓ Added"; setTimeout(()=>b.textContent="＋ Add",1400); };
+
+// Show the live-build bar only while the configurator (build area) is on screen
+(function(){
+  const cfg=$(".cfg"), bar=$("#mbar");
+  if(!cfg||!bar) return;
+  if("IntersectionObserver" in window){
+    new IntersectionObserver(es=>es.forEach(e=>bar.classList.toggle("show", e.isIntersecting)),{threshold:0})
+      .observe(cfg);
+  } else { bar.classList.add("show"); }
+})();
+
+// gallery studio / in-situ tabs
+$("#gtabs").querySelectorAll("button").forEach(b=>{
+  b.onclick=()=>{
+    $("#gtabs").querySelectorAll("button").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on"); galFilter=b.dataset.set; render();
+  };
+});
+
+buildVariants();
+render();
+</script>
+</body>
+</html>

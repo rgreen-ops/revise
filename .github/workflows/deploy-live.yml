@@ -1,0 +1,102 @@
+name: Deploy theme to LIVE (manual)
+
+# Push the Ricoman theme (the ricoman/ folder) to the LIVE site, on demand.
+#
+# SAFETY:
+#   - Manual only (workflow_dispatch) — it NEVER runs on push, so it can't fire
+#     by accident or before launch.
+#   - You must type DEPLOY in the confirmation box to proceed.
+#   - It deploys CODE ONLY (the theme). It does NOT touch the live database,
+#     content, uploads, users or captured leads — those stay exactly as they are
+#     on live. (Full-site / content migration is a separate, one-time launch job.)
+#
+# ONE-TIME SETUP — add these repo secrets (Settings -> Secrets and variables ->
+# Actions), pointing at the LIVE server's FTP:
+#   FTP_LIVE_SERVER      - live FTP host
+#   FTP_LIVE_USERNAME    - live FTP/FTPS username
+#   FTP_LIVE_PASSWORD    - live FTP/FTPS password
+#   FTP_LIVE_SERVER_DIR  - path to the live theme dir, ending in a slash, e.g.
+#                          wp-content/themes/ricoman/   (relative to the FTP home)
+#
+# AFTER DEPLOY: clear the live PHP OPcache so the new code runs — either restart
+# PHP-FPM in the live Plesk, or visit on the live domain:
+#   /wp-content/themes/ricoman/opcache-flush.php?key=ricoman-flush-2026
+# (and purge the live page cache if one is enabled).
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type DEPLOY to push the theme to the LIVE site'
+        required: true
+        default: ''
+
+concurrency:
+  group: deploy-live
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm intent
+        if: ${{ inputs.confirm != 'DEPLOY' }}
+        run: |
+          echo "Confirmation text was not 'DEPLOY' — aborting so nothing is pushed to live."
+          exit 1
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy theme to LIVE via FTPS
+        id: deploy1
+        continue-on-error: true
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_LIVE_SERVER }}
+          username: ${{ secrets.FTP_LIVE_USERNAME }}
+          password: ${{ secrets.FTP_LIVE_PASSWORD }}
+          protocol: ftps
+          port: 21
+          local-dir: ./ricoman/
+          server-dir: ${{ secrets.FTP_LIVE_SERVER_DIR }}
+          dangerous-clean-slate: false
+          timeout: 120000
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.DS_Store
+
+      # Retry once — the FTP control socket occasionally times out on connect.
+      - name: Deploy theme to LIVE via FTPS (retry)
+        if: steps.deploy1.outcome == 'failure'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_LIVE_SERVER }}
+          username: ${{ secrets.FTP_LIVE_USERNAME }}
+          password: ${{ secrets.FTP_LIVE_PASSWORD }}
+          protocol: ftps
+          port: 21
+          local-dir: ./ricoman/
+          server-dir: ${{ secrets.FTP_LIVE_SERVER_DIR }}
+          dangerous-clean-slate: false
+          timeout: 120000
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.DS_Store
+
+      - name: Done
+        run: echo "Theme deployed to LIVE."
+
+      # Auto-clear the live PHP OPcache after deploy (no Plesk needed). Set the
+      # LIVE_URL secret to your live origin, e.g. https://ricoman.com
+      - name: Flush live OPcache
+        env:
+          LIVE_URL: ${{ secrets.LIVE_URL }}
+        run: |
+          if [ -n "$LIVE_URL" ]; then
+            curl -fsS --max-time 60 "$LIVE_URL/wp-content/themes/ricoman/opcache-flush.php?key=ricoman-flush-2026" || echo "OPcache flush ping failed (non-fatal)"
+          else
+            echo "LIVE_URL secret not set — skipping auto OPcache flush. If code looks stale, visit the flush URL on the live domain once."
+          fi
