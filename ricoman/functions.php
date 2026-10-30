@@ -58,6 +58,7 @@ require_once get_theme_file_path( 'inc/cwv-tracker.php' );   // Core Web Vitals:
 require_once get_theme_file_path( 'inc/seo-audit.php' );     // Site-wide SEO audit roll-up (read-only).
 require_once get_theme_file_path( 'inc/geo.php' );           // Generative SEO (AI search): FAQ, llms.txt.
 require_once get_theme_file_path( 'inc/ai-search.php' );     // AI search: product spec schema, /llms-full.txt, single <title>.
+require_once get_theme_file_path( 'inc/flow-install.php' );  // /flow-install: Flow+ install videos for the booklet QR (noindex).
 require_once get_theme_file_path( 'inc/transporter.php' );   // Content migration tool.
 require_once get_theme_file_path( 'inc/ricobot.php' );       // RICOBOT API settings + client.
 require_once get_theme_file_path( 'inc/datasheet.php' );     // Printable / PDF datasheets.

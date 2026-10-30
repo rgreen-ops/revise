@@ -1,0 +1,4 @@
+# Flow+ installation videos: reachable by QR code only, never in search results.
+<IfModule mod_headers.c>
+  Header set X-Robots-Tag "noindex, nofollow"
+</IfModule>
