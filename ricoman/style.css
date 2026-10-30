@@ -1,0 +1,71 @@
+/*
+Theme Name: Ricoman
+Theme URI: https://ricoman.com
+Author: Ricoman
+Author URI: https://ricoman.com
+Description: A modern, fast block (Full Site Editing) theme for Ricoman — a UK manufacturer of commercial interior LED lighting. A clean black-and-white editorial design with a dark blue brand accent, built for showcasing product ranges and lighting projects. Edit everything visually in the WordPress Site Editor.
+Requires at least: 6.5
+Tested up to: 6.7
+Requires PHP: 7.4
+Version: 1.0.0
+License: GNU General Public License v2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: ricoman
+Tags: full-site-editing, block-patterns, business, custom-colors, custom-logo, custom-menu, featured-images, block-styles, wide-blocks, editor-style, threaded-comments
+*/
+
+/*
+ * The bulk of this theme's styling lives in theme.json and loads automatically.
+ * Use this file only for small CSS touches that the block system can't express.
+ */
+
+/* Smooth anchor scrolling for in-page nav links. */
+html {
+	scroll-behavior: smooth;
+}
+
+/* Subtle lift on the product / sector cards built from group blocks. */
+.is-style-card {
+	transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.is-style-card:hover {
+	transform: translateY(-4px);
+}
+
+/* Keep the sticky header above floated/overlapping content. */
+.wp-block-template-part .wp-block-navigation {
+	z-index: 30;
+}
+
+/* ---- Accessibility ---- */
+
+/* Visible keyboard focus (helps a11y + Lighthouse "best practices"). */
+:where(a, button, input, select, textarea, summary, .wp-block-button__link):focus-visible {
+	outline: 2px solid var(--wp--preset--color--primary, #16335c);
+	outline-offset: 2px;
+	border-radius: 2px;
+}
+
+/* WordPress' auto "skip to content" link — visible only when focused. */
+.skip-link.screen-reader-text:focus {
+	background: var(--wp--preset--color--base, #fff);
+	color: var(--wp--preset--color--primary, #16335c);
+	z-index: 100000;
+	padding: 14px 20px;
+	font-weight: 600;
+}
+
+/* Respect reduced-motion across the theme. */
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
+	.is-style-card {
+		transition: none;
+	}
+	.is-style-card:hover {
+		transform: none;
+	}
+}
+
