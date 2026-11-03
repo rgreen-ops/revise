@@ -120,10 +120,11 @@ function ricoman_region_agent_ids( $term ) {
 			'suppress_filters' => false,
 		) );
 		$ids = array_map( 'intval', (array) $ids );
-		// The featured agent is the local rep, not a shared lighting designer —
-		// those appear separately in the "Working alongside" column.
+		// The featured agent is the local rep, not a shared lighting designer or
+		// technical team member — those appear separately in the side column.
 		$ids = array_values( array_filter( $ids, function ( $id ) {
-			return '1' !== (string) get_post_meta( $id, '_rms_designer', true );
+			return '1' !== (string) get_post_meta( $id, '_rms_designer', true )
+				&& '1' !== (string) get_post_meta( $id, '_rms_technical', true );
 		} ) );
 	}
 	if ( $ids ) {
@@ -139,8 +140,8 @@ function ricoman_region_agent_ids( $term ) {
 	return $first ? array( (int) $first[0] ) : array();
 }
 
-/** The shared lighting design team (staff ticked "Lighting design team member"). */
-function ricoman_lighting_designer_ids() {
+/** Staff ticked with a given team-flag meta key (shared across region pages). */
+function ricoman_staff_by_flag( $meta_key ) {
 	$ids = get_posts( array(
 		'post_type'      => 'staff',
 		'post_status'    => 'publish',
@@ -148,9 +149,19 @@ function ricoman_lighting_designer_ids() {
 		'orderby'        => 'menu_order title',
 		'order'          => 'ASC',
 		'fields'         => 'ids',
-		'meta_query'     => array( array( 'key' => '_rms_designer', 'value' => '1' ) ),
+		'meta_query'     => array( array( 'key' => $meta_key, 'value' => '1' ) ),
 	) );
 	return array_map( 'intval', (array) $ids );
+}
+
+/** The shared lighting design team (staff ticked "Lighting design team member"). */
+function ricoman_lighting_designer_ids() {
+	return ricoman_staff_by_flag( '_rms_designer' );
+}
+
+/** The shared technical team (staff ticked "Technical team member"). */
+function ricoman_technical_team_ids() {
+	return ricoman_staff_by_flag( '_rms_technical' );
 }
 
 /* ---------------------------------------------------------------------------
@@ -294,8 +305,10 @@ add_shortcode( 'ricoman_region_agents', function ( $atts ) {
 	$aemail = (string) get_post_meta( $agent, '_rms_email', true );
 	$aphone = (string) get_post_meta( $agent, '_rms_phone', true );
 
-	// Working alongside: the shared lighting design team (minus the agent).
-	$designers = array_values( array_filter( ricoman_lighting_designer_ids(), function ( $id ) use ( $agent ) { return (int) $id !== $agent; } ) );
+	// Side column groups (minus the agent, so no duplicate).
+	$not_agent = function ( $id ) use ( $agent ) { return (int) $id !== $agent; };
+	$designers = array_values( array_filter( ricoman_lighting_designer_ids(), $not_agent ) );
+	$technical = array_values( array_filter( ricoman_technical_team_ids(), $not_agent ) );
 
 	// Col 1 — agent photo.
 	$photo_col = '<div class="rm-rt-photo">';
@@ -325,27 +338,34 @@ add_shortcode( 'ricoman_region_agents', function ( $atts ) {
 	}
 	$info_col .= '</div>';
 
-	// Col 3 — working alongside (lighting design team).
-	$team_col = '';
-	if ( $designers ) {
-		$members = '';
-		foreach ( $designers as $did ) {
-			$dlink  = get_permalink( $did );
-			$dname  = get_the_title( $did );
-			$drole  = (string) get_post_meta( $did, '_rms_role', true );
-			$dphoto = has_post_thumbnail( $did ) ? get_the_post_thumbnail_url( $did, 'medium' ) : '';
-			$ph     = $dphoto ? '<span class="rm-rt-m-ph" style="background-image:url(' . esc_url( $dphoto ) . ')" aria-hidden="true"></span>' : '<span class="rm-rt-m-ph" aria-hidden="true"></span>';
-			$members .= '<li class="rm-rt-member"><a href="' . esc_url( $dlink ) . '">' . $ph . '</a><span class="rm-rt-m-meta"><a class="rm-rt-m-name" href="' . esc_url( $dlink ) . '">' . esc_html( $dname ) . '</a>' . ( '' !== $drole ? '<span class="rm-rt-m-role">' . esc_html( $drole ) . '</span>' : '' ) . '</span></li>';
+	// Col 3 — a small member list, reused for each group (designers, technical).
+	$group = function ( $label, $members_ids ) {
+		if ( ! $members_ids ) {
+			return '';
 		}
-		$team_col = '<div class="rm-rt-team"><p class="rm-rt-team-h">' . esc_html__( 'Working alongside', 'ricoman' ) . '</p><ul class="rm-rt-team-list">' . $members . '</ul></div>';
-	}
+		$members = '';
+		foreach ( $members_ids as $mid ) {
+			$mlink  = get_permalink( $mid );
+			$mname  = get_the_title( $mid );
+			$mrole  = (string) get_post_meta( $mid, '_rms_role', true );
+			$mphoto = has_post_thumbnail( $mid ) ? get_the_post_thumbnail_url( $mid, 'medium' ) : '';
+			$ph     = '<span class="rm-rt-m-ph"' . ( $mphoto ? ' style="background-image:url(' . esc_url( $mphoto ) . ')"' : '' ) . ' aria-hidden="true"></span>';
+			$members .= '<li class="rm-rt-member"><a href="' . esc_url( $mlink ) . '">' . $ph . '</a><span class="rm-rt-m-meta"><a class="rm-rt-m-name" href="' . esc_url( $mlink ) . '">' . esc_html( $mname ) . '</a>' . ( '' !== $mrole ? '<span class="rm-rt-m-role">' . esc_html( $mrole ) . '</span>' : '' ) . '</span></li>';
+		}
+		return '<p class="rm-rt-team-h">' . esc_html( $label ) . '</p><ul class="rm-rt-team-list">' . $members . '</ul>';
+	};
+	$team_inner = $group( __( 'Working alongside', 'ricoman' ), $designers )
+		. $group( __( 'Your technical team', 'ricoman' ), $technical );
+	$team_col   = '' !== $team_inner ? '<div class="rm-rt-team">' . $team_inner . '</div>' : '';
 
 	$grid_cls = $team_col ? 'rm-region-team-grid' : 'rm-region-team-grid rm-region-team-grid--noteam';
 
-	return '<div class="rm-section rm-region-team" id="agent"><div class="rm-pp-wrap">'
-		. '<h2 class="rm-projshow-title">' . esc_html( $heading ) . '</h2>'
+	// Use the projects-showcase wrapper so this section's left edge lines up with
+	// the projects row above it.
+	return '<div class="rm-section rm-projshow rm-region-team" id="agent">'
+		. '<div class="rm-projshow-head"><h2 class="rm-projshow-title">' . esc_html( $heading ) . '</h2></div>'
 		. '<div class="' . esc_attr( $grid_cls ) . '">' . $photo_col . $info_col . $team_col . '</div>'
-		. '</div></div>';
+		. '</div>';
 } );
 
 /** Region contact form — the same enquiry form as the contact page, with a

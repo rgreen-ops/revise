@@ -2291,3 +2291,4 @@ body:not(.rm-pe-preview){overflow-x:clip}
 .rm-rt-m-role{font-size:.82rem;color:var(--muted,#5b6068)}
 @media(max-width:1024px){.rm-region-team-grid,.rm-region-team-grid--noteam{grid-template-columns:.8fr 1.2fr}.rm-rt-team{grid-column:1/-1;border-left:0;padding-left:0;border-top:1px solid var(--line,#e6e4de);padding-top:28px;margin-top:8px}.rm-rt-team-list{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:600px){.rm-region-team-grid,.rm-region-team-grid--noteam{grid-template-columns:1fr}.rm-rt-photo-img{max-width:280px}.rm-rt-team-list{grid-template-columns:1fr}}
+.rm-rt-team .rm-rt-team-list + .rm-rt-team-h{margin-top:30px}

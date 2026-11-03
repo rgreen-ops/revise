@@ -63,7 +63,9 @@ function ricoman_staff_fields_box( $post ) {
 	echo '<div class="rms-fld"><label>' . esc_html__( 'Email', 'ricoman' ) . '</label><input type="email" name="_rms_email" value="' . $v( '_rms_email' ) . '" placeholder="name@ricoman.com"></div>';
 	echo '<div class="rms-fld"><label>' . esc_html__( 'Phone', 'ricoman' ) . '</label><input type="text" name="_rms_phone" value="' . $v( '_rms_phone' ) . '" placeholder="0161 …"></div>';
 	$designer = '1' === (string) get_post_meta( $post->ID, '_rms_designer', true );
-	echo '<div class="rms-fld"><label style="font-weight:400"><input type="checkbox" name="_rms_designer" value="1" style="width:auto;margin-right:8px"' . checked( $designer, true, false ) . '>' . esc_html__( 'Lighting design team member (shown in the “Working alongside” column on region pages)', 'ricoman' ) . '</label></div>';
+	echo '<div class="rms-fld"><label style="font-weight:400"><input type="checkbox" name="_rms_designer" value="1" style="width:auto;margin-right:8px"' . checked( $designer, true, false ) . '>' . esc_html__( 'Lighting design team member (shown under “Working alongside” on region pages)', 'ricoman' ) . '</label></div>';
+	$tech = '1' === (string) get_post_meta( $post->ID, '_rms_technical', true );
+	echo '<div class="rms-fld"><label style="font-weight:400"><input type="checkbox" name="_rms_technical" value="1" style="width:auto;margin-right:8px"' . checked( $tech, true, false ) . '>' . esc_html__( 'Technical team member (shown under “Your technical team” on region pages)', 'ricoman' ) . '</label></div>';
 }
 
 add_action( 'save_post_staff', function ( $pid ) {
@@ -87,11 +89,13 @@ add_action( 'save_post_staff', function ( $pid ) {
 			}
 		}
 	}
-	// "Lighting design team" checkbox (absent from POST when unticked).
-	if ( isset( $_POST['_rms_designer'] ) ) {
-		update_post_meta( $pid, '_rms_designer', '1' );
-	} else {
-		delete_post_meta( $pid, '_rms_designer' );
+	// Team checkboxes (absent from POST when unticked).
+	foreach ( array( '_rms_designer', '_rms_technical' ) as $ck ) {
+		if ( isset( $_POST[ $ck ] ) ) {
+			update_post_meta( $pid, $ck, '1' );
+		} else {
+			delete_post_meta( $pid, $ck );
+		}
 	}
 } );
 
