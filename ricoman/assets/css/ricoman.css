@@ -1848,7 +1848,7 @@ body:not(.rm-pe-preview){overflow-x:clip}
 .rm-lightbox-x{position:absolute;top:18px;right:26px;background:none;border:0;color:var(--ink);font-size:2.6rem;line-height:1;cursor:pointer}
 
 /* ===== Download lead-gate modal ===== */
-.rm-gate{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.55)}
+.rm-gate{position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.55)}
 .rm-gate[hidden]{display:none}
 .rm-gate-box{position:relative;background:#fff;border-radius:16px;max-width:420px;width:100%;padding:30px 28px;box-shadow:0 30px 80px rgba(0,0,0,.4)}
 .rm-gate-x{position:absolute;top:12px;right:16px;background:none;border:0;font-size:1.8rem;line-height:1;color:var(--muted);cursor:pointer}
