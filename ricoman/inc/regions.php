@@ -120,6 +120,11 @@ function ricoman_region_agent_ids( $term ) {
 			'suppress_filters' => false,
 		) );
 		$ids = array_map( 'intval', (array) $ids );
+		// The featured agent is the local rep, not a shared lighting designer —
+		// those appear separately in the "Working alongside" column.
+		$ids = array_values( array_filter( $ids, function ( $id ) {
+			return '1' !== (string) get_post_meta( $id, '_rms_designer', true );
+		} ) );
 	}
 	if ( $ids ) {
 		return $ids;
@@ -132,6 +137,20 @@ function ricoman_region_agent_ids( $term ) {
 	// Fallback 2: the first published team member, so the page is never empty.
 	$first = get_posts( array( 'post_type' => 'staff', 'post_status' => 'publish', 'numberposts' => 1, 'orderby' => 'menu_order title', 'order' => 'ASC', 'fields' => 'ids' ) );
 	return $first ? array( (int) $first[0] ) : array();
+}
+
+/** The shared lighting design team (staff ticked "Lighting design team member"). */
+function ricoman_lighting_designer_ids() {
+	$ids = get_posts( array(
+		'post_type'      => 'staff',
+		'post_status'    => 'publish',
+		'numberposts'    => 24,
+		'orderby'        => 'menu_order title',
+		'order'          => 'ASC',
+		'fields'         => 'ids',
+		'meta_query'     => array( array( 'key' => '_rms_designer', 'value' => '1' ) ),
+	) );
+	return array_map( 'intval', (array) $ids );
 }
 
 /* ---------------------------------------------------------------------------
@@ -264,18 +283,69 @@ add_shortcode( 'ricoman_region_agents', function ( $atts ) {
 	}
 	$name    = $term ? $term->name : '';
 	$heading = '' !== $atts['heading'] ? $atts['heading'] : ( $name ? sprintf( 'Your %s team', $name ) : 'Talk to our team' );
-	$cards   = '';
-	foreach ( $ids as $sid ) {
-		$cards .= ricoman_staff_card( (int) $sid, $atts['fields'] );
+
+	// Featured agent = the first local rep for the region.
+	$agent = (int) $ids[0];
+	$alink = get_permalink( $agent );
+	$aname = get_the_title( $agent );
+	$arole = (string) get_post_meta( $agent, '_rms_role', true );
+	$aphoto = has_post_thumbnail( $agent ) ? get_the_post_thumbnail_url( $agent, 'large' ) : '';
+	$abio  = trim( (string) get_post_field( 'post_content', $agent ) );
+	$aemail = (string) get_post_meta( $agent, '_rms_email', true );
+	$aphone = (string) get_post_meta( $agent, '_rms_phone', true );
+
+	// Working alongside: the shared lighting design team (minus the agent).
+	$designers = array_values( array_filter( ricoman_lighting_designer_ids(), function ( $id ) use ( $agent ) { return (int) $id !== $agent; } ) );
+
+	// Col 1 — agent photo.
+	$photo_col = '<div class="rm-rt-photo">';
+	if ( $aphoto ) {
+		$photo_col .= '<a href="' . esc_url( $alink ) . '"><span class="rm-rt-photo-img" style="background-image:url(' . esc_url( $aphoto ) . ')" role="img" aria-label="' . esc_attr( $aname ) . '"></span></a>';
 	}
-	if ( '' === $cards ) {
-		return '';
+	$photo_col .= '</div>';
+
+	// Col 2 — agent name, title, bio, contact.
+	$info_col  = '<div class="rm-rt-info">';
+	$info_col .= '<h3 class="rm-rt-name"><a href="' . esc_url( $alink ) . '">' . esc_html( $aname ) . '</a></h3>';
+	if ( '' !== $arole ) {
+		$info_col .= '<p class="rm-rt-role">' . esc_html( $arole ) . '</p>';
 	}
-	// Use the same wrapper + title style as the projects showcase so the two
-	// section headings line up on the same left edge and share the smaller font.
-	return '<div class="rm-section rm-projshow rm-staff-credit" id="agent">'
-		. '<div class="rm-projshow-head"><h2 class="rm-projshow-title">' . esc_html( $heading ) . '</h2></div>'
-		. '<div class="rm-team-grid">' . $cards . '</div></div>';
+	if ( '' !== $abio ) {
+		$info_col .= '<div class="rm-rt-bio">' . wp_kses_post( wpautop( $abio ) ) . '</div>';
+	}
+	if ( '' !== $aemail || '' !== $aphone ) {
+		$info_col .= '<p class="rm-rt-contact">';
+		if ( '' !== $aemail ) {
+			$info_col .= '<a href="mailto:' . esc_attr( $aemail ) . '">' . esc_html( $aemail ) . '</a>';
+		}
+		if ( '' !== $aphone ) {
+			$info_col .= '<a href="tel:' . esc_attr( preg_replace( '/[^0-9+]/', '', $aphone ) ) . '">' . esc_html( $aphone ) . '</a>';
+		}
+		$info_col .= '</p>';
+	}
+	$info_col .= '</div>';
+
+	// Col 3 — working alongside (lighting design team).
+	$team_col = '';
+	if ( $designers ) {
+		$members = '';
+		foreach ( $designers as $did ) {
+			$dlink  = get_permalink( $did );
+			$dname  = get_the_title( $did );
+			$drole  = (string) get_post_meta( $did, '_rms_role', true );
+			$dphoto = has_post_thumbnail( $did ) ? get_the_post_thumbnail_url( $did, 'medium' ) : '';
+			$ph     = $dphoto ? '<span class="rm-rt-m-ph" style="background-image:url(' . esc_url( $dphoto ) . ')" aria-hidden="true"></span>' : '<span class="rm-rt-m-ph" aria-hidden="true"></span>';
+			$members .= '<li class="rm-rt-member"><a href="' . esc_url( $dlink ) . '">' . $ph . '</a><span class="rm-rt-m-meta"><a class="rm-rt-m-name" href="' . esc_url( $dlink ) . '">' . esc_html( $dname ) . '</a>' . ( '' !== $drole ? '<span class="rm-rt-m-role">' . esc_html( $drole ) . '</span>' : '' ) . '</span></li>';
+		}
+		$team_col = '<div class="rm-rt-team"><p class="rm-rt-team-h">' . esc_html__( 'Working alongside', 'ricoman' ) . '</p><ul class="rm-rt-team-list">' . $members . '</ul></div>';
+	}
+
+	$grid_cls = $team_col ? 'rm-region-team-grid' : 'rm-region-team-grid rm-region-team-grid--noteam';
+
+	return '<div class="rm-section rm-region-team" id="agent"><div class="rm-pp-wrap">'
+		. '<h2 class="rm-projshow-title">' . esc_html( $heading ) . '</h2>'
+		. '<div class="' . esc_attr( $grid_cls ) . '">' . $photo_col . $info_col . $team_col . '</div>'
+		. '</div></div>';
 } );
 
 /** Region contact form — the same enquiry form as the contact page, with a

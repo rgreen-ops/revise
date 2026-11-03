@@ -62,6 +62,8 @@ function ricoman_staff_fields_box( $post ) {
 	echo '<div class="rms-fld"><label>' . esc_html__( 'Job title', 'ricoman' ) . '</label><input type="text" name="_rms_role" value="' . $v( '_rms_role' ) . '" placeholder="e.g. Lighting Designer"></div>';
 	echo '<div class="rms-fld"><label>' . esc_html__( 'Email', 'ricoman' ) . '</label><input type="email" name="_rms_email" value="' . $v( '_rms_email' ) . '" placeholder="name@ricoman.com"></div>';
 	echo '<div class="rms-fld"><label>' . esc_html__( 'Phone', 'ricoman' ) . '</label><input type="text" name="_rms_phone" value="' . $v( '_rms_phone' ) . '" placeholder="0161 …"></div>';
+	$designer = '1' === (string) get_post_meta( $post->ID, '_rms_designer', true );
+	echo '<div class="rms-fld"><label style="font-weight:400"><input type="checkbox" name="_rms_designer" value="1" style="width:auto;margin-right:8px"' . checked( $designer, true, false ) . '>' . esc_html__( 'Lighting design team member (shown in the “Working alongside” column on region pages)', 'ricoman' ) . '</label></div>';
 }
 
 add_action( 'save_post_staff', function ( $pid ) {
@@ -84,6 +86,12 @@ add_action( 'save_post_staff', function ( $pid ) {
 				delete_post_meta( $pid, $k );
 			}
 		}
+	}
+	// "Lighting design team" checkbox (absent from POST when unticked).
+	if ( isset( $_POST['_rms_designer'] ) ) {
+		update_post_meta( $pid, '_rms_designer', '1' );
+	} else {
+		delete_post_meta( $pid, '_rms_designer' );
 	}
 } );
 
