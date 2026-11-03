@@ -155,6 +155,7 @@ add_action( 'wp_footer', function () {
 				<label><span><?php esc_html_e( 'Name', 'ricoman' ); ?> *</span><input type="text" name="name" required></label>
 				<label><span><?php esc_html_e( 'Email', 'ricoman' ); ?> *</span><input type="email" name="email" required></label>
 				<label><span><?php esc_html_e( 'I am a…', 'ricoman' ); ?> *</span><select name="ctype" required><?php echo $opts; // phpcs:ignore WordPress.Security.EscapeOutput ?></select></label>
+				<label><span><?php esc_html_e( 'Location (town / postcode)', 'ricoman' ); ?> *</span><input type="text" name="location" autocomplete="address-level2" required></label>
 				<label class="rm-gate-optin" style="display:flex;gap:8px;align-items:flex-start;font-weight:400;font-size:.85rem;margin-top:2px"><input type="checkbox" name="optin" value="1" style="width:auto;margin-top:3px"><span><?php esc_html_e( 'Subscribe to our newsletter and get notified of new launches and lighting guides. You can unsubscribe anytime.', 'ricoman' ); ?></span></label>
 				<button type="submit" class="btn btn-solid rm-gate-go"><?php esc_html_e( 'Get the download', 'ricoman' ); ?> &darr;</button>
 				<p class="rm-gate-msg" hidden></p>
@@ -177,10 +178,11 @@ function ricoman_gate_capture() {
 	$name  = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
 	$email = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
 	$type  = isset( $_POST['ctype'] ) ? sanitize_text_field( wp_unslash( $_POST['ctype'] ) ) : '';
+	$loc   = isset( $_POST['location'] ) ? sanitize_text_field( wp_unslash( $_POST['location'] ) ) : '';
 	$src   = isset( $_POST['source'] ) ? sanitize_text_field( wp_unslash( $_POST['source'] ) ) : 'Download gate';
 	$optin = ( isset( $_POST['optin'] ) && '1' === (string) wp_unslash( $_POST['optin'] ) ) ? '1' : ''; // newsletter opt-in checkbox.
-	if ( '' === $name || ! is_email( $email ) ) {
-		wp_send_json_error( array( 'msg' => __( 'Please enter your name and a valid email.', 'ricoman' ) ) );
+	if ( '' === $name || ! is_email( $email ) || '' === $loc ) {
+		wp_send_json_error( array( 'msg' => __( 'Please enter your name, location and a valid email.', 'ricoman' ) ) );
 	}
 	// Spam screen — silently let the download proceed but log nothing.
 	if ( function_exists( 'ricoman_lead_is_spam' ) && ricoman_lead_is_spam( array( 'fields' => array( $name ) ) ) ) {
@@ -193,6 +195,7 @@ function ricoman_gate_capture() {
 		'company'   => '',
 		'phone'     => '',
 		'role'      => $type,
+		'location'  => $loc,
 		'message'   => '',
 		'source'    => $src,
 		'items'     => '',
@@ -203,12 +206,13 @@ function ricoman_gate_capture() {
 		'post_status' => 'private',
 		'post_title'  => sprintf( '%s — %s', $name, $type ? $type : __( 'Download', 'ricoman' ) ),
 		'meta_input'  => array_merge( array(
-			'_lead_name'   => $name,
-			'_lead_email'  => $email,
-			'_lead_role'   => $type,
-			'_lead_type'   => __( 'Download', 'ricoman' ),
-			'_lead_source' => $src,
-			'_lead_optin'  => $optin,
+			'_lead_name'     => $name,
+			'_lead_email'    => $email,
+			'_lead_role'     => $type,
+			'_lead_location' => $loc,
+			'_lead_type'     => __( 'Download', 'ricoman' ),
+			'_lead_source'   => $src,
+			'_lead_optin'    => $optin,
 		), ricoman_lead_attribution() ),
 	) );
 

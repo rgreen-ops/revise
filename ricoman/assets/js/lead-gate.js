@@ -199,6 +199,7 @@
 				name: form.name.value,
 				email: form.email.value,
 				ctype: form.ctype.value,
+				location: ( form.location ? form.location.value : '' ),
 				source: source,
 				optin: ( form.optin && form.optin.checked ) ? '1' : ''
 			} );
