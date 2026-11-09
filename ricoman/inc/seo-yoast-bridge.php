@@ -118,10 +118,27 @@ function ricoman_seo_post_desc( $post ) {
 
 /** Does this request have a manual Yoast title we must not override? */
 function ricoman_yoast_has_manual_title() {
-	if ( ! is_singular() ) {
-		return false;
+	// Singular posts/pages: Yoast stores the title in post meta.
+	if ( is_singular() ) {
+		return '' !== trim( (string) get_post_meta( get_queried_object_id(), '_yoast_wpseo_title', true ) );
 	}
-	return '' !== trim( (string) get_post_meta( get_queried_object_id(), '_yoast_wpseo_title', true ) );
+
+	// Taxonomy archives (product category, sector, etc.): Yoast stores the term
+	// title in the wpseo_taxonomy_meta option, NOT in post meta. Without this,
+	// the theme would override a hand-edited Yoast term title with its computed
+	// "Name | Ricoman" fallback.
+	if ( is_category() || is_tag() || is_tax() ) {
+		$term = get_queried_object();
+		if ( $term instanceof WP_Term ) {
+			$tax_meta = get_option( 'wpseo_taxonomy_meta' );
+			if ( is_array( $tax_meta )
+				&& isset( $tax_meta[ $term->taxonomy ][ $term->term_id ]['wpseo_title'] ) ) {
+				return '' !== trim( (string) $tax_meta[ $term->taxonomy ][ $term->term_id ]['wpseo_title'] );
+			}
+		}
+	}
+
+	return false;
 }
 
 /** Fill Yoast's title with our optimised one when there's no manual override. */
@@ -136,6 +153,11 @@ add_filter( 'wpseo_title', function ( $title ) {
 /** Same optimised title for social cards (fill only when empty). */
 $rm_fill_social_title = function ( $title ) {
 	if ( '' !== trim( (string) $title ) ) {
+		return $title;
+	}
+	// If the team set a manual Yoast title (incl. taxonomy terms), let Yoast own
+	// the social cards too — don't inject the theme's computed fallback.
+	if ( ricoman_yoast_has_manual_title() ) {
 		return $title;
 	}
 	$c = ricoman_seo_request_title();
