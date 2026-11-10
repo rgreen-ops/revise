@@ -65,15 +65,53 @@ function ricoman_maybe_render_datasheet() {
 }
 add_action( 'template_redirect', 'ricoman_maybe_render_datasheet' );
 
+/**
+ * Make the bundled Dompdf engine available (shipped in /lib/dompdf so no
+ * Composer/plugin is needed on the server). Loaded on demand. Returns true
+ * when the Dompdf class can be used.
+ */
+function ricoman_load_dompdf() {
+	if ( class_exists( '\Dompdf\Dompdf' ) ) {
+		return true; // Already provided (e.g. another plugin).
+	}
+	$autoload = get_template_directory() . '/lib/dompdf/autoload.inc.php';
+	if ( is_readable( $autoload ) ) {
+		require_once $autoload;
+	}
+	return class_exists( '\Dompdf\Dompdf' );
+}
+
 /** Stream as PDF if Dompdf is available, else print-ready HTML. */
 function ricoman_datasheet_output( $html, $filename ) {
-	if ( class_exists( '\Dompdf\Dompdf' ) ) {
-		$dompdf = new \Dompdf\Dompdf( array( 'isRemoteEnabled' => true ) );
-		$dompdf->loadHtml( $html );
-		$dompdf->setPaper( 'A4', 'portrait' );
-		$dompdf->render();
-		$dompdf->stream( $filename . '.pdf', array( 'Attachment' => true ) );
-		exit;
+	if ( ricoman_load_dompdf() ) {
+		try {
+			// Write any runtime cache to a guaranteed-writable dir, not the theme.
+			$tmp = function_exists( 'get_temp_dir' ) ? get_temp_dir() : sys_get_temp_dir();
+
+			// Leave fontDir/fontCache at Dompdf's bundled defaults so it uses the
+			// pre-built font metrics shipped in lib/dompdf (no writes needed for
+			// the standard fonts the datasheet uses).
+			$options = array(
+				'isRemoteEnabled'      => true, // product images are absolute URLs
+				'isHtml5ParserEnabled' => true,
+				'tempDir'              => $tmp,
+				'chroot'               => array( ABSPATH, $tmp, get_template_directory() ),
+				'defaultFont'          => 'DejaVu Sans',
+			);
+
+			$dompdf = new \Dompdf\Dompdf( $options );
+			$dompdf->loadHtml( $html );
+			$dompdf->setPaper( 'A4', 'portrait' );
+			$dompdf->render();
+			$dompdf->stream( $filename . '.pdf', array( 'Attachment' => true ) );
+			exit;
+		} catch ( \Throwable $e ) {
+			// Fall through to the HTML datasheet if PDF generation fails for any
+			// reason, so the datasheet is never completely unavailable.
+			if ( function_exists( 'error_log' ) ) {
+				error_log( 'Ricoman datasheet PDF failed: ' . $e->getMessage() );
+			}
+		}
 	}
 	header( 'Content-Type: text/html; charset=utf-8' );
 	echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped

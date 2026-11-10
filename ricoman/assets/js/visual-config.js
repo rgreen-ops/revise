@@ -85,7 +85,7 @@
 				} );
 				var dl = '';
 				if ( v.ldt ) { dl += '<a class="btn btn-line" href="' + encodeURI( v.ldt ) + '" target="_blank" rel="noopener">LDT file ↓</a>'; }
-				if ( v.ds ) { dl += '<a class="btn btn-solid" href="' + encodeURI( v.ds ) + '" target="_blank" rel="noopener">Download datasheet ↓</a>'; }
+				if ( v.ds ) { dl += '<a class="btn btn-solid" href="' + encodeURI( v.ds ) + '" download rel="noopener">Download datasheet ↓</a>'; }
 				resEl.innerHTML = '<div class="rm-vcfg-card">'
 					+ ( ( v.img || fallback ) ? '<span class="rm-vcfg-cardimg" style="background-image:url(' + encodeURI( v.img || fallback ) + ')"></span>' : '' )
 					+ '<div class="rm-vcfg-cardbody"><p class="rm-vcfg-eyebrow">Your configuration</p>'
@@ -109,7 +109,7 @@
 						+ '<td class="vt-desc">' + esc( v.desc || '' ) + '</td>';
 					cols.forEach( function ( c ) { rows += '<td class="vt-spec">' + esc( ( v.specs && v.specs[ c ] ) ? v.specs[ c ] : '–' ) + '</td>'; } );
 					rows += '<td class="vt-dl">' + ( v.ldt ? '<a href="' + encodeURI( v.ldt ) + '" target="_blank" rel="noopener">LDT ↓</a>' : '—' ) + '</td>'
-						+ '<td class="vt-dl">' + ( v.ds ? '<a href="' + encodeURI( v.ds ) + '" target="_blank" rel="noopener">Datasheet ↓</a>' : '—' ) + '</td></tr>';
+						+ '<td class="vt-dl">' + ( v.ds ? '<a href="' + encodeURI( v.ds ) + '" download rel="noopener">Datasheet ↓</a>' : '—' ) + '</td></tr>';
 				} );
 				resEl.innerHTML = '<div class="rm-vcfg-listhead"><strong>' + pool.length + ' matching options</strong> <span>— keep choosing to narrow further</span>'
 					+ ( chosenCount ? ' <button type="button" class="rm-vcfg-reset">Reset</button>' : '' ) + '</div>'

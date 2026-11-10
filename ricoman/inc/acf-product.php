@@ -1265,7 +1265,7 @@ function ricoman_pf_variant_table( $pid ) {
 			$c   .= '<td class="vt-spec">' . esc_html( $cell ) . '</td>';
 		}
 		$c .= '<td class="vt-dl">' . ( $v['ldt'] ? '<a href="' . esc_url( $v['ldt'] ) . '" target="_blank" rel="noopener" aria-label="LDT file">LDT ↓</a>' : '—' ) . '</td>'
-			. '<td class="vt-dl"><a href="' . esc_url( $v['ds'] ) . '" target="_blank" rel="noopener" aria-label="Datasheet">Datasheet ↓</a></td>';
+			. '<td class="vt-dl"><a href="' . esc_url( $v['ds'] ) . '" download rel="noopener" aria-label="Datasheet">Datasheet ↓</a></td>';
 		return $c;
 	};
 
@@ -1331,7 +1331,7 @@ function ricoman_pf_variant_table( $pid ) {
 
 /** Transient key for a product's cached variant-row dataset (server pagination). */
 function ricoman_variant_rows_key( $pid ) {
-	return 'rm_vrows_v2_' . (int) $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true );
+	return 'rm_vrows_v3_' . (int) $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true );
 }
 
 /**
@@ -1559,7 +1559,7 @@ function ricoman_pf_sections( $pid ) {
 	// 'm3' = markup version; bump to invalidate cached sections when section HTML
 	// changes. (Variant thumbnails use native loading="lazy"; the optimiser, not
 	// the theme, was the speed problem.)
-	$tkey      = 'rm_pfsec_m24_' . $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true ) . '_' . get_option( 'rm_cfgimg_ver', '0' );
+	$tkey      = 'rm_pfsec_m25_' . $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true ) . '_' . get_option( 'rm_cfgimg_ver', '0' );
 	if ( $cacheable ) {
 		$pre = get_transient( $tkey );
 		if ( is_array( $pre ) ) {
@@ -1878,7 +1878,7 @@ function ricoman_pf_configure_inner( $pid ) {
 
 /** Configurator HTML with its own transient cache (keyed like the section cache). */
 function ricoman_pf_configure_cached( $pid ) {
-	$key = 'rm_cfgsec_v5_' . (int) $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true ) . '_' . get_option( 'rm_cfgimg_ver', '0' );
+	$key = 'rm_cfgsec_v6_' . (int) $pid . '_' . get_post_modified_time( 'U', true, $pid ) . '_' . (int) get_post_meta( $pid, '_rm_secver', true ) . '_' . get_option( 'rm_cfgimg_ver', '0' );
 	$pre = get_transient( $key );
 	if ( is_string( $pre ) ) {
 		return $pre;
