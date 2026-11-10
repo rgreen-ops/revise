@@ -81,22 +81,38 @@ function ricoman_load_dompdf() {
 	return class_exists( '\Dompdf\Dompdf' );
 }
 
+/**
+ * A guaranteed-writable directory for Dompdf's runtime font cache + temp files,
+ * so it never tries to write into the (often read-only) theme folder. Falls back
+ * to the system temp dir if the uploads dir can't be created.
+ */
+function ricoman_dompdf_cache_dir() {
+	if ( function_exists( 'wp_upload_dir' ) ) {
+		$up = wp_upload_dir();
+		if ( empty( $up['error'] ) && ! empty( $up['basedir'] ) ) {
+			$dir = $up['basedir'] . '/ricoman-dompdf';
+			if ( is_dir( $dir ) || wp_mkdir_p( $dir ) ) {
+				return $dir;
+			}
+		}
+	}
+	return function_exists( 'get_temp_dir' ) ? get_temp_dir() : sys_get_temp_dir();
+}
+
 /** Stream as PDF if Dompdf is available, else print-ready HTML. */
 function ricoman_datasheet_output( $html, $filename ) {
 	if ( ricoman_load_dompdf() ) {
 		try {
-			// Write any runtime cache to a guaranteed-writable dir, not the theme.
-			$tmp = function_exists( 'get_temp_dir' ) ? get_temp_dir() : sys_get_temp_dir();
+			$cache = ricoman_dompdf_cache_dir();
 
-			// Leave fontDir/fontCache at Dompdf's bundled defaults so it uses the
-			// pre-built font metrics shipped in lib/dompdf (no writes needed for
-			// the standard fonts the datasheet uses).
+			// fontCache/tempDir point at a writable dir (not the theme). fontDir is
+			// left at Dompdf's bundled default so it still finds the shipped fonts.
 			$options = array(
-				'isRemoteEnabled'      => true, // product images are absolute URLs
-				'isHtml5ParserEnabled' => true,
-				'tempDir'              => $tmp,
-				'chroot'               => array( ABSPATH, $tmp, get_template_directory() ),
-				'defaultFont'          => 'DejaVu Sans',
+				'isRemoteEnabled' => true, // product images are absolute URLs
+				'tempDir'         => $cache,
+				'fontCache'       => $cache,
+				'chroot'          => array( ABSPATH, $cache, get_template_directory() ),
+				'defaultFont'     => 'DejaVu Sans',
 			);
 
 			$dompdf = new \Dompdf\Dompdf( $options );
@@ -111,7 +127,12 @@ function ricoman_datasheet_output( $html, $filename ) {
 			if ( function_exists( 'error_log' ) ) {
 				error_log( 'Ricoman datasheet PDF failed: ' . $e->getMessage() );
 			}
+			if ( ! headers_sent() ) {
+				header( 'X-RM-Datasheet: pdf-error ' . preg_replace( '/[\r\n]+/', ' ', substr( $e->getMessage(), 0, 180 ) ) );
+			}
 		}
+	} elseif ( ! headers_sent() ) {
+		header( 'X-RM-Datasheet: engine-missing' );
 	}
 	header( 'Content-Type: text/html; charset=utf-8' );
 	echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
