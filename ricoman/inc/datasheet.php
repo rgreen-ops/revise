@@ -115,8 +115,12 @@ function ricoman_datasheet_output( $html, $filename ) {
 				'defaultFont'     => 'DejaVu Sans',
 			);
 
+			// Strip the on-screen "Print / Save as PDF" buttons from the PDF output
+			// (they're only useful in the HTML web-view fallback).
+			$pdf_html = preg_replace( '#<div class="(?:ds-print|ds2-printbtn)"[^>]*>.*?</div>#is', '', $html );
+
 			$dompdf = new \Dompdf\Dompdf( $options );
-			$dompdf->loadHtml( $html );
+			$dompdf->loadHtml( $pdf_html );
 			$dompdf->setPaper( 'A4', 'portrait' );
 			$dompdf->render();
 			$dompdf->stream( $filename . '.pdf', array( 'Attachment' => true ) );
