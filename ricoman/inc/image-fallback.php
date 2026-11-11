@@ -1,0 +1,423 @@
+<?php
+/**
+ * Missing-media fallback (staging stop-gap).
+ *
+ * The database/content migration brought the Media Library *records* across, but
+ * not necessarily the actual files in wp-content/uploads. Where a file is missing
+ * locally, this rewrites its URL to the live origin (ricoman.com) so pages and
+ * the editor still show the image. It is self-limiting: only URLs whose file is
+ * genuinely absent on disk are rewritten, so once the uploads folder is copied
+ * over, the fallback stops automatically with no code change.
+ *
+ * Live origin resolution order:
+ *   1. RICOMAN_LIVE_ORIGIN constant (wp-config.php)
+ *   2. `ricoman_live_origin` option
+ *   3. derived from the site host with a leading "staging." stripped
+ * Returns '' (fallback disabled) when that resolves to the current site.
+ *
+ * @package Ricoman
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/** The live site origin to borrow missing images from (no trailing slash), or ''. */
+function ricoman_live_origin() {
+	static $origin = null;
+	if ( null !== $origin ) {
+		return $origin;
+	}
+	// Hard off-switch: once the old site is gone (and images are pulled local),
+	// stop the fallback ever reaching it. Set on the Pull Missing Images screen.
+	if ( get_option( 'ricoman_live_origin_off' ) ) {
+		$origin = '';
+		return $origin;
+	}
+	$live = '';
+	if ( defined( 'RICOMAN_LIVE_ORIGIN' ) ) {
+		$live = (string) RICOMAN_LIVE_ORIGIN;
+	} elseif ( get_option( 'ricoman_live_origin' ) ) {
+		$live = (string) get_option( 'ricoman_live_origin' );
+	} else {
+		$parts = wp_parse_url( home_url() );
+		$host  = isset( $parts['host'] ) ? $parts['host'] : '';
+		$bare  = preg_replace( '/^staging\./i', '', $host );
+		if ( $bare && $bare !== $host ) {
+			$live = 'https://' . $bare;
+		} else {
+			// Default to the known live site when the host isn't a "staging." subdomain.
+			$live = 'https://ricoman.com';
+		}
+	}
+	$live = $live ? rtrim( $live, '/' ) : '';
+	// Disable if it points back at this same site (no separate live origin).
+	if ( $live ) {
+		$lh = wp_parse_url( $live, PHP_URL_HOST );
+		$hh = wp_parse_url( home_url(), PHP_URL_HOST );
+		if ( $lh && $hh && strtolower( $lh ) === strtolower( $hh ) ) {
+			$live = '';
+		}
+	}
+	/** Allow code to override/disable the live origin. */
+	$origin = (string) apply_filters( 'ricoman_live_origin', $live );
+	return $origin;
+}
+
+/**
+ * Repair a local uploads URL that won't display, cached per request:
+ *
+ *   1. A 0-byte / empty ".webp" (the WebP converter on this host silently writes
+ *      empty files for some sources) → serve the intact original-format sibling
+ *      (same name, .png/.jpg/.jpeg) sitting next to it. Purely local, so it works
+ *      even when the live-origin fallback is switched off.
+ *   2. A file that is genuinely missing (or empty) on disk → borrow the same path
+ *      from the live origin so it still shows.
+ *
+ * Anything already fine on disk is returned unchanged.
+ */
+function ricoman_img_fallback( $url ) {
+	if ( ! is_string( $url ) || '' === $url ) {
+		return $url;
+	}
+	static $cache = array();
+	if ( isset( $cache[ $url ] ) ) {
+		return $cache[ $url ];
+	}
+	$out     = $url;
+	$up      = wp_get_upload_dir();
+	$baseurl = isset( $up['baseurl'] ) ? $up['baseurl'] : '';
+	$basedir = isset( $up['basedir'] ) ? $up['basedir'] : '';
+	// Compare ignoring scheme, so http/https differences don't defeat it.
+	$norm    = function ( $u ) { return preg_replace( '#^https?:#i', '', $u ); };
+	if ( $baseurl && 0 === strpos( $norm( $url ), $norm( $baseurl ) ) ) {
+		$rel     = substr( $norm( $url ), strlen( $norm( $baseurl ) ) ); // e.g. /2026/07/file.webp
+		$relpath = preg_replace( '/[?#].*$/', '', $rel ); // strip any query string.
+		$size    = @filesize( $basedir . $relpath ); // phpcs:ignore WordPress.PHP.NoSilencedErrors — false = missing, 0 = empty.
+
+		// (1) Broken/empty WebP → swap in the intact original-format sibling.
+		if ( ( false === $size || $size < 1 ) && preg_match( '/\.webp$/i', $relpath ) ) {
+			foreach ( array( 'png', 'jpg', 'jpeg', 'PNG', 'JPG', 'JPEG' ) as $ext ) {
+				$sibrel = preg_replace( '/\.webp$/i', '.' . $ext, $relpath );
+				$sz     = @filesize( $basedir . $sibrel ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
+				if ( $sz && $sz > 0 ) {
+					$cache[ $url ] = $baseurl . $sibrel;
+					return $cache[ $url ];
+				}
+			}
+		}
+
+		// (2) Missing / empty locally → borrow from the live origin.
+		if ( false === $size || $size < 1 ) {
+			$live = ricoman_live_origin();
+			if ( $live ) {
+				$path = wp_parse_url( $baseurl, PHP_URL_PATH ); // /wp-content/uploads
+				$out  = $live . $path . $rel;
+			}
+		}
+	}
+	$cache[ $url ] = $out;
+	return $out;
+}
+
+/**
+ * Normalise a migrated image URL so it actually resolves.
+ *
+ * The old-site export left many image values as ABSOLUTE URLs on the source
+ * domain (e.g. https://ricoman.com/wp-content/uploads/alluploadedfile/foo-1024x1024.png)
+ * referencing a sub-size that was never generated. Two problems: the host is the
+ * live site (not this one) and the -WxH sub-size file doesn't exist.
+ *
+ * This maps any /wp-content/uploads/… URL (whatever its host) onto THIS site's
+ * uploads, and if the requested file is missing on disk it tries the original
+ * (size suffix stripped). Whatever it resolves to is then run through the
+ * live-origin fallback so genuinely-missing files still display.
+ *
+ * @param string $url
+ * @return string
+ */
+function ricoman_norm_img_url( $url ) {
+	if ( ! is_string( $url ) || '' === $url ) {
+		return $url;
+	}
+	static $cache = array();
+	if ( isset( $cache[ $url ] ) ) {
+		return $cache[ $url ];
+	}
+	$up      = wp_get_upload_dir();
+	$baseurl = isset( $up['baseurl'] ) ? $up['baseurl'] : '';
+	$basedir = isset( $up['basedir'] ) ? $up['basedir'] : '';
+	$path    = $baseurl ? wp_parse_url( $baseurl, PHP_URL_PATH ) : ''; // /wp-content/uploads
+	if ( ! $path ) {
+		return $cache[ $url ] = $url;
+	}
+	$pos = strpos( $url, $path );
+	if ( false === $pos ) {
+		return $cache[ $url ] = $url; // not an uploads URL — leave alone.
+	}
+	$rel     = substr( $url, $pos + strlen( $path ) ); // /alluploadedfile/foo-1024x1024.png[?x]
+	$relpath = preg_replace( '/[?#].*$/', '', $rel );
+	$out     = $baseurl . $rel; // re-host onto THIS site.
+	// Treat a 0-byte file as broken, not present — the WebP converter on this host
+	// writes empty full-size .webp files, which "exist" but never display.
+	$size = @filesize( $basedir . $relpath ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
+	if ( false === $size || $size < 1 ) {
+		// Sub-size missing — try the original (strip a trailing -WxH).
+		$orig = preg_replace( '/-\d+x\d+(\.[A-Za-z0-9]+)$/', '$1', $relpath );
+		$osz  = ( $orig !== $relpath ) ? @filesize( $basedir . $orig ) : false; // phpcs:ignore WordPress.PHP.NoSilencedErrors
+		if ( $orig !== $relpath && $osz && $osz > 0 ) {
+			$out = $baseurl . $orig;
+		} else {
+			// Still missing/empty locally — let ricoman_img_fallback repair it
+			// (broken .webp → sibling original, or borrow from the live origin).
+			$live_rel = ( $orig !== $relpath ) ? $orig : $relpath;
+			$out = ricoman_img_fallback( $baseurl . $live_rel );
+		}
+	}
+	return $cache[ $url ] = $out;
+}
+
+/* Apply broadly so both the front end and the back-end thumbnails benefit. */
+add_filter( 'wp_get_attachment_url', 'ricoman_img_fallback', 20 );
+add_filter( 'wp_get_attachment_image_src', function ( $image ) {
+	if ( is_array( $image ) && ! empty( $image[0] ) ) {
+		$image[0] = ricoman_img_fallback( $image[0] );
+	}
+	return $image;
+}, 20 );
+add_filter( 'wp_calculate_image_srcset', function ( $sources ) {
+	if ( is_array( $sources ) ) {
+		foreach ( $sources as $w => $s ) {
+			if ( ! empty( $s['url'] ) ) {
+				$sources[ $w ]['url'] = ricoman_img_fallback( $s['url'] );
+			}
+		}
+	}
+	return $sources;
+}, 20 );
+
+/* ============================================================ *
+ * Pull missing image files from the live origin into local uploads.
+ *
+ * For every image attachment whose file is missing on disk, download the same
+ * file from the live origin (ricoman_live_origin) and save it to its expected
+ * local path, then regenerate its sub-sizes. This permanently re-hosts images
+ * that were referenced by the migration but never copied across — so the new
+ * site stops depending on the live-origin fallback (and broken images vanish).
+ * Batched, resumable, capability-gated.
+ * ============================================================ */
+add_action( 'admin_menu', function () {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+	add_submenu_page(
+		'ricoman-hub',
+		__( 'Pull Missing Images', 'ricoman' ),
+		__( 'Pull Missing Images', 'ricoman' ),
+		'manage_options',
+		'ricoman-pull-images',
+		'ricoman_pull_images_page'
+	);
+}, 26 );
+
+function ricoman_pull_images_page() {
+	$origin = function_exists( 'ricoman_live_origin' ) ? ricoman_live_origin() : '';
+	$off    = (bool) get_option( 'ricoman_live_origin_off' );
+	echo '<div class="wrap"><h1>' . esc_html__( 'Pull Missing Images', 'ricoman' ) . '</h1>';
+	echo '<p>' . esc_html__( 'Finds every image whose file is missing on this server and downloads the matching file from the live site, saving it here permanently. Run after a migration to fix broken product/gallery images without copying the whole uploads folder. Safe to re-run; it only fetches what is missing.', 'ricoman' ) . '</p>';
+
+	// Cut-the-cord toggle (always shown so you can re-enable too).
+	if ( isset( $_GET['rm_origin'] ) ) {
+		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Live-origin fallback setting updated.', 'ricoman' ) . '</p></div>';
+	}
+	$toggle = admin_url( 'admin-post.php' );
+	echo '<div class="card" style="max-width:760px;padding:6px 20px 16px;margin:14px 0">';
+	echo '<h2>' . esc_html__( 'Independence from the old site', 'ricoman' ) . '</h2>';
+	echo '<p>' . ( $off
+		? '<strong style="color:#b32d2e">' . esc_html__( 'Live-origin fallback is OFF.', 'ricoman' ) . '</strong> ' . esc_html__( 'The site never borrows images from the old domain — everything must be local.', 'ricoman' )
+		: '<strong style="color:#2271b1">' . esc_html__( 'Live-origin fallback is ON.', 'ricoman' ) . '</strong> ' . esc_html__( 'Missing images are still borrowed from the old site. Turn this OFF only once you have pulled (or copied) every image locally — otherwise missing ones will break.', 'ricoman' ) ) . '</p>';
+	echo '<form method="post" action="' . esc_url( $toggle ) . '"><input type="hidden" name="action" value="ricoman_toggle_origin">';
+	wp_nonce_field( 'ricoman_toggle_origin' );
+	echo '<input type="hidden" name="off" value="' . ( $off ? '0' : '1' ) . '">';
+	submit_button( $off ? __( 'Re-enable live-origin fallback', 'ricoman' ) : __( 'Disable live-origin fallback (cut the cord)', 'ricoman' ), $off ? 'secondary' : 'delete', 'submit', false );
+	echo '</form>';
+	// Independence checker — counts images whose file is missing locally.
+	$chk_nonce = wp_create_nonce( 'rm_pull_images' );
+	echo '<p style="margin-top:14px"><button class="button" id="rm-chk-go">' . esc_html__( 'Check how many images are missing locally', 'ricoman' ) . '</button> <span id="rm-chk-out" style="margin-left:10px"></span></p>';
+	?>
+	<script>
+	(function(){
+		var go=document.getElementById('rm-chk-go'),out=document.getElementById('rm-chk-out');
+		var nonce=<?php echo wp_json_encode( $chk_nonce ); ?>, ajax=<?php echo wp_json_encode( admin_url( 'admin-ajax.php' ) ); ?>;
+		var running=false,missing=0;
+		function batch(offset){
+			fetch(ajax,{method:'POST',credentials:'same-origin',body:new URLSearchParams({action:'ricoman_check_missing',nonce:nonce,offset:offset})}).then(function(r){return r.json();}).then(function(j){
+				if(!j||!j.success){ out.textContent='Error.'; running=false; go.disabled=false; return; }
+				var d=j.data; missing+=d.missing;
+				out.textContent='Scanned '+d.done.toLocaleString()+' of '+d.total.toLocaleString()+' — '+missing.toLocaleString()+' image file(s) missing locally so far…';
+				if(d.next!==null){ batch(d.next); }
+				else { out.innerHTML='<strong>'+missing.toLocaleString()+'</strong> image file(s) are missing locally'+(missing?' — pull or copy these before cutting the cord.':' ✓ the site is fully independent.'); running=false; go.disabled=false; }
+			}).catch(function(){ out.textContent='Network error.'; running=false; go.disabled=false; });
+		}
+		go.addEventListener('click',function(){ if(running)return; running=true; go.disabled=true; missing=0; out.textContent='Scanning…'; batch(0); });
+	})();
+	</script>
+	<?php
+	echo '</div>';
+
+	if ( ! $origin ) {
+		echo '<div class="notice notice-warning"><p>' . esc_html__( 'No live origin is available (it may be turned off above), so there is nothing to pull from. Re-enable it to pull, or define RICOMAN_LIVE_ORIGIN / the ricoman_live_origin option.', 'ricoman' ) . '</p></div></div>';
+		return;
+	}
+	echo '<p>' . sprintf( esc_html__( 'Pulling from: %s', 'ricoman' ), '<code>' . esc_html( $origin ) . '</code>' ) . '</p>';
+	echo '<p><button class="button button-primary" id="rm-pull-go">' . esc_html__( 'Start / resume pulling', 'ricoman' ) . '</button> <span id="rm-pull-out" style="margin-left:10px"></span></p>';
+	echo '<div id="rm-pull-bar-wrap" style="display:none;max-width:560px;background:#e2e4e7;border-radius:6px;overflow:hidden;height:18px;margin:8px 0"><div id="rm-pull-bar" style="height:100%;width:0;background:#2271b1"></div></div>';
+	$nonce = wp_create_nonce( 'rm_pull_images' );
+	?>
+	<script>
+	(function(){
+		var go=document.getElementById('rm-pull-go'),out=document.getElementById('rm-pull-out');
+		var barW=document.getElementById('rm-pull-bar-wrap'),bar=document.getElementById('rm-pull-bar');
+		var nonce=<?php echo wp_json_encode( $nonce ); ?>, ajax=<?php echo wp_json_encode( admin_url( 'admin-ajax.php' ) ); ?>;
+		var running=false,pulled=0,failed=0;
+		function batch(offset){
+			var body=new URLSearchParams({action:'ricoman_pull_images',nonce:nonce,offset:offset});
+			fetch(ajax,{method:'POST',body:body,credentials:'same-origin'}).then(function(r){return r.json();}).then(function(j){
+				if(!j||!j.success){ out.textContent='Error — check logs.'; running=false; go.disabled=false; return; }
+				var d=j.data; pulled+=d.pulled; failed+=d.failed;
+				barW.style.display='block';
+				var pct=d.total?Math.min(100,Math.round(d.done/d.total*100)):100;
+				bar.style.width=pct+'%';
+				out.textContent='Scanned '+d.done.toLocaleString()+' of '+d.total.toLocaleString()+' — pulled '+pulled.toLocaleString()+', failed '+failed.toLocaleString()+'…';
+				if(d.next!==null){ setTimeout(function(){batch(d.next);}, 120); }
+				else { out.textContent='Done — pulled '+pulled.toLocaleString()+' missing image(s), '+failed.toLocaleString()+' could not be fetched.'; running=false; go.disabled=false; }
+			}).catch(function(){ out.textContent='Network error — click to resume.'; running=false; go.disabled=false; });
+		}
+		go.addEventListener('click',function(){ if(running)return; running=true; go.disabled=true; pulled=0; failed=0; out.textContent='Starting…'; batch(0); });
+	})();
+	</script>
+	</div>
+	<?php
+}
+
+add_action( 'admin_post_ricoman_toggle_origin', function () {
+	if ( ! current_user_can( 'manage_options' ) || ! check_admin_referer( 'ricoman_toggle_origin' ) ) {
+		wp_die( esc_html__( 'Not allowed.', 'ricoman' ) );
+	}
+	if ( ! empty( $_POST['off'] ) ) {
+		update_option( 'ricoman_live_origin_off', 1 );
+	} else {
+		delete_option( 'ricoman_live_origin_off' );
+	}
+	wp_safe_redirect( add_query_arg( array( 'page' => 'ricoman-pull-images', 'rm_origin' => 1 ), admin_url( 'admin.php' ) ) );
+	exit;
+} );
+
+add_action( 'wp_ajax_ricoman_check_missing', function () {
+	if ( ! current_user_can( 'manage_options' ) || ! check_ajax_referer( 'rm_pull_images', 'nonce', false ) ) {
+		wp_send_json_error();
+	}
+	global $wpdb;
+	$batch  = 200;
+	$offset = max( 0, (int) ( $_POST['offset'] ?? 0 ) );
+	$total  = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type='attachment' AND post_status<>'trash'" );
+	$ids    = $wpdb->get_col( $wpdb->prepare(
+		"SELECT ID FROM {$wpdb->posts} WHERE post_type='attachment' AND post_status<>'trash' ORDER BY ID ASC LIMIT %d OFFSET %d",
+		$batch, $offset
+	) );
+	$missing = 0;
+	foreach ( $ids as $id ) {
+		$path = get_attached_file( (int) $id );
+		if ( ! $path ) {
+			continue;
+		}
+		$ext = strtolower( pathinfo( $path, PATHINFO_EXTENSION ) );
+		if ( ! in_array( $ext, array( 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'bmp', 'tiff' ), true ) ) {
+			continue;
+		}
+		if ( ! file_exists( $path ) ) {
+			$missing++;
+		}
+	}
+	$done = $offset + count( $ids );
+	wp_send_json_success( array(
+		'total'   => $total,
+		'done'    => $done,
+		'missing' => $missing,
+		'next'    => count( $ids ) < $batch ? null : $done,
+	) );
+} );
+
+add_action( 'wp_ajax_ricoman_pull_images', function () {
+	if ( ! current_user_can( 'manage_options' ) || ! check_ajax_referer( 'rm_pull_images', 'nonce', false ) ) {
+		wp_send_json_error();
+	}
+	$origin = function_exists( 'ricoman_live_origin' ) ? ricoman_live_origin() : '';
+	if ( ! $origin ) {
+		wp_send_json_error();
+	}
+	global $wpdb;
+	$batch  = 12;
+	$offset = max( 0, (int) ( $_POST['offset'] ?? 0 ) );
+	$home_host = strtolower( (string) wp_parse_url( home_url(), PHP_URL_HOST ) );
+
+	$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type='attachment' AND post_status<>'trash'" );
+	$ids   = $wpdb->get_col( $wpdb->prepare(
+		"SELECT ID FROM {$wpdb->posts} WHERE post_type='attachment' AND post_status<>'trash' ORDER BY ID ASC LIMIT %d OFFSET %d",
+		$batch, $offset
+	) );
+
+	require_once ABSPATH . 'wp-admin/includes/file.php';
+	require_once ABSPATH . 'wp-admin/includes/image.php';
+
+	$pulled = 0;
+	$failed = 0;
+	foreach ( $ids as $id ) {
+		$id   = (int) $id;
+		$path = get_attached_file( $id );
+		if ( ! $path ) {
+			continue;
+		}
+		// Only images, and only those actually missing on disk.
+		$ext = strtolower( pathinfo( $path, PATHINFO_EXTENSION ) );
+		if ( ! in_array( $ext, array( 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'bmp', 'tiff' ), true ) ) {
+			continue;
+		}
+		if ( file_exists( $path ) ) {
+			continue;
+		}
+		// wp_get_attachment_url is filtered to the live origin when the file is
+		// missing, giving us the source to download.
+		$src = wp_get_attachment_url( $id );
+		if ( ! $src || strtolower( (string) wp_parse_url( $src, PHP_URL_HOST ) ) === $home_host ) {
+			$failed++;
+			continue;
+		}
+		$tmp = download_url( $src, 30 );
+		if ( is_wp_error( $tmp ) ) {
+			$failed++;
+			continue;
+		}
+		wp_mkdir_p( dirname( $path ) );
+		if ( @copy( $tmp, $path ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			@unlink( $tmp ); // phpcs:ignore
+			$meta = wp_generate_attachment_metadata( $id, $path );
+			if ( $meta ) {
+				wp_update_attachment_metadata( $id, $meta );
+			}
+			$pulled++;
+		} else {
+			@unlink( $tmp ); // phpcs:ignore
+			$failed++;
+		}
+	}
+
+	$done = $offset + count( $ids );
+	wp_send_json_success( array(
+		'total'  => $total,
+		'done'   => $done,
+		'pulled' => $pulled,
+		'failed' => $failed,
+		'next'   => count( $ids ) < $batch ? null : $done,
+	) );
+} );

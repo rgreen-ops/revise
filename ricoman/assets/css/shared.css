@@ -1,0 +1,414 @@
+/*
+ * Ricoman — shared styles.
+ * Loaded on the front end and inside the block editor so custom block styles
+ * preview accurately. Keep this lean; prefer theme.json for global styling.
+ */
+
+/* ---- Card group style ------------------------------------------------ */
+.wp-block-group.is-style-card {
+	background: var(--wp--preset--color--base);
+	border: 1px solid var(--wp--preset--color--line);
+	border-radius: 8px;
+	padding: var(--wp--preset--spacing--40);
+	box-shadow: 0 1px 2px rgba(10, 10, 11, 0.04);
+}
+
+.wp-block-group.is-style-card:hover {
+	box-shadow: 0 16px 36px -22px rgba(10, 10, 11, 0.35);
+	border-color: var(--wp--preset--color--line);
+}
+
+/* A little brand tab on the left edge of cards used for product categories. */
+.wp-block-group.is-style-card.has-primary-border-color {
+	border-left-width: 4px;
+}
+
+/* ---- Buttons: one design site-wide ----------------------------------
+ * Every button (block buttons in patterns/banners + the themed .btn) shares the
+ * same look as the "Browse the product range" button: uppercase, letter-spaced,
+ * square, 1px outline, arrow-friendly. Base typography (uppercase/letter-spacing/
+ * weight/size) comes from theme.json's button element; here we square the
+ * corners, align the arrow, and define the outline variants used on light + dark.
+ */
+.wp-block-button__link {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.55em;
+	line-height: 1;
+	border-radius: 0;
+	border: 1px solid transparent;
+	transition: 0.3s ease;
+}
+
+.wp-block-button.is-style-pill .wp-block-button__link {
+	border-radius: 999px;
+}
+
+/* Outline (light): for dark sections — the "Browse the product range" look. */
+.wp-block-button.is-style-outline-light .wp-block-button__link {
+	background: transparent;
+	color: #fff;
+	border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.wp-block-button.is-style-outline-light .wp-block-button__link:hover {
+	background: #fff;
+	color: var(--wp--preset--color--ink, #16161a);
+	border-color: #fff;
+}
+
+/* Outline (default): same shape on light sections — dark border, inverts on hover. */
+.wp-block-button.is-style-outline .wp-block-button__link {
+	background: transparent;
+	color: var(--wp--preset--color--ink, #16161a);
+	border: 1px solid #d2cfc9;
+}
+
+.wp-block-button.is-style-outline .wp-block-button__link:hover {
+	background: var(--wp--preset--color--ink, #16161a);
+	color: #fff;
+	border-color: var(--wp--preset--color--ink, #16161a);
+}
+
+/* ---- Eyebrow / kicker text ------------------------------------------ */
+.ricoman-eyebrow {
+	display: inline-block;
+	text-transform: uppercase;
+	letter-spacing: 0.12em;
+	font-size: 0.8rem;
+	font-weight: 700;
+	color: var(--wp--preset--color--primary);
+}
+
+/* ---- Navigation polish ---------------------------------------------- */
+.wp-block-navigation a:where(:not(.wp-element-button)):hover {
+	color: var(--wp--preset--color--primary);
+}
+
+/* Sticky header surface. */
+.ricoman-header {
+	position: sticky;
+	top: 0;
+	z-index: 30;
+	backdrop-filter: saturate(140%) blur(8px);
+}
+
+/* ---- Breadcrumbs ----------------------------------------------------- */
+.ricoman-breadcrumbs {
+	font-size: 0.85rem;
+	color: var(--wp--preset--color--muted);
+	margin-bottom: 1.25rem;
+}
+
+.ricoman-breadcrumbs a {
+	color: var(--wp--preset--color--muted);
+	text-decoration: none;
+}
+
+.ricoman-breadcrumbs a:hover {
+	color: var(--wp--preset--color--primary);
+}
+
+.ricoman-breadcrumbs .sep {
+	color: var(--wp--preset--color--line);
+	margin: 0 0.4rem;
+}
+
+.ricoman-breadcrumbs [aria-current="page"] {
+	color: var(--wp--preset--color--contrast);
+	font-weight: 600;
+}
+
+/* ---- Lead capture form ---------------------------------------------- */
+.ricoman-lead-form {
+	display: flex;
+	flex-direction: column;
+	gap: 0.9rem;
+	background: var(--wp--preset--color--base);
+	border: 1px solid var(--wp--preset--color--line);
+	border-radius: 16px;
+	padding: 1.75rem;
+}
+
+.ricoman-lead-title {
+	font-family: var(--wp--preset--font-family--heading);
+	font-weight: 800;
+	font-size: 1.25rem;
+	margin: 0 0 0.25rem;
+	color: var(--wp--preset--color--ink);
+}
+
+.ricoman-lead-form .ricoman-field-row {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0.9rem;
+}
+
+@media (max-width: 600px) {
+	.ricoman-lead-form .ricoman-field-row {
+		grid-template-columns: 1fr;
+	}
+}
+
+.ricoman-lead-form label {
+	display: flex;
+	flex-direction: column;
+	gap: 0.3rem;
+	font-size: 0.85rem;
+	font-weight: 600;
+	color: var(--wp--preset--color--ink);
+}
+
+.ricoman-lead-form input,
+.ricoman-lead-form select,
+.ricoman-lead-form textarea {
+	font: inherit;
+	font-weight: 400;
+	width: 100%;
+	box-sizing: border-box;
+	max-width: 100%;
+	padding: 0.7rem 0.8rem;
+	border: 1px solid var(--wp--preset--color--line);
+	border-radius: 10px;
+	background: var(--wp--preset--color--surface);
+	color: var(--wp--preset--color--contrast);
+}
+
+.ricoman-lead-form input:focus,
+.ricoman-lead-form select:focus,
+.ricoman-lead-form textarea:focus {
+	outline: 2px solid var(--wp--preset--color--primary);
+	outline-offset: 1px;
+	border-color: transparent;
+}
+
+/* Match the site's standard .btn .btn-solid (square black) so enquiry,
+   callback and newsletter buttons are all one consistent style. */
+.ricoman-lead-submit {
+	align-self: flex-start;
+	display: inline-flex;
+	align-items: center;
+	gap: .8em;
+	background: var(--ink, #0b0b0c);
+	color: #fff;
+	border: 1px solid transparent;
+	border-radius: 0;
+	padding: 1.15em 2em;
+	font-family: Poppins, sans-serif;
+	font-weight: 600;
+	font-size: .8rem;
+	letter-spacing: .06em;
+	text-transform: uppercase;
+	cursor: pointer;
+	transition: .3s ease;
+}
+
+.ricoman-lead-submit:hover {
+	background: var(--blue, #004899);
+}
+
+.ricoman-lead-success {
+	background: rgba(52, 211, 153, 0.12);
+	border: 1px solid rgba(52, 211, 153, 0.4);
+	color: #047857;
+	border-radius: 14px;
+	padding: 1.25rem 1.5rem;
+}
+
+.ricoman-lead-error {
+	background: rgba(216, 31, 38, 0.08);
+	border: 1px solid rgba(216, 31, 38, 0.35);
+	color: var(--wp--preset--color--primary-dark);
+	border-radius: 12px;
+	padding: 0.9rem 1.2rem;
+	margin-bottom: 1rem;
+}
+
+/* ---- Product spec table & datasheet button -------------------------- */
+.ricoman-spec-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin: 0 0 1.5rem;
+}
+
+.ricoman-spec-table th,
+.ricoman-spec-table td {
+	text-align: left;
+	padding: 0.65rem 0.9rem;
+	border-bottom: 1px solid var(--wp--preset--color--line);
+	font-size: 0.95rem;
+}
+
+.ricoman-spec-table th {
+	width: 45%;
+	background: var(--wp--preset--color--surface);
+	color: var(--wp--preset--color--ink);
+	font-weight: 700;
+}
+
+/* ---- My Project (Toolbox) ------------------------------------------- */
+.ricoman-mp-link {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45em;
+	font-family: var(--wp--preset--font-family--heading);
+	font-weight: 600;
+	font-size: 0.9rem;
+	color: inherit;
+	text-decoration: none;
+}
+
+.ricoman-mp-count {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 1.5em;
+	height: 1.5em;
+	padding: 0 0.4em;
+	border-radius: 999px;
+	background: var(--wp--preset--color--accent);
+	color: #fff;
+	font-size: 0.78rem;
+	font-weight: 700;
+	line-height: 1;
+}
+
+.ricoman-mp-count[data-empty="true"] {
+	background: rgba(255, 255, 255, 0.18);
+	color: rgba(255, 255, 255, 0.85);
+}
+
+/* Add-to-project button */
+.ricoman-add-project {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5em;
+	font-family: var(--wp--preset--font-family--heading);
+	font-weight: 600;
+	font-size: 0.95rem;
+	cursor: pointer;
+	padding: 0.85em 1.6em;
+	border-radius: 6px;
+	border: 1.5px solid var(--wp--preset--color--line);
+	background: var(--wp--preset--color--base);
+	color: var(--wp--preset--color--ink);
+	transition: border-color 0.18s, background 0.18s, color 0.18s;
+}
+
+.ricoman-add-project:hover {
+	border-color: var(--wp--preset--color--ink);
+}
+
+.ricoman-add-project.is-added {
+	background: var(--wp--preset--color--accent);
+	border-color: var(--wp--preset--color--accent);
+	color: #fff;
+}
+
+/* The project list table */
+.ricoman-mp-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-bottom: 1.5rem;
+}
+
+.ricoman-mp-table th {
+	text-align: left;
+	font-family: var(--wp--preset--font-family--heading);
+	font-size: 0.78rem;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: var(--wp--preset--color--muted);
+	padding: 0 0 0.6em;
+	border-bottom: 1px solid var(--wp--preset--color--line);
+}
+
+.ricoman-mp-table td {
+	padding: 0.9em 0;
+	border-bottom: 1px solid var(--wp--preset--color--line);
+	vertical-align: middle;
+}
+
+.ricoman-mp-table .mp-name a {
+	font-weight: 600;
+	color: var(--wp--preset--color--ink);
+	text-decoration: none;
+}
+
+.ricoman-mp-table .mp-sku {
+	display: block;
+	font-size: 0.8rem;
+	color: var(--wp--preset--color--muted);
+}
+
+.ricoman-mp-table .mp-qty input {
+	width: 4rem;
+	padding: 0.4em 0.5em;
+	border: 1px solid var(--wp--preset--color--line);
+	border-radius: 6px;
+}
+
+.ricoman-mp-table .mp-remove button {
+	border: 0;
+	background: none;
+	font-size: 1.3rem;
+	line-height: 1;
+	color: var(--wp--preset--color--muted);
+	cursor: pointer;
+}
+
+.ricoman-mp-table .mp-remove button:hover {
+	color: var(--wp--preset--color--primary);
+}
+
+.ricoman-mp-empty {
+	color: var(--wp--preset--color--muted);
+	font-size: 1.05rem;
+	padding: 1.5rem 0;
+}
+
+.ricoman-mp-actions {
+	display: flex;
+	justify-content: flex-end;
+	margin-bottom: 1.5rem;
+}
+
+.ricoman-mp-clear {
+	border: 0;
+	background: none;
+	color: var(--wp--preset--color--muted);
+	font-weight: 600;
+	cursor: pointer;
+	text-decoration: underline;
+}
+
+.ricoman-mp-clear:hover {
+	color: var(--wp--preset--color--primary);
+}
+
+/* ---- Lighting "glow" accent under hero headings --------------------- */
+.ricoman-glow {
+	position: relative;
+}
+
+.ricoman-glow::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	bottom: -0.35em;
+	width: 3.5rem;
+	height: 4px;
+	border-radius: 4px;
+	background: var(--wp--preset--color--accent);
+}
+
+/* ---- Comma-separated lighting range links (dark section) ------------ */
+.ricoman-range-links a {
+	color: var(--wp--preset--color--accent);
+	text-decoration: none;
+	font-weight: 600;
+}
+
+.ricoman-range-links a:hover {
+	text-decoration: underline;
+}

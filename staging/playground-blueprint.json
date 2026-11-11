@@ -1,0 +1,19 @@
+{
+  "$schema": "https://playground.wordpress.net/blueprint-schema.json",
+  "preferredVersions": { "php": "8.2", "wp": "latest" },
+  "login": true,
+  "siteOptions": {
+    "blogname": "Ricoman (theme preview)",
+    "permalink_structure": "/%postname%/"
+  },
+  "steps": [
+    {
+      "step": "installTheme",
+      "themeData": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/rgreen-ops/revise/claude/wordpress-theme-s5u19q/ricoman.zip"
+      },
+      "options": { "activate": true }
+    }
+  ]
+}
