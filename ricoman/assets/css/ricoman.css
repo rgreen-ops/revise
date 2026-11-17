@@ -925,8 +925,11 @@ body:not(.rm-pe-preview) .rm-mediapanel{width:100vw;margin-left:calc(50% - 50vw)
 /* Full-width Columns bands dropped straight into a page (e.g. the Contact
    "Technical support" section) keep a full-bleed background but must hold their
    CONTENT to the site content width, like every .rm-section band — otherwise the
-   text hugs the page edge instead of lining up with the rest of the page. */
-.entry-content > .wp-block-columns.alignfull.has-background{padding-inline:max(var(--pad),calc((100% - var(--wp--style--global--content-size,1180px)) / 2))!important}
+   text hugs the page edge instead of lining up with the rest of the page.
+   Applies whether or not the row has a background: a full-width columns band
+   dropped straight into a page (e.g. the iwocaPay "Partners" band) would
+   otherwise glue its text to the left edge and its image to the right edge. */
+.entry-content > .wp-block-columns.alignfull{padding-inline:max(var(--pad),calc((100% - var(--wp--style--global--content-size,1180px)) / 2))!important}
 /* muted/grey paragraphs sitting on a dark cover must read light, not grey */
 .wp-block-cover .has-muted-color{color:rgba(255,255,255,.86)!important}
 .wp-block-cover .rm-eyebrow{color:rgba(255,255,255,.8)}
