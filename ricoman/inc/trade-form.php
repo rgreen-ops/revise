@@ -133,7 +133,7 @@ function ricoman_trade_capture() {
 		), $attr ),
 	) );
 
-	$to   = apply_filters( 'ricoman_trade_inbox', get_option( 'admin_email' ) );
+	$to   = apply_filters( 'ricoman_trade_inbox', 'support@ricoman.com' );
 	$body = sprintf( "New trade account application\n\nName: %s\nCompany: %s\nJob title: %s\nEmail: %s\nPhone: %s\n", $name, $company, ( '' !== $job ? $job : '—' ), $email, $phone );
 	wp_mail(
 		$to,

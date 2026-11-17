@@ -54,6 +54,15 @@ function ricoman_send_lead_confirmation( $email, $name, $args = array() ) {
 }
 
 /**
+ * Where general sales leads are sent (contact enquiry + callback). Pinned to a
+ * fixed inbox so it never silently follows the WordPress admin email setting.
+ * Filterable via ricoman_sales_inbox.
+ */
+function ricoman_sales_inbox() {
+	return apply_filters( 'ricoman_sales_inbox', 'support@ricoman.com' );
+}
+
+/**
  * The visitor's IP (best-effort), used only for short-lived rate-limiting.
  */
 function ricoman_lead_client_ip() {
@@ -524,8 +533,8 @@ function ricoman_handle_lead() {
 		)
 	);
 
-	// 2. Email the site admin.
-	$admin = get_option( 'admin_email' );
+	// 2. Email the sales inbox.
+	$admin = ricoman_sales_inbox();
 	$body  = sprintf(
 		"New enquiry via %s\n\nName: %s\nCompany: %s\nEmail: %s\nPhone: %s\nRole: %s\nSource: %s\n\nMessage:\n%s\n",
 		get_bloginfo( 'name' ),
@@ -915,7 +924,7 @@ function ricoman_callback_capture() {
 
 	// Notify the team — a callback is time-sensitive.
 	wp_mail(
-		get_option( 'admin_email' ),
+		ricoman_sales_inbox(),
 		sprintf( '[%s] Callback request: %s', get_bloginfo( 'name' ), $name ),
 		sprintf( "A visitor has requested a callback.\n\nName: %s\nPhone: %s\nBest time: %s\nSource: %s\n", $name, $phone, $when ? $when : __( 'Anytime', 'ricoman' ), $source )
 	);
