@@ -1,0 +1,21 @@
+/* Ricoman previews — subtle motion layer.
+   Fail-safe: the .reveal class is only added by anim.js, so if JS/CSS fails
+   to load, all content stays fully visible (no hidden text). */
+
+.reveal{
+  opacity:0;
+  transform:translateY(18px);
+  transition:opacity .7s cubic-bezier(.2,.6,.2,1), transform .7s cubic-bezier(.2,.6,.2,1);
+  will-change:opacity, transform;
+}
+.reveal.in{opacity:1;transform:none}
+
+/* count-up numbers get tabular figures so width doesn't jump while ticking */
+.statband .big,.facts b,.cs-meta b,.metastrip .m b{
+  font-variant-numeric:tabular-nums;
+  font-feature-settings:"tnum" 1;
+}
+
+@media (prefers-reduced-motion: reduce){
+  .reveal,.reveal.in{opacity:1 !important;transform:none !important;transition:none !important}
+}
